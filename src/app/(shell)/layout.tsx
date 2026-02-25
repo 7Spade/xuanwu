@@ -28,7 +28,7 @@ type ShellLayoutProps = {
   /** @sidebar slot — DashboardSidebar */
   sidebar: ReactNode;
   /** @modal slot — global overlay (null by default) */
-  modal?: ReactNode;
+  modal: ReactNode;
 };
 
 export default function ShellLayout({ children, sidebar, modal }: ShellLayoutProps) {

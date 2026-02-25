@@ -9,11 +9,13 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'var(--font-inter)',
+  				'ui-sans-serif',
+  				'system-ui',
   				'sans-serif'
   			],
   			headline: [
-  				'var(--font-inter)',
+  				'ui-sans-serif',
+  				'system-ui',
   				'sans-serif'
   			],
   			code: [
