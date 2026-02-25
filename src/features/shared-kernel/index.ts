@@ -2,7 +2,7 @@
  * shared-kernel — Public barrel
  *
  * Re-exports all Shared Kernel contracts so consumers can import from
- * "@/shared-kernel" instead of pointing at individual files.
+ * "@/features/shared-kernel" instead of pointing at individual files.
  *
  * Rules (Invariant #8):
  *   - Every export here is an explicitly agreed cross-BC contract.

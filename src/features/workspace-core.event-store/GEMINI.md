@@ -29,7 +29,7 @@ Workspace event store — append-only log of all workspace domain events. Used e
 
 - `@/shared/types` — workspace event types
 - `@/shared/infra/firestore/` — Firestore append-only collection
-- `@/shared-kernel/events/event-envelope` — event envelope contract
+- `@/features/shared-kernel/events/event-envelope` — event envelope contract
 
 ## Architecture Note
 

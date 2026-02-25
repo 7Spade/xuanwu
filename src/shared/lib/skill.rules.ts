@@ -2,7 +2,7 @@
  * @fileoverview shared/lib/skill — Skill domain utilities backed by shared-kernel.
  * No async, no I/O, no React, no Firebase.
  *
- * Cross-BC tier types and computation functions live in @/shared-kernel/skills/skill-tier.
+ * Cross-BC tier types and computation functions live in @/features/shared-kernel/skills/skill-tier.
  * This module re-exports them for convenience and adds Account-BC-specific helpers
  * that require SkillGrant (a Firestore-backed Account BC type).
  */
