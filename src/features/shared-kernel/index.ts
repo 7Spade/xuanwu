@@ -11,11 +11,11 @@
  *     each affected Bounded Context before they land here.
  */
 
-// Event envelope — all domain events on any bus must conform to this shape
+// Event envelope — canonical EventEnvelope contract (lives in shared.kernel.event-envelope)
 export type {
   EventEnvelope,
   ImplementsEventEnvelopeContract,
-} from './events/event-envelope';
+} from '@/features/shared.kernel.event-envelope';
 
 // Authority snapshot — projection slices that expose permission data implement this
 export type {
@@ -44,14 +44,15 @@ export type {
 } from './workforce/schedule-proposed-payload';
 
 // Command result contract — canonical result shape for all Command Handlers [R4]
+// (lives in shared.kernel.contract-interfaces)
 export type {
   DomainError,
   CommandSuccess,
   CommandFailure,
   CommandResult,
-} from './commands/command-result-contract';
+} from '@/features/shared.kernel.contract-interfaces';
 export {
   commandSuccess,
   commandFailure,
   commandFailureFrom,
-} from './commands/command-result-contract';
+} from '@/features/shared.kernel.contract-interfaces';
