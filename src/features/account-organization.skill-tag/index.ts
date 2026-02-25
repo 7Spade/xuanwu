@@ -43,6 +43,15 @@ export type {
   SkillRecognitionStatus,
 } from './_org-skill-recognition';
 
+// Tag Lifecycle Subscriber — VS4_TAG_SUBSCRIBER [R3]
+// Called by projection.event-funnel on IER BACKGROUND_LANE TagLifecycleEvents
+// to keep the SKILL_TAG_POOL in sync with centralized-tag changes.
+export {
+  handleTagUpdatedForPool,
+  handleTagDeprecatedForPool,
+  handleTagDeletedForPool,
+} from './_tag-lifecycle-subscriber';
+
 // Read queries (Skill Tag Pool + Org Skill Recognition)
 export {
   getOrgSkillTag,
