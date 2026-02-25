@@ -1,68 +1,68 @@
 src/
 └── features/
-    /* ==========================================================
-       [VS0 / Core] 共享核心 (Shared Kernel)
-       定義所有切片必須遵守的「法律」與「語言」
-       ========================================================== */
-    ├── shared.event-envelope          # 定義 TraceID [R8] 與 AggregateVersion [R7]
-    ├── shared.tag-authority           # Tag Authority Center [VS0] 的權力定義
-    ├── shared.constants               # 跨切片共用的狀態枚舉與錯誤代碼
-    ├── shared.contract-interfaces     # 定義 CommandResult 與 QueryResult 格式
+    /* --------------------------------------------------------------------------
+       [VS0] Shared Kernel (共享核心)
+       系統的「法律與度量衡」，定義所有切片公用的合約
+       -------------------------------------------------------------------------- */
+    ├── shared.kernel.event-envelope           # [R8/R7] 統一信封 (TraceID, AggregateVersion)
+    ├── shared.kernel.tag-authority            # [VS0] 全域標籤權力中心定義
+    ├── shared.kernel.contract-interfaces      # [D10] 狀態契約與 Result 接口 (Command/Query)
+    ├── shared.kernel.constants                # 跨切片共用狀態 (如: WorkflowStatus, ErrorCodes)
 
-    /* ==========================================================
-       [GW / Infra] 基礎設施與網關 (Building Blocks)
-       系統的引擎：負責搬運 (Relay)、導航 (Router) 與急救 (DLQ)
-       ========================================================== */
-    ├── infra.gateway-command          # [GW] 統一指令入口、權限快照攔截
-    ├── infra.gateway-query            # [GW] 統一查詢註冊表與分發
-    ├── infra.outbox-relay             # [R1] 所有 OUTBOX 的掃描與投遞 Worker (CDC/Polling)
-    ├── infra.event-router             # [IER] 事件路由中心，包含 CRITICAL_LANE 分流 [R2]
-    ├── infra.dlq-manager              # [R5] DLQ 分級處理 (SAFE_AUTO / REVIEW_REQUIRED)
-    ├── infra.observability            # [R8] TraceID 穿透追蹤、日誌彙總與 Metrics
+    /* --------------------------------------------------------------------------
+       [GW / Infra] Building Blocks (基礎設施引擎)
+       系統的「排檔與救護車」，負責搬運、導航與例外處理
+       -------------------------------------------------------------------------- */
+    ├── infra.gateway-command                  # [GW] 指令閘道器 (驗權、RateLimit、Entry)
+    ├── infra.gateway-query                    # [GW] 查詢閘道器 (Query Registry)
+    ├── infra.outbox-relay                     # [R1] 搬運工 (掃描所有 OUTBOX 投遞至 IER)
+    ├── infra.event-router                     # [IER] 事件路由中心 (分流不同 Lanes [R2])
+    ├── infra.dlq-manager                      # [R5] 故障收容中心 (SAFE_AUTO / REVIEW)
+    ├── infra.observability                    # [R8] 觀測站 (OpenTelemetry, Log Trace)
 
-    /* ==========================================================
-       [VS1-VS3] 身份、帳號與錢包
-       ========================================================== */
-    ├── identity-account.auth          # [VS1] Token Refresh Handshake [R2]
-    ├── account-user.profile           # 用戶基本資訊
-    ├── account-user.skill             # 用戶個人能力標籤
-    ├── account-user.wallet            # [VS2] 錢包、積分、支付流水
-    ├── account-governance.policy      # [VS2] 治理策略定義
+    /* --------------------------------------------------------------------------
+       [VS1-VS3] Account & Identity (帳號與身份)
+       -------------------------------------------------------------------------- */
+    ├── identity-account.auth                  # [VS1] 認證與 Token Refresh Handshake [R2]
+    ├── account-user.profile                   # 用戶基本資料
+    ├── account-user.wallet                    # [VS2] 錢包與積分 (核心資產)
+    ├── account-user.skill                     # 用戶個人技能成長 [VS3]
+    ├── account-governance.policy              # [VS2] 錢包與治理政策定義
 
-    /* ==========================================================
-       [VS4] 組織與治理
-       ========================================================== */
-    ├── account-organization.core      # 組織基本 Aggregate
-    ├── account-organization.skill-tag # [R3] 組織本地 Tag Pool 閉環
-    ├── account-organization.member    # 成員管理
-    ├── account-organization.policy    # 組織專屬政策
-    ├── account-organization.team      # 團隊/部門結構
+    /* --------------------------------------------------------------------------
+       [VS4] Organization (組織治理)
+       -------------------------------------------------------------------------- */
+    ├── account-organization.core              # 組織基本 Aggregate (OrgId, Name)
+    ├── account-organization.skill-tag         # [R3] 組織專屬 Tag Pool (更新閉環)
+    ├── account-organization.member            # 成員身分管理 (Roles, Joins)
+    ├── account-organization.team              # 團隊結構 (Department, Group)
+    ├── account-organization.policy            # 組織層級策略 (Access Control)
 
-    /* ==========================================================
-       [VS5-VS6] 工作區與排班 (核心業務邏輯)
-       ========================================================== */
-    ├── workspace-core.event-store     # [VS5] 專屬 Event Store
-    ├── workspace-business.workflow    # [R6] Workflow 狀態機與狀態轉移限制
-    ├── workspace-business.tasks       # [A3] Track A: 一般任務處理
-    ├── workspace-business.issues      # [A3] Track B: 異常/議題處理
-    ├── workspace-business.schedule    # 工作區內的排班逻辑
-    ├── workspace-business.finance     # 工作區結算邏輯
-    ├── workspace-governance.audit     # [R8] 業務審計日誌
-    ├── scheduling-core.saga           # [VS6] 排班協作 Saga 協調器
+    /* --------------------------------------------------------------------------
+       [VS5-VS6] Workspace & Scheduling (業務執行層)
+       -------------------------------------------------------------------------- */
+    ├── workspace-core.event-store             # [VS5] 事件存儲與 Snapshot 機制
+    ├── workspace-business.workflow            # [R6] 狀態機轉移合約 (Draft->Finance)
+    ├── workspace-business.tasks               # [A3] Track A: 標準任務邏輯
+    ├── workspace-business.issues              # [A3] Track B: 異常議題處理
+    ├── workspace-business.schedule            # 工作區內部排班協作
+    ├── workspace-business.finance             # 結算、單據與財務確認
+    ├── workspace-governance.audit             # 業務合規審計軌跡
+    ├── scheduling-core.saga                   # [VS6] 跨組織排班協作 Saga 協調器
 
-    /* ==========================================================
-       [VS8] 投影層 (Projections / Read Models)
-       負責將分散的事件聚合成「好用的視圖」
-       ========================================================== */
-    ├── projection.event-funnel        # [VS8] 彙整所有切片事件進入投影流水線
-    ├── projection.account-view        # 用戶視圖 (用於前端展示)
-    ├── projection.organization-view   # 組織視圖
-    ├── projection.workspace-view      # 工作區視圖
-    ├── projection.org-eligible-member-view # [R7] 帶版本校驗的合規成員視圖
-    ├── projection.tag-snapshot        # [R3] Tag 狀態快照供查詢使用
+    /* --------------------------------------------------------------------------
+       [VS8] Projections (讀模型投影層)
+       負責「接住事件並翻譯成前端好讀的視圖」
+       -------------------------------------------------------------------------- */
+    ├── projection.event-funnel                # [VS8] 事件漏斗 (彙整點)
+    ├── projection.account-view                # 用戶個人視圖 (User Dashboard)
+    ├── projection.organization-view           # 組織總覽視圖 (Org Dashboard)
+    ├── projection.workspace-view              # 工作區即時視圖 (Workspace Board)
+    ├── projection.org-eligible-member-view    # [R7] 帶版本校驗的合規成員清單
+    ├── projection.tag-snapshot                # [R3] 標籤快照集
 
-    /* ==========================================================
-       [VS7] 通知交付
-       ========================================================== */
-    ├── account-user.notification      # 用戶通知設定
-    └── notification-router.fcm        # [VS7] FCM 投遞、設備 Token 管理
+    /* --------------------------------------------------------------------------
+       [VS7] Notification (通知交付層)
+       -------------------------------------------------------------------------- */
+    ├── account-user.notification              # 用戶通知開關與偏好
+    └── notification-router.fcm                # [VS7] FCM 投遞引擎與裝置 Token 管理
