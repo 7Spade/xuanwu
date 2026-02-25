@@ -17,14 +17,16 @@ export type {
   ImplementsEventEnvelopeContract,
 } from '@/features/shared.kernel.event-envelope';
 
-// Authority snapshot — projection slices that expose permission data implement this
+// Authority snapshot — canonical authority snapshot contract (lives in shared.kernel.authority-snapshot)
 export type {
   AuthoritySnapshot,
   ImplementsAuthoritySnapshotContract,
-} from './identity/authority-snapshot';
+} from '@/features/shared.kernel.authority-snapshot';
 
-// Skill tier — canonical seven-tier proficiency scale and its pure-function computation
-export type { SkillTier, TierDefinition } from './skills/skill-tier';
+// Skill tier — canonical seven-tier proficiency scale [SK_SKILL_TIER] (lives in shared.kernel.skill-tier)
+// Skill requirement — cross-BC staffing contract [SK_SKILL_REQ] (lives in shared.kernel.skill-tier)
+// Schedule proposed payload — Workspace→Org cross-BC event payload [A5] (lives in shared.kernel.skill-tier)
+export type { SkillTier, TierDefinition } from '@/features/shared.kernel.skill-tier';
 export {
   TIER_DEFINITIONS,
   getTierDefinition,
@@ -32,16 +34,12 @@ export {
   getTier,
   getTierRank,
   tierSatisfies,
-} from './skills/skill-tier';
-
-// Skill requirement — cross-BC staffing contract for schedule proposals
-export type { SkillRequirement } from './workforce/skill-requirement';
-
-// Schedule proposed payload — cross-BC event payload (Workspace BC → Organization BC saga)
+} from '@/features/shared.kernel.skill-tier';
+export type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
 export type {
   WorkspaceScheduleProposedPayload,
   ImplementsScheduleProposedPayloadContract,
-} from './workforce/schedule-proposed-payload';
+} from '@/features/shared.kernel.skill-tier';
 
 // Command result contract — canonical result shape for all Command Handlers [R4]
 // (lives in shared.kernel.contract-interfaces)

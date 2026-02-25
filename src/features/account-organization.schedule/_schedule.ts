@@ -22,7 +22,7 @@ import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { publishOrgEvent } from '@/features/account-organization.event-bus';
 import { getOrgMemberEligibility } from '@/features/projection.org-eligible-member-view';
-import { resolveSkillTier, tierSatisfies } from '@/features/shared-kernel/skills/skill-tier';
+import { resolveSkillTier, tierSatisfies } from '@/features/shared.kernel.skill-tier';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
 import type { SkillRequirement } from '@/shared/types';
 

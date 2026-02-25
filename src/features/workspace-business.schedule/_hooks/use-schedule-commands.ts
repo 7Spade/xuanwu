@@ -17,7 +17,7 @@ import {
     updateScheduleItemStatus,
 } from "../_actions";
 import { canTransitionScheduleStatus } from "@/shared/lib";
-import { tierSatisfies } from "@/features/shared-kernel/skills/skill-tier";
+import { tierSatisfies } from "@/features/shared.kernel.skill-tier";
 import { toast } from "@/shared/utility-hooks/use-toast";
 import type { ScheduleItem } from "@/shared/types";
 import { getAccountActiveAssignments } from "@/features/projection.account-schedule";
