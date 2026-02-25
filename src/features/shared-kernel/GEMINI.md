@@ -1,4 +1,4 @@
-# Shared Kernel (`src/shared-kernel/`)
+# Shared Kernel (`src/features/shared-kernel/`)
 
 ## Role
 
@@ -29,15 +29,15 @@ Per logic-overview.v3.md Invariant #8:
 
 ```ts
 // Preferred: single barrel entry point
-import type { SkillTier, SkillRequirement } from '@/shared-kernel';
-import { resolveSkillTier, tierSatisfies } from '@/shared-kernel';
+import type { SkillTier, SkillRequirement } from '@/features/shared-kernel';
+import { resolveSkillTier, tierSatisfies } from '@/features/shared-kernel';
 
 // Canonical granular imports (by domain subdirectory)
-import type { EventEnvelope } from '@/shared-kernel/events/event-envelope';
-import type { AuthoritySnapshot } from '@/shared-kernel/identity/authority-snapshot';
-import type { SkillTier } from '@/shared-kernel/skills/skill-tier';
-import type { SkillRequirement } from '@/shared-kernel/workforce/skill-requirement';
-import type { WorkspaceScheduleProposedPayload } from '@/shared-kernel/workforce/schedule-proposed-payload';
+import type { EventEnvelope } from '@/features/shared-kernel/events/event-envelope';
+import type { AuthoritySnapshot } from '@/features/shared-kernel/identity/authority-snapshot';
+import type { SkillTier } from '@/features/shared-kernel/skills/skill-tier';
+import type { SkillRequirement } from '@/features/shared-kernel/workforce/skill-requirement';
+import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel/workforce/schedule-proposed-payload';
 ```
 
 ## Rules
@@ -56,6 +56,6 @@ import paths continue to work:
 
 ```ts
 // shared/types/skill.types.ts (excerpt)
-export type { SkillTier, TierDefinition } from '@/shared-kernel/skills/skill-tier';
-export type { SkillRequirement } from '@/shared-kernel/workforce/skill-requirement';
+export type { SkillTier, TierDefinition } from '@/features/shared-kernel/skills/skill-tier';
+export type { SkillRequirement } from '@/features/shared-kernel/workforce/skill-requirement';
 ```

@@ -51,7 +51,7 @@ export type { TagLifecycleEventPayloadMap, TagCreatedPayload, ... } from './_eve
 ## Dependencies
 
 - `@/shared/infra/firestore/` — read/write adapters
-- `@/shared-kernel/events/event-envelope` — event envelope contract marker
+- `@/features/shared-kernel/events/event-envelope` — event envelope contract marker
 
 ## Consumer Contract
 

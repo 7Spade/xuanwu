@@ -27,7 +27,7 @@ Organization event bus — publish/subscribe engine for organization-level domai
 
 ## Dependencies
 
-- `@/shared-kernel/events/event-envelope` — shared event envelope contract (must implement)
+- `@/features/shared-kernel/events/event-envelope` — shared event envelope contract (must implement)
 
 ## Architecture Note
 
