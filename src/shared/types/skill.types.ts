@@ -21,9 +21,9 @@ import type { Timestamp } from 'firebase/firestore'
 // SkillTier and SkillRequirement are cross-BC contracts — defined in shared-kernel.
 // Imported locally so they are available within this file, and re-exported so
 // existing @/shared/types imports continue to work.
-import type { SkillTier } from '@/shared-kernel/skills/skill-tier';
-export type { SkillTier, TierDefinition } from '@/shared-kernel/skills/skill-tier';
-export type { SkillRequirement } from '@/shared-kernel/workforce/skill-requirement';
+import type { SkillTier } from '@/features/shared-kernel/skills/skill-tier';
+export type { SkillTier, TierDefinition } from '@/features/shared-kernel/skills/skill-tier';
+export type { SkillRequirement } from '@/features/shared-kernel/workforce/skill-requirement';
 
 // ---------------------------------------------------------------------------
 // Global skill-tag library (static reference type)

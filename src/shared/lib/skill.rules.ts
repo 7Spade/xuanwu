@@ -8,8 +8,8 @@
  */
 
 import type { SkillGrant } from '@/shared/types'
-import type { SkillRequirement } from '@/shared-kernel/workforce/skill-requirement'
-import { getTierRank } from '@/shared-kernel/skills/skill-tier'
+import type { SkillRequirement } from '@/features/shared-kernel/workforce/skill-requirement'
+import { getTierRank } from '@/features/shared-kernel/skills/skill-tier'
 
 // Re-export everything from shared-kernel so callers can use @/shared/lib
 // as a single import point for skill rules.
@@ -20,7 +20,7 @@ export {
   getTierDefinition,
   getTierRank,
   tierSatisfies,
-} from '@/shared-kernel/skills/skill-tier';
+} from '@/features/shared-kernel/skills/skill-tier';
 
 // ---------------------------------------------------------------------------
 // Account BC helper — requires SkillGrant (has Timestamp; stays in shared/lib)

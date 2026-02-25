@@ -9,7 +9,7 @@
  */
 
 import type { Timestamp } from 'firebase/firestore';
-import type { AuthoritySnapshot } from '@/shared-kernel/identity/authority-snapshot';
+import type { AuthoritySnapshot } from '@/features/shared-kernel/identity/authority-snapshot';
 
 export interface WorkspaceScopeGuardView {
   readonly implementsAuthoritySnapshot: true;

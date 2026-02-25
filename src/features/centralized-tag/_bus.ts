@@ -9,7 +9,7 @@
  *   TAG_EVENTS -.->|"契約遵循"| SK_ENV
  */
 
-import type { ImplementsEventEnvelopeContract } from '@/shared-kernel/events/event-envelope';
+import type { ImplementsEventEnvelopeContract } from '@/features/shared-kernel/events/event-envelope';
 import type { TagLifecycleEventPayloadMap, TagLifecycleEventKey } from './_events';
 
 type TagEventHandler<K extends TagLifecycleEventKey> = (
