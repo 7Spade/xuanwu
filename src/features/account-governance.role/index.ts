@@ -6,8 +6,8 @@
  * Per logic-overview.v3.md: ACCOUNT_ROLE → CUSTOM_CLAIMS
  */
 
-export { assignAccountRole, revokeAccountRole } from './_actions';
-export type { AccountRoleRecord, AssignRoleInput } from './_actions';
+export { assignAccountRole, revokeAccountRole, emitTokenRefreshSignal } from './_actions';
+export type { AccountRoleRecord, AssignRoleInput, TokenRefreshSignal, TokenRefreshReason } from './_actions';
 
 export { getAccountRole, subscribeToAccountRoles } from './_queries';
 

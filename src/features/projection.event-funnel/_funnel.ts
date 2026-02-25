@@ -47,6 +47,11 @@ import {
   applyTagDeprecated,
   applyTagDeleted,
 } from '@/features/projection.tag-snapshot';
+import {
+  handleTagUpdatedForPool,
+  handleTagDeprecatedForPool,
+  handleTagDeletedForPool,
+} from '@/features/account-organization.skill-tag';
 
 /**
  * Registers workspace event handlers on the bus to keep projections in sync.
@@ -239,7 +244,11 @@ export function registerOrganizationFunnel(): () => void {
 
 /**
  * Registers tag lifecycle event handlers to keep the TAG_SNAPSHOT projection in sync.
+ * Also delegates to VS4_TAG_SUBSCRIBER to update SKILL_TAG_POOL. [R3]
  * Returns a cleanup function.
+ *
+ * Per logic-overview_v9.md [R3]:
+ *   IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
  *
  * Per logic-overview_v5.md (VS8):
  *   IER ==>|"#9 唯一寫入路徑"| FUNNEL
@@ -258,26 +267,29 @@ export function registerTagFunnel(): () => void {
     })
   );
 
-  // tag:updated → TAG_SNAPSHOT
+  // tag:updated → TAG_SNAPSHOT + SKILL_TAG_POOL (via VS4_TAG_SUBSCRIBER [R3])
   unsubscribers.push(
     onTagEvent('tag:updated', async (payload) => {
       await applyTagUpdated(payload);
+      await handleTagUpdatedForPool(payload);
       await upsertProjectionVersion('tag-snapshot', Date.now(), new Date().toISOString());
     })
   );
 
-  // tag:deprecated → TAG_SNAPSHOT (merges deprecatedAt into existing entry)
+  // tag:deprecated → TAG_SNAPSHOT + SKILL_TAG_POOL (via VS4_TAG_SUBSCRIBER [R3])
   unsubscribers.push(
     onTagEvent('tag:deprecated', async (payload) => {
       await applyTagDeprecated(payload);
+      await handleTagDeprecatedForPool(payload);
       await upsertProjectionVersion('tag-snapshot', Date.now(), new Date().toISOString());
     })
   );
 
-  // tag:deleted → TAG_SNAPSHOT (removes entry)
+  // tag:deleted → TAG_SNAPSHOT + SKILL_TAG_POOL (via VS4_TAG_SUBSCRIBER [R3])
   unsubscribers.push(
     onTagEvent('tag:deleted', async (payload) => {
       await applyTagDeleted(payload);
+      await handleTagDeletedForPool(payload);
       await upsertProjectionVersion('tag-snapshot', Date.now(), new Date().toISOString());
     })
   );
