@@ -12,7 +12,7 @@ This repository is onboarding Copilot with a **minimal, architecture-first rule 
   - `src/app`: Next.js App Router composition only
   - `src/features`: business-domain vertical slices
   - `src/shared`: cross-cutting infrastructure
-  - `src/shared-kernel`: core domain models and utilities shared across features
+  - `src/features/shared-kernel`: core domain models and utilities shared across features
 - Dependency direction:
   - `app -> features/{slice}/index.ts -> shared`
 - Cross-slice access:
@@ -39,7 +39,7 @@ This repository is onboarding Copilot with a **minimal, architecture-first rule 
 - **Test driven**: If modifying a feature, check for existing tests in the slice (e.g., `src/features/{slice}/__tests__`) and update them accordingly.
 
 ## Working style for Copilot
-- Prioritize existing patterns in `src/features/*`, `src/app/*`, `src/shared`, and `src/shared-kernel/*`.
+- Prioritize existing patterns in `src/features/*`, `src/app/*`, `src/shared`, and `src/features/shared-kernel/*`.
 - Prefer server-first Next.js patterns and minimal client boundaries (use `"use client"` only at the leaf nodes).
 - Validate with existing commands when relevant:
   - `npm run lint`
