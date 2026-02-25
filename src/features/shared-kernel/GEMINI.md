@@ -18,23 +18,26 @@ Per `logic-overview_v9.md` Invariant #8:
 
 | File | Contract | Consumers |
 |------|----------|-----------|
-| `events/event-envelope.ts` | `EventEnvelope<T>`, `ImplementsEventEnvelopeContract` — carries `traceId` (end-to-end shared [R8]), `version` [R7], `idempotency-key` [D2] | `workspace-core.event-bus`, `account-organization.event-bus` |
+| *(see `shared.kernel.event-envelope`)* | `EventEnvelope<T>`, `ImplementsEventEnvelopeContract` — carries `traceId` (end-to-end shared [R8]), `version` [R7], `idempotency-key` [D2] | `workspace-core.event-bus`, `account-organization.event-bus` |
 | `identity/authority-snapshot.ts` | `AuthoritySnapshot`, `ImplementsAuthoritySnapshotContract` | `projection.workspace-scope-guard`, `projection.account-view` |
 | `skills/skill-tier.ts` | `SkillTier`, `TierDefinition`, `TIER_DEFINITIONS`, `resolveSkillTier()`, `getTier()`, `getTierRank()`, `tierSatisfies()` | `account-user.skill`, `account-organization.schedule`, `workspace-business.schedule`, `projection.account-skill-view`, `projection.org-eligible-member-view` |
 | `workforce/skill-requirement.ts` | `SkillRequirement` | `workspace-business.schedule`, `workspace-business.document-parser`, `workspace-core.event-bus`, `account-organization.schedule` |
 | `workforce/schedule-proposed-payload.ts` | `WorkspaceScheduleProposedPayload`, `ImplementsScheduleProposedPayloadContract` | `workspace-core.event-bus` (produces), `account-organization.schedule` (consumes) |
-| `commands/command-result-contract.ts` | `CommandResult`, `CommandSuccess { aggregateId, version }`, `CommandFailure { DomainError }` [R4] | `workspace-application` (Command Handler return), all Server Actions |
-| `index.ts` | Re-exports all of the above | All consumers |
+| *(see `shared.kernel.contract-interfaces`)* | `CommandResult`, `CommandSuccess { aggregateId, version }`, `CommandFailure { DomainError }` [R4] | `workspace-application` (Command Handler return), all Server Actions |
+| `index.ts` | Convenience barrel — re-exports all of the above from individual VS0 slices | All consumers |
 
 ## Import
 
 ```ts
-// Preferred: single barrel entry point
+// Preferred: single barrel entry point (aggregates all VS0 contracts)
 import type { SkillTier, SkillRequirement } from '@/features/shared-kernel';
 import { resolveSkillTier, tierSatisfies } from '@/features/shared-kernel';
 
-// Canonical granular imports (by domain subdirectory)
-import type { EventEnvelope } from '@/features/shared-kernel/events/event-envelope';
+// Direct VS0 slice imports (preferred for EventEnvelope and CommandResult)
+import type { EventEnvelope } from '@/features/shared.kernel.event-envelope';
+import type { CommandResult } from '@/features/shared.kernel.contract-interfaces';
+
+// Granular imports by domain subdirectory (within shared-kernel only)
 import type { AuthoritySnapshot } from '@/features/shared-kernel/identity/authority-snapshot';
 import type { SkillTier } from '@/features/shared-kernel/skills/skill-tier';
 import type { SkillRequirement } from '@/features/shared-kernel/workforce/skill-requirement';

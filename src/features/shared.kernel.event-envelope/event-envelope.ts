@@ -1,13 +1,11 @@
 /**
- * shared-kernel.event-envelope
+ * shared.kernel.event-envelope
  *
  * Shared Kernel contract for all domain events across Bounded Contexts.
  *
- * Per logic-overview.v3.md S4 Integration Contracts:
+ * Per logic-overview_v9.md [R8][R7]:
  *   WORKSPACE_EVENT_BUS -.->|事件契約遵循| SK_EVENT_ENVELOPE
  *   ORGANIZATION_EVENT_BUS -.->|事件契約遵循| SK_EVENT_ENVELOPE
- *
- * %% Shared Kernel 區塊的虛線表示「契約遵循（implements contract）」而非跨 BC 讀寫依賴
  *
  * All domain events published on any event bus MUST conform to this envelope contract.
  * This ensures observability, replay, and cross-BC traceability without coupling BCs.
