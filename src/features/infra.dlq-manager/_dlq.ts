@@ -1,5 +1,7 @@
 /**
- * shared/infra/dlq — Dead-Letter Queue tier classification [R5]
+ * infra.dlq-manager — _dlq.ts
+ *
+ * Dead-Letter Queue tier classification [R5]
  *
  * Per logic-overview_v9.md [R5] DLQ 三級策略:
  *
@@ -7,7 +9,7 @@
  *   REVIEW_REQUIRED — WalletDeducted・ScheduleAssigned・RoleChanged (human review before replay)
  *   SECURITY_BLOCK  — ClaimsRefresh failure (security event: alert + freeze + manual confirmation)
  *
- * The OUTBOX_RELAY_WORKER attaches a `dlqLevel` to every entry it routes to the DLQ
+ * The infra.outbox-relay worker attaches a `dlqLevel` to every entry it routes to the DLQ
  * so that DLQ consumers can enforce the correct replay policy without inspecting the
  * event payload again.
  *
