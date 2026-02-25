@@ -23,7 +23,7 @@ type DashboardLayoutProps = {
   /** @header parallel route slot — Header with SidebarTrigger + Breadcrumb */
   header: ReactNode;
   /** @modal parallel route slot — route-specific dialog/overlay surfaces */
-  modal?: ReactNode;
+  modal: ReactNode;
 };
 
 export default function DashboardLayout({ children, header, modal }: DashboardLayoutProps) {

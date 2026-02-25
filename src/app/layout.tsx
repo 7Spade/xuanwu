@@ -2,7 +2,6 @@
 import type {Metadata} from 'next';
 import '../styles/globals.css';
 import {Toaster} from '@/shared/shadcn-ui/toaster';
-import { Inter } from 'next/font/google';
 import { cn } from '@/shared/lib';
 import { ThemeProvider } from '@/shared/app-providers/theme-provider';
 import { FirebaseClientProvider } from '@/shared/app-providers/firebase-provider';
@@ -15,11 +14,6 @@ export const metadata: Metadata = {
   description: 'From Single Identity to Multidimensional Organization',
 };
 
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter',
-});
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(inter.variable, 'font-sans', 'antialiased', 'min-h-screen', 'bg-background')}>
+      <body className={cn('font-sans', 'antialiased', 'min-h-screen', 'bg-background')}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

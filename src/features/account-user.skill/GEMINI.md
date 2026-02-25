@@ -10,7 +10,7 @@ This slice holds **growth sovereignty**: only this BC may write XP values.
 - `addXp` / `deductXp` — the ONLY two write paths for XP (enforces Invariants #11, #12, #13)
 - Mandatory XP Ledger write before every aggregate update
 - XP clamped strictly to `0–525` (from `SKILL_XP_MAX`)
-- Publish `SkillXpAdded` / `SkillXpDeducted` events to Organization Event Bus
+- Publish `SkillXpAdded` / `SkillXpDeducted` events to Organization Event Bus via `_actions.ts` (not the aggregate)
 
 ## Invariants Enforced
 
@@ -20,18 +20,23 @@ This slice holds **growth sovereignty**: only this BC may write XP values.
 | 12 | Tier is never stored in DB | `AccountSkillRecord` has no `tier` field; derive via `getTier(xp)` |
 | 13 | Every XP change produces a Ledger entry | `appendXpLedgerEntry()` is called BEFORE every aggregate write |
 
-## Write Path
+## Write Path (logic-overview.v3.md E1)
 
 ```
-Server Action → addXp/deductXp → clamp(0~525) → appendXpLedgerEntry → setDocument(aggregate) → publishOrgEvent
+Server Action (_actions.ts)
+  → addXp/deductXp (aggregate: clamp 0~525, appendXpLedgerEntry, setDocument)
+  → _actions.ts publishes SkillXpAdded/SkillXpDeducted → ORG_EVENT_BUS
 ```
+
+Per E1: The aggregate does NOT publish to cross-BC buses directly (Invariant #3).
+`_actions.ts` is the application coordinator responsible for cross-BC event routing.
 
 ## Internal Files
 
 | File | Purpose |
 |------|---------|
-| `_actions.ts` | `addSkillXp`, `deductSkillXp` Server Actions |
-| `_aggregate.ts` | `addXp`, `deductXp`, `getSkillXp` domain operations |
+| `_actions.ts` | `addSkillXp`, `deductSkillXp` Server Actions + cross-BC event publishing (E1) |
+| `_aggregate.ts` | `addXp`, `deductXp`, `getSkillXp` — pure domain operations, no cross-BC imports |
 | `_ledger.ts` | `appendXpLedgerEntry`, `XpLedgerEntry` type |
 | `index.ts` | Public API |
 
@@ -52,11 +57,13 @@ export type { AccountSkillRecord, XpLedgerEntry } from '...';
 
 ## Dependencies
 
-- `@/shared/infra/firestore/` — read/write adapters
-- `@/features/account-organization.event-bus` — publishes skill XP events
+- `_aggregate.ts`: `@/shared/infra/firestore/` only — no cross-BC imports
+- `_actions.ts`: `@/features/account-organization.event-bus` — publishes skill XP events (application coordinator role)
 - `@/shared/lib` — `resolveSkillTier` / `getTier` (read-only derivation)
 
-## Architecture Note
+## Architecture Note (E1)
 
-`logic-overview.v3.md S1`: `SERVER_ACTION_SKILL → ACCOUNT_SKILL_AGGREGATE → ACCOUNT_SKILL_XP_LEDGER → ORGANIZATION_EVENT_BUS`.
+Per `logic-overview.v3.md` E1: `SkillXpAdded/Deducted` events are published by `_actions.ts`
+(the application coordinator) to `ORGANIZATION_EVENT_BUS` — NOT by the aggregate directly.
+This prevents VS3 → VS4 boundary invasion (Invariant #2 and #3).
 Organization may NOT write to this slice; it only receives events and sets `minXpRequired` gates in `ORG_SKILL_RECOGNITION`.

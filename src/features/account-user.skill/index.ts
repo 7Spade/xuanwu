@@ -3,8 +3,10 @@
  *
  * AccountSkill aggregate: addXp / deductXp with mandatory Ledger writes.
  *
- * Per logic-overview.v3.md:
- *   SERVER_ACTION_SKILL → ACCOUNT_SKILL_AGGREGATE → ACCOUNT_SKILL_XP_LEDGER → ORGANIZATION_EVENT_BUS
+ * Per logic-overview.v3.md [E1]:
+ *   SERVER_ACTION_SKILL → ACCOUNT_SKILL_AGGREGATE → ACCOUNT_SKILL_XP_LEDGER
+ *   _actions.ts (application coordinator) → ORGANIZATION_EVENT_BUS (via IER routing)
+ *   Aggregate does NOT publish to cross-BC buses directly (Invariant #3).
  *
  * Invariants enforced by this slice:
  *   #11 — XP belongs to Account BC; published to Organization only via events.
