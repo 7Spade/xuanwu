@@ -159,6 +159,7 @@ export function registerOrganizationFunnel(): () => void {
 
   // ScheduleAssigned → ACCOUNT_PROJECTION_SCHEDULE + ORG_ELIGIBLE_MEMBER_VIEW (eligible = false)
   // Per Invariant #15: schedule:assigned must update the eligible flag so double-booking is prevented.
+  // Per Invariant #19 [R7]: pass aggregateVersion for ELIGIBLE_UPDATE_GUARD monotonic check.
   unsubscribers.push(
     onOrgEvent('organization:schedule:assigned', async (payload) => {
       await applyScheduleAssigned(payload.targetAccountId, {
@@ -168,7 +169,7 @@ export function registerOrganizationFunnel(): () => void {
         endDate: payload.endDate,
         status: 'upcoming',
       });
-      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, false);
+      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, false, payload.aggregateVersion);
       await upsertProjectionVersion('account-schedule', Date.now(), new Date().toISOString());
     })
   );

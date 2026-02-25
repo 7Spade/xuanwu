@@ -19,6 +19,7 @@
 
 import { z } from 'zod';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { publishOrgEvent } from '@/features/account-organization.event-bus';
 import { getOrgMemberEligibility } from '@/features/projection.org-eligible-member-view';
 import { resolveSkillTier, tierSatisfies } from '@/shared-kernel/skills/skill-tier';
@@ -65,6 +66,12 @@ export const orgScheduleProposalSchema = z.object({
   intentId: z.string().optional(),
   /** Skill requirements carried over from the workspace proposal — used during org approval. */
   skillRequirements: z.array(skillRequirementSchema).optional(),
+  /**
+   * Aggregate version of this org-schedule proposal. [R7]
+   * Incremented on each state transition (proposed → confirmed/cancelled).
+   * Included in published events so ELIGIBLE_UPDATE_GUARD can enforce monotonic updates.
+   */
+  version: z.number().int().min(1).default(1),
 });
 
 export type OrgScheduleProposal = z.infer<typeof orgScheduleProposalSchema>;
@@ -177,8 +184,13 @@ export async function approveOrgScheduleProposal(
   }
 
   // --- All checks passed → Confirm ---
+  // Read current version and increment to ensure proper aggregateVersion for ELIGIBLE_UPDATE_GUARD [R7]
+  const existing = await getDocument<OrgScheduleProposal>(`orgScheduleProposals/${scheduleItemId}`);
+  const nextVersion = (existing?.version ?? 1) + 1;
+
   await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
     status: 'confirmed' satisfies OrgScheduleStatus,
+    version: nextVersion,
   });
 
   await publishOrgEvent('organization:schedule:assigned', {
@@ -190,6 +202,7 @@ export async function approveOrgScheduleProposal(
     startDate: opts.startDate,
     endDate: opts.endDate,
     title: opts.title,
+    aggregateVersion: nextVersion,
   });
 
   return { outcome: 'confirmed', scheduleItemId };

@@ -28,6 +28,8 @@ import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
  * `skills` maps tagSlug → { xp }.
  * `tier` is intentionally absent — derived at read time via resolveSkillTier(xp).
  * `eligible` is a fast-path flag; consumers SHOULD re-verify via skill requirements.
+ * `lastProcessedVersion` is the highest aggregateVersion seen for this member's
+ *   eligibility-affecting events; used by ELIGIBLE_UPDATE_GUARD [R7][#19].
  */
 export interface OrgEligibleMemberEntry {
   orgId: string;
@@ -36,6 +38,13 @@ export interface OrgEligibleMemberEntry {
   skills: Record<string, { xp: number }>;
   /** True when the member has no active conflicting assignments and is in the org. */
   eligible: boolean;
+  /**
+   * Highest aggregateVersion processed for this entry's eligibility. [R7][#19]
+   * ELIGIBLE_UPDATE_GUARD: only update when incomingVersion > lastProcessedVersion.
+   * Prevents out-of-order events (e.g. ScheduleCompleted arriving before ScheduleAssigned)
+   * from reverting the eligible flag to an incorrect state.
+   */
+  lastProcessedVersion: number;
   readModelVersion: number;
   updatedAt: ReturnType<typeof serverTimestamp>;
 }
@@ -56,6 +65,7 @@ export async function initOrgMemberEntry(
     accountId,
     skills: {},
     eligible: true,
+    lastProcessedVersion: 0,
     readModelVersion: Date.now(),
     updatedAt: serverTimestamp(),
   } satisfies OrgEligibleMemberEntry);
@@ -99,6 +109,7 @@ export async function applyOrgMemberSkillXp(
       accountId,
       skills: { [skillId]: { xp: newXp } },
       eligible: true,
+      lastProcessedVersion: 0,
       readModelVersion: Date.now(),
       updatedAt: serverTimestamp(),
     } satisfies OrgEligibleMemberEntry);
@@ -106,21 +117,34 @@ export async function applyOrgMemberSkillXp(
 }
 
 /**
- * Updates the eligible flag for a member.
+ * Updates the eligible flag for a member with ELIGIBLE_UPDATE_GUARD. [R7][#19][D11]
+ *
+ * GUARD RULE: only update when incomingAggregateVersion > entry.lastProcessedVersion.
+ * If the incoming version is not newer, the event is stale (out-of-order delivery) —
+ * discard silently to prevent timing races from reverting eligible to an incorrect state.
  *
  * Called when:
- *   organization:schedule:assigned → eligible = false (member is now busy)
+ *   organization:schedule:assigned  → eligible = false (member is now busy)
  *   organization:schedule:completed / organization:schedule:cancelled → eligible = true (member is free)
  *
  * Per Invariant #15: eligible must reflect "no active conflicting assignments".
+ * Per Invariant #19: eligible update must use aggregateVersion monotonic increase as prerequisite.
  */
 export async function updateOrgMemberEligibility(
   orgId: string,
   accountId: string,
-  eligible: boolean
+  eligible: boolean,
+  incomingAggregateVersion: number
 ): Promise<void> {
+  const existing = await getDocument<OrgEligibleMemberEntry>(memberPath(orgId, accountId));
+
+  if (existing && incomingAggregateVersion <= existing.lastProcessedVersion) {
+    return;
+  }
+
   await updateDocument(memberPath(orgId, accountId), {
     eligible,
+    lastProcessedVersion: incomingAggregateVersion,
     readModelVersion: Date.now(),
     updatedAt: serverTimestamp(),
   });
