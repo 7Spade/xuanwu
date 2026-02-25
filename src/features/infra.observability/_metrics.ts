@@ -5,7 +5,7 @@
  *
  * Per tree.md: infra.observability = [R8] 觀測站 (OpenTelemetry, Log Trace)
  *
- * Per logic-overview.v3.md (OBSERVABILITY_LAYER):
+ * Per logic-overview_v9.md (OBSERVABILITY_LAYER):
  *   WORKSPACE_EVENT_BUS --> DOMAIN_METRICS
  *
  * Tracks published event counts per event type.
