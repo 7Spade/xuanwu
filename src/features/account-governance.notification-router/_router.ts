@@ -5,9 +5,13 @@
  * Routes organization events to the correct target account notification slice
  * based on TargetAccountID.
  *
- * Per logic-overview.v3.md:
- *   ORGANIZATION_EVENT_BUS →|ScheduleAssigned（含 TargetAccountID）| ACCOUNT_NOTIFICATION_ROUTER
+ * Per logic-overview.v3.md [E3]:
+ *   IER →|ScheduleAssigned| ACCOUNT_NOTIFICATION_ROUTER
  *   ACCOUNT_NOTIFICATION_ROUTER →|路由至目標帳號| ACCOUNT_USER_NOTIFICATION
+ *
+ * Current implementation: subscribes directly to the org event bus.
+ * This is the consumer side — when a dedicated IER layer is introduced,
+ * it will be the IER (not the org event bus) that calls this router.
  *
  * Does NOT generate content — only routes from event source to delivery slice.
  */

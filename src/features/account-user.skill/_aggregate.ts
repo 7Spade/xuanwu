@@ -14,14 +14,15 @@
  *   #12 — Tier is NEVER stored here. Derive via resolveSkillTier(xp) / getTier(xp).
  *   #13 — Every xp change MUST write a ledger entry BEFORE updating the aggregate.
  *
- * Write path per logic-overview.v3.md:
+ * Write path per logic-overview.v3.md [E1]:
  *   Server Action → addXp/deductXp → clamp 0~525 → appendXpLedgerEntry
- *     → setDocument(aggregate) → publishOrgEvent(SkillXpAdded/Deducted)
+ *     → setDocument(aggregate) → return { newXp, xpDelta, orgId, skillId, reason }
+ *   Cross-BC event publishing (SkillXpAdded/Deducted → IER → ORG_EVENT_BUS) is handled
+ *   by _actions.ts (application coordinator), NOT the aggregate (Invariant #3, E1).
  */
 
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { publishOrgEvent } from '@/features/account-organization.event-bus';
 import { appendXpLedgerEntry } from './_ledger';
 
 // ---------------------------------------------------------------------------
@@ -70,15 +71,16 @@ function aggregatePath(accountId: string, skillId: string): string {
 /**
  * Adds XP to an account's skill aggregate.
  *
- * Write path (Invariant #13):
+ * Write path (Invariant #13, E1):
  *   1. Read current aggregate (or default to xp=0).
  *   2. Compute new clamped XP.
  *   3. Append ledger entry (BEFORE aggregate write — audit ordering guarantee).
  *   4. Persist updated aggregate (no tier stored — Invariant #12).
- *   5. Publish `organization:skill:xpAdded` event to org event bus.
+ *   Returns { newXp, xpDelta } — caller (_actions.ts) is responsible for
+ *   publishing SkillXpAdded to the org event bus (E1 — not the aggregate's concern).
  *
  * @param delta  Positive XP amount to add.
- * @param opts.orgId   Organization context for the event payload.
+ * @param opts.orgId   Organization context (passed through to caller for event payload).
  * @param opts.reason  Human-readable reason for the ledger entry.
  * @param opts.sourceId  Optional source object ID (e.g. taskId, scheduleItemId).
  * @returns The new XP value and the actual applied delta (after clamping).
@@ -111,15 +113,6 @@ export async function addXp(
     version: (existing?.version ?? 0) + 1,
   } satisfies AccountSkillRecord);
 
-  await publishOrgEvent('organization:skill:xpAdded', {
-    accountId,
-    orgId: opts.orgId,
-    skillId,
-    xpDelta: actualDelta,
-    newXp,
-    reason: opts.reason,
-  });
-
   return { newXp, xpDelta: actualDelta };
 }
 
@@ -128,6 +121,8 @@ export async function addXp(
  *
  * Mirrors addXp; delta should be positive (the deduction amount).
  * Net XP is clamped at SKILL_XP_MIN (0).
+ * Returns { newXp, xpDelta } — caller (_actions.ts) publishes SkillXpDeducted
+ * to the org event bus (E1 — not the aggregate's concern).
  */
 export async function deductXp(
   accountId: string,
@@ -156,15 +151,6 @@ export async function deductXp(
     xp: newXp,
     version: (existing?.version ?? 0) + 1,
   } satisfies AccountSkillRecord);
-
-  await publishOrgEvent('organization:skill:xpDeducted', {
-    accountId,
-    orgId: opts.orgId,
-    skillId,
-    xpDelta: actualDelta,
-    newXp,
-    reason: opts.reason,
-  });
 
   return { newXp, xpDelta: actualDelta };
 }
