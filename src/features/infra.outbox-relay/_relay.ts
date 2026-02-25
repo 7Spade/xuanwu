@@ -1,9 +1,11 @@
 /**
- * shared/infra/outbox-relay-worker — OUTBOX_RELAY_WORKER [R1]
+ * infra.outbox-relay — _relay.ts
  *
- * Shared infrastructure component used by ALL outbox collections.
+ * OUTBOX_RELAY_WORKER [R1] — shared Relay Worker used by ALL outbox collections.
  *
- * Per logic-overview_v9.md [R1] OUTBOX_RELAY_WORKER:
+ * Per logic-overview_v9.md [R1] OUTBOX_RELAY_WORKER and tree.md:
+ *   infra.outbox-relay = [R1] 搬運工 (掃描所有 OUTBOX 投遞至 IER)
+ *
  *   - Scan strategy: Firestore onSnapshot (CDC) — listens for `pending` entries
  *   - Delivery: OUTBOX → IER corresponding Lane
  *   - Failure handling: retry with exponential backoff; after 3 attempts → DLQ
@@ -31,8 +33,8 @@ import {
   type DocumentData,
   type DocumentChange,
 } from 'firebase/firestore';
-import { db } from './firestore/firestore.client';
-import { getDlqLevel, type DlqEntry } from './dlq';
+import { db } from '@/shared/infra/firestore/firestore.client';
+import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
 
 /** Delivery status of an outbox entry. */
 export type OutboxStatus = 'pending' | 'delivered' | 'dlq';
