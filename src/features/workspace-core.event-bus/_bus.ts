@@ -11,7 +11,7 @@ import type {
   WorkspaceEventPayloadMap,
 } from "./_events"
 import type { ImplementsEventEnvelopeContract } from "@/features/shared-kernel/events/event-envelope"
-import { recordEventPublished } from "@/shared/observability"
+import { recordEventPublished } from "@/features/infra.observability"
 
 // A map where keys are event names (strings) and values are arrays of handler functions (Observers).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

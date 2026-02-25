@@ -17,7 +17,7 @@
 
 import { appendDomainEvent } from '@/features/workspace-core.event-store';
 import { createOutbox, type Outbox, type OutboxEvent } from './_outbox';
-import { generateTraceId, logDomainError } from '@/shared/observability';
+import { generateTraceId, logDomainError } from '@/features/infra.observability';
 
 export interface TransactionContext {
   workspaceId: string;
