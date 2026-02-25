@@ -40,6 +40,20 @@ export { registerWorkspaceFunnel, registerOrganizationFunnel, replayWorkspacePro
 
 ## Architecture Note
 
-`logic-overview.v3.md`: `EVENT_FUNNEL_INPUT` is in the `PROJECTION_LAYER` subgraph, not in `WORKSPACE_CONTAINER`. It is the **sole** entry point for all projection updates — no projection writes directly on event bus events; they all go through this funnel.
+`logic-overview_v9.md` [R1][R8]:
+
+Event flow (v9):
+```
+ALL_OUTBOXES → OUTBOX_RELAY_WORKER → IER (Integration Event Router)
+IER ==>|唯一 Projection 寫入路徑 #9| FUNNEL
+FUNNEL → CRITICAL_PROJ_LANE + STANDARD_PROJ_LANE → projection.*
+```
+
+`event-funnel` is the Projection Layer's **only external entry point** — now fed
+exclusively by the `infra.event-router` (IER), not directly by event buses.
+
+R8 TraceID propagation: FUNNEL reads `envelope.traceId` from each incoming event
+and injects it into `DOMAIN_METRICS` for End-to-End command traceability.
+FUNNEL must NOT overwrite `traceId` (D9).
 
 `workspace-core.event-bus` re-exports from this slice for backwards compatibility.

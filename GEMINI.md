@@ -42,52 +42,71 @@ app/  ->  features/{name}/index.ts  ->  shared/*
 ### Feature Slice Index
 
 Each slice lives at `src/features/{name}/` and owns everything for its domain.
-Workspace slices use dot-namespace: `workspace-core.*` for infrastructure, `workspace-business.*` for day-to-day operations, `workspace-governance.*` for organizational governance.
-Account slices use dot-namespace: `account-user.*` for personal user features, `account-organization.*` for org-level features.
+
+> **Architecture reference (唯一事實來源):** `docs/overview/logic-overview_v9.md`
 
 | Slice | Domain |
 |-------|--------|
-| `features/identity-account.auth` | Login, register, reset password |
+| `features/shared-kernel` | Cross-BC contracts: EventEnvelope [R8], AuthoritySnapshot, SkillTier, CommandResult [R4] |
+| `features/centralized-tag` | Tag Authority Center — global tagSlug dictionary (Invariant #17) |
+| `features/shared.kernel.event-envelope` | VS0 boundary stub — EventEnvelope re-export |
+| `features/shared.kernel.tag-authority` | VS0 boundary stub — Tag Authority re-export |
+| `features/shared.kernel.contract-interfaces` | VS0 boundary stub — CommandResult re-export [R4] |
+| `features/shared.kernel.constants` | Cross-slice constants: WorkflowStatus, ErrorCodes |
+| `features/infra.outbox-relay` | [R1] OUTBOX_RELAY_WORKER — CDC relay for all OUTBOXes → IER |
+| `features/infra.dlq-manager` | [R5] DLQ 三級策略: SAFE_AUTO / REVIEW_REQUIRED / SECURITY_BLOCK |
+| `features/infra.observability` | [VS9] trace-identifier [R8], domain-metrics, domain-error-log |
+| `features/infra.event-router` | [IER] Integration Event Router — CRITICAL/STANDARD/BACKGROUND lanes [R2] |
+| `features/infra.gateway-command` | [GW] Command Gateway stub — TraceID injection [E4][R8] |
+| `features/infra.gateway-query` | [GW] Query Gateway stub — read model registry |
+| `features/scheduling-core.saga` | [VS6] Cross-org scheduling saga · compensating events [A5][R7] |
+| `features/identity-account.auth` | Login, register, reset password · Token Refresh Handshake [R2] |
 | `features/account` | Organization CRUD, stats, permissions |
-| `features/account-governance.role` | Account role management → CUSTOM_CLAIMS signing |
+| `features/account-governance.role` | Account role management → CUSTOM_CLAIMS signing [E6] |
 | `features/account-governance.policy` | Account policy management |
-| `features/account-governance.notification-router` | Notification router (FCM Layer 2 — by TargetAccountID) |
+| `features/account-governance.notification-router` | Notification router (FCM Layer 2 — by TargetAccountID) [E3][R8] |
 | `features/account-user.profile` | User profile, preferences, security |
-| `features/account-user.wallet` | User personal wallet, balance (stub) |
-| `features/account-user.notification` | Personal push notification (FCM Layer 3) |
-| `features/account-organization.core` | Organization aggregate entity + binding |
-| `features/account-organization.event-bus` | Organization event bus |
+| `features/account-user.wallet` | User personal wallet · CRITICAL_LANE [Q8][R2] · DLQ REVIEW_REQUIRED [R5] |
+| `features/account-user.notification` | Personal push notification (FCM Layer 3) · traceId metadata [R8] |
+| `features/account-organization.core` | Organization aggregate entity + binding [A2] |
+| `features/account-organization.event-bus` | Organization event bus (pure Producer-only [P2]) |
 | `features/account-organization.member` | Org-level member invite/remove |
 | `features/account-organization.team` | Team management (internal group view) |
 | `features/account-organization.partner` | Partner management (external group view) |
 | `features/account-organization.policy` | Organization policy management |
-| `features/account-organization.skill-tag` | Skill tag pool (flat resource pool) |
-| `features/account-organization.schedule` | HR scheduling · ScheduleAssigned event (FCM Layer 1) |
-| `features/workspace-application` | Command handler · Scope Guard · Policy Engine · Transaction Runner · Outbox |
+| `features/account-organization.skill-tag` | Skill tag pool · VS4_TAG_SUBSCRIBER [R3] |
+| `features/account-organization.schedule` | HR scheduling · ScheduleAssigned + aggregateVersion [R7] |
+| `features/workspace-application` | Command handler · Scope Guard · Policy Engine · Transaction Runner · Outbox · CommandResult [R4] |
 | `features/workspace-core` | Workspace CRUD, shell, provider, list |
-| `features/workspace-core.event-bus` | Intra-workspace event bus |
-| `features/workspace-core.event-store` | Event store (replay/audit only) |
+| `features/workspace-core.event-bus` | Intra-workspace event bus (in-process only [E5]) |
+| `features/workspace-core.event-store` | Event store (replay/audit only #9) |
 | `features/workspace-governance.members` | Workspace member access & roles |
-| `features/workspace-governance.role` | Role management (split from members) |
+| `features/workspace-governance.role` | Role management · inherits org-governance.policy #18 |
 | `features/workspace-governance.teams` | Stub — team views migrated to `account-organization.team` |
 | `features/workspace-governance.partners` | Stub — partner views migrated to `account-organization.partner` |
 | `features/workspace-governance.schedule` | Stub — implementation migrated to `workspace-business.schedule` |
-| `features/workspace-governance.audit` | Audit trail, event timeline |
+| `features/workspace-governance.audit` | Audit trail · audit-event-collector [Q5] |
 | `features/workspace-business.daily` | Daily logs, comments, bookmarks |
-| `features/workspace-business.schedule` | Schedule items, proposals, decisions (migrated from workspace-governance.schedule) |
+| `features/workspace-business.schedule` | Schedule items, proposals, decisions · TAG_STALE_GUARD [Q6] |
 | `features/workspace-business.files` | File upload, management |
-| `features/workspace-business.document-parser` | AI document parsing |
+| `features/workspace-business.document-parser` | AI document parsing · ParsingIntent (Digital Twin #A4) |
+| `features/workspace-business.workflow` | A-track state machine · WORKFLOW_STATE_CONTRACT [R6] · blockedBy Set [A3] |
+| `features/workspace-business.parsing-intent` | ParsingIntent versions, SourcePointer, IntentDelta [A4] |
 | `features/workspace-business.tasks` | Task tree, CRUD |
 | `features/workspace-business.quality-assurance` | QA plugin |
 | `features/workspace-business.acceptance` | Acceptance plugin |
 | `features/workspace-business.finance` | Finance plugin |
-| `features/workspace-business.issues` | Issue tracking |
-| `features/projection.workspace-view` | Workspace read model (workspace projection view) |
-| `features/projection.workspace-scope-guard` | Scope Guard dedicated read model |
-| `features/projection.account-view` | Account read model · authority snapshot contract |
+| `features/workspace-business.issues` | Issue tracking · IssueResolved → blockedBy.delete(issueId) [R6] |
+| `features/projection.event-funnel` | Event Funnel — fed by IER [R1] · traceId [R8] |
+| `features/projection.workspace-view` | Workspace read model |
+| `features/projection.workspace-scope-guard` | Scope Guard dedicated read model [A9] |
+| `features/projection.account-view` | Account read model · authority snapshot |
 | `features/projection.account-audit` | Account audit projection |
-| `features/projection.account-schedule` | Account schedule projection (filter available accounts) |
+| `features/projection.account-schedule` | Account schedule projection |
 | `features/projection.organization-view` | Organization read model |
+| `features/projection.account-skill-view` | Account skill read model (xp only, tier derived #12) |
+| `features/projection.org-eligible-member-view` | Schedule eligibility · ELIGIBLE_UPDATE_GUARD [R7] · #14 #19 |
+| `features/projection.tag-snapshot` | Tag read model · Max Staleness ≤ 30s [Q6] · consumers read-only (T5) |
 | `features/projection.registry` | Event stream offset · read model version table |
 
 ### Shared Module Index

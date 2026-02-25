@@ -56,7 +56,7 @@ export type { AccountSkillEntry } from './_projector';
 
 ## Architecture Note
 
-`logic-overview.v3.md S3`:
+`logic-overview_v9.md S3`:
 `EVENT_FUNNEL_INPUT → ACCOUNT_SKILL_VIEW`
 `ACCOUNT_SKILL_VIEW -.→ getTier 計算（不存 DB）`
 

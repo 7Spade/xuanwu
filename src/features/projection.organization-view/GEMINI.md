@@ -32,5 +32,5 @@ Organization projection view — read model for organization state, populated by
 
 ## Architecture Note
 
-`logic-overview.v3.md`: `EVENT_FUNNEL_INPUT → ORGANIZATION_PROJECTION_VIEW`.
+`logic-overview_v9.md`: `EVENT_FUNNEL_INPUT → ORGANIZATION_PROJECTION_VIEW`.
 This read model is fed exclusively through the event funnel.

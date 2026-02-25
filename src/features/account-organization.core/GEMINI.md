@@ -38,5 +38,5 @@ export { setupOrganizationWithTeam } from './_actions'
 
 ## Architecture Note
 
-`logic-overview.v3.md`: `ORGANIZATION_ACCOUNT_BINDING → ORGANIZATION_ENTITY → ORGANIZATION_EVENT_BUS`.
+`logic-overview_v9.md`: `ORGANIZATION_ACCOUNT_BINDING → ORGANIZATION_ENTITY → ORGANIZATION_EVENT_BUS`.
 This slice owns the organization aggregate; all mutations must go through the aggregate actions.

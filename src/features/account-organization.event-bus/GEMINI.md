@@ -31,7 +31,7 @@ Organization event bus — publish/subscribe engine for organization-level domai
 
 ## Architecture Note
 
-`logic-overview.v3.md`:
+`logic-overview_v9.md`:
 - `ORGANIZATION_ENTITY → ORGANIZATION_EVENT_BUS`
 - `ORGANIZATION_EVENT_BUS → ORGANIZATION_SCHEDULE` (policy change events)
 - `ORGANIZATION_EVENT_BUS → WORKSPACE_ORG_POLICY_CACHE`

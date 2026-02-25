@@ -20,7 +20,7 @@ This slice holds **growth sovereignty**: only this BC may write XP values.
 | 12 | Tier is never stored in DB | `AccountSkillRecord` has no `tier` field; derive via `getTier(xp)` |
 | 13 | Every XP change produces a Ledger entry | `appendXpLedgerEntry()` is called BEFORE every aggregate write |
 
-## Write Path (logic-overview.v3.md E1)
+## Write Path [E1]
 
 ```
 Server Action (_actions.ts)
@@ -63,7 +63,7 @@ export type { AccountSkillRecord, XpLedgerEntry } from '...';
 
 ## Architecture Note (E1)
 
-Per `logic-overview.v3.md` E1: `SkillXpAdded/Deducted` events are published by `_actions.ts`
+Per `logic-overview_v9.md` E1: `SkillXpAdded/Deducted` events are published by `_actions.ts`
 (the application coordinator) to `ORGANIZATION_EVENT_BUS` — NOT by the aggregate directly.
 This prevents VS3 → VS4 boundary invasion (Invariant #2 and #3).
 Organization may NOT write to this slice; it only receives events and sets `minXpRequired` gates in `ORG_SKILL_RECOGNITION`.

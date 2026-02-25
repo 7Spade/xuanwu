@@ -5,7 +5,7 @@
 Workspace-level team structure management (stub — workspace-specific team access rules).
 
 > **Note**: Org-level team management views (`TeamsView`, `TeamDetailView`) were migrated to
-> `account-organization.team` per `logic-overview.v3.md` (teams are SUBJECT CENTER, not WORKSPACE CONTAINER).
+> `account-organization.team` per `logic-overview_v9.md` (teams are SUBJECT CENTER, not WORKSPACE CONTAINER).
 > This slice is reserved for future workspace-scoped team access rules.
 
 ## Public API (`index.ts`)
