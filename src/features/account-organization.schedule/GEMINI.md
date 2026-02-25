@@ -59,10 +59,13 @@ export { OrgScheduleGovernance } from './_components/org-schedule-governance';
 
 ## Architecture Note
 
-`logic-overview.v3.md`:
+`logic-overview_v9.md` [R7][R5]:
 - `WORKSPACE_OUTBOX →|ScheduleProposed（跨層事件 · saga）| ORGANIZATION_SCHEDULE`
-- `ORGANIZATION_SCHEDULE →|ScheduleAssigned 事件| ORGANIZATION_EVENT_BUS`
+- `ORGANIZATION_SCHEDULE →|ScheduleAssigned + aggregateVersion [R7]| SCHED_OUTBOX → IER`
 - Invariant #14: reads `projection.org-eligible-member-view` only — never Account aggregate
 - Invariant #12: tier derived via `resolveSkillTier(xp)` at runtime — never stored in DB
 - Invariant A5: `ScheduleAssignRejected` is the compensating event for failed assignments
 - `cancelOrgScheduleProposal`: HR explicit withdrawal — no assignment attempted, no compensating event
+- [R7] `ScheduleAssigned` event MUST carry `aggregateVersion` for ELIGIBLE_UPDATE_GUARD
+- [R5] `ScheduleAssigned` → DLQ classification: **REVIEW_REQUIRED** (human review before replay)
+- [Q6] TAG_STALE_GUARD validation required before schedule-skill matching (`Max Staleness ≤ 30s`)

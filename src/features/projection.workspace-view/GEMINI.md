@@ -32,7 +32,7 @@ Workspace projection view — read model for workspace state. Populated by the e
 
 ## Architecture Note
 
-`logic-overview.v3.md`:
+`logic-overview_v9.md`:
 - `EVENT_FUNNEL_INPUT → WORKSPACE_PROJECTION_VIEW`
 - This read model is fed exclusively through the event funnel — never written directly from application layer.
 - Invariant #9: Must be fully rebuildable from events in the event store.

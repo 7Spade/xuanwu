@@ -8,14 +8,15 @@ Two aggregates:
    Per v5: passively updated by TagLifecycleEvents from `centralized-tag`.
 2. **Org Skill Recognition** (`ORG_SKILL_RECOGNITION`) — records the organization's acknowledgment of a member's skill, with an optional `minXpRequired` gate.
 
-## v5 Role Change (logic-overview_v5.md)
+## v9 Role Update (logic-overview_v9.md R3)
 
-`SKILL_TAG_POOL` is now defined as:
-> `= Tag Authority 的組織作用域快照\n消費 TagLifecycleEvent 被動更新`
+`SKILL_TAG_POOL` is now updated explicitly via **VS4_TAG_SUBSCRIBER** [R3]:
+> IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
 
 - **`centralized-tag.aggregate`** (VS0) is the global authority for tagSlug uniqueness (Invariant #17, A6).
 - This pool is the org's **activation view**: an org activates tags it wants to use from the global dictionary.
-- Label/category changes and deprecations from `centralized-tag` propagate passively via `syncTag*ToPool()` functions called by `projection.event-funnel`.
+- Label/category changes and deprecations from `centralized-tag` propagate via `TagLifecycleEvent` consumed
+  by `VS4_TAG_SUBSCRIBER` — consumption responsibility is explicitly scoped to VS4 (R3 closed loop, T2).
 
 ## Responsibilities
 
@@ -63,7 +64,7 @@ Two aggregates:
 
 ## Architecture Note
 
-`logic-overview_v5.md` VS4:
-- `SKILL_TAG_POOL[("職能標籤庫\naccount-organization.skill-tag\n= Tag Authority 的組織作用域快照\n消費 TagLifecycleEvent 被動更新")]`
+`logic-overview_v9.md` [R3] VS4:
+- `SKILL_TAG_POOL[("職能標籤庫\naccount-organization.skill-tag\n= Tag Authority 的組織作用域快照\n由 VS4_TAG_SUBSCRIBER 更新 [R3]")]`
 - `ORG_SKILL_RECOGNITION --> ORG_EVENT_BUS`
 

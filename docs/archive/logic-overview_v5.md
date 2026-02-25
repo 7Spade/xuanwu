@@ -2,6 +2,11 @@
 title: Logic Overview v5 — Vertical Feature Slice + Unified Gateway + Tag Authority
 ---
 
+> ⚠️ **DEPRECATED** — This is a historical reference (v5).
+> The current source of truth is `docs/overview/logic-overview_v9.md`.
+> Do not use this file for implementation decisions.
+
+
 %% ==========================================================================
 %% LOGIC OVERVIEW v5
 %% 設計原則：

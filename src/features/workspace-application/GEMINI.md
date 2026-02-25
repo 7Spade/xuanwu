@@ -45,7 +45,10 @@ import { registerOrgPolicyCache, getCachedOrgPolicy, getAllCachedPolicies, clear
 
 ## Architecture Note
 
-`logic-overview.v3.md`:
+`logic-overview_v9.md` [R4]:
 - Application layer **coordinates flow only** — no domain rules (invariant #3)
 - Scope Guard reads ONLY local `projection.workspace-scope-guard`, NOT external event buses (invariant #7)
 - Transaction Runner collects aggregate events and writes to Outbox (invariant #4)
+- Command Handler returns `SK_CMD_RESULT` after execution [R4]:
+  - Success: `{ aggregateId, version }` — frontend optimistic update basis
+  - Failure: `DomainError { code, message, context }` — structured error return

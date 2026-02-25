@@ -3,7 +3,7 @@
 ## Domain
 
 Schedule management — schedule items, shift proposals, member assignment, governance (approve/reject).
-Migrated from `workspace-governance.schedule` per `logic-overview.v3.md` (`W_B_SCHEDULE` is in `WORKSPACE_BUSINESS`; `WORKSPACE_GOVERNANCE` only contains `members` + `role`).
+Migrated from `workspace-governance.schedule` per `logic-overview_v9.md` (`W_B_SCHEDULE` is in `WORKSPACE_BUSINESS`; `WORKSPACE_GOVERNANCE` only contains `members` + `role`).
 
 Distinct from HR scheduling (`account-organization.schedule`).
 
@@ -70,7 +70,7 @@ export { createScheduleItem, assignMember, unassignMember, updateScheduleItemSta
 
 ## Architecture Note
 
-`logic-overview.v3.md`:
+`logic-overview_v9.md`:
 - `TRACK_A_TASKS -.→ W_B_SCHEDULE` (task allocation / time change triggers)
 - `W_B_SCHEDULE -.→ ACCOUNT_PROJECTION_SCHEDULE` (filter available accounts from projection)
 - `W_B_SCHEDULE -.→ ORG_ELIGIBLE_MEMBER_VIEW` (soft skill-eligibility check before assignment — Invariants #14 + #12)

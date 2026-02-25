@@ -11,18 +11,19 @@ that lands here must be:
 3. **Versioned via marker interfaces** where the contract is a structural guarantee
    (see `ImplementsEventEnvelopeContract`, `ImplementsAuthoritySnapshotContract`).
 
-Per logic-overview.v3.md Invariant #8:
+Per `logic-overview_v9.md` Invariant #8:
 > Shared Kernel 必須顯式標示；未標示的跨 BC 共用一律視為侵入。
 
 ## Contents
 
 | File | Contract | Consumers |
 |------|----------|-----------|
-| `events/event-envelope.ts` | `EventEnvelope<T>`, `ImplementsEventEnvelopeContract` | `workspace-core.event-bus`, `account-organization.event-bus` |
+| `events/event-envelope.ts` | `EventEnvelope<T>`, `ImplementsEventEnvelopeContract` — carries `traceId` (end-to-end shared [R8]), `version` [R7], `idempotency-key` [D2] | `workspace-core.event-bus`, `account-organization.event-bus` |
 | `identity/authority-snapshot.ts` | `AuthoritySnapshot`, `ImplementsAuthoritySnapshotContract` | `projection.workspace-scope-guard`, `projection.account-view` |
 | `skills/skill-tier.ts` | `SkillTier`, `TierDefinition`, `TIER_DEFINITIONS`, `resolveSkillTier()`, `getTier()`, `getTierRank()`, `tierSatisfies()` | `account-user.skill`, `account-organization.schedule`, `workspace-business.schedule`, `projection.account-skill-view`, `projection.org-eligible-member-view` |
 | `workforce/skill-requirement.ts` | `SkillRequirement` | `workspace-business.schedule`, `workspace-business.document-parser`, `workspace-core.event-bus`, `account-organization.schedule` |
 | `workforce/schedule-proposed-payload.ts` | `WorkspaceScheduleProposedPayload`, `ImplementsScheduleProposedPayloadContract` | `workspace-core.event-bus` (produces), `account-organization.schedule` (consumes) |
+| `commands/command-result-contract.ts` | `CommandResult`, `CommandSuccess { aggregateId, version }`, `CommandFailure { DomainError }` [R4] | `workspace-application` (Command Handler return), all Server Actions |
 | `index.ts` | Re-exports all of the above | All consumers |
 
 ## Import

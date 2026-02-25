@@ -39,3 +39,11 @@ import ... from "@/shared/ui/...";         // shadcn-ui, constants
 - `app/(auth-routes)/login/page.tsx`
 - `app/(auth-routes)/reset-password/page.tsx`
 - `app/(auth-routes)/@modal/(.)reset-password/page.tsx`
+
+## Architecture Note [R2]
+
+Per `logic-overview_v9.md` R2 — Token Refresh Handshake:
+After `RoleChanged` claims are set by `claims-refresh-handler`, a `token-refresh-signal`
+is emitted to notify the frontend to re-fetch the token. The next request carries the
+updated Claims. CRITICAL_LANE semantics: high-priority eventual consistency (NOT
+synchronous — Firebase Functions are inherently async).

@@ -62,7 +62,10 @@ All slices that need tag semantics **MUST**:
 
 ## Architecture Note
 
-`logic-overview_v5.md` VS0:
-- `CTA --> TAG_EVENTS --> Integration Event Router`
+`logic-overview_v9.md` [R3] T1 T2:
+- `CTA --> TAG_EVENTS --> TAG_OUTBOX --> BACKGROUND_LANE --> IER`
+- `IER --> BACKGROUND_LANE --> VS4_TAG_SUBSCRIBER --> SKILL_TAG_POOL` [R3]
 - `CTA -.->|"唯讀引用契約"| TAG_READONLY`
+- VS4_TAG_SUBSCRIBER is the explicit consumer responsible for updating `SKILL_TAG_POOL`
+  from `TagLifecycleEvent` — consumption responsibility is scoped to VS4 (R3 closed loop)
 - `TAG_READONLY["🔒 消費方唯讀引用規則\n所有 tagSlug 引用必須來自此處"]`

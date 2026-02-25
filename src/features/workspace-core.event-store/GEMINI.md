@@ -33,7 +33,7 @@ Workspace event store — append-only log of all workspace domain events. Used e
 
 ## Architecture Note
 
-`logic-overview.v3.md`:
+`logic-overview_v9.md`:
 - `WORKSPACE_AGGREGATE → WORKSPACE_EVENT_STORE`
 - `WORKSPACE_EVENT_STORE -.→ EVENT_FUNNEL_INPUT` (replay only, dotted edge)
 - Invariant #9: If event store exists, Projections MUST be fully rebuildable from events; otherwise Event Sourcing must NOT be claimed.

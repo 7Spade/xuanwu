@@ -19,6 +19,21 @@ member availability and skill tiers.
 |---|-----------|-------------|
 | 12 | Tier is never stored in DB | `OrgEligibleMemberEntry.skills` stores only `{ xp }`; tier computed via `enrichWithTier` |
 | 14 | Schedule reads only this projection | `getOrgMemberEligibility` / `getOrgEligibleMembersWithTier` are the only valid read paths for schedule |
+| 19 | eligible updates must be monotonically increasing in aggregateVersion [R7] | `applyOrgMemberSkillXp` discards events where `event.aggregateVersion <= view.lastProcessedVersion` |
+
+## ELIGIBLE_UPDATE_GUARD [R7]
+
+Per `logic-overview_v9.md` R7 — prevents race conditions from out-of-order event delivery:
+
+```
+Update rule:
+  event.aggregateVersion > view.lastProcessedVersion → allow update
+  otherwise → discard (stale event; do NOT overwrite newer state)
+
+Reason: FUNNEL CRITICAL_PROJ_LANE does not guarantee delivery order.
+Example: ScheduleCompleted arrives first, ScheduleAssigned arrives late →
+  without guard, eligible incorrectly reverts to `false`.
+```
 
 ## Write Path (Event Funnel → Projector)
 
@@ -65,10 +80,13 @@ export type { OrgEligibleMemberEntry, OrgMemberSkillWithTier, OrgEligibleMemberV
 
 ## Architecture Note
 
-`logic-overview.v3.md S3`:
+`logic-overview_v9.md` [R7] D11:
 `EVENT_FUNNEL_INPUT → ORG_ELIGIBLE_MEMBER_VIEW`
 `ORG_ELIGIBLE_MEMBER_VIEW -.→ getTier 計算（不存 DB）`
 `W_B_SCHEDULE -.→ ORG_ELIGIBLE_MEMBER_VIEW（查詢可用帳號 · eligible=true · 只讀）`
+
+Invariant #19 (v9 new): eligible updates MUST use monotonically increasing aggregateVersion.
+D11: Before writing, compare event.aggregateVersion > view.lastProcessedVersion; discard if stale.
 
 `account-organization.schedule/_schedule.ts` imports `getOrgMemberEligibility` from
 this slice to validate schedule assignment eligibility (Invariant #14).
