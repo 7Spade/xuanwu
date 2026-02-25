@@ -42,3 +42,16 @@ export type {
   WorkspaceScheduleProposedPayload,
   ImplementsScheduleProposedPayloadContract,
 } from './workforce/schedule-proposed-payload';
+
+// Command result contract — canonical result shape for all Command Handlers [R4]
+export type {
+  DomainError,
+  CommandSuccess,
+  CommandFailure,
+  CommandResult,
+} from './commands/command-result-contract';
+export {
+  commandSuccess,
+  commandFailure,
+  commandFailureFrom,
+} from './commands/command-result-contract';

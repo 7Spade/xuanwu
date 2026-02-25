@@ -23,6 +23,13 @@ export interface ScheduleAssignedPayload {
   startDate: string;
   endDate: string;
   title: string;
+  /**
+   * Aggregate version of the org-schedule aggregate when this event was produced. [R7]
+   * Used by ELIGIBLE_UPDATE_GUARD in projection.org-eligible-member-view to enforce
+   * monotonic aggregateVersion — prevents timing races from reverting eligible state.
+   * Invariant #19: eligible update must use aggregateVersion monotonic increase as prerequisite.
+   */
+  aggregateVersion: number;
 }
 
 export interface OrgPolicyChangedPayload {

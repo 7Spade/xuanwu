@@ -1,23 +1,54 @@
+/**
+ * workspace-business.workflow — _aggregate.ts
+ *
+ * Workflow Aggregate State Machine [R6] WORKFLOW_STATE_CONTRACT
+ *
+ * Stage lifecycle per v9 spec:
+ *   Draft → InProgress → QA → Acceptance → Finance → Completed
+ *
+ * blockWorkflow:
+ *   blockedBy is a Set of issueIds (array representation).
+ *   Multiple issues can block simultaneously — they accumulate.
+ *
+ * unblockWorkflow:
+ *   Removes the resolved issueId from blockedBy.
+ *   The workflow is only truly unblocked when blockedBy is empty. [R6][D10][A3]
+ *
+ * Invariant A3: blockWorkflow → blockedBy Set; allIssuesResolved → unblockWorkflow
+ * Invariant A8: TX Runner guarantees single-aggregate atomicity per command.
+ * D10: Command must validate current Stage legality before execution.
+ */
+
 export type WorkflowStage =
-  | 'tasks'
+  | 'draft'
+  | 'in-progress'
   | 'quality-assurance'
   | 'acceptance'
-  | 'finance';
+  | 'finance'
+  | 'completed';
 
 export interface WorkflowAggregateState {
   workflowId: string;
   workspaceId: string;
   stage: WorkflowStage;
-  blockedIssueId?: string;
+  /**
+   * Set of issueIds currently blocking this workflow. [R6]
+   * Uses array for Firestore serialization; semantically a Set (no duplicates enforced by blockWorkflow).
+   * Workflow is blocked when blockedBy.length > 0.
+   * unblockWorkflow only removes one issueId; full unlock requires blockedBy to be empty.
+   */
+  blockedBy: string[];
   version: number;
   updatedAt: number;
 }
 
 export const WORKFLOW_STAGE_ORDER: readonly WorkflowStage[] = [
-  'tasks',
+  'draft',
+  'in-progress',
   'quality-assurance',
   'acceptance',
   'finance',
+  'completed',
 ] as const;
 
 export function createWorkflowAggregate(
@@ -28,7 +59,8 @@ export function createWorkflowAggregate(
   return {
     workflowId,
     workspaceId,
-    stage: 'tasks',
+    stage: 'draft',
+    blockedBy: [],
     version: 1,
     updatedAt: now,
   };
@@ -52,59 +84,65 @@ export function advanceWorkflowStage(
       `Invalid workflow transition: ${state.stage} -> ${next}`
     );
   }
+  if (state.blockedBy.length > 0) {
+    throw new Error(
+      `Workflow ${state.workflowId} is blocked by issues: ${state.blockedBy.join(', ')}. Resolve all issues before advancing.`
+    );
+  }
 
   return {
     ...state,
     stage: next,
-    blockedIssueId: undefined,
     version: state.version + 1,
     updatedAt: Date.now(),
   };
 }
 
 /**
- * Blocks the workflow aggregate, associating the blocking B-track issue.
+ * Adds issueId to the blockedBy set, blocking the workflow. [R6][D10][A3]
  *
- * Per logic-overview.v3.md (A3 + AB dual-track):
- * - A-track stages flow to TRACK_B_ISSUES on anomaly.
- * - WORKFLOW_AGGREGATE holds `blockedIssueId` as the single blocking reference.
- * - Unblock is triggered by `workspace:issues:resolved` event (Discrete Recovery Principle).
- *
- * Invariant A8: Transaction Runner guarantees single-aggregate atomicity per command.
+ * Multiple issues can block simultaneously — they accumulate in blockedBy.
+ * If the issueId is already present, this is a no-op (idempotent).
  */
 export function blockWorkflow(
   state: WorkflowAggregateState,
   issueId: string
 ): WorkflowAggregateState {
+  if (state.blockedBy.includes(issueId)) {
+    return state;
+  }
   return {
     ...state,
-    blockedIssueId: issueId,
+    blockedBy: [...state.blockedBy, issueId],
     version: state.version + 1,
     updatedAt: Date.now(),
   };
 }
 
 /**
- * Unblocks the workflow aggregate after the associated B-track issue is resolved.
+ * Removes issueId from the blockedBy set. [R6][D10][A3]
  *
- * Per logic-overview.v3.md:
- *   TRACK_B_ISSUES →|IssueResolved 事件| WORKSPACE_EVENT_BUS
- *   A 軌自行訂閱後恢復（不直接回流）— Discrete Recovery Principle.
- *
- * Only unblocks if the resolved issue matches the current `blockedIssueId`.
- * Returns the original state unchanged when there is no matching block.
+ * The workflow is only truly unblocked when blockedBy becomes empty
+ * (i.e., all blocking issues have been resolved).
+ * If the resolvedIssueId is not in the set, this is a no-op (idempotent).
  */
 export function unblockWorkflow(
   state: WorkflowAggregateState,
   resolvedIssueId: string
 ): WorkflowAggregateState {
-  if (state.blockedIssueId !== resolvedIssueId) {
+  if (!state.blockedBy.includes(resolvedIssueId)) {
     return state;
   }
   return {
     ...state,
-    blockedIssueId: undefined,
+    blockedBy: state.blockedBy.filter((id) => id !== resolvedIssueId),
     version: state.version + 1,
     updatedAt: Date.now(),
   };
 }
+
+/** Returns true when the workflow has no active blocking issues. */
+export function isWorkflowUnblocked(state: WorkflowAggregateState): boolean {
+  return state.blockedBy.length === 0;
+}
+

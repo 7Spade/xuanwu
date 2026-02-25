@@ -5,5 +5,6 @@ export {
   advanceWorkflowStage,
   blockWorkflow,
   unblockWorkflow,
+  isWorkflowUnblocked,
 } from './_aggregate';
 export type { WorkflowStage, WorkflowAggregateState } from './_aggregate';
