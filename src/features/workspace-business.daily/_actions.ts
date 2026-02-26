@@ -11,9 +11,7 @@
 import {
   toggleDailyLogLike,
   addDailyLogComment as addDailyLogCommentFacade,
-  getDailyLogs as getDailyLogsFacade,
 } from "@/shared/infra/firestore/firestore.facade";
-import type { DailyLog } from "@/shared/types";
 import {
   type CommandResult,
   commandSuccess,
@@ -66,14 +64,4 @@ export async function addDailyLogComment(
   }
 }
 
-/**
- * Fetches daily log entries for an account.
- * @param accountId The ID of the organization account.
- * @param limit Maximum number of logs to return (default: 30).
- */
-export async function getDailyLogs(
-  accountId: string,
-  limit = 30
-): Promise<DailyLog[]> {
-  return getDailyLogsFacade(accountId, limit);
-}
+
