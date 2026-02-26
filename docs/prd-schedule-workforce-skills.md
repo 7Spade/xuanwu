@@ -158,6 +158,7 @@ Account（帳號/公司）
 | 客戶（Client）端排班可見性 | 現有架構不包含 Client BC，另行規劃 |
 | AI 自動排班推薦 | 可作為 V2 特性，不納入 V1 範疇 |
 | 打卡/出勤實際記錄 | 屬於 HR 系統範疇，現有平台不處理 |
+| Partner（協力廠商）/ Team（組合人力）類型 | Invariant #16 定義 Talent Repository = member + partner + team；V1.0 僅覆蓋 `OrgMember`；Partner/Team 類型列入 V2.0 版本規劃 |
 
 ---
 
@@ -588,7 +589,7 @@ interface OrgEligibleMemberEntry {
 
 | ID | 規則 | 實施層 |
 |----|------|--------|
-| BR-S1 | 排班狀態機為**封閉**：只允許合法轉換 (`proposed→confirmed`, `confirmed→completed/assignmentCancelled`, `proposed→cancelled`) | `_schedule.ts` aggregate |
+| BR-S1 | 排班狀態機為**封閉**：只允許合法轉換 (`proposed→confirmed`, `proposed→proposalCancelled`, `proposed→assignRejected`, `confirmed→completed`, `confirmed→assignmentCancelled`) | `_schedule.ts` aggregate |
 | BR-S2 | `completeOrgSchedule` / `cancelOrgScheduleAssignment` 只能在 `status === 'confirmed'` 時執行 | `_schedule.ts` guard |
 | BR-S3 | `workspace:schedule:proposed` 觸發 VS6 Saga，Saga 負責跨 BC 協調 | `scheduling-core.saga` |
 | BR-S4 | 排班提案的技能需求指派，必須以 `orgEligibleMemberView` 為唯一資料來源（Invariant #14） | `_saga.ts` |
@@ -749,7 +750,7 @@ Scenario: 排班完成釋放人員
 Scenario: 無符合人員時的補償
   Given 組織內沒有符合技能需求的 eligible 成員
   When 提交排班提案
-  Then Saga 應觸發補償，排班狀態更新為 "cancelled"
+  Then Saga 應觸發補償，排班狀態更新為 `"proposalCancelled"`（提案期被拒）或 `"assignRejected"`（指派期被拒）
   And 工作區擁有者應收到包含原因的拒絕通知
 ```
 
