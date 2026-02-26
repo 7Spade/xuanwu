@@ -21,6 +21,7 @@
 import { serverTimestamp } from 'firebase/firestore';
 import { setDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
 
 /**
  * Per-member entry stored in Firestore.
@@ -117,11 +118,11 @@ export async function applyOrgMemberSkillXp(
 }
 
 /**
- * Updates the eligible flag for a member with ELIGIBLE_UPDATE_GUARD. [R7][#19][D11]
+ * Updates the eligible flag for a member with ELIGIBLE_UPDATE_GUARD. [R7][#19][D11][S2]
  *
- * GUARD RULE: only update when incomingAggregateVersion > entry.lastProcessedVersion.
- * If the incoming version is not newer, the event is stale (out-of-order delivery) —
- * discard silently to prevent timing races from reverting eligible to an incorrect state.
+ * Uses SK_VERSION_GUARD [S2] via `versionGuardAllows` to enforce monotonic version.
+ * If the incoming version is not strictly greater than the stored version, the event
+ * is stale (out-of-order delivery) — discard silently.
  *
  * Called when:
  *   organization:schedule:assigned  → eligible = false (member is now busy)
@@ -138,7 +139,8 @@ export async function updateOrgMemberEligibility(
 ): Promise<void> {
   const existing = await getDocument<OrgEligibleMemberEntry>(memberPath(orgId, accountId));
 
-  if (existing && incomingAggregateVersion <= existing.lastProcessedVersion) {
+  // SK_VERSION_GUARD [S2]: discard stale / out-of-order events
+  if (existing && !versionGuardAllows({ eventVersion: incomingAggregateVersion, viewLastProcessedVersion: existing.lastProcessedVersion })) {
     return;
   }
 
