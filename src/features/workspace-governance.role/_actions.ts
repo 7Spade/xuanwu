@@ -5,7 +5,7 @@
  *
  * Server actions for workspace-level role management.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview_v9.md:
  *   WORKSPACE_ROLE — split from workspace-governance.members, workspace access control only.
  *   Does NOT sign CUSTOM_CLAIMS; that is account-governance.role's responsibility.
  *

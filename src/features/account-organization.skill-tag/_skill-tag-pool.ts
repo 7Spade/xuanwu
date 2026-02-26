@@ -3,7 +3,7 @@
  *
  * Skill Tag Pool: organization-scoped view of the global Tag Authority Center.
  *
- * Per logic-overview_v5.md (VS4):
+ * Per logic-overview_v9.md (VS4):
  *   SKILL_TAG_POOL[("職能標籤庫\naccount-organization.skill-tag\n= Tag Authority 的組織作用域快照\n消費 TagLifecycleEvent 被動更新")]
  *
  * v5 Role Change:

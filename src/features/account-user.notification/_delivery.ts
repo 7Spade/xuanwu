@@ -4,7 +4,7 @@
  * FCM Layer 3: Notification Delivery
  * Receives routed notifications, stores them in Firestore, and pushes FCM.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview_v9.md:
  *   ACCOUNT_USER_NOTIFICATION → FCM_GATEWAY → USER_DEVICE
  *   USER_ACCOUNT_PROFILE -.→|提供 FCM Token（唯讀查詢）| ACCOUNT_USER_NOTIFICATION
  *

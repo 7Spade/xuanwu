@@ -5,7 +5,7 @@
  *
  * Server actions for account role management.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview_v9.md:
  *   ACCOUNT_ROLE → CUSTOM_CLAIMS
  *   Role changes trigger CUSTOM_CLAIMS refresh.
  *

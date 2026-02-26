@@ -3,7 +3,7 @@
  *
  * Read queries for the Skill Tag Pool and Org Skill Recognition aggregates.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview_v9.md:
  *   SKILL_TAG_POOL_AGGREGATE → SKILL_TAG_POOL (read model)
  *   ORG_SKILL_RECOGNITION["...organizationId / accountId / skillId / minXpRequired / status"]
  *

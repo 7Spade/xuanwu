@@ -4,7 +4,7 @@
  * Organization-level policy management.
  * Policy changes publish via org event bus → workspace org-policy-cache updates downstream.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview_v9.md:
  *   ORGANIZATION_EVENT_BUS →|政策變更事件| WORKSPACE_ORG_POLICY_CACHE
  */
 

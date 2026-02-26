@@ -15,7 +15,7 @@
  *    Organization may set minXpRequired thresholds but CANNOT modify Account XP
  *    (Invariant #11).
  *
- * Per logic-overview_v5.md:
+ * Per logic-overview_v9.md:
  *   SKILL_TAG_POOL = "= Tag Authority 的組織作用域快照\n消費 TagLifecycleEvent 被動更新"
  *   ORG_SKILL_RECOGNITION --> ORG_EVENT_BUS (SkillRecognitionGranted/Revoked)
  */

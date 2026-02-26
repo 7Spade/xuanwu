@@ -6,8 +6,7 @@
  * Per tree.md: shared.kernel.constants = cross-slice shared status enums and error codes
  *   that any bounded context may reference without creating a coupling to a specific feature.
  *
- * TODO: Extract WorkflowStatus from workspace-business.workflow and
- *       canonical ErrorCodes from workspace-application into this slice.
+ * Per logic-overview_v9.md: sole canonical source for cross-BC status enums.
  *
  * Invariant: Zero infrastructure dependencies (no Firebase, no React, no I/O).
  */

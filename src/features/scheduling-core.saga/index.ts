@@ -3,25 +3,19 @@
  *
  * [VS6] 跨組織排班協作 Saga 協調器
  *
- * Per tree.md: scheduling-core.saga = Cross-Organization Scheduling Saga Coordinator
- *   — Coordinates multi-step scheduling proposals across organization boundaries.
- *   — Orchestrates: WorkspaceScheduleProposed → OrgEligibilityCheck → ScheduleAssigned
- *   — Handles compensation (rollback) on partial failures.
- *   — Uses workspace-core.event-store for saga state persistence.
- *
- * Event flow per VS6:
+ * Per logic-overview_v9.md VS6:
  *   workspace-business.schedule   → publishes WorkspaceScheduleProposed
  *   scheduling-core.saga          → subscribes, checks org eligibility
  *   account-organization.schedule → receives ScheduleAssigned
  *   projection.org-eligible-member-view → [R7] version-checked member list
  *
- * TODO: Implement saga state machine with compensation logic.
+ * Event flow:
+ *   WorkspaceScheduleProposed → OrgEligibilityCheck → ScheduleAssigned
+ *   (compensation: ScheduleAssignRejected on partial failure [A5])
  *
- * Cross-BC contracts (from shared-kernel):
- *   WorkspaceScheduleProposedPayload — event payload from workspace side
- *   SkillRequirement — staffing requirements for eligibility check
+ * Usage (OUTBOX_RELAY_WORKER at app startup):
+ *   const result = await startSchedulingSaga(event, `saga:${event.scheduleItemId}`);
  */
 
-// Placeholder — implementation pending.
-// Once implemented, export: startSchedulingSaga, type SagaState, type SagaStep
-export {};
+export { startSchedulingSaga, getSagaState } from './_saga';
+export type { SagaState, SagaStep, SagaStatus } from './_saga';
