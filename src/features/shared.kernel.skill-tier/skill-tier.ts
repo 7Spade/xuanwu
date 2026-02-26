@@ -13,40 +13,14 @@
  *   - Workspace BC  : workspace-business.schedule
  *   - Projection layer: projection.account-skill-view, projection.org-eligible-member-view
  *
- * No imports — zero-dependency shared-kernel contract.
+ * Type definitions live in @/shared/types/skill.types (shared → features direction).
+ * This file re-exports types and adds the runtime computation functions.
  */
 
-// ---------------------------------------------------------------------------
-// Tier type
-// ---------------------------------------------------------------------------
-
-/**
- * Seven-tier proficiency scale.
- * Values are stable identifiers (safe for Firestore storage & AI prompts).
- */
-export type SkillTier =
-  | 'apprentice'    // Tier 1 — 0–75 XP
-  | 'journeyman'    // Tier 2 — 75–150 XP
-  | 'expert'        // Tier 3 — 150–225 XP
-  | 'artisan'       // Tier 4 — 225–300 XP
-  | 'grandmaster'   // Tier 5 — 300–375 XP  (core colour)
-  | 'legendary'     // Tier 6 — 375–450 XP
-  | 'titan';        // Tier 7 — 450–525 XP
-
-// ---------------------------------------------------------------------------
-// Tier metadata
-// ---------------------------------------------------------------------------
-
-/** Static metadata for a single tier. Used by UI and shared/lib. */
-export interface TierDefinition {
-  tier: SkillTier;
-  rank: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  label: string;     // Display name  (e.g. "Expert")
-  minXp: number;     // Inclusive lower bound
-  maxXp: number;     // Exclusive upper bound (except Tier 7 which is open-ended)
-  color: string;     // Hex colour for badge background
-  cssVar: string;    // CSS custom property name (e.g. "--tier-3-expert")
-}
+// Type definitions come from shared/types to keep dependency direction correct
+// (features may import shared; shared must NOT import features)
+export type { SkillTier, TierDefinition } from '@/shared/types/skill.types';
+import type { SkillTier, TierDefinition } from '@/shared/types/skill.types';
 
 /**
  * Canonical tier table — single source of truth for XP bounds, labels and

@@ -18,12 +18,45 @@
 
 import type { Timestamp } from 'firebase/firestore'
 
-// SkillTier and SkillRequirement are cross-BC contracts — defined in shared-kernel.
-// Imported locally so they are available within this file, and re-exported so
-// existing @/shared/types imports continue to work.
-import type { SkillTier } from '@/features/shared.kernel.skill-tier';
-export type { SkillTier, TierDefinition } from '@/features/shared.kernel.skill-tier';
-export type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
+// ---------------------------------------------------------------------------
+// Skill tier & requirement — canonical type definitions
+// (runtime functions live in @/features/shared.kernel.skill-tier)
+// ---------------------------------------------------------------------------
+
+/**
+ * Seven-tier proficiency scale.
+ * Values are stable identifiers (safe for Firestore storage & AI prompts).
+ */
+export type SkillTier =
+  | 'apprentice'    // Tier 1 — 0–75 XP
+  | 'journeyman'    // Tier 2 — 75–150 XP
+  | 'expert'        // Tier 3 — 150–225 XP
+  | 'artisan'       // Tier 4 — 225–300 XP
+  | 'grandmaster'   // Tier 5 — 300–375 XP  (core colour)
+  | 'legendary'     // Tier 6 — 375–450 XP
+  | 'titan';        // Tier 7 — 450–525 XP
+
+/** Static metadata for a single tier. Used by UI and shared/lib. */
+export interface TierDefinition {
+  tier: SkillTier;
+  rank: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  label: string;
+  minXp: number;
+  maxXp: number;
+  color: string;
+  cssVar: string;
+}
+
+/**
+ * Expresses a staffing need inside a ScheduleItem proposal.
+ * Flows from Workspace BC → Organization BC via WORKSPACE_OUTBOX events.
+ */
+export interface SkillRequirement {
+  tagSlug: string;
+  tagId?: string;
+  minimumTier: SkillTier;
+  quantity: number;
+}
 
 // ---------------------------------------------------------------------------
 // Global skill-tag library (static reference type)
