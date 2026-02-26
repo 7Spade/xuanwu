@@ -395,7 +395,7 @@ Account（帳號/公司）
 | 排班月曆載入 | ≤ 2s (P95) for 30 items | 標準使用情境 |
 | Projection 更新延遲 | ≤ 10s (P99) | S4 `PROJ_STALE_STANDARD` |
 | FCM 推播延遲 | ≤ 30s (P95) | S4 `TAG_MAX_STALENESS` |
-| **需求公告板 ScheduleDemand 可見性** | **廠區張貼需求後 ≤ 5s 出現在 Account 管理者的需求公告板** | G0a；Demand Board projection 需比標準 projection 更快，建議新增 `SK_STALENESS.DEMAND_BOARD_STALE = 5000ms` 常數（介於 `PROJ_STALE_CRITICAL` 500ms 與 `PROJ_STALE_STANDARD` 10s 之間）|
+| **需求公告板 ScheduleDemand 可見性** | **廠區張貼需求後 ≤ 5s 出現在 Account 管理者的需求公告板** | G0a；Demand Board projection 需比標準 projection 更快，建議新增 `SK_STALENESS.PROJ_STALE_DEMAND_BOARD = 5000ms` 常數（介於 `PROJ_STALE_CRITICAL` 500ms 與 `PROJ_STALE_STANDARD` 10s 之間；命名遵循 `PROJ_STALE_*` 慣例）|
 
 ### NFR-R — 可靠性 (Reliability)
 
@@ -499,10 +499,12 @@ interface ScheduleDemand {
   //   'open'     ← OrgScheduleStatus 'proposed'  （廠區已提案，等待 Account 指派；Demand Board 主要顯示層）
   //   'assigned' ← OrgScheduleStatus 'confirmed' （已確認指派；Demand Board 顯示中，以不同樣式呈現；需求仍可見）
   //   'closed'   ← OrgScheduleStatus 'completed' | 'cancelled' | 'assignmentCancelled'
-  //               其中：'completed' = 正常結束；'cancelled' = 取消提案；'assignmentCancelled' = 指派取消
-  //               Closed demands 在 Demand Board 預設隱藏，可透過「顯示已結案」篩選查看
+  //               具體原因保存在 closeReason 欄位以供稽核；Closed 預設在看板隱藏
   // 注意：'open' → 'assigned' 時 Demand Card 不從看板移除，而是以 "已指派" 標籤呈現（見 FR-W0 + BR-D1）
-  proposedScheduleItemId?: string; // 對應到 OrgScheduleProposal 的 ID
+  closeReason?: 'completed' | 'cancelled' | 'assignmentCancelled';
+  // ^ 當 status='closed' 時填入，對應 OrgScheduleStatus；status≠'closed' 時為 undefined
+  // 此欄位保持 ScheduleDemand 讀取模型的稽核可追溯性（Demand Board 可過濾/顯示關閉原因）
+  proposedScheduleItemId?: string; // 對應到 OrgScheduleProposal 的 ID（串接 closeReason 的 aggregate 來源）
   traceId?: string;           // R8 全鏈路追蹤 ID
   createdAt: string;
 }
@@ -519,12 +521,9 @@ interface OrgScheduleProposal {
   description?: string;         // 排班描述
   startDate: string;            // ISO 8601
   endDate: string;              // ISO 8601
-  locationId?: string;          // 子地點 ID（FR-L2）。
-                                // 優先規則（write-time）：提交時若 locationId 非空，location.address 欄位應留空（undefined）；
-                                //   讀取時（read-time）projection 從 WorkspaceLocation.label 動態補全顯示用地址，不落庫。
-                                // 若無 locationId（遠端/跨站），則 location.address 為廠區層級地址（必填）。
+  locationId?: string;          // 子地點 ID（FR-L2）。locationId 與 location.address 互斥規則見 BR-D4
   location: Location;           // { type: 'on-site'|'remote'|'hybrid', address?: string }
-                                // type 仍為必填。address 在 locationId 存在時留 undefined（不重複儲存），由 projection 衍生顯示。
+                                // type 必填；address 的填寫要求見 BR-D4
   requiredSkills: SkillRequirement[]; // [{ skillId, minTier, quantity }]
   status: OrgScheduleStatus;    // 'draft'|'proposed'|'confirmed'|'cancelled'|'completed'|'assignmentCancelled'
   assignedAccountId?: string;   // 指派的成員 ID
@@ -580,9 +579,9 @@ interface OrgEligibleMemberEntry {
 | ID | 規則 | 實施層 |
 |----|------|--------|
 | **BR-D1** | **廠區需求公告**：工作區（廠區）在 `proposed` 狀態的排班，**必須在** Account 管理者的 Demand Board 上可見，不需要 Account 主動查詢每個廠區 | `workspace-business.schedule` + VS4 read model |
-| **BR-D2** | **手動指派入口**：Account 管理者在 Demand Board 上選擇某需求並手動指定成員，等同於觸發 Saga 強制確認（`approveOrgScheduleProposal`），無需等待 Saga 自動比對 | `account-organization.schedule/_actions.ts` |
+| **BR-D2** | **手動指派入口**：Account 管理者在 Demand Board 上選擇某需求並手動指定成員，等同於直接呼叫 `approveOrgScheduleProposal`（Saga 標準流程），無需等待 Saga 自動比對。手動指派**不繞過**業務校驗——Saga 仍進行 eligibility 驗證；若驗證失敗（如成員已被指派到衝突班次），系統回傳失敗原因 | `account-organization.schedule/_actions.ts` |
 | **BR-D3** | **指派候選資格（Override 行為）**：手動指派時，系統顯示所有組織成員，對不符合技能需求或 `eligible=false` 的成員標示警告。管理者可選擇忽略警告送出（Override）。**V1.0 行為**：Override 送出後仍觸發標準 Saga (`approveOrgScheduleProposal`)；若 Saga 內部 eligibility 校驗失敗，則指派失敗並通知管理者——此為預期行為（UI Override ≠ 繞過業務規則）。**V1.1 增強（Roadmap）**：Saga 將新增 `forceAssign: true` 參數供授權角色（OWNER/ADMIN）強制跳過 eligibility 校驗。 | UI soft-warn; Saga hard-validates in V1.0 |
-| **BR-D4** | **廠區地址不可為空**：建立或更新 Workspace 時，`address` 為必填欄位（廠區必有實體地址） | Zod schema validation |
+| **BR-D4** | **廠區地址不可為空**：建立或更新 Workspace 時，`address` 為必填欄位（廠區必有實體地址）。**排班子地點互斥規則（write-time）**：建立 OrgScheduleProposal 時——若 `locationId` 非空（廠區子地點），`location.address` 必須留空（`undefined`），由 projection 在 read-time 從 WorkspaceLocation.label 衍生顯示地址，不落庫；若 `locationId` 為空（遠端/跨站/僅廠區層級），`location.address` 必須填入廠區層級地址。兩者同時填入為驗證錯誤 | Zod schema validation（OrgScheduleProposal）; Action-layer guard |
 | **BR-D5** | **子地點歸屬**：子地點（WorkspaceLocation）屬於特定廠區，不可在廠區間共享或移動；廠區刪除時子地點一同刪除 | `workspace-core` aggregate |
 
 ### BR-S — 排程規則
