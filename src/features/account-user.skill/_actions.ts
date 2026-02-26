@@ -17,6 +17,11 @@
 
 import { addXp, deductXp } from './_aggregate';
 import { publishOrgEvent } from '@/features/account-organization.event-bus';
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/features/shared.kernel.contract-interfaces';
 
 export interface AddXpInput {
   accountId: string;
@@ -35,22 +40,27 @@ export interface AddXpInput {
  * Per E1: event publishing belongs in the application coordinator (_actions.ts),
  * not in the aggregate, to prevent VS3 → VS4 boundary invasion.
  */
-export async function addSkillXp(input: AddXpInput): Promise<{ newXp: number; xpDelta: number }> {
-  const result = await addXp(input.accountId, input.skillId, input.delta, {
-    orgId: input.orgId,
-    reason: input.reason,
-    sourceId: input.sourceId,
-  });
-  // Application coordinator publishes cross-BC skill event (E1 — not from aggregate)
-  await publishOrgEvent('organization:skill:xpAdded', {
-    accountId: input.accountId,
-    orgId: input.orgId,
-    skillId: input.skillId,
-    xpDelta: result.xpDelta,
-    newXp: result.newXp,
-    reason: input.reason,
-  });
-  return result;
+export async function addSkillXp(input: AddXpInput): Promise<CommandResult> {
+  try {
+    const result = await addXp(input.accountId, input.skillId, input.delta, {
+      orgId: input.orgId,
+      reason: input.reason,
+      sourceId: input.sourceId,
+    });
+    // Application coordinator publishes cross-BC skill event (E1 — not from aggregate)
+    await publishOrgEvent('organization:skill:xpAdded', {
+      accountId: input.accountId,
+      orgId: input.orgId,
+      skillId: input.skillId,
+      xpDelta: result.xpDelta,
+      newXp: result.newXp,
+      reason: input.reason,
+    });
+    return commandSuccess(input.accountId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('SKILL_XP_ADD_FAILED', message);
+  }
 }
 
 export interface DeductXpInput {
@@ -69,20 +79,25 @@ export interface DeductXpInput {
  * Per E1: event publishing belongs in the application coordinator (_actions.ts),
  * not in the aggregate, to prevent VS3 → VS4 boundary invasion.
  */
-export async function deductSkillXp(input: DeductXpInput): Promise<{ newXp: number; xpDelta: number }> {
-  const result = await deductXp(input.accountId, input.skillId, input.delta, {
-    orgId: input.orgId,
-    reason: input.reason,
-    sourceId: input.sourceId,
-  });
-  // Application coordinator publishes cross-BC skill event (E1 — not from aggregate)
-  await publishOrgEvent('organization:skill:xpDeducted', {
-    accountId: input.accountId,
-    orgId: input.orgId,
-    skillId: input.skillId,
-    xpDelta: result.xpDelta,
-    newXp: result.newXp,
-    reason: input.reason,
-  });
-  return result;
+export async function deductSkillXp(input: DeductXpInput): Promise<CommandResult> {
+  try {
+    const result = await deductXp(input.accountId, input.skillId, input.delta, {
+      orgId: input.orgId,
+      reason: input.reason,
+      sourceId: input.sourceId,
+    });
+    // Application coordinator publishes cross-BC skill event (E1 — not from aggregate)
+    await publishOrgEvent('organization:skill:xpDeducted', {
+      accountId: input.accountId,
+      orgId: input.orgId,
+      skillId: input.skillId,
+      xpDelta: result.xpDelta,
+      newXp: result.newXp,
+      reason: input.reason,
+    });
+    return commandSuccess(input.accountId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('SKILL_XP_DEDUCT_FAILED', message);
+  }
 }

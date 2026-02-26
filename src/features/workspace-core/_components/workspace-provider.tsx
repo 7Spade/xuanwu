@@ -38,6 +38,7 @@ import {
 import {
   createScheduleItem as createScheduleItemAction,
 } from '@/features/workspace-business.schedule'
+import type { CommandResult } from '@/features/shared.kernel.contract-interfaces';
 
 
 interface WorkspaceContextType {
@@ -49,23 +50,23 @@ interface WorkspaceContextType {
   scope: string[];
   db: Firestore;
   // Task specific actions
-  createTask: (task: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string>;
+  createTask: (task: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>) => Promise<CommandResult>;
   updateTask: (taskId: string, updates: Partial<WorkspaceTask>) => Promise<void>;
-  deleteTask: (taskId: string) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<CommandResult>;
   // Member management actions
-  authorizeWorkspaceTeam: (teamId: string) => Promise<void>;
-  revokeWorkspaceTeam: (teamId: string) => Promise<void>;
-  grantIndividualWorkspaceAccess: (userId: string, role: WorkspaceRole, protocol?: string) => Promise<void>;
-  revokeIndividualWorkspaceAccess: (grantId: string) => Promise<void>;
+  authorizeWorkspaceTeam: (teamId: string) => Promise<CommandResult>;
+  revokeWorkspaceTeam: (teamId: string) => Promise<CommandResult>;
+  grantIndividualWorkspaceAccess: (userId: string, role: WorkspaceRole, protocol?: string) => Promise<CommandResult>;
+  revokeIndividualWorkspaceAccess: (grantId: string) => Promise<CommandResult>;
   // Capability management
-  mountCapabilities: (capabilities: Capability[]) => Promise<void>;
-  unmountCapability: (capability: Capability) => Promise<void>;
+  mountCapabilities: (capabilities: Capability[]) => Promise<CommandResult>;
+  unmountCapability: (capability: Capability) => Promise<CommandResult>;
   // Workspace settings
-  updateWorkspaceSettings: (settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState }) => Promise<void>;
-  deleteWorkspace: () => Promise<void>;
+  updateWorkspaceSettings: (settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState }) => Promise<CommandResult>;
+  deleteWorkspace: () => Promise<CommandResult>;
   // Issue Management
-  createIssue: (title: string, type: 'technical' | 'financial', priority: 'high' | 'medium', sourceTaskId?: string) => Promise<void>;
-  addCommentToIssue: (issueId: string, author: string, content: string) => Promise<void>;
+  createIssue: (title: string, type: 'technical' | 'financial', priority: 'high' | 'medium', sourceTaskId?: string) => Promise<CommandResult>;
+  addCommentToIssue: (issueId: string, author: string, content: string) => Promise<CommandResult>;
   /** Resolves a B-track issue via the Transaction Runner + Outbox pipeline. */
   resolveIssue: (issueId: string, issueTitle: string, resolvedBy: string, sourceTaskId?: string) => Promise<void>;
   // Schedule Management

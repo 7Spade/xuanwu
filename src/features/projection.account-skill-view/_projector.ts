@@ -16,6 +16,8 @@
 
 import { serverTimestamp } from 'firebase/firestore';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
 
 /**
  * Per-skill entry stored in Firestore.
@@ -28,6 +30,8 @@ export interface AccountSkillEntry {
   /** Clamped XP 0–525. The ONLY persisted skill attribute (Invariant #12). */
   xp: number;
   readModelVersion: number;
+  /** Last aggregate version processed by this projection [S2] */
+  lastProcessedVersion?: number;
   updatedAt: ReturnType<typeof serverTimestamp>;
 }
 
@@ -41,13 +45,25 @@ function skillPath(accountId: string, skillId: string): string {
 export async function applySkillXpAdded(
   accountId: string,
   skillId: string,
-  newXp: number
+  newXp: number,
+  aggregateVersion?: number
 ): Promise<void> {
+  if (aggregateVersion !== undefined) {
+    const existing = await getDocument<AccountSkillEntry>(skillPath(accountId, skillId));
+    if (!versionGuardAllows({
+      eventVersion: aggregateVersion,
+      viewLastProcessedVersion: existing?.lastProcessedVersion ?? 0,
+    })) {
+      return;
+    }
+  }
+
   await setDocument(skillPath(accountId, skillId), {
     accountId,
     skillId,
     xp: newXp,
     readModelVersion: Date.now(),
+    ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
     updatedAt: serverTimestamp(),
   } satisfies AccountSkillEntry);
 }
@@ -58,13 +74,25 @@ export async function applySkillXpAdded(
 export async function applySkillXpDeducted(
   accountId: string,
   skillId: string,
-  newXp: number
+  newXp: number,
+  aggregateVersion?: number
 ): Promise<void> {
+  if (aggregateVersion !== undefined) {
+    const existing = await getDocument<AccountSkillEntry>(skillPath(accountId, skillId));
+    if (!versionGuardAllows({
+      eventVersion: aggregateVersion,
+      viewLastProcessedVersion: existing?.lastProcessedVersion ?? 0,
+    })) {
+      return;
+    }
+  }
+
   await setDocument(skillPath(accountId, skillId), {
     accountId,
     skillId,
     xp: newXp,
     readModelVersion: Date.now(),
+    ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
     updatedAt: serverTimestamp(),
   } satisfies AccountSkillEntry);
 }

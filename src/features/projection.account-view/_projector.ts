@@ -14,6 +14,8 @@
 
 import { serverTimestamp } from 'firebase/firestore';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
 import type { AuthoritySnapshot } from '@/features/shared.kernel.authority-snapshot';
 import type { Account } from '@/shared/types';
 
@@ -33,10 +35,25 @@ export interface AccountViewRecord {
   /** Latest authority snapshot */
   authoritySnapshot?: AuthoritySnapshot;
   readModelVersion: number;
+  /** Last aggregate version processed by this projection [S2] */
+  lastProcessedVersion?: number;
   updatedAt: ReturnType<typeof serverTimestamp>;
 }
 
-export async function projectAccountSnapshot(account: Account): Promise<void> {
+export async function projectAccountSnapshot(
+  account: Account,
+  aggregateVersion?: number
+): Promise<void> {
+  if (aggregateVersion !== undefined) {
+    const existing = await getDocument<AccountViewRecord>(`accountView/${account.id}`);
+    if (!versionGuardAllows({
+      eventVersion: aggregateVersion,
+      viewLastProcessedVersion: existing?.lastProcessedVersion ?? 0,
+    })) {
+      return;
+    }
+  }
+
   const record: Omit<AccountViewRecord, 'updatedAt'> & { updatedAt: ReturnType<typeof serverTimestamp> } = {
     implementsAuthoritySnapshot: true,
     accountId: account.id,
@@ -47,6 +64,7 @@ export async function projectAccountSnapshot(account: Account): Promise<void> {
     orgRoles: {},
     skillTagSlugs: account.skillGrants?.map((sg) => sg.tagSlug) ?? [],
     readModelVersion: Date.now(),
+    ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
     updatedAt: serverTimestamp(),
   };
   await setDocument(`accountView/${account.id}`, record);
@@ -55,22 +73,46 @@ export async function projectAccountSnapshot(account: Account): Promise<void> {
 export async function applyOrgRoleChange(
   accountId: string,
   orgId: string,
-  role: string
+  role: string,
+  aggregateVersion?: number
 ): Promise<void> {
+  if (aggregateVersion !== undefined) {
+    const existing = await getDocument<AccountViewRecord>(`accountView/${accountId}`);
+    if (!versionGuardAllows({
+      eventVersion: aggregateVersion,
+      viewLastProcessedVersion: existing?.lastProcessedVersion ?? 0,
+    })) {
+      return;
+    }
+  }
+
   await updateDocument(`accountView/${accountId}`, {
     [`orgRoles.${orgId}`]: role,
     readModelVersion: Date.now(),
+    ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
     updatedAt: serverTimestamp(),
   });
 }
 
 export async function applyAuthoritySnapshot(
   accountId: string,
-  snapshot: AuthoritySnapshot
+  snapshot: AuthoritySnapshot,
+  aggregateVersion?: number
 ): Promise<void> {
+  if (aggregateVersion !== undefined) {
+    const existing = await getDocument<AccountViewRecord>(`accountView/${accountId}`);
+    if (!versionGuardAllows({
+      eventVersion: aggregateVersion,
+      viewLastProcessedVersion: existing?.lastProcessedVersion ?? 0,
+    })) {
+      return;
+    }
+  }
+
   await updateDocument(`accountView/${accountId}`, {
     authoritySnapshot: snapshot,
     readModelVersion: Date.now(),
+    ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
     updatedAt: serverTimestamp(),
   });
 }
