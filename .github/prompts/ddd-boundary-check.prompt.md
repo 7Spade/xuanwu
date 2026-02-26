@@ -1,20 +1,17 @@
 ---
 name: ddd-boundary-check
-description: "DDD 邊界與品質審計指令"
-tools: [repomix, sequential-thinking]
+description: "DDD 領域邊界與術語一致性審查"
 ---
 
 # 🛡️ DDD Boundary Auditor
 
-## 審查任務
-分析現有程式碼，找出違反 **垂直切片** 或 **DDD 聚合邊界** 的地方。
-
 ## 稽核重點
-1. **聚合隔離：** 檢查是否有跨 Aggregate 的直接 Persistence 寫入操作。
-2. **依賴方向：** 確保基礎設施（Infra）依賴於領域層（Domain），而非反向。
-3. **命名對齊：** 比對 `domain-glossary.md`，確保術語一致性。
-4. **SRP 驗證：** Application Layer 是否承載了過多領域規則？
+確保 Domain 規則內聚，且 Application Layer 僅負責流程協調。
 
-## 輸出格式
-- **違規報告：** 列出檔案路徑與具體違規邏輯。
-- **修正計畫：** 提供重構建議（Refactoring Plan）。
+## 工具串聯
+1. **語意比對:** 呼叫 `tool-repomix` 提取程式碼，並對比 `domain-glossary.md` 檢查命名。
+2. **依賴審查:** 呼叫 `tool-thinking` 掃描 import，標註任何從 Domain 引用 Infrastructure 的違規行為。
+3. **聚合驗證:** 檢查是否符合 `persistence-model-overview.md` 定義的寫入規則。
+
+## 輸出要求
+列出所有違反「單一職責原則 (SRP)」或「邊界侵入」的具體位置與修正方案。

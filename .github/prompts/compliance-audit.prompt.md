@@ -1,26 +1,19 @@
 ---
 name: compliance-audit
-description: "對齊 10 份核心文件的全域合規性檢查"
-tools: [repomix, sequential-thinking, context7]
+description: "全域文檔對齊與專案規範合規性審查"
 ---
 
-# 📋 全域規範合規性稽核 (Full-Docs Compliance)
+# ⚖️ Full-Docs Compliance Auditor
 
-## 🎯 稽核目標
-驗證當前程式碼或設計提案是否完全符合專案的 10 份核心技術文件。若有衝突，以 `docs/logic-overview.md` 為最終裁決。
+## 審核目標
+確保開發成果與 10 份核心文件（`docs/*.md`）高度一致。
 
-## 🔍 核心文件檢查點
-請使用 `repomix` 讀取以下文件並進行對比：
+## 執行邏輯
+1. **全域掃描:** 使用 `tool-repomix` 同步程式碼與文檔上下文。
+2. **深度比對:** 呼叫 `tool-thinking` 逐一檢查：
+   - 是否引入 `tech-stack.md` 未定義技術？
+   - 請求流向是否符合 `request-execution-overview.md`？
+   - 基礎設施是否超出 `infrastructure-overview.md` 範圍？
 
-1. **技術棧對齊 (`tech-stack.md`):** 是否引入了未定義的技術？
-2. **術語一致性 (`domain-glossary.md`):** 變數與類別命名是否符合定義？
-3. **邏輯真理 (`logic-overview.md`):** 業務流程是否偏離核心邏輯？
-4. **架構結構 (`architecture-overview.md`, `project-structure.md`):** 目錄位置是否正確？
-5. **資料流向 (`command-event-overview.md`, `request-execution-overview.md`):** 請求生命週期與事件觸發是否合規？
-6. **資料模型 (`persistence-model-overview.md`, `schema-definition.md`):** Schema 與持久化規則是否匹配？
-7. **基礎設施 (`infrastructure-overview.md`):** 是否符合 Serverless 與 Firebase 限制？
-
-## 🛠 執行指令
-- 執行 `sequential-thinking` 逐步比對上述 10 份文件。
-- 若發現「術語漂移」或「技術越權」，必須立即標出。
-- 輸出「合規性報告」，條列通過項與必須修正項。
+## 終極準則
+若程式碼與 `logic-overview.md` 衝突，以文檔為準並提出重構計畫。

@@ -1,20 +1,18 @@
 ---
 name: route-audit-diagnostics
-description: "Next.js 16 路由與渲染審計指令"
-tools: [next-devtools, repomix, context7]
+description: "App Router、Parallel Routes 與渲染效能診斷"
 ---
 
-# 🛣️ Route & Rendering Auditor
+# 🚥 Route & Rendering Diagnostic
 
-## 審核範疇
-針對 Next.js 16 App Router 的 Parallel Routes 與 Streaming 行為進行診斷。
+## 診斷目標
+解決 Next.js 16 複雜路由下的狀態不一致與渲染瓶頸。
 
-## 診斷清單
-1. **路由結構：** 檢查 `@modal` 或 `@parallel` 路由的 Slot 是否正確配置 `default.tsx`。
-2. **渲染邊界：** 使用 `next-devtools` 分析 RSC (Server) 與 Client Components 的邊界是否合理。
-3. **效能優化：** 驗證 `Suspense` 的放置位置是否能極大化 Streaming 效益。
-4. **狀態同步：** 檢查網址參數（URL Params）與 UI 狀態在平行路由間的同步邏輯。
+## 工具調度
+1. **動態追蹤:** 啟動 `tool-next-devtools` 分析 RSC 邊界與 Streaming 行為。
+2. **結構掃描:** 使用 `tool-repomix` 檢查 `@modal` 或 `@parallel` 路由的 Slot 配置。
+3. **官方對齊:** 若出現渲染異常，呼叫 `tool-context7` 驗證 App Router 最新補丁行為。
 
-## 輸出要求
-- 路由樹（Route Tree）可視化建議。
-- 渲染效能瓶頸分析。
+## 審查指標
+- 是否有不必要的客戶端組件滲透？
+- `Suspense` 是否位於最大化 Streaming 效益的位置？
