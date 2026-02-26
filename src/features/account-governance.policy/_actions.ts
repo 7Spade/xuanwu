@@ -36,7 +36,7 @@ import {
 async function emitPolicyChangedRefreshSignal(accountId: string, traceId?: string): Promise<void> {
   // Guard against path-traversal: accountId must be a safe Firestore document ID.
   if (!/^[\w-]+$/.test(accountId)) {
-    throw new Error(`Invalid accountId format: "${accountId}" — must match /^[\\w-]+$/`);
+    throw new Error(`Invalid accountId format — must match /^[\\w-]+$/`);
   }
   await updateDocument(`tokenRefreshSignals/${accountId}`, {
     accountId,

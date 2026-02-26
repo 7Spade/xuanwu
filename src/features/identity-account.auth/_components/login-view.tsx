@@ -32,7 +32,11 @@ export function LoginView() {
         await signIn(email, password)
       } else {
         if (!name) throw new Error(t("auth.pleaseSetDisplayName"))
-        await completeRegistration(email, password, name)
+        const result = await completeRegistration(email, password, name)
+        if (!result.success) {
+          toast({ variant: "destructive", title: t("auth.authenticationFailed"), description: result.error.message })
+          return
+        }
       }
       toast({ title: t("auth.identityResonanceSuccessful") })
       router.push("/dashboard")

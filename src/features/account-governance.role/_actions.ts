@@ -157,11 +157,19 @@ export interface TokenRefreshSignal {
  *
  * Semantics: high-priority eventual consistency.
  * (Not synchronous — Firebase architecture does not allow synchronous claims propagation.)
+ *
+ * Security: accountId is validated against a safe Firestore document ID pattern
+ * to prevent path-traversal injection [OWASP: A01 / CWE-22].
  */
 export async function emitTokenRefreshSignal(
   accountId: string,
   reason: TokenRefreshReason
 ): Promise<void> {
+  // Guard against path-traversal: accountId must be a safe Firestore document ID
+  // (alphanumeric, hyphens, underscores only — no slashes or special chars).
+  if (!/^[\w-]+$/.test(accountId)) {
+    throw new Error(`Invalid accountId format — must match /^[\\w-]+$/`);
+  }
   const signal: TokenRefreshSignal = {
     accountId,
     reason,

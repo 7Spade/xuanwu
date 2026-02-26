@@ -15,6 +15,26 @@
  *
  * Invariant: This is the ONLY place in VS1 that handles claims refresh dispatch.
  *            Do NOT duplicate this logic elsewhere in the identity slice.
+ *
+ * Architecture note — Dual-path TOKEN_REFRESH_SIGNAL pattern [S6]:
+ *   In the current implementation, governance slices (account-governance.role,
+ *   account-governance.policy) also write TOKEN_REFRESH_SIGNAL directly to Firestore
+ *   as a "fast path" within the same process (zero-latency, no outbox round-trip).
+ *   The IER subscriptions below act as a DEFENSIVE / FALLBACK path that handles
+ *   role or policy changes arriving through the event bus from external systems
+ *   or cross-process flows. Neither path is dead code — they serve different latency
+ *   and isolation requirements:
+ *     • Governance direct write = same-process, synchronous, low-latency [FAST PATH]
+ *     • IER CRITICAL_LANE subscription = cross-process, async, fully audited [FALLBACK]
+ *
+ *   Migration guidance — when to move to IER-only dispatch:
+ *   Consider removing the governance direct writes and routing exclusively through IER when:
+ *   (a) outbox relay latency becomes acceptable for token refresh UX (< 500 ms P95), OR
+ *   (b) stricter auditability / replay guarantees are required for ALL refresh events.
+ *   Migration steps: (1) Remove emitTokenRefreshSignal calls from governance _actions.ts;
+ *   (2) publish account:role:changed / account:policy:changed events through the outbox;
+ *   (3) verify CLAIMS_HANDLER subscriptions here fire reliably in load testing.
+ *   After migration, this handler becomes the sole claims dispatcher as the invariant states.
  */
 
 import { registerSubscriber } from '@/features/infra.event-router';
@@ -38,7 +58,7 @@ async function emitRefreshSignal(accountId: string, traceId: string): Promise<vo
   // Guard against path-traversal: accountId must be a safe Firestore document ID
   // (alphanumeric, hyphens, underscores only — no slashes or special chars).
   if (!/^[\w-]+$/.test(accountId)) {
-    throw new Error(`Invalid accountId format: "${accountId}" — must match /^[\\w-]+$/`);
+    throw new Error(`Invalid accountId format — must match /^[\\w-]+$/`);
   }
   await setDocument(`tokenRefreshSignals/${accountId}`, {
     accountId,
