@@ -12,7 +12,7 @@ User wallet — personal balance, transaction history, and payment operations fo
 
 ## Event Lane [Q8][R2][R5][S1][S3]
 
-Per `logic-overview_v10.md` [SK_OUTBOX_CONTRACT S1][SK_READ_CONSISTENCY S3]:
+Per `logic-overview.md` [SK_OUTBOX_CONTRACT S1][SK_READ_CONSISTENCY S3]:
 - `WalletDeducted` / `WalletCredited` → `ACC_OUTBOX` → **CRITICAL_LANE** [Q8][R2]
   - CRITICAL_LANE = 高優先最終一致（非同步，Firebase 架構限制）
   - Not "synchronous" — high-priority delivery with final consistency guarantee

@@ -54,7 +54,7 @@ export type { GlobalAuditRecord, GlobalAuditQuery } from './_projector';
 
 ## Architecture Note [S2][R8]
 
-`logic-overview_v10.md` [SK_VERSION_GUARD S2] VS8 STANDARD_PROJ_LANE:
+`logic-overview.md` [SK_VERSION_GUARD S2] VS8 STANDARD_PROJ_LANE:
 ```
 IER ─► FUNNEL ─► STANDARD_PROJ_LANE ─► GLOBAL_AUDIT_VIEW
 AUDIT_COLLECTOR -.→ GLOBAL_AUDIT_VIEW (跨片稽核)

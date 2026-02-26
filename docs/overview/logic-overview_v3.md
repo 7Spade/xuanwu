@@ -1,5 +1,5 @@
 > ⚠️ **DEPRECATED** — This is a historical reference (v3).
-> The current source of truth is `docs/overview/logic-overview_v10.md`.
+> The current source of truth is `docs/logic-overview.md`.
 > Do not use this file for implementation decisions.
 
 flowchart TD

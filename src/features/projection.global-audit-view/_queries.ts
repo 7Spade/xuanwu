@@ -1,4 +1,4 @@
-// projection.global-audit-view · queries · logic-overview_v10.md [R8]
+// projection.global-audit-view · queries · logic-overview.md [R8]
 // Read-only access to GLOBAL_AUDIT_VIEW. T5-equivalent: consumers MUST NOT write here.
 
 import type { GlobalAuditRecord, GlobalAuditQuery } from './_projector';

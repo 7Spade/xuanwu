@@ -1,6 +1,6 @@
 # Schema Definition
 
-> Source of truth: `docs/overview/logic-overview_v10.md`
+> Source of truth: `docs/logic-overview.md`
 > All collections are Firestore; subcollections shown as `{parent}/{id}/{subcollection}`.
 
 ---

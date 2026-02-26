@@ -62,7 +62,7 @@ All slices that need tag semantics **MUST**:
 
 ## Architecture Note [S1][R3]
 
-`logic-overview_v10.md` [SK_OUTBOX_CONTRACT S1] [R3] T1 T2:
+`logic-overview.md` [SK_OUTBOX_CONTRACT S1] [R3] T1 T2:
 - `CTA --> TAG_EVENTS --> TAG_OUTBOX[SK_OUTBOX_CONTRACT: SAFE_AUTO] --> BACKGROUND_LANE --> IER`
 - `IER --> BACKGROUND_LANE --> VS4_TAG_SUBSCRIBER --> SKILL_TAG_POOL` [R3]
 - `CTA -.->|"唯讀引用契約"| TAG_READONLY`

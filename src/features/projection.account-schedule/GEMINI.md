@@ -33,7 +33,7 @@ export type { AccountScheduleProjection, AccountScheduleAssignment } from './_pr
 
 ## Architecture Note
 
-`logic-overview_v10.md`:
+`logic-overview.md`:
 - `EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_SCHEDULE`
 - `W_B_SCHEDULE -.→ ACCOUNT_PROJECTION_SCHEDULE` (filter available accounts — Invariant #14)
 This slice is read-only from `workspace-business.schedule`'s perspective; writes come only from `projection.event-funnel`.

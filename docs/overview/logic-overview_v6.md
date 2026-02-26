@@ -3,7 +3,7 @@ title: Logic Overview v6 — High-Efficiency Consistent Runtime Architecture
 ---
 
 > ⚠️ **DEPRECATED** — This is a historical reference (v6).
-> The current source of truth is `docs/overview/logic-overview_v10.md`.
+> The current source of truth is `docs/logic-overview.md`.
 > Do not use this file for implementation decisions.
 
 

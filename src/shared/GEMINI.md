@@ -22,7 +22,7 @@ Cross-cutting code used by all feature slices and `app/`. Contains no domain-spe
 | `ui/` | `@/shared/ui` | shadcn/ui, app-providers, i18n, constants, utility hooks |
 
 > **Note:** Observability (`trace-identifier`, `domain-metrics`, `domain-error-log`) lives in
-> `@/features/infra.observability` — not in `shared/`. Per `logic-overview_v10.md` VS9, observability
+> `@/features/infra.observability` — not in `shared/`. Per `logic-overview.md` VS9, observability
 > is a cross-cutting feature slice, not a shared infrastructure module.
 
 ## Allowed Imports

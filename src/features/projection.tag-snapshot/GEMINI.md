@@ -48,7 +48,7 @@ export { getTagSnapshot, getAllTagSnapshots, getActiveTagSnapshots } from './_qu
 
 ## Architecture Note [S4][Q6][T5]
 
-`logic-overview_v10.md` [SK_STALENESS_CONTRACT S4] VS8 [Q6][T5]:
+`logic-overview.md` [SK_STALENESS_CONTRACT S4] VS8 [Q6][T5]:
 - `FUNNEL --> TAG_SNAPSHOT`
 - `TAG_SNAPSHOT["projection.tag-snapshot\n來源: TagLifecycleEvent\n消費方唯讀快取"]`
 - `TAG_SNAPSHOT -.->|"T5"| TAG_READONLY`

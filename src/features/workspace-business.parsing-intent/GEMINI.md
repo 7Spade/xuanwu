@@ -35,5 +35,5 @@ export type { ParsingIntentContract, ParsingIntentStatus } from './_contract';
 
 ## Architecture Note
 
-Aligned with `logic-overview_v10.md`:
+Aligned with `logic-overview.md`:
 `PARSING_INTENT` is treated as a durable contract layer, not a transient parser buffer.

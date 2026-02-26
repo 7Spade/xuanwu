@@ -45,7 +45,7 @@ import { registerOrgPolicyCache, getCachedOrgPolicy, getAllCachedPolicies, clear
 
 ## Architecture Note [S1][S5][R4]
 
-`logic-overview_v10.md` [SK_OUTBOX_CONTRACT S1] [SK_RESILIENCE_CONTRACT S5] [R4]:
+`logic-overview.md` [SK_OUTBOX_CONTRACT S1] [SK_RESILIENCE_CONTRACT S5] [R4]:
 - Application layer **coordinates flow only** — no domain rules (invariant #3)
 - Scope Guard reads ONLY local `projection.workspace-scope-guard`, NOT external event buses (invariant #7)
 - Transaction Runner collects aggregate events and writes to Outbox (invariant #4)

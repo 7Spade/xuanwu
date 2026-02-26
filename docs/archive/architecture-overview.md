@@ -1,11 +1,11 @@
 # Architecture Overview
 
-> 本文件是 `logic-overview_v10.md` 的配套架構參考。  
-> `logic-overview_v10.md` 描述**領域邏輯流程**（唯一事實來源）；本文件描述**功能切片的資料夾結構設計**與其對應的架構原則。
+> 本文件是 `logic-overview.md` 的配套架構參考。  
+> `logic-overview.md` 描述**領域邏輯流程**（唯一事實來源）；本文件描述**功能切片的資料夾結構設計**與其對應的架構原則。
 
 ---
 
-## 一、logic-overview_v10.md 評估與改良說明
+## 一、logic-overview.md 評估與改良說明
 
 | # | 項目 | 原始狀態 | 改良後 | 理由 |
 |---|------|----------|--------|------|
@@ -40,7 +40,7 @@
 
 ## PR #69 分析（僅分析，不改圖）
 
-### 1) `logic-overview_v10.md` 是否需要新增「人力資源池」？
+### 1) `logic-overview.md` 是否需要新增「人力資源池」？
 
 結論：**不建議在 Workspace Container 內再新增一個「人力資源池 Aggregate」**。
 
@@ -357,7 +357,7 @@ src/shared/
 
 ---
 
-## 八、與 logic-overview_v10.md 的對應關係
+## 八、與 logic-overview.md 的對應關係
 
 | logic-overview_v10 層 | features 資料夾群組 |
 |----------------------|---------------------|
@@ -383,6 +383,6 @@ src/shared/
 | Firebase Cloud Messaging (FCM) | `shared/infra/messaging/` FCM 適配器（外部服務） |
 | USER_DEVICE | 裝置端（不在 features，為推播終點） |
 
-> 詳細領域邏輯流程請參閱 [`logic-overview_v10.md`](./logic-overview_v10.md)（唯一事實來源）。  
+> 詳細領域邏輯流程請參閱 [`logic-overview.md`](./logic-overview.md)（唯一事實來源）。  
 > 持久化模型請參閱 [`persistence-model-overview.v3.md`](./persistence-model-overview.v3.md)。  
 > 基礎設施整合請參閱 [`infrastructure-overview.v3.md`](./infrastructure-overview.v3.md)。

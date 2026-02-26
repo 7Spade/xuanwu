@@ -6,7 +6,7 @@ Audit trail — record and display all account and workspace events chronologica
 
 ## Architecture Note
 
-Per `logic-overview_v10.md`: `WORKSPACE_GOVERNANCE` only contains `members` and `role`. Audit trail functionality is conceptually tied to:
+Per `logic-overview.md`: `WORKSPACE_GOVERNANCE` only contains `members` and `role`. Audit trail functionality is conceptually tied to:
 - `workspace-core.event-store` — source of workspace event history
 - `projection.account-audit` — source of account audit projection
 

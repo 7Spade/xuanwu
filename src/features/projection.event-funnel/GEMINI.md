@@ -40,7 +40,7 @@ export { registerWorkspaceFunnel, registerOrganizationFunnel, replayWorkspacePro
 
 ## Architecture Note [S2][R1][R8]
 
-`logic-overview_v10.md` [SK_VERSION_GUARD S2] [R1][R8]:
+`logic-overview.md` [SK_VERSION_GUARD S2] [R1][R8]:
 
 Event flow (v10):
 ```

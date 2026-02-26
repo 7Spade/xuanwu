@@ -3,7 +3,7 @@ title: Logic Overview v7 — Deep Runtime Efficiency & Consistency
 ---
 
 > ⚠️ **DEPRECATED** — This is a historical reference (v7).
-> The current source of truth is `docs/overview/logic-overview_v10.md`.
+> The current source of truth is `docs/logic-overview.md`.
 > Do not use this file for implementation decisions.
 
 

@@ -8,7 +8,7 @@ Two aggregates:
    Per v5: passively updated by TagLifecycleEvents from `centralized-tag`.
 2. **Org Skill Recognition** (`ORG_SKILL_RECOGNITION`) — records the organization's acknowledgment of a member's skill, with an optional `minXpRequired` gate.
 
-## v10 Role Update (logic-overview_v10.md R3)
+## v10 Role Update (logic-overview.md R3)
 
 `SKILL_TAG_POOL` is now updated explicitly via **VS4_TAG_SUBSCRIBER** [R3]:
 > IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
@@ -64,7 +64,7 @@ Two aggregates:
 
 ## Architecture Note [S4][R3]
 
-`logic-overview_v10.md` [SK_STALENESS_CONTRACT S4] [R3] VS4:
+`logic-overview.md` [SK_STALENESS_CONTRACT S4] [R3] VS4:
 - `SKILL_TAG_POOL[("職能標籤庫\naccount-organization.skill-tag\n= Tag Authority 的組織作用域快照\n由 VS4_TAG_SUBSCRIBER 更新 [R3]")]`
 - `ORG_SKILL_RECOGNITION --> ORG_EVENT_BUS`
 
