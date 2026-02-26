@@ -5,6 +5,7 @@
 
 import { createWorkspace, mountCapabilities , updateWorkspaceSettings, deleteWorkspace } from "./_actions"
 import type { Account, Capability , WorkspaceLifecycleState, Address } from "@/shared/types"
+import type { CommandResult } from '@/features/shared.kernel.contract-interfaces';
 
 /**
  * Creates a workspace and immediately mounts a set of initial capabilities.
@@ -13,18 +14,21 @@ import type { Account, Capability , WorkspaceLifecycleState, Address } from "@/s
  * @param name         Workspace name
  * @param account      The owning account
  * @param capabilities Initial capabilities to mount (may be empty)
- * @returns            The new workspace ID
+ * @returns            CommandResult — aggregateId is the new workspace ID on success
  */
 export async function createWorkspaceWithCapabilities(
   name: string,
   account: Account,
   capabilities: Capability[] = []
-): Promise<string> {
-  const workspaceId = await createWorkspace(name, account)
+): Promise<CommandResult> {
+  const result = await createWorkspace(name, account);
+  if (!result.success) return result;
+  const workspaceId = result.aggregateId;
   if (capabilities.length > 0) {
-    await mountCapabilities(workspaceId, capabilities)
+    const mountResult = await mountCapabilities(workspaceId, capabilities);
+    if (!mountResult.success) return mountResult;
   }
-  return workspaceId
+  return result;
 }
 
 import { toast } from "@/shared/utility-hooks/use-toast"
@@ -42,14 +46,13 @@ export const handleCreateWorkspace = async (
     toast({ variant: "destructive", title: t("workspaces.creationFailed"), description: t("workspaces.accountNotFound") })
     return
   }
-  try {
-    await createWorkspace(name, activeAccount)
-    toast({ title: t("workspaces.logicalSpaceCreated"), description: t("workspaces.spaceSynchronized").replace("{name}", name) })
-    onSuccess()
-  } catch (error: unknown) {
-    console.error("Error creating workspace:", error)
-    toast({ variant: "destructive", title: t("workspaces.failedToCreateSpace"), description: getErrorMessage(error, t("common.unknownError")) })
+  const result = await createWorkspace(name, activeAccount);
+  if (!result.success) {
+    toast({ variant: "destructive", title: t("workspaces.failedToCreateSpace"), description: result.error.message })
+    return
   }
+  toast({ title: t("workspaces.logicalSpaceCreated"), description: t("workspaces.spaceSynchronized").replace("{name}", name) })
+  onSuccess()
 }
 
 export const handleUpdateWorkspaceSettings = async (
@@ -57,23 +60,21 @@ export const handleUpdateWorkspaceSettings = async (
   settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState; address?: Address },
   onSuccess: () => void
 ) => {
-  try {
-    await updateWorkspaceSettings(workspaceId, settings)
-    toast({ title: "Space settings synchronized" })
-    onSuccess()
-  } catch (error) {
-    console.error("Error updating settings:", error)
-    toast({ variant: "destructive", title: "Failed to Update Settings", description: getErrorMessage(error, "An unknown error occurred.") })
+  const result = await updateWorkspaceSettings(workspaceId, settings);
+  if (!result.success) {
+    toast({ variant: "destructive", title: "Failed to Update Settings", description: result.error.message })
+    return
   }
+  toast({ title: "Space settings synchronized" })
+  onSuccess()
 }
 
 export const handleDeleteWorkspace = async (workspaceId: string, onSuccess: () => void) => {
-  try {
-    await deleteWorkspace(workspaceId)
-    toast({ title: "Workspace node destroyed" })
-    onSuccess()
-  } catch (error) {
-    console.error("Error deleting workspace:", error)
-    toast({ variant: "destructive", title: "Failed to Destroy Space", description: getErrorMessage(error, "An unknown error occurred.") })
+  const result = await deleteWorkspace(workspaceId);
+  if (!result.success) {
+    toast({ variant: "destructive", title: "Failed to Destroy Space", description: result.error.message })
+    return
   }
+  toast({ title: "Workspace node destroyed" })
+  onSuccess()
 }

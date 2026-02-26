@@ -16,6 +16,8 @@
  */
 
 import { setDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
 import type { TagCreatedPayload, TagUpdatedPayload, TagDeprecatedPayload, TagDeletedPayload } from '@/features/centralized-tag';
 
 // ---------------------------------------------------------------------------
@@ -31,12 +33,15 @@ export interface TagSnapshotEntry {
   /** Suggested replacement tag, if specified at deprecation time. */
   replacedByTagSlug?: string;
   readModelVersion: number;
+  /** Last aggregate version processed by this projection [S2] */
+  lastProcessedVersion?: number;
 }
 
 // ---------------------------------------------------------------------------
 // Projector functions (called by Event Funnel — Invariant A7)
 // ---------------------------------------------------------------------------
 
+/** applyTagCreated — no version guard needed; creates are idempotent. */
 export async function applyTagCreated(payload: TagCreatedPayload): Promise<void> {
   await setDocument(`tagSnapshot/${payload.tagSlug}`, {
     tagSlug: payload.tagSlug,
@@ -46,23 +51,52 @@ export async function applyTagCreated(payload: TagCreatedPayload): Promise<void>
   } satisfies TagSnapshotEntry);
 }
 
-export async function applyTagUpdated(payload: TagUpdatedPayload): Promise<void> {
+export async function applyTagUpdated(
+  payload: TagUpdatedPayload,
+  aggregateVersion?: number
+): Promise<void> {
+  if (aggregateVersion !== undefined) {
+    const existing = await getDocument<TagSnapshotEntry>(`tagSnapshot/${payload.tagSlug}`);
+    if (!versionGuardAllows({
+      eventVersion: aggregateVersion,
+      viewLastProcessedVersion: existing?.lastProcessedVersion ?? 0,
+    })) {
+      return;
+    }
+  }
+
   await setDocument(`tagSnapshot/${payload.tagSlug}`, {
     tagSlug: payload.tagSlug,
     label: payload.label,
     category: payload.category,
     readModelVersion: Date.now(),
+    ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
   } satisfies TagSnapshotEntry);
 }
 
-export async function applyTagDeprecated(payload: TagDeprecatedPayload): Promise<void> {
+export async function applyTagDeprecated(
+  payload: TagDeprecatedPayload,
+  aggregateVersion?: number
+): Promise<void> {
+  if (aggregateVersion !== undefined) {
+    const existing = await getDocument<TagSnapshotEntry>(`tagSnapshot/${payload.tagSlug}`);
+    if (!versionGuardAllows({
+      eventVersion: aggregateVersion,
+      viewLastProcessedVersion: existing?.lastProcessedVersion ?? 0,
+    })) {
+      return;
+    }
+  }
+
   await updateDocument(`tagSnapshot/${payload.tagSlug}`, {
     deprecatedAt: payload.deprecatedAt,
     ...(payload.replacedByTagSlug ? { replacedByTagSlug: payload.replacedByTagSlug } : {}),
     readModelVersion: Date.now(),
+    ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
   });
 }
 
+/** applyTagDeleted — no version guard needed; deletes are final. */
 export async function applyTagDeleted(payload: TagDeletedPayload): Promise<void> {
   await deleteDocument(`tagSnapshot/${payload.tagSlug}`);
 }

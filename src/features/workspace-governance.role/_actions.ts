@@ -16,6 +16,11 @@ import {
   grantIndividualWorkspaceAccess,
   revokeIndividualWorkspaceAccess,
 } from '@/shared/infra/firestore/firestore.facade';
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/features/shared.kernel.contract-interfaces';
 import type { WorkspaceRole } from '@/shared/types';
 
 export interface AssignWorkspaceRoleInput {
@@ -34,18 +39,30 @@ export interface RevokeWorkspaceRoleInput {
  * Assigns a workspace-level role to a user.
  * Delegates to the workspace core repository — atomic grant guard included.
  */
-export async function assignWorkspaceRole(input: AssignWorkspaceRoleInput): Promise<void> {
-  await grantIndividualWorkspaceAccess(
-    input.workspaceId,
-    input.userId,
-    input.role,
-    input.protocol
-  );
+export async function assignWorkspaceRole(input: AssignWorkspaceRoleInput): Promise<CommandResult> {
+  try {
+    await grantIndividualWorkspaceAccess(
+      input.workspaceId,
+      input.userId,
+      input.role,
+      input.protocol
+    );
+    return commandSuccess(input.workspaceId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('WORKSPACE_ROLE_ASSIGN_FAILED', message);
+  }
 }
 
 /**
  * Revokes a workspace-level role from a user.
  */
-export async function revokeWorkspaceRole(input: RevokeWorkspaceRoleInput): Promise<void> {
-  await revokeIndividualWorkspaceAccess(input.workspaceId, input.userId);
+export async function revokeWorkspaceRole(input: RevokeWorkspaceRoleInput): Promise<CommandResult> {
+  try {
+    await revokeIndividualWorkspaceAccess(input.workspaceId, input.userId);
+    return commandSuccess(input.workspaceId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('WORKSPACE_ROLE_REVOKE_FAILED', message);
+  }
 }

@@ -19,6 +19,8 @@ export interface WorkspaceScopeGuardView {
   grantIndex: Record<string, WorkspaceScopeGrantEntry>;
   /** Latest version processed from event stream */
   readModelVersion: number;
+  /** Last aggregate version processed by this projection [S2] */
+  lastProcessedVersion?: number;
   updatedAt: Timestamp;
 }
 

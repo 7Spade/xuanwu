@@ -23,6 +23,11 @@
 
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { publishOrgEvent } from '@/features/account-organization.event-bus';
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/features/shared.kernel.contract-interfaces';
 import type { OrganizationRole } from '@/shared/types';
 
 export interface AccountRoleRecord {
@@ -33,6 +38,8 @@ export interface AccountRoleRecord {
   grantedAt: string;
   revokedAt?: string;
   isActive: boolean;
+  /** TraceID propagated from CBG_ENTRY for auditability [R8]. */
+  traceId?: string;
 }
 
 export interface AssignRoleInput {
@@ -40,6 +47,8 @@ export interface AssignRoleInput {
   orgId: string;
   role: OrganizationRole;
   grantedBy: string;
+  /** Optional trace identifier propagated from CBG_ENTRY [R8]. */
+  traceId?: string;
 }
 
 /**
@@ -47,35 +56,43 @@ export interface AssignRoleInput {
  * Publishes OrgMemberJoined event downstream — triggers CUSTOM_CLAIMS refresh.
  * Emits TOKEN_REFRESH_SIGNAL after role change so the frontend refreshes its token. [R2]
  */
-export async function assignAccountRole(input: AssignRoleInput): Promise<void> {
-  const record: AccountRoleRecord = {
-    accountId: input.accountId,
-    orgId: input.orgId,
-    role: input.role,
-    grantedBy: input.grantedBy,
-    grantedAt: new Date().toISOString(),
-    isActive: true,
-  };
-
-  await setDocument(
-    `accountRoles/${input.orgId}_${input.accountId}`,
-    record
-  );
-
-  await publishOrgEvent('organization:member:joined', {
-    orgId: input.orgId,
-    accountId: input.accountId,
-    role: input.role,
-    joinedBy: input.grantedBy,
-  });
-
-  // TOKEN_REFRESH_SIGNAL [R2]: notify frontend that claims have changed.
-  // Wrapped in try-catch: a signal failure must NOT roll back the role assignment.
-  // Frontend will re-sync on next token expiry / page reload in the worst case.
+export async function assignAccountRole(input: AssignRoleInput): Promise<CommandResult> {
   try {
-    await emitTokenRefreshSignal(input.accountId, 'role:assigned');
+    const record: AccountRoleRecord = {
+      accountId: input.accountId,
+      orgId: input.orgId,
+      role: input.role,
+      grantedBy: input.grantedBy,
+      grantedAt: new Date().toISOString(),
+      isActive: true,
+      ...(input.traceId ? { traceId: input.traceId } : {}),
+    };
+
+    await setDocument(
+      `accountRoles/${input.orgId}_${input.accountId}`,
+      record
+    );
+
+    await publishOrgEvent('organization:member:joined', {
+      orgId: input.orgId,
+      accountId: input.accountId,
+      role: input.role,
+      joinedBy: input.grantedBy,
+    });
+
+    // TOKEN_REFRESH_SIGNAL [R2]: notify frontend that claims have changed.
+    // Wrapped in try-catch: a signal failure must NOT roll back the role assignment.
+    // Frontend will re-sync on next token expiry / page reload in the worst case.
+    try {
+      await emitTokenRefreshSignal(input.accountId, 'role:assigned');
+    } catch (err) {
+      console.error('[account-governance.role] Failed to emit TOKEN_REFRESH_SIGNAL after role assign:', err);
+    }
+
+    return commandSuccess(input.accountId, Date.now());
   } catch (err) {
-    console.error('[account-governance.role] Failed to emit TOKEN_REFRESH_SIGNAL after role assign:', err);
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('ROLE_ASSIGN_FAILED', message);
   }
 }
 
@@ -88,24 +105,31 @@ export async function revokeAccountRole(
   accountId: string,
   orgId: string,
   revokedBy: string
-): Promise<void> {
-  await updateDocument(`accountRoles/${orgId}_${accountId}`, {
-    isActive: false,
-    revokedAt: new Date().toISOString(),
-  });
-
-  await publishOrgEvent('organization:member:left', {
-    orgId,
-    accountId,
-    removedBy: revokedBy,
-  });
-
-  // TOKEN_REFRESH_SIGNAL [R2]: notify frontend that claims have changed.
-  // Wrapped in try-catch: a signal failure must NOT roll back the role revocation.
+): Promise<CommandResult> {
   try {
-    await emitTokenRefreshSignal(accountId, 'role:revoked');
+    await updateDocument(`accountRoles/${orgId}_${accountId}`, {
+      isActive: false,
+      revokedAt: new Date().toISOString(),
+    });
+
+    await publishOrgEvent('organization:member:left', {
+      orgId,
+      accountId,
+      removedBy: revokedBy,
+    });
+
+    // TOKEN_REFRESH_SIGNAL [R2]: notify frontend that claims have changed.
+    // Wrapped in try-catch: a signal failure must NOT roll back the role revocation.
+    try {
+      await emitTokenRefreshSignal(accountId, 'role:revoked');
+    } catch (err) {
+      console.error('[account-governance.role] Failed to emit TOKEN_REFRESH_SIGNAL after role revoke:', err);
+    }
+
+    return commandSuccess(accountId, Date.now());
   } catch (err) {
-    console.error('[account-governance.role] Failed to emit TOKEN_REFRESH_SIGNAL after role revoke:', err);
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('ROLE_REVOKE_FAILED', message);
   }
 }
 

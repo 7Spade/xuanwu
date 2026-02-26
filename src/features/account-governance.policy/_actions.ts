@@ -15,6 +15,11 @@
  */
 
 import { addDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/features/shared.kernel.contract-interfaces';
 
 export interface AccountPolicy {
   id: string;
@@ -50,22 +55,28 @@ export interface UpdatePolicyInput {
 /**
  * Creates a new account policy.
  * CUSTOM_CLAIMS refresh is triggered by the governance layer reading updated policies.
+ * Returns CommandSuccess with the created policy ID as aggregateId.
  */
-export async function createAccountPolicy(input: CreatePolicyInput): Promise<string> {
-  const now = new Date().toISOString();
-  const ref = await addDocument<Omit<AccountPolicy, 'id'>>(
-    `accountPolicies`,
-    {
-      accountId: input.accountId,
-      name: input.name,
-      description: input.description,
-      rules: input.rules,
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    }
-  );
-  return ref.id;
+export async function createAccountPolicy(input: CreatePolicyInput): Promise<CommandResult> {
+  try {
+    const now = new Date().toISOString();
+    const ref = await addDocument<Omit<AccountPolicy, 'id'>>(
+      `accountPolicies`,
+      {
+        accountId: input.accountId,
+        name: input.name,
+        description: input.description,
+        rules: input.rules,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      }
+    );
+    return commandSuccess(ref.id, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('POLICY_CREATE_FAILED', message);
+  }
 }
 
 /**
@@ -74,16 +85,28 @@ export async function createAccountPolicy(input: CreatePolicyInput): Promise<str
 export async function updateAccountPolicy(
   policyId: string,
   input: UpdatePolicyInput
-): Promise<void> {
-  await updateDocument(`accountPolicies/${policyId}`, {
-    ...input,
-    updatedAt: new Date().toISOString(),
-  });
+): Promise<CommandResult> {
+  try {
+    await updateDocument(`accountPolicies/${policyId}`, {
+      ...input,
+      updatedAt: new Date().toISOString(),
+    });
+    return commandSuccess(policyId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('POLICY_UPDATE_FAILED', message);
+  }
 }
 
 /**
  * Deletes an account policy.
  */
-export async function deleteAccountPolicy(policyId: string): Promise<void> {
-  await deleteDocument(`accountPolicies/${policyId}`);
+export async function deleteAccountPolicy(policyId: string): Promise<CommandResult> {
+  try {
+    await deleteDocument(`accountPolicies/${policyId}`);
+    return commandSuccess(policyId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('POLICY_DELETE_FAILED', message);
+  }
 }

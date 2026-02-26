@@ -20,28 +20,37 @@ import {
   deleteDocument,
 } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { buildIdempotencyKey } from '@/features/shared.kernel.outbox-contract';
 import { publishTagEvent } from './_bus';
 
 // ---------------------------------------------------------------------------
-// Outbox helper [Q2] — writes a pending OutboxDocument to tagOutbox/{id}
+// Outbox helper [Q2][S1][R8] — writes a pending OutboxDocument to tagOutbox/{id}
 // The OUTBOX_RELAY_WORKER (infra.outbox-relay) picks this up via CDC and
 // delivers it to IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER.
+//
+// S1: uses buildIdempotencyKey(eventId, aggId, version) from shared.kernel.outbox-contract.
+// R8: traceId carried in the envelope if supplied by the calling action.
 // ---------------------------------------------------------------------------
 
 async function writeTagOutbox(
   eventType: string,
   tagSlug: string,
-  payload: unknown
+  payload: unknown,
+  traceId?: string
 ): Promise<void> {
   const outboxId = crypto.randomUUID();
   const occurredAt = new Date().toISOString();
+  const idempotencyKey = buildIdempotencyKey(outboxId, tagSlug, 0);
+  // NOTE: version=0 because centralized-tag does not maintain an event-sourced version counter.
+  // The idempotency key is still unique per outbox record because eventId (outboxId) is a UUID.
   const envelope = {
     eventId: outboxId,
     eventType,
     occurredAt,
     sourceId: tagSlug,
     payload,
-    idempotencyKey: `${outboxId}__${tagSlug}`,
+    idempotencyKey,
+    ...(traceId ? { traceId } : {}),
   };
 
   await setDocument<Record<string, unknown>>(`tagOutbox/${outboxId}`, {
@@ -90,7 +99,8 @@ export async function createTag(
   label: string,
   category: string,
   createdBy: string,
-  deleteRule: TagDeleteRule = 'block-if-referenced'
+  deleteRule: TagDeleteRule = 'block-if-referenced',
+  traceId?: string
 ): Promise<void> {
   const path = `tagDictionary/${tagSlug}`;
   const existing = await getDocument<CentralizedTagEntry>(path);
@@ -114,7 +124,7 @@ export async function createTag(
   await setDocument(path, entry);
 
   const createdPayload = { tagSlug, label, category, createdBy, createdAt: now };
-  await writeTagOutbox('tag:created', tagSlug, createdPayload).catch((err) =>
+  await writeTagOutbox('tag:created', tagSlug, createdPayload, traceId).catch((err) =>
     console.error('[centralized-tag] tagOutbox write failed for tag:created', tagSlug, err)
   );
   await publishTagEvent('tag:created', createdPayload);
@@ -129,7 +139,8 @@ export async function createTag(
 export async function updateTag(
   tagSlug: string,
   updates: { label?: string; category?: string },
-  updatedBy: string
+  updatedBy: string,
+  traceId?: string
 ): Promise<void> {
   const path = `tagDictionary/${tagSlug}`;
   const existing = await getDocument<CentralizedTagEntry>(path);
@@ -148,7 +159,7 @@ export async function updateTag(
   });
 
   const updatedPayload = { tagSlug, label: newLabel, category: newCategory, updatedBy, updatedAt: now };
-  await writeTagOutbox('tag:updated', tagSlug, updatedPayload).catch((err) =>
+  await writeTagOutbox('tag:updated', tagSlug, updatedPayload, traceId).catch((err) =>
     console.error('[centralized-tag] tagOutbox write failed for tag:updated', tagSlug, err)
   );
   await publishTagEvent('tag:updated', updatedPayload);
@@ -163,7 +174,8 @@ export async function updateTag(
 export async function deprecateTag(
   tagSlug: string,
   deprecatedBy: string,
-  replacedByTagSlug?: string
+  replacedByTagSlug?: string,
+  traceId?: string
 ): Promise<void> {
   const path = `tagDictionary/${tagSlug}`;
   const existing = await getDocument<CentralizedTagEntry>(path);
@@ -180,7 +192,7 @@ export async function deprecateTag(
   });
 
   const deprecatedPayload = { tagSlug, replacedByTagSlug, deprecatedBy, deprecatedAt: now };
-  await writeTagOutbox('tag:deprecated', tagSlug, deprecatedPayload).catch((err) =>
+  await writeTagOutbox('tag:deprecated', tagSlug, deprecatedPayload, traceId).catch((err) =>
     console.error('[centralized-tag] tagOutbox write failed for tag:deprecated', tagSlug, err)
   );
   await publishTagEvent('tag:deprecated', deprecatedPayload);
@@ -196,7 +208,7 @@ export async function deprecateTag(
  *
  * Publishes `tag:deleted`.
  */
-export async function deleteTag(tagSlug: string, deletedBy: string): Promise<void> {
+export async function deleteTag(tagSlug: string, deletedBy: string, traceId?: string): Promise<void> {
   const path = `tagDictionary/${tagSlug}`;
   const existing = await getDocument<CentralizedTagEntry>(path);
   if (!existing) return; // idempotent
@@ -204,7 +216,7 @@ export async function deleteTag(tagSlug: string, deletedBy: string): Promise<voi
   await deleteDocument(path);
 
   const deletedPayload = { tagSlug, deletedBy, deletedAt: new Date().toISOString() };
-  await writeTagOutbox('tag:deleted', tagSlug, deletedPayload).catch((err) =>
+  await writeTagOutbox('tag:deleted', tagSlug, deletedPayload, traceId).catch((err) =>
     console.error('[centralized-tag] tagOutbox write failed for tag:deleted', tagSlug, err)
   );
   await publishTagEvent('tag:deleted', deletedPayload);
