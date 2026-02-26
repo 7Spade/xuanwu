@@ -12,6 +12,8 @@
  *
  * Invariant #1: This BC only writes its own aggregate.
  * Invariant #3: Application layer coordinates flow only.
+ * [R8] TRACE_PROPAGATION_RULE: traceId is carried from CBG_ENTRY into the persisted
+ *   policy record for auditability. Must NOT be regenerated here.
  */
 
 import { addDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -30,6 +32,8 @@ export interface AccountPolicy {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  /** TraceID propagated from CBG_ENTRY for auditability [R8]. */
+  traceId?: string;
 }
 
 export interface PolicyRule {
@@ -43,6 +47,8 @@ export interface CreatePolicyInput {
   name: string;
   description: string;
   rules: PolicyRule[];
+  /** Optional trace identifier propagated from CBG_ENTRY [R8]. */
+  traceId?: string;
 }
 
 export interface UpdatePolicyInput {
@@ -50,12 +56,15 @@ export interface UpdatePolicyInput {
   description?: string;
   rules?: PolicyRule[];
   isActive?: boolean;
+  /** Optional trace identifier propagated from CBG_ENTRY [R8]. */
+  traceId?: string;
 }
 
 /**
  * Creates a new account policy.
  * CUSTOM_CLAIMS refresh is triggered by the governance layer reading updated policies.
  * Returns CommandSuccess with the created policy ID as aggregateId.
+ * traceId is stored in the record for auditability [R8].
  */
 export async function createAccountPolicy(input: CreatePolicyInput): Promise<CommandResult> {
   try {
@@ -70,6 +79,7 @@ export async function createAccountPolicy(input: CreatePolicyInput): Promise<Com
         isActive: true,
         createdAt: now,
         updatedAt: now,
+        ...(input.traceId ? { traceId: input.traceId } : {}),
       }
     );
     return commandSuccess(ref.id, Date.now());
@@ -81,15 +91,18 @@ export async function createAccountPolicy(input: CreatePolicyInput): Promise<Com
 
 /**
  * Updates an existing account policy.
+ * traceId is stored in the record for auditability [R8].
  */
 export async function updateAccountPolicy(
   policyId: string,
   input: UpdatePolicyInput
 ): Promise<CommandResult> {
   try {
+    const { traceId, ...fields } = input;
     await updateDocument(`accountPolicies/${policyId}`, {
-      ...input,
+      ...fields,
       updatedAt: new Date().toISOString(),
+      ...(traceId ? { traceId } : {}),
     });
     return commandSuccess(policyId, Date.now());
   } catch (err) {
