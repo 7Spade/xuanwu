@@ -315,7 +315,12 @@ export async function completeOrgSchedule(
   traceId?: string
 ): Promise<void> {
   const existing = await getDocument<OrgScheduleProposal>(`orgScheduleProposals/${scheduleItemId}`);
-  const nextVersion = (existing?.version ?? 1) + 1;
+  if (!existing || existing.status !== 'confirmed') {
+    throw new Error(
+      `completeOrgSchedule: invalid state transition — scheduleItemId "${scheduleItemId}" is "${existing?.status ?? 'not found'}", expected "confirmed".`
+    );
+  }
+  const nextVersion = existing.version + 1;
 
   await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
     status: 'completed' satisfies OrgScheduleStatus,
@@ -363,7 +368,12 @@ export async function cancelOrgScheduleAssignment(
   traceId?: string
 ): Promise<void> {
   const existing = await getDocument<OrgScheduleProposal>(`orgScheduleProposals/${scheduleItemId}`);
-  const nextVersion = (existing?.version ?? 1) + 1;
+  if (!existing || existing.status !== 'confirmed') {
+    throw new Error(
+      `cancelOrgScheduleAssignment: invalid state transition — scheduleItemId "${scheduleItemId}" is "${existing?.status ?? 'not found'}", expected "confirmed".`
+    );
+  }
+  const nextVersion = existing.version + 1;
 
   await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
     status: 'assignmentCancelled' satisfies OrgScheduleStatus,
