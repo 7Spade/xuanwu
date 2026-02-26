@@ -39,11 +39,17 @@ export type SkillTier =
 /** Static metadata for a single tier. Used by UI and shared/lib. */
 export interface TierDefinition {
   tier: SkillTier;
+  /** Ordinal position (1 = lowest). Used for tier comparison without importing runtime functions. */
   rank: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  /** Display name shown in UI badges (e.g. "Apprentice", "Grandmaster"). */
   label: string;
+  /** Inclusive lower XP bound for this tier. */
   minXp: number;
+  /** Exclusive upper XP bound (last tier uses Number.MAX_SAFE_INTEGER as sentinel). */
   maxXp: number;
+  /** Hex colour used for the badge background / ring (e.g. `"#9333ea"`). */
   color: string;
+  /** CSS custom property name for theming (e.g. `"--tier-grandmaster"`). */
   cssVar: string;
 }
 
