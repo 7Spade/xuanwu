@@ -1,4 +1,5 @@
-# 📂 GEMINI.md: AI 指令集與自動化調度索引
+```markdown
+# 📂 AGENTS.md: AI 代理人清單與職責索引
 
 本文件定義了本專案中所有 AI Prompt 的職責與自動化工作流，旨在引導 AI 代理人透過 **MCP (Model Context Protocol)** 工具執行高精度的架構治理與代碼開發。
 
@@ -74,14 +75,6 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 | `legacy-decoupling-specialist.prompt.md` | **遺留系統解耦專家**：設計分階段解耦策略、API 遷移計畫與兼容層，最小化風險與停機時間。 | 需從單體或遺留模組分拆、逐步現代化時。 |
 | `ui-ux-consistency-sync.prompt.md` | **UI/UX 一致性同步**：檢查設計系統一致性、元件樣式差異與可用性問題，並自動產生修正 PR 或樣式變更清單。 | 視覺/交互不一致或跨頁面元件行為差異時。 |
 
-### 5. 測試與藍圖生成 (Testing & Generators)
-
-* `playwright-mcp-web-test-and-optimize.prompt.md`: 自動生成 E2E 測試並優化頁面效能。
-* `playwright-testing-guide.md`: 提供測試撰寫的最佳實踐準則。
-* `technology-stack-blueprint-generator.prompt.md`: 自動產出技術棧對齊報告。
-* `code-exemplars-blueprint-generator.prompt.md`: 生成高品質代碼範例以供開發參考。
-* `documentation-writer.prompt.md`: 自動根據實作產出相關技術文檔。
-
 ---
 
 ## 🔄 自動化調度流水線 (Standard Workflow)
@@ -98,3 +91,43 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 ---
 
 **⚠️ 注意：** 嚴禁繞過 `docs/logic-overview.md` 進行任何非標準化修改。所有 UI 異動必須調用 `tool-shadcn`。
+
+---
+
+## 偵測到的 Prompt 檔案
+
+下列檔案位於 `.github/prompts/`（或本資料夾）並可作為標準化 prompt 範本：
+
+- ai-architecture-governance.prompt.md
+- ai-master-governance-controller.prompt.md
+- architectural-audit-and-design-specialist.prompt.md
+- architecture-governance.prompt.md
+- boundary-check.prompt.md
+- cicd-deployment-orchestrator.prompt.md
+- code-exemplars-blueprint-generator.prompt.md
+- compliance-audit.prompt.md
+- context7.prompt.md
+- create-vertical-slice.prompt.md
+- ddd-boundary-check.prompt.md
+- documentation-writer.prompt.md
+- genkit-flow-design.prompt.md
+- GEMINI.md
+- iterative-alignment-refactor.prompt.md
+- legacy-decoupling-specialist.prompt.md
+- master-architect.prompt.md
+- next-devtools.prompt.md
+- next-intl-add-language.prompt.md
+- nextjs-parallel-routes-modern-code.prompt.md
+- performance-optimization-auditor
+- playwright-mcp-web-test-and-optimize.prompt.md
+- playwright-testing-guide.md
+- repomix.prompt.md
+- route-audit-diagnostics.prompt.md
+- sequential-thinking.prompt.md
+- shadcn.prompt.md
+- software-planning.prompt.md
+- technology-stack-blueprint-generator.prompt.md
+- ui-ux-consistency-sync.prompt.md
+
+呼叫 prompt 前，AI 應先檢視對應檔案以取得輸入契約、範例、以及必要的 MCP 工具名稱。
+```
