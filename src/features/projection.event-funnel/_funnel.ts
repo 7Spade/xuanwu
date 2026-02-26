@@ -165,6 +165,7 @@ export function registerOrganizationFunnel(): () => void {
   // ScheduleAssigned → ACCOUNT_PROJECTION_SCHEDULE + ORG_ELIGIBLE_MEMBER_VIEW (eligible = false)
   // Per Invariant #15: schedule:assigned must update the eligible flag so double-booking is prevented.
   // Per Invariant #19 [R7]: pass aggregateVersion for ELIGIBLE_UPDATE_GUARD monotonic check.
+  // [R8] TRACE_PROPAGATION_RULE: forward traceId from ScheduleAssignedPayload to projector.
   unsubscribers.push(
     onOrgEvent('organization:schedule:assigned', async (payload) => {
       await applyScheduleAssigned(payload.targetAccountId, {
@@ -173,16 +174,17 @@ export function registerOrganizationFunnel(): () => void {
         startDate: payload.startDate,
         endDate: payload.endDate,
         status: 'upcoming',
-      });
+      }, payload.aggregateVersion, payload.traceId);
       await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, false, payload.aggregateVersion);
       await upsertProjectionVersion('account-schedule', Date.now(), new Date().toISOString());
     })
   );
 
   // Member joined → ORGANIZATION_PROJECTION_VIEW + ORG_ELIGIBLE_MEMBER_VIEW
+  // [R8] TRACE_PROPAGATION_RULE: forward traceId from OrgMemberJoinedPayload to projector.
   unsubscribers.push(
     onOrgEvent('organization:member:joined', async (payload) => {
-      await applyMemberJoined(payload.orgId, payload.accountId);
+      await applyMemberJoined(payload.orgId, payload.accountId, undefined, payload.traceId);
       await initOrgMemberEntry(payload.orgId, payload.accountId);
       await upsertProjectionVersion('organization-view', Date.now(), new Date().toISOString());
     })
