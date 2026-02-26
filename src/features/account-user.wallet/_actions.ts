@@ -39,6 +39,8 @@ export interface TopUpInput {
   amount: number;
   reason: string;
   referenceId?: string;
+  /** Optional trace identifier propagated from CBG_ENTRY [R8]. */
+  traceId?: string;
 }
 
 export interface DebitInput {
@@ -46,6 +48,8 @@ export interface DebitInput {
   amount: number;
   reason: string;
   referenceId?: string;
+  /** Optional trace identifier propagated from CBG_ENTRY [R8]. */
+  traceId?: string;
 }
 
 /**

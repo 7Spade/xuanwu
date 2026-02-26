@@ -6,6 +6,13 @@
  * including team authorization, member access grants, capabilities, settings, and
  * lifecycle. These functions can be called from React hooks, context, or Server Actions
  * without any React dependencies.
+ *
+ * NOTE on CommandResult version field [R4]:
+ *   CommandSuccess.version is `Date.now()` (millisecond timestamp) here because the
+ *   workspace facade does not yet maintain an event-sourced aggregate version counter.
+ *   This is a monotonically-increasing wall-clock version — sufficient to establish
+ *   "happened after" ordering for optimistic UI updates until proper aggregate versioning
+ *   is implemented as part of full event-sourcing adoption.
  */
 
 import {

@@ -38,6 +38,8 @@ export interface AccountRoleRecord {
   grantedAt: string;
   revokedAt?: string;
   isActive: boolean;
+  /** TraceID propagated from CBG_ENTRY for auditability [R8]. */
+  traceId?: string;
 }
 
 export interface AssignRoleInput {
@@ -45,6 +47,8 @@ export interface AssignRoleInput {
   orgId: string;
   role: OrganizationRole;
   grantedBy: string;
+  /** Optional trace identifier propagated from CBG_ENTRY [R8]. */
+  traceId?: string;
 }
 
 /**
@@ -61,6 +65,7 @@ export async function assignAccountRole(input: AssignRoleInput): Promise<Command
       grantedBy: input.grantedBy,
       grantedAt: new Date().toISOString(),
       isActive: true,
+      ...(input.traceId ? { traceId: input.traceId } : {}),
     };
 
     await setDocument(

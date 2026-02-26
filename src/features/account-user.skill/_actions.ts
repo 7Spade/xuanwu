@@ -31,6 +31,8 @@ export interface AddXpInput {
   reason?: string;
   /** Optional reference to the source domain object (e.g. taskId). */
   sourceId?: string;
+  /** Optional trace identifier propagated from CBG_ENTRY [R8]. */
+  traceId?: string;
 }
 
 /**
@@ -70,6 +72,8 @@ export interface DeductXpInput {
   orgId: string;
   reason?: string;
   sourceId?: string;
+  /** Optional trace identifier propagated from CBG_ENTRY [R8]. */
+  traceId?: string;
 }
 
 /**
