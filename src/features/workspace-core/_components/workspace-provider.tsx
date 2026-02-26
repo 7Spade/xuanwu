@@ -178,6 +178,9 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
     // can persist an orgScheduleProposal and start the HR governance approval flow.
     if (result.success) {
       if (workspace?.dimensionId) {
+        // [R8] Inject traceId at CBG_ENTRY (this is the top of the scheduling saga chain).
+        // Use Web Crypto API (available in modern browsers and Node 18+).
+        const traceId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
         eventBus.publish('workspace:schedule:proposed', {
           scheduleItemId: result.aggregateId,
           workspaceId: workspaceId,
@@ -187,6 +190,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
           endDate: firestoreTimestampToISO(itemData.endDate),
           proposedBy: activeAccount?.id ?? 'system',
           skillRequirements: itemData.requiredSkills,
+          traceId,
         });
       } else {
         console.warn(

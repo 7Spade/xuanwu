@@ -72,6 +72,8 @@ export const orgScheduleProposalSchema = z.object({
    * Included in published events so ELIGIBLE_UPDATE_GUARD can enforce monotonic updates.
    */
   version: z.number().int().min(1).default(1),
+  /** [R8] TraceID injected at CBG_ENTRY — persisted for end-to-end audit trail. */
+  traceId: z.string().optional(),
 });
 
 export type OrgScheduleProposal = z.infer<typeof orgScheduleProposalSchema>;
@@ -103,6 +105,8 @@ export async function handleScheduleProposed(
     intentId: payload.intentId,
     // Persist skill requirements so org governance can validate without re-fetching workspace data.
     ...(payload.skillRequirements?.length ? { skillRequirements: payload.skillRequirements } : {}),
+    // [R8] Persist traceId for end-to-end audit trail.
+    ...(payload.traceId ? { traceId: payload.traceId } : {}),
   });
   await setDocument(`orgScheduleProposals/${payload.scheduleItemId}`, proposal);
 }
@@ -145,6 +149,8 @@ export async function approveOrgScheduleProposal(
     title: string;
     startDate: string;
     endDate: string;
+    /** [R8] TraceID propagated from the originating WorkspaceScheduleProposed event. */
+    traceId?: string;
   },
   skillRequirements?: SkillRequirement[]
 ): Promise<ScheduleApprovalResult> {
@@ -203,6 +209,8 @@ export async function approveOrgScheduleProposal(
     endDate: opts.endDate,
     title: opts.title,
     aggregateVersion: nextVersion,
+    // [R8] Forward traceId to ScheduleAssigned event for end-to-end trace propagation.
+    ...(opts.traceId ? { traceId: opts.traceId } : {}),
   });
 
   return { outcome: 'confirmed', scheduleItemId };
@@ -215,7 +223,7 @@ export async function approveOrgScheduleProposal(
 async function _cancelProposal(
   scheduleItemId: string,
   targetAccountId: string,
-  opts: { workspaceId: string; orgId: string },
+  opts: { workspaceId: string; orgId: string; traceId?: string },
   reason: string
 ): Promise<void> {
   await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
@@ -230,6 +238,8 @@ async function _cancelProposal(
     targetAccountId,
     reason,
     rejectedAt: new Date().toISOString(),
+    // [R8] Forward traceId to compensating event for end-to-end trace propagation.
+    ...(opts.traceId ? { traceId: opts.traceId } : {}),
   });
 }
 
@@ -253,7 +263,9 @@ export async function cancelOrgScheduleProposal(
   orgId: string,
   workspaceId: string,
   cancelledBy: string,
-  reason?: string
+  reason?: string,
+  /** [R8] TraceID propagated from the originating scheduling saga. */
+  traceId?: string
 ): Promise<void> {
   await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
     status: 'cancelled' satisfies OrgScheduleStatus,
@@ -266,5 +278,7 @@ export async function cancelOrgScheduleProposal(
     cancelledBy,
     cancelledAt: new Date().toISOString(),
     ...(reason ? { reason } : {}),
+    // [R8] Forward traceId to compensating event for end-to-end trace propagation.
+    ...(traceId ? { traceId } : {}),
   });
 }

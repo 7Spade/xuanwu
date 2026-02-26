@@ -116,6 +116,8 @@ export interface ScheduleAssignRejectedPayload {
   /** Human-readable reason for rejection (e.g. skill tier insufficient). */
   reason: string;
   rejectedAt: string;
+  /** [R8] TraceID propagated from the originating scheduling saga. */
+  traceId?: string;
 }
 
 /**
@@ -162,6 +164,8 @@ export interface ScheduleProposalCancelledPayload {
   cancelledAt: string;
   /** Human-readable reason for cancellation. */
   reason?: string;
+  /** [R8] TraceID propagated from the originating scheduling saga. */
+  traceId?: string;
 }
 
 // =================================================================
