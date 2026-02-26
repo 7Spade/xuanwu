@@ -24,7 +24,12 @@ export interface GlobalAuditQuery {
 /**
  * Appends a cross-slice audit record.
  * Extracts `traceId` from the EventEnvelope; MUST NOT omit it [R8].
- * Version guard is enforced upstream by FUNNEL [SK_VERSION_GUARD S2].
+ *
+ * [S2] Idempotency: this projector uses `setDoc(envelope.eventId)` as the
+ * document key.  Processing the same event twice overwrites with identical data
+ * — preventing duplicate global-audit entries on event-store replay.
+ * This is the append-only analogue of the versionGuardAllows check used by
+ * state-update projections.
  */
 export async function applyAuditEvent(
   envelope: EventEnvelope,

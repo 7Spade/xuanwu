@@ -1,5 +1,5 @@
 /**
- * @fileoverview members.commands.ts — Read-only actions for workspace member retrieval.
+ * @fileoverview _queries.ts — Read-only queries for workspace member retrieval.
  * @description Provides server-side read functions for fetching workspace access grants.
  * Callable from RSC pages, hooks, and context without React dependencies.
  */
