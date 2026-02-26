@@ -18,19 +18,23 @@ export function useOrganizationManagement() {
 
   const organizationId = activeAccount?.accountType === 'organization' ? activeAccount.id : null
 
-  const createOrganization = useCallback(async (organizationName: string) => {
+  const createOrganization = useCallback(async (organizationName: string): Promise<string> => {
     if (!user) throw new Error("User must be authenticated to create an organization.");
-    return createOrganizationAction(organizationName, user);
+    const result = await createOrganizationAction(organizationName, user);
+    if (!result.success) throw new Error(result.error.message);
+    return result.aggregateId;
   }, [user]);
 
   const updateOrganizationSettings = useCallback(async (settings: { name?: string; description?: string; theme?: ThemeConfig | null; }) => {
     if (!organizationId) throw new Error('No active organization selected');
-    return updateOrganizationSettingsAction(organizationId, settings);
+    const result = await updateOrganizationSettingsAction(organizationId, settings);
+    if (!result.success) throw new Error(result.error.message);
   }, [organizationId]);
 
   const deleteOrganization = useCallback(async () => {
     if (!organizationId) throw new Error('No active organization selected');
-    return deleteOrganizationAction(organizationId);
+    const result = await deleteOrganizationAction(organizationId);
+    if (!result.success) throw new Error(result.error.message);
   }, [organizationId]);
 
   return {
