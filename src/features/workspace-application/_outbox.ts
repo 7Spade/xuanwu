@@ -4,7 +4,7 @@
  * In-process transaction outbox: collects domain events during a transaction,
  * then flushes them to the workspace event bus after commit.
  *
- * Per logic-overview.v3.md invariant #4:
+ * Per logic-overview_v9.md invariant #4:
  * Transaction Runner collects uncommitted aggregate events and writes Outbox.
  * Domain Events are produced only by Aggregates; Transaction Runner only
  * collects already-produced events and delivers them to the Outbox.

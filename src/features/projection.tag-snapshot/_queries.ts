@@ -3,7 +3,7 @@
  *
  * Read-side queries for the tag snapshot read model.
  *
- * Per logic-overview_v5.md (VS8 Tag Lifecycle Views):
+ * Per logic-overview_v9.md (VS8 Tag Lifecycle Views):
  *   TAG_SNAPSHOT["projection.tag-snapshot\n消費方唯讀快取"]
  *
  * Invariant T5: consumers must not write to this collection.

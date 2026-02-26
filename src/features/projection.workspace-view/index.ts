@@ -4,7 +4,7 @@
  * Workspace read model (workspace projection view).
  * Fed by EVENT_FUNNEL_INPUT from workspace domain events.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview_v9.md:
  *   EVENT_FUNNEL_INPUT → WORKSPACE_PROJECTION_VIEW
  */
 

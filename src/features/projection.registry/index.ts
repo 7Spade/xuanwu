@@ -3,4 +3,6 @@ export {
   getProjectionVersion,
   upsertProjectionVersion,
   type ProjectionVersionRecord,
-} from './_registry'
+} from './_registry';
+
+export { registerAllQueryHandlers } from './_query-registration';

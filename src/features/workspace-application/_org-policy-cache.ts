@@ -3,7 +3,7 @@
  *
  * Local org-policy cache for the workspace application layer.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview_v9.md:
  *   ORGANIZATION_EVENT_BUS →|政策變更事件| WORKSPACE_ORG_POLICY_CACHE
  *   WORKSPACE_ORG_POLICY_CACHE →|更新本地 read model| WORKSPACE_SCOPE_READ_MODEL
  *
