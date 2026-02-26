@@ -1,11 +1,11 @@
 # Architecture Overview
 
-> 本文件是 `logic-overview_v9.md` 的配套架構參考。  
-> `logic-overview_v9.md` 描述**領域邏輯流程**（唯一事實來源）；本文件描述**功能切片的資料夾結構設計**與其對應的架構原則。
+> 本文件是 `logic-overview_v10.md` 的配套架構參考。  
+> `logic-overview_v10.md` 描述**領域邏輯流程**（唯一事實來源）；本文件描述**功能切片的資料夾結構設計**與其對應的架構原則。
 
 ---
 
-## 一、logic-overview_v9.md 評估與改良說明
+## 一、logic-overview_v10.md 評估與改良說明
 
 | # | 項目 | 原始狀態 | 改良後 | 理由 |
 |---|------|----------|--------|------|
@@ -40,7 +40,7 @@
 
 ## PR #69 分析（僅分析，不改圖）
 
-### 1) `logic-overview_v9.md` 是否需要新增「人力資源池」？
+### 1) `logic-overview_v10.md` 是否需要新增「人力資源池」？
 
 結論：**不建議在 Workspace Container 內再新增一個「人力資源池 Aggregate」**。
 
@@ -193,7 +193,7 @@ src/features/
 
 ### Identity Layer（身份層）
 
-| Feature Slice | 領域職責 | logic-overview_v9 節點 |
+| Feature Slice | 領域職責 | logic-overview_v10 節點 |
 |---------------|----------|---------------------|
 | `identity-account.auth` | Firebase 登入／註冊／重設密碼的 UI 與 Server Action | `ACCOUNT_AUTH` |
 | （Identity Layer 內部狀態，非獨立切片） | 持有 Firebase User，提供已驗證狀態 | `AUTHENTICATED_IDENTITY` |
@@ -203,7 +203,7 @@ src/features/
 
 ### Account Layer（帳號層）
 
-| Feature Slice | 領域職責 | logic-overview_v9 節點 |
+| Feature Slice | 領域職責 | logic-overview_v10 節點 |
 |---------------|----------|---------------------|
 | `account-user.profile` | 使用者個人資料、偏好設定、安全設定、FCM Token 儲存（**帳號數據中心共置**） | `USER_ACCOUNT_PROFILE` |
 | `account-user.wallet` | 個人錢包（代幣／積分，stub） | `USER_ACCOUNT_WALLET` |
@@ -215,7 +215,7 @@ src/features/
 
 ### Organization Layer（組織層）
 
-| Feature Slice | 領域職責 | logic-overview_v9 節點 |
+| Feature Slice | 領域職責 | logic-overview_v10 節點 |
 |---------------|----------|---------------------|
 | `account-organization.core` | 組織聚合實體，擁有工作區 | `ORGANIZATION_ENTITY` |
 | `account-organization.event-bus` | 組織領域事件總線 | `ORGANIZATION_EVENT_BUS` |
@@ -230,7 +230,7 @@ src/features/
 
 #### workspace-core（核心層）
 
-| Feature Slice | 領域職責 | logic-overview_v9 節點 |
+| Feature Slice | 領域職責 | logic-overview_v10 節點 |
 |---------------|----------|---------------------|
 | `workspace-core` | Workspace CRUD · shell · provider · list · settings（聚合根核心配置） | `WORKSPACE_SETTINGS` / `WORKSPACE_AGGREGATE` |
 | `workspace-core.event-bus` | 工作區事件總線 | `WORKSPACE_EVENT_BUS` |
@@ -238,13 +238,13 @@ src/features/
 
 #### workspace-application（應用層）
 
-| Feature Slice | 領域職責 | logic-overview_v9 節點 |
+| Feature Slice | 領域職責 | logic-overview_v10 節點 |
 |---------------|----------|---------------------|
 | `workspace-application` | 指令處理器 · 作用域守衛 · 政策引擎 · org-policy 防腐層快取 · 交易執行器 · Outbox | `WORKSPACE_COMMAND_HANDLER` / `WORKSPACE_SCOPE_GUARD` / `WORKSPACE_POLICY_ENGINE` / `WORKSPACE_TRANSACTION_RUNNER` / `WORKSPACE_OUTBOX` |
 
 #### workspace-governance（工作區治理）
 
-| Feature Slice | 領域職責 | logic-overview_v9 節點 |
+| Feature Slice | 領域職責 | logic-overview_v10 節點 |
 |---------------|----------|---------------------|
 | `workspace-governance.members` | 工作區成員存取控制 | `WORKSPACE_MEMBER` |
 | `workspace-governance.role` | 角色管理（從 members 拆分） | `WORKSPACE_ROLE` |
@@ -257,7 +257,7 @@ src/features/
 
 #### workspace-business（業務層，按執行流向排序）
 
-| Feature Slice | 領域職責 | logic-overview_v9 節點 |
+| Feature Slice | 領域職責 | logic-overview_v10 節點 |
 |---------------|----------|---------------------|
 | `workspace-business.tasks` | 任務管理 | `TRACK_A_TASKS` |
 | `workspace-business.quality-assurance` | 品質保證 | `TRACK_A_QA` |
@@ -357,9 +357,9 @@ src/shared/
 
 ---
 
-## 八、與 logic-overview_v9.md 的對應關係
+## 八、與 logic-overview_v10.md 的對應關係
 
-| logic-overview_v9 層 | features 資料夾群組 |
+| logic-overview_v10 層 | features 資料夾群組 |
 |----------------------|---------------------|
 | Firebase Authentication | 外部服務（不在 features） |
 | VS0 Shared Kernel + Tag Authority | `features/shared-kernel/`、`features/centralized-tag/`、`features/shared.kernel.*` stubs |
@@ -383,6 +383,6 @@ src/shared/
 | Firebase Cloud Messaging (FCM) | `shared/infra/messaging/` FCM 適配器（外部服務） |
 | USER_DEVICE | 裝置端（不在 features，為推播終點） |
 
-> 詳細領域邏輯流程請參閱 [`logic-overview_v9.md`](./logic-overview_v9.md)（唯一事實來源）。  
+> 詳細領域邏輯流程請參閱 [`logic-overview_v10.md`](./logic-overview_v10.md)（唯一事實來源）。  
 > 持久化模型請參閱 [`persistence-model-overview.v3.md`](./persistence-model-overview.v3.md)。  
 > 基礎設施整合請參閱 [`infrastructure-overview.v3.md`](./infrastructure-overview.v3.md)。

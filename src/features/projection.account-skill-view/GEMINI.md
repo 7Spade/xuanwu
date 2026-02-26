@@ -54,11 +54,15 @@ export type { AccountSkillEntry } from './_projector';
 - `@/shared/infra/firestore/` — read/write adapters
 - `firebase/firestore` — serverTimestamp, getDocs, collection
 
-## Architecture Note
+## Architecture Note [S2]
 
-`logic-overview_v9.md S3`:
+`logic-overview_v10.md` [SK_VERSION_GUARD S2]:
 `EVENT_FUNNEL_INPUT → ACCOUNT_SKILL_VIEW`
 `ACCOUNT_SKILL_VIEW -.→ getTier 計算（不存 DB）`
+
+**[S2] SK_VERSION_GUARD**: FUNNEL enforces `event.aggregateVersion > view.lastProcessedVersion`
+before writing to this Projection. Stale events are discarded. This Projection must NOT skip
+version comparison (D14 — do not bypass aggregateVersion check).
 
 Consumers that need tier must call `resolveSkillTier(entry.xp)` from `@/shared/lib`.
 This projection is the ONLY authoritative read source for per-account skill XP.

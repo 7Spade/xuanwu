@@ -4,7 +4,7 @@
 
 **Stub — implementation migrated to `workspace-business.schedule`.**
 
-Per `logic-overview_v9.md`: `W_B_SCHEDULE` is in `WORKSPACE_BUSINESS`; `WORKSPACE_GOVERNANCE` only contains `members` and `role`. This slice is reserved for future workspace-scoped schedule governance rules (if needed), but currently holds no active code.
+Per `logic-overview_v10.md`: `W_B_SCHEDULE` is in `WORKSPACE_BUSINESS`; `WORKSPACE_GOVERNANCE` only contains `members` and `role`. This slice is reserved for future workspace-scoped schedule governance rules (if needed), but currently holds no active code.
 
 ## Public API (`index.ts`)
 

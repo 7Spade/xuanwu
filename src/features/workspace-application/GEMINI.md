@@ -43,12 +43,23 @@ import { registerOrgPolicyCache, getCachedOrgPolicy, getAllCachedPolicies, clear
 - `@/features/workspace-core.event-bus` — event publishing
 - `@/shared/types` — command types
 
-## Architecture Note
+## Architecture Note [S1][S5][R4]
 
-`logic-overview_v9.md` [R4]:
+`logic-overview_v10.md` [SK_OUTBOX_CONTRACT S1] [SK_RESILIENCE_CONTRACT S5] [R4]:
 - Application layer **coordinates flow only** — no domain rules (invariant #3)
 - Scope Guard reads ONLY local `projection.workspace-scope-guard`, NOT external event buses (invariant #7)
 - Transaction Runner collects aggregate events and writes to Outbox (invariant #4)
 - Command Handler returns `SK_CMD_RESULT` after execution [R4]:
   - Success: `{ aggregateId, version }` — frontend optimistic update basis
   - Failure: `DomainError { code, message, context }` — structured error return
+
+**[S1] SK_OUTBOX_CONTRACT** governs `ws-outbox`:
+- at-least-once delivery enforced by Outbox → RELAY → IER path
+- idempotency-key must be present on all outbox records
+- DLQ tier: **SAFE_AUTO** — workspace business events are idempotent
+
+**[S5] SK_RESILIENCE_CONTRACT** governs `_actions.ts` (the external entry point):
+- rate-limit: per user ∪ per org, returns 429 + retry-after on breach
+- circuit-break: consecutive 5xx → open; half-open probe → gradual recovery
+- bulkhead: slice-isolated failure containment
+- All `_actions.ts` Server Actions are in scope of this contract (D17)

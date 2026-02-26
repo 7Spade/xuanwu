@@ -1,7 +1,7 @@
 # Domain Glossary
 
-> Source of truth: `docs/overview/logic-overview_v9.md`
-> All terms, invariants, and rules below are derived from the v9 spec.
+> Source of truth: `docs/overview/logic-overview_v10.md`
+> All terms, invariants, and rules below are derived from the v10 spec (v9 R1–R8 + v10 S1–S6).
 
 ---
 
@@ -176,3 +176,29 @@
 | `E4` | TraceID injected at `CBG_ENTRY` (Command Gateway entry) |
 | `E5` | `workspace-core.event-bus` is in-process only; no cross-BC fan-out |
 | `E6` | `claims-refresh-handler` is the single Claims refresh trigger; invoked by IER on `RoleChanged` |
+
+---
+
+## v10 VS0 Contract Consolidation (`S1–S6`)
+
+v10 extracts six cross-slice infrastructure patterns from node-level text into explicit VS0 contracts.
+
+| Tag | Contract | Summary |
+|-----|----------|---------|
+| `S1` | `SK_OUTBOX_CONTRACT` | Three mandatory elements for every OUTBOX: ① at-least-once delivery path, ② idempotency-key (eventId+aggId+version), ③ DLQ tier declaration (SAFE_AUTO / REVIEW_REQUIRED / SECURITY_BLOCK). Slices adding OUTBOX reference this contract; do not re-define at-least-once semantics locally. |
+| `S2` | `SK_VERSION_GUARD` | All Projection writes MUST compare `event.aggregateVersion > view.lastProcessedVersion` before applying. Stale events are discarded. Generalises Invariant #19 from `eligible-view` to ALL Projections. FUNNEL enforces this centrally (D14). |
+| `S3` | `SK_READ_CONSISTENCY` | Decision rule: financial/security/irreversible operations → `STRONG_READ` (Domain Aggregate); display/statistics/lists → `EVENTUAL_READ` (Projection). Prevents scattered STRONG_READ definitions across VS2/VS8 nodes. |
+| `S4` | `SK_STALENESS_CONTRACT` | Canonical SLA constants: `TAG_MAX_STALENESS ≤ 30s`, `PROJ_STALE_CRITICAL ≤ 500ms`, `PROJ_STALE_STANDARD ≤ 10s`. SLA values MUST NOT be hardcoded in node text (D16); reference this contract. |
+| `S5` | `SK_RESILIENCE_CONTRACT` | Minimum protection spec for all external trigger entry points (rate-limit / circuit-break / bulkhead). Applies to `_actions.ts`, Webhooks, and Edge Functions. New entry points require validation against this contract before going live (D17). |
+| `S6` | `SK_TOKEN_REFRESH_CONTRACT` | Claims refresh three-party handshake: RoleChanged/PolicyChanged → IER CRITICAL_LANE → CLAIMS_HANDLER → TOKEN_REFRESH_SIGNAL. Frontend obligation: force re-fetch token on signal. Failure path: DLQ SECURITY_BLOCK → DOMAIN_ERRORS alert. All three parties (VS1 / IER / frontend) share this single spec (D18). |
+
+### v10 Development Rules (`D13–D18`)
+
+| Tag | Rule |
+|-----|------|
+| `D13` | New OUTBOX: declare DLQ tier in `SK_OUTBOX_CONTRACT`; do not re-define at-least-once semantics locally |
+| `D14` | New Projection: reference `SK_VERSION_GUARD` in FUNNEL; do not skip `aggregateVersion` comparison |
+| `D15` | Read-path decision: consult `SK_READ_CONSISTENCY` first; financial/auth/irreversible → STRONG_READ |
+| `D16` | SLA numeric values (30s / 500ms / 10s) must NOT be hardcoded; import from `SK_STALENESS_CONTRACT` |
+| `D17` | Non-`_actions.ts` external entry points (Webhook / Edge Function) require `SK_RESILIENCE_CONTRACT` sign-off |
+| `D18` | Claims refresh logic changes: update `SK_TOKEN_REFRESH_CONTRACT` and synchronise all three parties (VS1 + IER + frontend) |

@@ -46,9 +46,14 @@ export { getTagSnapshot, getAllTagSnapshots, getActiveTagSnapshots } from './_qu
 - `@/features/centralized-tag` — TagLifecycleEvent payload types
 - `@/shared/infra/firestore/` — read/write adapters
 
-## Architecture Note
+## Architecture Note [S4][Q6][T5]
 
-`logic-overview_v9.md` VS8 [Q6][T5]:
+`logic-overview_v10.md` [SK_STALENESS_CONTRACT S4] VS8 [Q6][T5]:
 - `FUNNEL --> TAG_SNAPSHOT`
 - `TAG_SNAPSHOT["projection.tag-snapshot\n來源: TagLifecycleEvent\n消費方唯讀快取"]`
 - `TAG_SNAPSHOT -.->|"T5"| TAG_READONLY`
+
+**[S4] SK_STALENESS_CONTRACT** governs freshness SLA:
+- `TAG_MAX_STALENESS ≤ 30s` — defined in `shared.kernel.staleness-contract [S4]`
+- SLA constants must NOT be hardcoded in this slice (D16) — reference SK_STALENESS_CONTRACT
+- Consumers that need staleness-bounded reads should check against `TAG_MAX_STALENESS` from the contract

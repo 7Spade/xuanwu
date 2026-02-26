@@ -43,7 +43,7 @@ app/  ->  features/{name}/index.ts  ->  shared/*
 
 Each slice lives at `src/features/{name}/` and owns everything for its domain.
 
-> **Architecture reference (唯一事實來源):** `docs/overview/logic-overview_v9.md`
+> **Architecture reference (唯一事實來源):** `docs/overview/logic-overview_v10.md`
 
 | Slice | Domain |
 |-------|--------|

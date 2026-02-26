@@ -1,6 +1,6 @@
 # Project Structure
 
-> Source of truth: `docs/overview/logic-overview_v9.md`
+> Source of truth: `docs/overview/logic-overview_v10.md`
 > Architecture: Vertical Slice Architecture (VSA)
 
 ---
@@ -16,7 +16,7 @@ xuanwu/
 │   └── ai/           ← Genkit AI flows (dev entry point)
 ├── functions/        ← Firebase Functions workspace (Outbox Relay, DLQ)
 ├── docs/             ← Architecture documentation
-│   └── overview/     ← logic-overview_v9.md (sole source of truth)
+│   └── overview/     ← logic-overview_v10.md (sole source of truth)
 └── public/           ← Static assets
 ```
 
@@ -165,10 +165,11 @@ src/features/
 ├── projection.account-skill-view/     ← Account skill read model (xp; tier derived [#12])
 ├── projection.account-view/           ← Account read model + authority snapshot
 ├── projection.event-funnel/           ← Event Funnel [#9][Q3][R8]
-├── projection.org-eligible-member-view/ ← Schedule eligibility [R7][ELIGIBLE_UPDATE_GUARD][#14][#19]
+├── projection.org-eligible-member-view/ ← Schedule eligibility [R7][S2][ELIGIBLE_UPDATE_GUARD][#14][#19]
 ├── projection.organization-view/      ← Organization read model
 ├── projection.registry/               ← Event stream offset, read model version table
-├── projection.tag-snapshot/           ← Tag read model [Q6][T5] Max Staleness ≤ 30s
+├── projection.tag-snapshot/           ← Tag read model [S4][Q6][T5] TAG_MAX_STALENESS ≤ 30s
+├── projection.global-audit-view/      ← Global cross-slice audit projection [S2][R8] GLOBAL_AUDIT_VIEW
 ├── projection.workspace-scope-guard/  ← Scope Guard read model [A9]
 └── projection.workspace-view/         ← Workspace read model
 ```

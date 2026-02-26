@@ -40,7 +40,7 @@ export type { WorkflowStage, WorkflowAggregateState } from './_aggregate';
 
 ## WORKFLOW_STATE_CONTRACT [R6]
 
-Per `logic-overview_v9.md` R6 — stage transitions and block rules:
+Per `logic-overview_v10.md` R6 — stage transitions and block rules:
 
 ```
 Stage order: Draft → InProgress → QA → Acceptance → Finance → Completed
@@ -56,7 +56,7 @@ unblockWorkflow:
 
 ## Architecture Note
 
-Aligned with `logic-overview_v9.md` [R6] and D10:
+Aligned with `logic-overview_v10.md` [R6] and D10:
 `workspace-business.workflow.aggregate` is the single invariant boundary
 for A-track stage progression.
 

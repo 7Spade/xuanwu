@@ -33,5 +33,5 @@ Organization policy management — defines compliance and access rules at the or
 
 ## Architecture Note
 
-`logic-overview_v9.md`: `ORGANIZATION_EVENT_BUS → WORKSPACE_ORG_POLICY_CACHE`.
+`logic-overview_v10.md`: `ORGANIZATION_EVENT_BUS → WORKSPACE_ORG_POLICY_CACHE`.
 Policy changes published here flow through the organization event bus to update the workspace's local org-policy cache.

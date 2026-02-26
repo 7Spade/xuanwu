@@ -10,15 +10,19 @@ User wallet — personal balance, transaction history, and payment operations fo
 - Wallet top-up / transfer operations (future)
 - Transaction history (`accounts/{userId}/walletTransactions` sub-collection, future)
 
-## Event Lane [Q8][R2][R5]
+## Event Lane [Q8][R2][R5][S1][S3]
 
-Per `logic-overview_v9.md`:
+Per `logic-overview_v10.md` [SK_OUTBOX_CONTRACT S1][SK_READ_CONSISTENCY S3]:
 - `WalletDeducted` / `WalletCredited` → `ACC_OUTBOX` → **CRITICAL_LANE** [Q8][R2]
   - CRITICAL_LANE = 高優先最終一致（非同步，Firebase 架構限制）
   - Not "synchronous" — high-priority delivery with final consistency guarantee
-- DLQ classification for `WalletDeducted` → **REVIEW_REQUIRED** [R5]
-  - Reason: Auto-replay risks double-deduction; human review required before retry
-- `STRONG_READ` for precise transactions: read back to `WALLET_AGG` aggregate directly (never rely solely on projection for financial operations) [Q8]
+- DLQ classification declared in [SK_OUTBOX_CONTRACT S1]:
+  - `WalletDeducted` → **REVIEW_REQUIRED** — auto-replay risks double-deduction
+  - `WalletCredited` → **REVIEW_REQUIRED** — symmetric safety requirement
+- `STRONG_READ` for precise transactions [SK_READ_CONSISTENCY S3]:
+  - Decision rule: financial operation → `STRONG_READ` → read back to `WALLET_AGG` aggregate
+  - Display/statistics → `EVENTUAL_READ` → wallet-balance Projection
+  - Never rely solely on Projection for irreversible financial operations [Q8]
 
 ## Internal Files
 

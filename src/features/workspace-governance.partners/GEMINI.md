@@ -5,7 +5,7 @@
 Workspace-level partner relationship management (stub — workspace-specific partner access rules).
 
 > **Note**: Org-level partner management views (`PartnersView`, `PartnerDetailView`) were migrated to
-> `account-organization.partner` per `logic-overview_v9.md` (partners are SUBJECT CENTER, not WORKSPACE CONTAINER).
+> `account-organization.partner` per `logic-overview_v10.md` (partners are SUBJECT CENTER, not WORKSPACE CONTAINER).
 > This slice is reserved for future workspace-scoped partner access rules.
 
 ## Public API (`index.ts`)

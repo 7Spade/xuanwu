@@ -1,6 +1,6 @@
 # Tech Stack
 
-> Source of truth: `docs/overview/logic-overview_v9.md`
+> Source of truth: `docs/overview/logic-overview_v10.md`
 
 ## Runtime & Framework
 

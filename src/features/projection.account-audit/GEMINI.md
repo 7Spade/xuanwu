@@ -32,5 +32,5 @@ Account audit projection — audit trail of account-related events for complianc
 
 ## Architecture Note
 
-`logic-overview_v9.md`: `EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_AUDIT`.
+`logic-overview_v10.md`: `EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_AUDIT`.
 Audit projections are append-only — no delete or update operations.

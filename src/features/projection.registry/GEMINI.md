@@ -33,7 +33,7 @@ Projection registry — tracks event stream offsets and read model version mappi
 
 ## Architecture Note
 
-`logic-overview_v9.md`:
+`logic-overview_v10.md`:
 - `EVENT_FUNNEL_INPUT → PROJECTION_VERSION` (update stream offset on each event)
 - `PROJECTION_VERSION → READ_MODEL_REGISTRY` (provides read-model version mapping)
 This slice is the single source of truth for projection consistency tracking.

@@ -33,7 +33,7 @@ Scope Guard dedicated read model — a specialized workspace read model used exc
 
 ## Architecture Note
 
-`logic-overview_v9.md`:
+`logic-overview_v10.md`:
 - `ACTIVE_ACCOUNT_CONTEXT → (query key) → WORKSPACE_SCOPE_READ_MODEL → WORKSPACE_SCOPE_GUARD`
 - `WORKSPACE_ORG_POLICY_CACHE → (update local read model) → WORKSPACE_SCOPE_READ_MODEL`
 - Invariant #7: Scope Guard reads ONLY this local read model, NEVER directly from external event buses.

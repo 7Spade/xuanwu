@@ -60,12 +60,17 @@ All slices that need tag semantics **MUST**:
 2. Subscribe to `TagLifecycleEvent` via `onTagEvent()` to stay in sync
 3. Never write to `tagDictionary` directly
 
-## Architecture Note
+## Architecture Note [S1][R3]
 
-`logic-overview_v9.md` [R3] T1 T2:
-- `CTA --> TAG_EVENTS --> TAG_OUTBOX --> BACKGROUND_LANE --> IER`
+`logic-overview_v10.md` [SK_OUTBOX_CONTRACT S1] [R3] T1 T2:
+- `CTA --> TAG_EVENTS --> TAG_OUTBOX[SK_OUTBOX_CONTRACT: SAFE_AUTO] --> BACKGROUND_LANE --> IER`
 - `IER --> BACKGROUND_LANE --> VS4_TAG_SUBSCRIBER --> SKILL_TAG_POOL` [R3]
 - `CTA -.->|"唯讀引用契約"| TAG_READONLY`
 - VS4_TAG_SUBSCRIBER is the explicit consumer responsible for updating `SKILL_TAG_POOL`
   from `TagLifecycleEvent` — consumption responsibility is scoped to VS4 (R3 closed loop)
 - `TAG_READONLY["🔒 消費方唯讀引用規則\n所有 tagSlug 引用必須來自此處"]`
+
+**[S1] SK_OUTBOX_CONTRACT** governs `tag-outbox`:
+- at-least-once delivery via OUTBOX → RELAY → IER path
+- idempotency-key = `eventId + aggId + version` (carried in EventEnvelope)
+- DLQ tier: **SAFE_AUTO** — TagLifecycleEvents are idempotent, auto-retry is safe

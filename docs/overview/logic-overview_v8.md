@@ -3,7 +3,7 @@ title: Logic Overview v8 — Production-Grade Modernized Foundation
 ---
 
 > ⚠️ **DEPRECATED** — This is a historical reference (v8).
-> The current source of truth is `docs/overview/logic-overview_v9.md`.
+> The current source of truth is `docs/overview/logic-overview_v10.md`.
 > Do not use this file for implementation decisions.
 
 

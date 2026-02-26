@@ -57,9 +57,9 @@ export { OrgScheduleGovernance } from './_components/org-schedule-governance';
 - `@/shared/app-providers/app-context` — `useApp` (org member list for member selection)
 - `@/shared/utility-hooks/use-toast` — toast notifications
 
-## Architecture Note
+## Architecture Note [S1][S4][R7][R5]
 
-`logic-overview_v9.md` [R7][R5]:
+`logic-overview_v10.md` [SK_OUTBOX_CONTRACT S1] [SK_STALENESS_CONTRACT S4] [R7][R5]:
 - `WORKSPACE_OUTBOX →|ScheduleProposed（跨層事件 · saga）| ORGANIZATION_SCHEDULE`
 - `ORGANIZATION_SCHEDULE →|ScheduleAssigned + aggregateVersion [R7]| SCHED_OUTBOX → IER`
 - Invariant #14: reads `projection.org-eligible-member-view` only — never Account aggregate
@@ -67,5 +67,11 @@ export { OrgScheduleGovernance } from './_components/org-schedule-governance';
 - Invariant A5: `ScheduleAssignRejected` is the compensating event for failed assignments
 - `cancelOrgScheduleProposal`: HR explicit withdrawal — no assignment attempted, no compensating event
 - [R7] `ScheduleAssigned` event MUST carry `aggregateVersion` for ELIGIBLE_UPDATE_GUARD
-- [R5] `ScheduleAssigned` → DLQ classification: **REVIEW_REQUIRED** (human review before replay)
-- [Q6] TAG_STALE_GUARD validation required before schedule-skill matching (`Max Staleness ≤ 30s`)
+
+**[S1] SK_OUTBOX_CONTRACT** governs `sched-outbox` DLQ tiers:
+- `ScheduleAssigned` → **REVIEW_REQUIRED** (human review before replay)
+- Compensating events (`ScheduleAssignRejected`, `ScheduleProposalCancelled`) → **SAFE_AUTO**
+
+**[S4] SK_STALENESS_CONTRACT** governs TAG_STALE_GUARD:
+- `TAG_MAX_STALENESS ≤ 30s` — validation required before schedule-skill matching (Q6)
+- SLA value is the canonical constant from `shared.kernel.staleness-contract`; do NOT redefine locally (D16)

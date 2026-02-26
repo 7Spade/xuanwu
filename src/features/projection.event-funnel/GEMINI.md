@@ -38,18 +38,25 @@ export { registerWorkspaceFunnel, registerOrganizationFunnel, replayWorkspacePro
 - `@/features/projection.org-eligible-member-view` — `applyOrgMemberSkillXp`, `initOrgMemberEntry`, `removeOrgMemberEntry`
 - `@/features/account-organization.schedule` — `handleScheduleProposed`
 
-## Architecture Note
+## Architecture Note [S2][R1][R8]
 
-`logic-overview_v9.md` [R1][R8]:
+`logic-overview_v10.md` [SK_VERSION_GUARD S2] [R1][R8]:
 
-Event flow (v9):
+Event flow (v10):
 ```
 ALL_OUTBOXES → OUTBOX_RELAY_WORKER → IER (Integration Event Router)
 IER ==>|唯一 Projection 寫入路徑 #9| FUNNEL
 FUNNEL → CRITICAL_PROJ_LANE + STANDARD_PROJ_LANE → projection.*
 ```
 
-`event-funnel` is the Projection Layer's **only external entry point** — now fed
+**[S2] SK_VERSION_GUARD** — v10 泛化 #19 (previously only eligible-view; now ALL Projections):
+```
+event.aggregateVersion > view.lastProcessedVersion → allow write
+otherwise → discard (stale event; do NOT overwrite newer state)
+```
+FUNNEL enforces this rule uniformly across all Projection lanes (D14).
+
+`event-funnel` is the Projection Layer's **only external entry point** — fed
 exclusively by the `infra.event-router` (IER), not directly by event buses.
 
 R8 TraceID propagation: FUNNEL reads `envelope.traceId` from each incoming event

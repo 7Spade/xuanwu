@@ -8,7 +8,7 @@ Two aggregates:
    Per v5: passively updated by TagLifecycleEvents from `centralized-tag`.
 2. **Org Skill Recognition** (`ORG_SKILL_RECOGNITION`) — records the organization's acknowledgment of a member's skill, with an optional `minXpRequired` gate.
 
-## v9 Role Update (logic-overview_v9.md R3)
+## v10 Role Update (logic-overview_v10.md R3)
 
 `SKILL_TAG_POOL` is now updated explicitly via **VS4_TAG_SUBSCRIBER** [R3]:
 > IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
@@ -62,9 +62,14 @@ Two aggregates:
 - `@/features/account-organization.event-bus` — publishes recognition events
 - `@/shared/constants/skills` — `findSkill()` for Capability BC FK validation
 
-## Architecture Note
+## Architecture Note [S4][R3]
 
-`logic-overview_v9.md` [R3] VS4:
+`logic-overview_v10.md` [SK_STALENESS_CONTRACT S4] [R3] VS4:
 - `SKILL_TAG_POOL[("職能標籤庫\naccount-organization.skill-tag\n= Tag Authority 的組織作用域快照\n由 VS4_TAG_SUBSCRIBER 更新 [R3]")]`
 - `ORG_SKILL_RECOGNITION --> ORG_EVENT_BUS`
+
+**[S4] SK_STALENESS_CONTRACT** governs `SKILL_TAG_POOL` freshness:
+- `TAG_MAX_STALENESS ≤ 30s` — tag-derived data must not lag beyond 30 seconds
+- SLA constant defined in `shared.kernel.staleness-contract [S4]` — do NOT hardcode locally (D16)
+- `TAG_STALE_GUARD` validation applies before any schedule-skill matching in VS6
 

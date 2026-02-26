@@ -63,7 +63,7 @@ export type { AccountSkillRecord, XpLedgerEntry } from '...';
 
 ## Architecture Note (E1)
 
-Per `logic-overview_v9.md` E1: `SkillXpAdded/Deducted` events are published by `_actions.ts`
+Per `logic-overview_v10.md` E1: `SkillXpAdded/Deducted` events are published by `_actions.ts`
 (the application coordinator) to `ORGANIZATION_EVENT_BUS` — NOT by the aggregate directly.
 This prevents VS3 → VS4 boundary invasion (Invariant #2 and #3).
 Organization may NOT write to this slice; it only receives events and sets `minXpRequired` gates in `ORG_SKILL_RECOGNITION`.

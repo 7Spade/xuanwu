@@ -148,8 +148,9 @@ it owns types, server actions, queries, hooks, and UI components.
 | `projection.account-schedule/` | Account schedule projection (filter available accounts) | ✅ |
 | `projection.organization-view/` | Organization read model | ✅ |
 | `projection.account-skill-view/` | Account skill read model (accountId / skillId / xp · tier derived, not stored #12) | ✅ |
-| `projection.org-eligible-member-view/` | Schedule eligibility · ELIGIBLE_UPDATE_GUARD [R7] · Invariant #14 #19 | ✅ |
-| `projection.tag-snapshot/` | Tag read model · Max Staleness ≤ 30s [Q6] · consumers must not write (T5) | ✅ |
+| `projection.org-eligible-member-view/` | Schedule eligibility · ELIGIBLE_UPDATE_GUARD [R7][S2] · Invariant #14 #19 | ✅ |
+| `projection.tag-snapshot/` | Tag read model · [SK_STALENESS_CONTRACT S4] TAG_MAX_STALENESS ≤ 30s [Q6] · consumers must not write (T5) | ✅ |
+| `projection.global-audit-view/` | Global cross-slice audit projection · traceId preserved [R8] · GLOBAL_AUDIT_VIEW VS8 | ✅ |
 | `projection.registry/` | Event stream offset · read model version table | ✅ |
 
 > **Status legend:** ✅ implemented · 🔧 partial stub (structure created, implementation deferred) · 🆕 new in v6+

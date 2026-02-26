@@ -40,10 +40,21 @@ import ... from "@/shared/ui/...";         // shadcn-ui, constants
 - `app/(auth-routes)/reset-password/page.tsx`
 - `app/(auth-routes)/@modal/(.)reset-password/page.tsx`
 
-## Architecture Note [R2]
+## Architecture Note [R2][S6]
 
-Per `logic-overview_v9.md` R2 — Token Refresh Handshake:
-After `RoleChanged` claims are set by `claims-refresh-handler`, a `token-refresh-signal`
-is emitted to notify the frontend to re-fetch the token. The next request carries the
-updated Claims. CRITICAL_LANE semantics: high-priority eventual consistency (NOT
-synchronous — Firebase Functions are inherently async).
+Per `logic-overview_v10.md` R2 / [SK_TOKEN_REFRESH_CONTRACT S6] — Claims refresh three-way handshake:
+
+```
+Trigger:  RoleChanged | PolicyChanged → IER CRITICAL_LANE → CLAIMS_HANDLER
+Signal:   token-refresh-signal (emitted after Claims are set)
+Client:   receives signal → force re-fetch Firebase Token → next request carries new Claims
+Failure:  ClaimsRefresh fails → DLQ SECURITY_BLOCK → DOMAIN_ERRORS security alert
+```
+
+The complete three-party handshake specification (VS1 ↔ IER ↔ frontend) is defined in
+`shared.kernel.token-refresh-contract [S6]`. VS1 only owns the "emit signal" step;
+the full protocol lives in VS0.
+
+CRITICAL_LANE semantics: high-priority eventual consistency (NOT synchronous — Firebase
+Functions are inherently async). [S6] is the single source of truth for any future
+changes to this refresh flow.

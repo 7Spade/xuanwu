@@ -19,21 +19,24 @@ member availability and skill tiers.
 |---|-----------|-------------|
 | 12 | Tier is never stored in DB | `OrgEligibleMemberEntry.skills` stores only `{ xp }`; tier computed via `enrichWithTier` |
 | 14 | Schedule reads only this projection | `getOrgMemberEligibility` / `getOrgEligibleMembersWithTier` are the only valid read paths for schedule |
-| 19 | eligible updates must be monotonically increasing in aggregateVersion [R7] | `applyOrgMemberSkillXp` discards events where `event.aggregateVersion <= view.lastProcessedVersion` |
+| 19 | **[SK_VERSION_GUARD S2]** eligible updates must be monotonically increasing in aggregateVersion | `applyOrgMemberSkillXp` discards events where `event.aggregateVersion <= view.lastProcessedVersion` |
 
-## ELIGIBLE_UPDATE_GUARD [R7]
+## SK_VERSION_GUARD Contract [S2]
 
-Per `logic-overview_v9.md` R7 — prevents race conditions from out-of-order event delivery:
-
+v10 泛化 #19 — per `logic-overview_v10.md` [S2]:
 ```
 Update rule:
   event.aggregateVersion > view.lastProcessedVersion → allow update
   otherwise → discard (stale event; do NOT overwrite newer state)
 
+Scope: ALL Projections (v9 limited to eligible-view; v10 S2 extends to every Projection)
 Reason: FUNNEL CRITICAL_PROJ_LANE does not guarantee delivery order.
 Example: ScheduleCompleted arrives first, ScheduleAssigned arrives late →
   without guard, eligible incorrectly reverts to `false`.
 ```
+
+This slice was the **origin** of Invariant #19. In v10, the rule is extracted to
+`shared.kernel.version-guard [S2]` and applied universally by FUNNEL (D14).
 
 ## Write Path (Event Funnel → Projector)
 
@@ -78,15 +81,17 @@ export type { OrgEligibleMemberEntry, OrgMemberSkillWithTier, OrgEligibleMemberV
 - `@/shared/lib` — `resolveSkillTier` (pure function, no I/O)
 - `@/shared/types` — `SkillTier`
 
-## Architecture Note
+## Architecture Note [S2][R7]
 
-`logic-overview_v9.md` [R7] D11:
+`logic-overview_v10.md` [SK_VERSION_GUARD S2] D11:
 `EVENT_FUNNEL_INPUT → ORG_ELIGIBLE_MEMBER_VIEW`
 `ORG_ELIGIBLE_MEMBER_VIEW -.→ getTier 計算（不存 DB）`
 `W_B_SCHEDULE -.→ ORG_ELIGIBLE_MEMBER_VIEW（查詢可用帳號 · eligible=true · 只讀）`
 
-Invariant #19 (v9 new): eligible updates MUST use monotonically increasing aggregateVersion.
-D11: Before writing, compare event.aggregateVersion > view.lastProcessedVersion; discard if stale.
+Invariant #19 泛化 (v10 S2): eligible updates MUST use monotonically increasing
+aggregateVersion. Rule extracted to `shared.kernel.version-guard [S2]` and universally
+enforced by FUNNEL across all Projections. This slice was the original source of #19.
+D14: FUNNEL must reference SK_VERSION_GUARD before writing to any Projection.
 
 `account-organization.schedule/_schedule.ts` imports `getOrgMemberEligibility` from
 this slice to validate schedule assignment eligibility (Invariant #14).
