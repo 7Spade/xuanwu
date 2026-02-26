@@ -5,7 +5,8 @@
 Vertical feature slices. Each slice is the **single source of truth** for its business domain —
 it owns types, server actions, queries, hooks, and UI components.
 
-> **Architecture reference:** `docs/overview/logic-overview_v9.md` (唯一事實來源)
+> **Architecture reference:** `docs/overview/logic-overview_v10.md` (唯一事實來源)
+> v9 → v10 change: six new VS0 infrastructure behavior contracts (S1~S6) added to shared.kernel.
 
 ## The Golden Rule
 
@@ -23,6 +24,12 @@ it owns types, server actions, queries, hooks, and UI components.
 | `shared.kernel.tag-authority/` | Boundary stub — re-exports from centralized-tag [R3] | 🔧 |
 | `shared.kernel.contract-interfaces/` | Boundary stub — re-exports CommandResult [R4] | 🔧 |
 | `shared.kernel.constants/` | Canonical cross-slice constants: WorkflowStatus, ErrorCodes | 🔧 |
+| `shared.kernel.outbox-contract/` | SK_OUTBOX_CONTRACT [S1] — at-least-once + idempotency-key + DLQ tier | ✅ |
+| `shared.kernel.version-guard/` | SK_VERSION_GUARD [S2] — monotonic version protection for all Projection writes | ✅ |
+| `shared.kernel.read-consistency/` | SK_READ_CONSISTENCY [S3] — STRONG_READ vs EVENTUAL_READ routing | ✅ |
+| `shared.kernel.staleness-contract/` | SK_STALENESS_CONTRACT [S4] — TAG/CRITICAL/STANDARD staleness SLA constants | ✅ |
+| `shared.kernel.resilience-contract/` | SK_RESILIENCE_CONTRACT [S5] — rate-limit + circuit-break + bulkhead for entry points | ✅ |
+| `shared.kernel.token-refresh-contract/` | SK_TOKEN_REFRESH_CONTRACT [S6] — Claims refresh three-way handshake (VS1 ↔ IER ↔ frontend) | ✅ |
 
 ### Infra Building Blocks (GW layer)
 
