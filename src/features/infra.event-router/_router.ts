@@ -3,7 +3,7 @@
  *
  * [IER] Integration Event Router [R2]
  *
- * Per logic-overview_v9.md [R2]:
+ * Per logic-overview.md [R2]:
  *   OUTBOX_RELAY_WORKER -->|deliver| IER
  *   IER -.->|CRITICAL_LANE|    WALLET_AGG / AUTH
  *   IER -.->|STANDARD_LANE|   SCHEDULE / MEMBER / ROLE

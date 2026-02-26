@@ -4,7 +4,7 @@
  * Account-level policy management. Policy changes trigger CUSTOM_CLAIMS refresh
  * downstream via account governance logic.
  *
- * Per logic-overview_v9.md: ACCOUNT_POLICY → CUSTOM_CLAIMS
+ * Per logic-overview.md: ACCOUNT_POLICY → CUSTOM_CLAIMS
  */
 
 export {

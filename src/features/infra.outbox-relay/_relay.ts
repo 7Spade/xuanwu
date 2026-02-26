@@ -3,7 +3,7 @@
  *
  * OUTBOX_RELAY_WORKER [R1] — shared Relay Worker used by ALL outbox collections.
  *
- * Per logic-overview_v9.md [R1] OUTBOX_RELAY_WORKER and tree.md:
+ * Per logic-overview.md [R1] OUTBOX_RELAY_WORKER and tree.md:
  *   infra.outbox-relay = [R1] 搬運工 (掃描所有 OUTBOX 投遞至 IER)
  *
  *   - Scan strategy: Firestore onSnapshot (CDC) — listens for `pending` entries

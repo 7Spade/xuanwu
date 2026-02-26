@@ -5,7 +5,7 @@
  *
  * Server actions for account-level policy management.
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  *   ACCOUNT_POLICY → CUSTOM_CLAIMS
  *   Policy changes are account-scoped; CUSTOM_CLAIMS refresh is triggered downstream
  *   by account governance logic (not via org event bus — this is an account-level BC).

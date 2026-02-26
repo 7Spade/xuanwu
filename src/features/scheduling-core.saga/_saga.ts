@@ -3,7 +3,7 @@
  *
  * [VS6] 跨組織排班協作 Saga 協調器
  *
- * Per logic-overview_v9.md VS6:
+ * Per logic-overview.md VS6:
  *   WorkspaceScheduleProposed → OrgEligibilityCheck → ScheduleAssigned
  *
  * State machine:

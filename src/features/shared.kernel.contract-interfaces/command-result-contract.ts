@@ -4,7 +4,7 @@
  * Defines the canonical result shape returned by every Command Handler after
  * a command executes through the CBG_ROUTE → Slice pipeline.
  *
- * Per logic-overview_v9.md [R4] COMMAND_RESULT_CONTRACT:
+ * Per logic-overview.md [R4] COMMAND_RESULT_CONTRACT:
  *   CommandSuccess → { aggregateId, version }   (frontend optimistic-update basis)
  *   CommandFailure → DomainError { code, message, context }  (structured error)
  *

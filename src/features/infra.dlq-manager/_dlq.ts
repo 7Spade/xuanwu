@@ -3,7 +3,7 @@
  *
  * Dead-Letter Queue tier classification [R5]
  *
- * Per logic-overview_v9.md [R5] DLQ 三級策略:
+ * Per logic-overview.md [R5] DLQ 三級策略:
  *
  *   SAFE_AUTO       — TagLifecycle・MemberJoined (idempotent, auto-retry)
  *   REVIEW_REQUIRED — WalletDeducted・ScheduleAssigned・RoleChanged (human review before replay)

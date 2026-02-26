@@ -1,7 +1,7 @@
 /**
  * workspace-core.event-store — Append-only domain event store.
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  * - WORKSPACE_AGGREGATE → WORKSPACE_EVENT_STORE
  * - WORKSPACE_EVENT_STORE -.→ EVENT_FUNNEL_INPUT (replay only, dotted edge)
  * - Invariant #9: Projections MUST be fully rebuildable from events stored here.

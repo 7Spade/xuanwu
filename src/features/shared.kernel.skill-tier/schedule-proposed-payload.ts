@@ -3,7 +3,7 @@
  *
  * Cross-BC event payload contract for the ScheduleProposed saga.
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  *   WORKSPACE_OUTBOX →|ScheduleProposed（跨層事件 · saga）| ORGANIZATION_SCHEDULE
  *   WORKSPACE_EVENT_BUS -.→|事件契約遵循| SK_EVENT_ENVELOPE
  *

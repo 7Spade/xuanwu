@@ -3,7 +3,7 @@
  *
  * CENTRALIZED_TAG_AGGREGATE: global semantic dictionary for tagSlugs.
  *
- * Per logic-overview_v9.md (VS0 Tag Authority Center):
+ * Per logic-overview.md (VS0 Tag Authority Center):
  *   CTA["centralized-tag.aggregate\n【語義字典主數據】\ntagSlug / label / category\ndeprecatedAt / deleteRule\n唯一性 & 刪除規則管理"]
  *
  * Invariants:

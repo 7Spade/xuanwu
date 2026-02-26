@@ -6,7 +6,7 @@
  * Per tree.md: shared.kernel.constants = cross-slice shared status enums and error codes
  *   that any bounded context may reference without creating a coupling to a specific feature.
  *
- * Per logic-overview_v9.md: sole canonical source for cross-BC status enums.
+ * Per logic-overview.md: sole canonical source for cross-BC status enums.
  *
  * Invariant: Zero infrastructure dependencies (no Firebase, no React, no I/O).
  */

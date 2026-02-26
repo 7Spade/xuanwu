@@ -3,7 +3,7 @@
  *
  * [VS0] 權限快照契約 (Authority Snapshot Contract)
  *
- * Per logic-overview_v9.md: shared.kernel.authority-snapshot = cross-BC permission
+ * Per logic-overview.md: shared.kernel.authority-snapshot = cross-BC permission
  *   snapshot contract. Implemented by projection slices that expose authority data.
  *   — projection.workspace-scope-guard (invariant #7, #8)
  *   — projection.account-view (invariant #8)

@@ -3,7 +3,7 @@
  *
  * EVENT_FUNNEL_INPUT: unified entry point for the Projection Layer.
  *
- * Per logic-overview_v9.md (VS8 Projection Bus):
+ * Per logic-overview.md (VS8 Projection Bus):
  *   WORKSPACE_EVENT_BUS  → |所有業務事件|  EVENT_FUNNEL_INPUT
  *   ORGANIZATION_EVENT_BUS → |所有組織事件| EVENT_FUNNEL_INPUT
  *   TAG_LIFECYCLE_BUS → |TagLifecycleEvent| EVENT_FUNNEL_INPUT  (v5 新增)
@@ -63,7 +63,7 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
   const unsubscribers: Array<() => void> = [];
 
   // workspace:tasks:assigned → PROJECTION_VERSION (stream offset, A-track → registry consistency)
-  // Per logic-overview_v9.md: EVENT_FUNNEL_INPUT →|更新事件串流偏移量| PROJECTION_VERSION
+  // Per logic-overview.md: EVENT_FUNNEL_INPUT →|更新事件串流偏移量| PROJECTION_VERSION
   unsubscribers.push(
     bus.subscribe('workspace:tasks:assigned', async (payload) => {
       await upsertProjectionVersion(
@@ -90,7 +90,7 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
   );
 
   // workspace:issues:resolved → ACCOUNT_PROJECTION_AUDIT + workflow unblock stream offset
-  // Per logic-overview_v9.md:
+  // Per logic-overview.md:
   //   TRACK_B_ISSUES →|IssueResolved 事件| WORKSPACE_EVENT_BUS
   //   A 軌自行訂閱後恢復（Discrete Recovery Principle — not direct back-flow）
   // The funnel records audit + stream offset for replay consistency (Invariant A7).
@@ -127,7 +127,7 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
   // workspace:document-parser:itemsExtracted → PROJECTION_VERSION (stream offset)
   // ParsingIntent creates Firestore documents via direct writes; the funnel records
   // the stream offset so the projection registry stays consistent.
-  // Per logic-overview_v9.md: EVENT_FUNNEL_INPUT →|更新事件串流偏移量| PROJECTION_VERSION
+  // Per logic-overview.md: EVENT_FUNNEL_INPUT →|更新事件串流偏移量| PROJECTION_VERSION
   unsubscribers.push(
     bus.subscribe('workspace:document-parser:itemsExtracted', async (payload) => {
       await upsertProjectionVersion(
@@ -139,7 +139,7 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
   );
 
   // workspace:tasks:assigned → PROJECTION_VERSION (stream offset)
-  // Per logic-overview_v9.md: EVENT_FUNNEL_INPUT →|更新事件串流偏移量| PROJECTION_VERSION
+  // Per logic-overview.md: EVENT_FUNNEL_INPUT →|更新事件串流偏移量| PROJECTION_VERSION
   // Tracking assignment events ensures the projection registry reflects the A-track
   // task-assignment → schedule trigger flow (TRACK_A_TASKS -.→ W_B_SCHEDULE).
   unsubscribers.push(
@@ -247,10 +247,10 @@ export function registerOrganizationFunnel(): () => void {
  * Also delegates to VS4_TAG_SUBSCRIBER to update SKILL_TAG_POOL. [R3]
  * Returns a cleanup function.
  *
- * Per logic-overview_v9.md [R3]:
+ * Per logic-overview.md [R3]:
  *   IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
  *
- * Per logic-overview_v9.md (VS8):
+ * Per logic-overview.md (VS8):
  *   IER ==>|"#9 唯一寫入路徑"| FUNNEL
  *   FUNNEL --> TAG_SNAPSHOT
  *

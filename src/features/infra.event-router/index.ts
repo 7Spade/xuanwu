@@ -3,7 +3,7 @@
  *
  * [IER] Integration Event Router — CRITICAL/STANDARD/BACKGROUND lanes [R2]
  *
- * Per logic-overview_v9.md [R2]:
+ * Per logic-overview.md [R2]:
  *   OUTBOX_RELAY_WORKER delivers to IER → IER fan-outs to lane subscribers.
  *
  * Lane definitions:

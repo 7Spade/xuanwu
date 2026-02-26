@@ -3,7 +3,7 @@
  *
  * Shared Kernel contract for all domain events across Bounded Contexts.
  *
- * Per logic-overview_v9.md [R8][R7]:
+ * Per logic-overview.md [R8][R7]:
  *   WORKSPACE_EVENT_BUS -.->|事件契約遵循| SK_EVENT_ENVELOPE
  *   ORGANIZATION_EVENT_BUS -.->|事件契約遵循| SK_EVENT_ENVELOPE
  *

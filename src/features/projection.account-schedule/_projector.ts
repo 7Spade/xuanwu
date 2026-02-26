@@ -6,7 +6,7 @@
  *
  * Stored at: scheduleProjection/{accountId}/assignments/{assignmentId}
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  *   EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_SCHEDULE
  *   W_B_SCHEDULE -.→ ACCOUNT_PROJECTION_SCHEDULE (過濾可用帳號)
  */

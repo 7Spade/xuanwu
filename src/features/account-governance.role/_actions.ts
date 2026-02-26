@@ -5,11 +5,11 @@
  *
  * Server actions for account role management.
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  *   ACCOUNT_ROLE → CUSTOM_CLAIMS
  *   Role changes trigger CUSTOM_CLAIMS refresh.
  *
- * Per logic-overview_v9.md [R2] TOKEN_REFRESH_SIGNAL:
+ * Per logic-overview.md [R2] TOKEN_REFRESH_SIGNAL:
  *   After claims are set, write a TOKEN_REFRESH_SIGNAL document so the
  *   frontend can detect the change and force a token refresh.
  *   Semantics: high-priority eventual consistency (async — Firebase limitation).

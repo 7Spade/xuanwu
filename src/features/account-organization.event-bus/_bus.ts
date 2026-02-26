@@ -4,7 +4,7 @@
  * In-process organization event bus.
  * Mirrors the workspace event bus pattern.
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  *   ORGANIZATION_ENTITY → ORGANIZATION_EVENT_BUS
  *   ORGANIZATION_EVENT_BUS → all downstream listeners
  *   ORGANIZATION_EVENT_BUS -.→ shared-kernel.event-envelope（契約遵循）

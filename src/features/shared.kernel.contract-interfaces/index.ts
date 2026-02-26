@@ -3,7 +3,7 @@
  *
  * [R4][D10] 狀態契約與 Result 接口 (Command/Query)
  *
- * Per logic-overview_v9.md: shared.kernel.contract-interfaces = canonical Result shape for
+ * Per logic-overview.md: shared.kernel.contract-interfaces = canonical Result shape for
  *   all Command Handlers and cross-BC Query contracts. [R4]
  */
 export type {

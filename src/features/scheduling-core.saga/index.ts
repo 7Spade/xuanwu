@@ -3,7 +3,7 @@
  *
  * [VS6] 跨組織排班協作 Saga 協調器
  *
- * Per logic-overview_v9.md VS6:
+ * Per logic-overview.md VS6:
  *   workspace-business.schedule   → publishes WorkspaceScheduleProposed
  *   scheduling-core.saga          → subscribes, checks org eligibility
  *   account-organization.schedule → receives ScheduleAssigned

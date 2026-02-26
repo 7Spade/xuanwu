@@ -5,7 +5,7 @@
  *
  * Per tree.md: infra.observability = [R8] 觀測站 (OpenTelemetry, Log Trace)
  *
- * Per logic-overview_v9.md (OBSERVABILITY_LAYER):
+ * Per logic-overview.md (OBSERVABILITY_LAYER):
  *   WORKSPACE_COMMAND_HANDLER --> TRACE_IDENTIFIER
  *   WORKSPACE_TRANSACTION_RUNNER --> TRACE_IDENTIFIER
  *   WORKSPACE_EVENT_BUS --> TRACE_IDENTIFIER

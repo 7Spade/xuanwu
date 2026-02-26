@@ -5,7 +5,7 @@
  *
  * Per tree.md: infra.observability = [R8] 觀測站 (OpenTelemetry, Log Trace)
  *
- * Per logic-overview_v9.md (OBSERVABILITY_LAYER):
+ * Per logic-overview.md (OBSERVABILITY_LAYER):
  *   WORKSPACE_TRANSACTION_RUNNER --> DOMAIN_ERROR_LOG
  *
  * Provides a structured error-logging interface for domain/application errors.
