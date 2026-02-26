@@ -110,6 +110,15 @@ You must actively maintain the project's knowledge graph using the `memory` tool
   - **Error Learning**: After fixing a complex bug, record the "Root Cause" and "Solution" as an observation in memory to prevent regression.
   - **Architecture Decided**: If a new pattern is established (e.g., a specific way to handle Parallel Routes), log it as an `Architecture_Decision` entity.
 
+## Memory MCP & Knowledge Graph (Crucial)
+You must actively maintain the project's knowledge graph using the `memory` tool:
+- **Initialize & Sync**: Upon start or when requested, read `.github/prompts/*.md` to sync governance rules into memory.
+- **Read First**: Before any task, use `read_graph` or `search_nodes` to recall architecture decisions and domain constraints.
+- **Write Ongoing (The Habit)**:
+  - **Feature Completion**: When a new feature or vertical slice is completed, create entities/relations to document its public API and dependencies.
+  - **Error Learning**: After fixing a complex bug, record the "Root Cause" and "Solution" as an observation in memory to prevent regression.
+  - **Architecture Decided**: If a new pattern is established (e.g., a specific way to handle Parallel Routes), log it as an `Architecture_Decision` entity.
+
 ## Architecture rules (must follow)
 - Top-level structure:
   - `src/app`: Next.js App Router composition only.
@@ -165,6 +174,14 @@ Available MCP tools for agents and sub-agents:
 - `sequential-thinking` — for complex multi-step reasoning
 - `software-planning` — for task decomposition and planning
 - `context7` — for up-to-date external library/framework documentation
+- **Styling**: Use **Tailwind CSS** for all styling. Follow the existing theme configuration.
+- **Components**: Use standard components from `src/shared/components/ui/` (**shadcn/ui**) before creating custom ones.
+- **Icons**: Use **Lucide React** for all iconography.
+
+## Agent Task Workflow & MCP
+- **Plan first**: Outline the files you will touch and **query Memory MCP** for relevant rules before writing code.
+- **Context gathering**: Utilize `fetch` for latest docs or `postgres` MCP to verify schemas if modifying data-heavy features.
+- **Closing the Loop**: Once the task is done, update the Memory Graph with any new technical debt or patterns discovered.
 
 ## Working style for Copilot
 - Prioritize existing patterns in `src/features/*`, `src/app/*`, `src/shared`, and `src/features/shared-kernel/*`.
