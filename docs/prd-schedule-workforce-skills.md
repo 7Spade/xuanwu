@@ -7,7 +7,7 @@
 **產品範疇 / Product Scope:** 玄武 (Xuanwu) 工作區平台 — VS4 / VS5 / VS6 / VS3  
 **主要利害關係人 / Stakeholders:** 組織管理者、工作區擁有者、前線人員、系統架構師
 
-> **v1.1 修訂重點（2026-02-26）：** 補充廠區（Workspace）領域模型定義、工作區子地點（Sub-location）資料結構、需求公告板（Demand Board）設計，並將「手動人力調度無法操作」列為最高優先缺口（Critical Gap #0）。
+> **v1.1 修訂重點（2026-02-26）：** 補充廠區（Workspace）領域模型定義、廠區子地點（Sub-location）資料結構、需求公告板（Demand Board）設計，並將「手動人力調度無法操作」列為最高優先缺口（Critical Gap #0）。
 
 ---
 
@@ -45,7 +45,7 @@
 | 術語 | 業務定義 | 對應英文 |
 |------|---------|---------|
 | **Account（帳號/公司）** | 代表一家真實存在的公司或個人組織。Account 持有一批員工（OrgMember），負責對外承接業務並調配自己的人力資源。 | Company / Organization entity |
-| **Workspace（工作區/廠區）** | 一個**具有實際地址的廠區**（manufacturing site / worksite）。廠區有自己的業務需求，會向所屬 Account 提出人力需求。 | Physical worksite / factory zone |
+| **Workspace（廠區）** | 一個**具有實際地址的廠區**（manufacturing site / worksite）。廠區有自己的業務需求，會向所屬 Account 提出人力需求。 | Physical worksite / factory zone |
 | **WorkspaceLocation（廠區子地點）** | 廠區內的具體位置，例如「A 棟 3 樓倉儲室」。一個廠區可包含多個子地點。 | Sub-location within a worksite |
 | **OrgMember（組織成員/員工）** | 屬於某 Account 的具體員工。其技能等級（SkillTier）決定其可接受的任務類型。 | Staff / Employee |
 | **ScheduleDemand（排班需求）** | 工作區（廠區）向所屬 Account 提出的**人力需求單**，包含需要的技能組合、時段、地點。 | Staffing demand / work order |
@@ -347,7 +347,7 @@ Account（公司）
 
 | ID | 功能 | 優先級 | VS 歸屬 |
 |----|------|--------|---------|
-| **FR-W0** | **需求公告板（Demand Board）**：Account 管理者可在專屬頁面看到所有所屬廠區（Workspace）目前處於 `proposed` 狀態的排班需求，每張需求卡顯示廠區名稱、所需技能標籤、時段、子地點；支援依技能/廠區/日期篩選 | **P0** | **VS4/VS5** |
+| **FR-W0** | **需求公告板（Demand Board）**：Account 管理者可在專屬頁面看到所有所屬廠區目前狀態為 `open`（尚未指派員工）的 ScheduleDemand，每張需求卡顯示廠區名稱、所需技能標籤、時段、子地點；支援依技能/廠區/日期篩選 | **P0** | **VS4/VS5** |
 | **FR-W6** | **手動指派（Force Assignment）**：Account 管理者在需求公告板或 Governance Panel 選擇某需求，展開可用人員清單（過濾 eligible + 技能符合），點擊指派即觸發 `workspace:schedule:proposed` + Saga 確認流程；整個操作不超過 3 步 | **P0** | **VS4/VS5** |
 | **FR-W7** | **指派候選人快速篩選**：在手動指派流程中，依技能標籤和等級即時過濾候選人列表；不符合需求技能的成員以灰色顯示但仍可選擇（Override Assignment，附警告） | **P0** | **VS4** |
 | FR-W1 | **人力總覽面板**：顯示組織全部成員列表，標示 `eligible/non-eligible` 狀態 | P0 | VS4 |
@@ -395,6 +395,7 @@ Account（公司）
 | 排班月曆載入 | ≤ 2s (P95) for 30 items | 標準使用情境 |
 | Projection 更新延遲 | ≤ 10s (P99) | S4 `PROJ_STALE_STANDARD` |
 | FCM 推播延遲 | ≤ 30s (P95) | S4 `TAG_MAX_STALENESS` |
+| **需求公告板 ScheduleDemand 可見性** | **廠區張貼需求後 ≤ 5s 出現在 Account 管理者的需求公告板** | G0a；Demand Board projection `PROJ_STALE_STANDARD` |
 
 ### NFR-R — 可靠性 (Reliability)
 
@@ -494,6 +495,9 @@ interface ScheduleDemand {
   endDate: string;            // ISO 8601
   requiredSkills: SkillRequirement[]; // [{ skillId, minTier, quantity }]
   status: 'open' | 'assigned' | 'closed';
+  // 狀態映射：'open' ↔ OrgScheduleStatus 'proposed'（廠區已提案，等待 Account 指派）
+  //           'assigned' ↔ OrgScheduleStatus 'confirmed'（已確認指派）
+  //           'closed' ↔ OrgScheduleStatus 'completed' | 'cancelled' | 'assignmentCancelled'
   proposedScheduleItemId?: string; // 對應到 OrgScheduleProposal 的 ID
   traceId?: string;           // R8 全鏈路追蹤 ID
   createdAt: string;
@@ -511,8 +515,8 @@ interface OrgScheduleProposal {
   description?: string;         // 排班描述
   startDate: string;            // ISO 8601
   endDate: string;              // ISO 8601
-  locationId?: string;          // 子地點 ID（FR-L2）
-  location: Location;           // { type: 'on-site'|'remote'|'hybrid', address?: string }
+  locationId?: string;          // 子地點 ID（FR-L2）。優先於 location.address；若 locationId 指定，location.address 自動從 WorkspaceLocation.label 衍生，不另行儲存
+  location: Location;           // { type: 'on-site'|'remote'|'hybrid', address?: string }。type 仍為必填；address 在 locationId 存在時可省略
   requiredSkills: SkillRequirement[]; // [{ skillId, minTier, quantity }]
   status: OrgScheduleStatus;    // 'draft'|'proposed'|'confirmed'|'cancelled'|'completed'|'assignmentCancelled'
   assignedAccountId?: string;   // 指派的成員 ID
@@ -569,7 +573,7 @@ interface OrgEligibleMemberEntry {
 |----|------|--------|
 | **BR-D1** | **廠區需求公告**：工作區（廠區）在 `proposed` 狀態的排班，**必須在** Account 管理者的 Demand Board 上可見，不需要 Account 主動查詢每個廠區 | `workspace-business.schedule` + VS4 read model |
 | **BR-D2** | **手動指派入口**：Account 管理者在 Demand Board 上選擇某需求並手動指定成員，等同於觸發 Saga 強制確認（`approveOrgScheduleProposal`），無需等待 Saga 自動比對 | `account-organization.schedule/_actions.ts` |
-| **BR-D3** | **指派候選資格**：手動指派時，系統顯示所有組織成員，但對不符合技能需求或 `eligible=false` 的成員標示警告；管理者有最終決定權（Override） | UI validation, not hard block |
+| **BR-D3** | **指派候選資格**：手動指派時，系統顯示所有組織成員，但對不符合技能需求或 `eligible=false` 的成員標示警告；管理者有最終決定權（Override）。Override 仍觸發正常 Saga（`approveOrgScheduleProposal`），僅跳過 UI 層的硬阻擋，Saga 內部 eligibility 校驗不變 | UI validation, not hard block; Saga still validates |
 | **BR-D4** | **廠區地址不可為空**：建立或更新 Workspace 時，`address` 為必填欄位（廠區必有實體地址） | Zod schema validation |
 | **BR-D5** | **子地點歸屬**：子地點（WorkspaceLocation）屬於特定廠區，不可在廠區間共享或移動；廠區刪除時子地點一同刪除 | `workspace-core` aggregate |
 
@@ -716,7 +720,7 @@ Feature: 排班提案
 Scenario: 成功提交排班提案
   Given 我是工作區 OWNER 或 ADMIN
   When 我填寫排班表單（標題、日期、技能需求）並送出
-  Then 系統應在 UI 顯示 status = "proposed" 的排班項目
+  Then 系統應在 UI 顯示 status = "proposed"（Demand Board 顯示為 "open"）的排班項目
   And 月曆上應顯示對應日期的排班標記
   And Saga 應在 5 秒內完成 eligibility check
 
