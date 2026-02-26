@@ -10,7 +10,7 @@ This repository is onboarding Copilot with a **minimal, architecture-first rule 
 
 ### Step 1 — Session Start: Read Knowledge Graph（強制讀取）
 
-Session 開始的**第一個動作**必須是讀取架構知識圖譜：
+Session 開始的**第一個動作**必須是讀取架構知識圖譜（以下為 MCP tool 調用方式）：
 
 ```
 // 優先使用（在大部分環境下更可靠）
@@ -91,7 +91,7 @@ store_memory({
 })
 ```
 
-**同時更新 `docs/knowledge-graph.json`** 以確保持久化（JSON 才是真正跨 session 存活的 SSOT）。
+**同時更新 `docs/knowledge-graph.json`** 以確保持久化（`docs/knowledge-graph.json` 是知識圖譜的跨-session 持久化存儲；`docs/logic-overview.md` 是架構規則的最高權威文件 — 兩者角色不同，互補而非衝突）。
 
 ---
 
@@ -126,6 +126,7 @@ store_memory({
 ## UI & Styling
 - Use Tailwind CSS v4 for styling. Do not write inline CSS or standard CSS modules.
 - Use standard components from `src/shared/components/ui/` (shadcn/ui) **exclusively**. Do not add Material-UI, Chakra UI, Ant Design, or any other UI library.
+- If shadcn/ui lacks a needed component, first check if a composition of existing shadcn/ui primitives can satisfy the requirement. Only build a custom component as a last resort, and place it in `src/shared/components/` with a comment explaining why shadcn/ui was insufficient.
 
 ## Agent Task Workflow & MCP
 
