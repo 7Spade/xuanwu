@@ -35,6 +35,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
+import { logDomainError } from '@/features/infra.observability';
 
 /** Delivery status of an outbox entry. */
 export type OutboxStatus = 'pending' | 'delivered' | 'dlq';
@@ -203,4 +204,28 @@ async function routeToDlq(
     lastAttemptAt: new Date().toISOString(),
     lastError,
   });
+
+  // [GEMINI.md §4][S6] SECURITY_BLOCK tier: fire VS9 domain-error-log alert immediately.
+  // Auto-replay is FORBIDDEN for SECURITY_BLOCK — alert must be raised so ops can review.
+  if (dlqLevel === 'SECURITY_BLOCK') {
+    let resolvedTraceId = dlqId;
+    try {
+      const env = JSON.parse(data.envelopeJson) as { traceId?: string };
+      resolvedTraceId = env.traceId ?? dlqId;
+    } catch (parseErr) {
+      // Log parse failure so operators know the envelope was malformed on the alert path
+      console.error(
+        `[outbox-relay] SECURITY_BLOCK: could not parse envelopeJson for traceId — dlqId="${dlqId}":`,
+        parseErr
+      );
+    }
+    logDomainError({
+      occurredAt: new Date().toISOString(),
+      traceId: resolvedTraceId,
+      source: 'infra.outbox-relay:SECURITY_BLOCK',
+      message: `SECURITY_BLOCK DLQ — eventType="${data.eventType}" lane="${data.lane}" dlqId="${dlqId}". ` +
+        `Auto-replay is FORBIDDEN. Manual review required. lastError: ${lastError}`,
+      detail: `collection=${collectionPath} docId=${docId} attempts=${attemptCount}`,
+    });
+  }
 }

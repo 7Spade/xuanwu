@@ -23,6 +23,25 @@ import {
   commandFailureFrom,
 } from '@/features/shared.kernel.contract-interfaces';
 
+// ---------------------------------------------------------------------------
+// TOKEN_REFRESH_SIGNAL helper [S6]
+// Defined locally per VSA cross-slice boundary rules (no import from account-governance.role).
+// ---------------------------------------------------------------------------
+
+/**
+ * Writes a TOKEN_REFRESH_SIGNAL document for the affected account.
+ * Frontend onSnapshot on `tokenRefreshSignals/{accountId}` force-refreshes the token.
+ * Per [SK_TOKEN_REFRESH_CONTRACT: CLIENT_TOKEN_REFRESH_OBLIGATION][S6].
+ */
+async function emitPolicyChangedRefreshSignal(accountId: string, traceId?: string): Promise<void> {
+  await updateDocument(`tokenRefreshSignals/${accountId}`, {
+    accountId,
+    reason: 'policy:changed',
+    issuedAt: new Date().toISOString(),
+    ...(traceId ? { traceId } : {}),
+  });
+}
+
 export interface AccountPolicy {
   id: string;
   accountId: string;
@@ -52,6 +71,9 @@ export interface CreatePolicyInput {
 }
 
 export interface UpdatePolicyInput {
+  /** Account that owns this policy. When provided, a TOKEN_REFRESH_SIGNAL is emitted [S6].
+   *  Optional: callers that don't have accountId in scope may omit; Claims re-sync on next token expiry. */
+  accountId?: string;
   name?: string;
   description?: string;
   rules?: PolicyRule[];
@@ -91,6 +113,7 @@ export async function createAccountPolicy(input: CreatePolicyInput): Promise<Com
 
 /**
  * Updates an existing account policy.
+ * Emits TOKEN_REFRESH_SIGNAL so the frontend refreshes Claims [S6].
  * traceId is stored in the record for auditability [R8].
  */
 export async function updateAccountPolicy(
@@ -98,12 +121,25 @@ export async function updateAccountPolicy(
   input: UpdatePolicyInput
 ): Promise<CommandResult> {
   try {
-    const { traceId, ...fields } = input;
+    const { traceId, accountId, ...fields } = input;
     await updateDocument(`accountPolicies/${policyId}`, {
       ...fields,
       updatedAt: new Date().toISOString(),
       ...(traceId ? { traceId } : {}),
     });
+
+    // PolicyChanged → TOKEN_REFRESH_SIGNAL [S6]
+    // Best-effort: signal failure does NOT roll back the policy update.
+    // accountId is optional — signal is only emitted when the caller provides it.
+    if (accountId) {
+      try {
+        await emitPolicyChangedRefreshSignal(accountId, traceId);
+      } catch (sigErr) {
+        // Log signal failure for observability; Claims re-sync on next token expiry.
+        console.error('[account-governance.policy] Failed to emit TOKEN_REFRESH_SIGNAL after policy update:', sigErr);
+      }
+    }
+
     return commandSuccess(policyId, Date.now());
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
