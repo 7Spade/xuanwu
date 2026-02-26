@@ -54,7 +54,7 @@
 ### 1.2 業務場景模型
 
 ```
-Account（公司）
+Account（帳號/公司）
   ├─ 持有員工（OrgMember × N）：每人有技能等級（SkillGrant / XP）
   ├─ 持有廠區（Workspace × N）：每個廠區是一個真實地點
   │    ├─ 廠區子地點（WorkspaceLocation × M）：棟/樓/室
@@ -347,7 +347,7 @@ Account（公司）
 
 | ID | 功能 | 優先級 | VS 歸屬 |
 |----|------|--------|---------|
-| **FR-W0** | **需求公告板（Demand Board）**：Account 管理者可在專屬頁面看到所有所屬廠區目前狀態為 `open`（尚未指派員工）的 ScheduleDemand，每張需求卡顯示廠區名稱、所需技能標籤、時段、子地點；支援依技能/廠區/日期篩選 | **P0** | **VS4/VS5** |
+| **FR-W0** | **需求公告板（Demand Board）**：Account 管理者可在專屬頁面看到所有所屬廠區的 ScheduleDemand。預設顯示 `open`（OrgScheduleStatus='proposed'，尚未指派）和 `assigned`（OrgScheduleStatus='confirmed'，已指派但進行中）的需求；`open` 需求以紅色標示（待處理），`assigned` 需求以綠色標示（進行中）。`closed` 需求預設隱藏，可透過「顯示已結案」篩選查看。每張需求卡顯示廠區名稱、所需技能標籤、時段、子地點；支援依技能/廠區/日期/狀態篩選 | **P0** | **VS4/VS5** |
 | **FR-W6** | **手動指派（Force Assignment）**：Account 管理者在需求公告板或 Governance Panel 選擇某需求，展開可用人員清單（過濾 eligible + 技能符合），點擊指派即觸發 `workspace:schedule:proposed` + Saga 確認流程；整個操作不超過 3 步 | **P0** | **VS4/VS5** |
 | **FR-W7** | **指派候選人快速篩選**：在手動指派流程中，依技能標籤和等級即時過濾候選人列表；不符合需求技能的成員以灰色顯示但仍可選擇（Override Assignment，附警告） | **P0** | **VS4** |
 | FR-W1 | **人力總覽面板**：顯示組織全部成員列表，標示 `eligible/non-eligible` 狀態 | P0 | VS4 |
@@ -395,7 +395,7 @@ Account（公司）
 | 排班月曆載入 | ≤ 2s (P95) for 30 items | 標準使用情境 |
 | Projection 更新延遲 | ≤ 10s (P99) | S4 `PROJ_STALE_STANDARD` |
 | FCM 推播延遲 | ≤ 30s (P95) | S4 `TAG_MAX_STALENESS` |
-| **需求公告板 ScheduleDemand 可見性** | **廠區張貼需求後 ≤ 5s 出現在 Account 管理者的需求公告板** | G0a；Demand Board projection `PROJ_STALE_STANDARD` |
+| **需求公告板 ScheduleDemand 可見性** | **廠區張貼需求後 ≤ 5s 出現在 Account 管理者的需求公告板** | G0a；Demand Board projection 需比標準 projection 更快，建議新增 `SK_STALENESS.DEMAND_BOARD_STALE = 5000ms` 常數（介於 `PROJ_STALE_CRITICAL` 500ms 與 `PROJ_STALE_STANDARD` 10s 之間）|
 
 ### NFR-R — 可靠性 (Reliability)
 
@@ -495,9 +495,13 @@ interface ScheduleDemand {
   endDate: string;            // ISO 8601
   requiredSkills: SkillRequirement[]; // [{ skillId, minTier, quantity }]
   status: 'open' | 'assigned' | 'closed';
-  // 狀態映射：'open' ↔ OrgScheduleStatus 'proposed'（廠區已提案，等待 Account 指派）
-  //           'assigned' ↔ OrgScheduleStatus 'confirmed'（已確認指派）
-  //           'closed' ↔ OrgScheduleStatus 'completed' | 'cancelled' | 'assignmentCancelled'
+  // 狀態對照表（Demand Board read-model ↔ OrgScheduleStatus aggregate）：
+  //   'open'     ← OrgScheduleStatus 'proposed'  （廠區已提案，等待 Account 指派；Demand Board 主要顯示層）
+  //   'assigned' ← OrgScheduleStatus 'confirmed' （已確認指派；Demand Board 顯示中，以不同樣式呈現；需求仍可見）
+  //   'closed'   ← OrgScheduleStatus 'completed' | 'cancelled' | 'assignmentCancelled'
+  //               其中：'completed' = 正常結束；'cancelled' = 取消提案；'assignmentCancelled' = 指派取消
+  //               Closed demands 在 Demand Board 預設隱藏，可透過「顯示已結案」篩選查看
+  // 注意：'open' → 'assigned' 時 Demand Card 不從看板移除，而是以 "已指派" 標籤呈現（見 FR-W0 + BR-D1）
   proposedScheduleItemId?: string; // 對應到 OrgScheduleProposal 的 ID
   traceId?: string;           // R8 全鏈路追蹤 ID
   createdAt: string;
@@ -515,8 +519,12 @@ interface OrgScheduleProposal {
   description?: string;         // 排班描述
   startDate: string;            // ISO 8601
   endDate: string;              // ISO 8601
-  locationId?: string;          // 子地點 ID（FR-L2）。優先於 location.address；若 locationId 指定，location.address 自動從 WorkspaceLocation.label 衍生，不另行儲存
-  location: Location;           // { type: 'on-site'|'remote'|'hybrid', address?: string }。type 仍為必填；address 在 locationId 存在時可省略
+  locationId?: string;          // 子地點 ID（FR-L2）。
+                                // 優先規則（write-time）：提交時若 locationId 非空，location.address 欄位應留空（undefined）；
+                                //   讀取時（read-time）projection 從 WorkspaceLocation.label 動態補全顯示用地址，不落庫。
+                                // 若無 locationId（遠端/跨站），則 location.address 為廠區層級地址（必填）。
+  location: Location;           // { type: 'on-site'|'remote'|'hybrid', address?: string }
+                                // type 仍為必填。address 在 locationId 存在時留 undefined（不重複儲存），由 projection 衍生顯示。
   requiredSkills: SkillRequirement[]; // [{ skillId, minTier, quantity }]
   status: OrgScheduleStatus;    // 'draft'|'proposed'|'confirmed'|'cancelled'|'completed'|'assignmentCancelled'
   assignedAccountId?: string;   // 指派的成員 ID
@@ -573,7 +581,7 @@ interface OrgEligibleMemberEntry {
 |----|------|--------|
 | **BR-D1** | **廠區需求公告**：工作區（廠區）在 `proposed` 狀態的排班，**必須在** Account 管理者的 Demand Board 上可見，不需要 Account 主動查詢每個廠區 | `workspace-business.schedule` + VS4 read model |
 | **BR-D2** | **手動指派入口**：Account 管理者在 Demand Board 上選擇某需求並手動指定成員，等同於觸發 Saga 強制確認（`approveOrgScheduleProposal`），無需等待 Saga 自動比對 | `account-organization.schedule/_actions.ts` |
-| **BR-D3** | **指派候選資格**：手動指派時，系統顯示所有組織成員，但對不符合技能需求或 `eligible=false` 的成員標示警告；管理者有最終決定權（Override）。Override 仍觸發正常 Saga（`approveOrgScheduleProposal`），僅跳過 UI 層的硬阻擋，Saga 內部 eligibility 校驗不變 | UI validation, not hard block; Saga still validates |
+| **BR-D3** | **指派候選資格（Override 行為）**：手動指派時，系統顯示所有組織成員，對不符合技能需求或 `eligible=false` 的成員標示警告。管理者可選擇忽略警告送出（Override）。**V1.0 行為**：Override 送出後仍觸發標準 Saga (`approveOrgScheduleProposal`)；若 Saga 內部 eligibility 校驗失敗，則指派失敗並通知管理者——此為預期行為（UI Override ≠ 繞過業務規則）。**V1.1 增強（Roadmap）**：Saga 將新增 `forceAssign: true` 參數供授權角色（OWNER/ADMIN）強制跳過 eligibility 校驗。 | UI soft-warn; Saga hard-validates in V1.0 |
 | **BR-D4** | **廠區地址不可為空**：建立或更新 Workspace 時，`address` 為必填欄位（廠區必有實體地址） | Zod schema validation |
 | **BR-D5** | **子地點歸屬**：子地點（WorkspaceLocation）屬於特定廠區，不可在廠區間共享或移動；廠區刪除時子地點一同刪除 | `workspace-core` aggregate |
 
