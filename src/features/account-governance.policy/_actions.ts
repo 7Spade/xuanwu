@@ -34,6 +34,10 @@ import {
  * Per [SK_TOKEN_REFRESH_CONTRACT: CLIENT_TOKEN_REFRESH_OBLIGATION][S6].
  */
 async function emitPolicyChangedRefreshSignal(accountId: string, traceId?: string): Promise<void> {
+  // Guard against path-traversal: accountId must be a safe Firestore document ID.
+  if (!/^[\w-]+$/.test(accountId)) {
+    throw new Error(`Invalid accountId format: "${accountId}" — must match /^[\\w-]+$/`);
+  }
   await updateDocument(`tokenRefreshSignals/${accountId}`, {
     accountId,
     reason: 'policy:changed',
