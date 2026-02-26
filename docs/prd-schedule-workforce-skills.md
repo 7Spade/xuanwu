@@ -1,11 +1,13 @@
 # PRD: 排程・人力・技能管理系統
 ## Schedule · Workforce · Skills Management System
 
-**文件版本 / Document Version:** 1.0  
+**文件版本 / Document Version:** 1.1  
 **最後更新 / Last Updated:** 2026-02-26  
-**狀態 / Status:** Draft → Review  
+**狀態 / Status:** Active  
 **產品範疇 / Product Scope:** 玄武 (Xuanwu) 工作區平台 — VS4 / VS5 / VS6 / VS3  
 **主要利害關係人 / Stakeholders:** 組織管理者、工作區擁有者、前線人員、系統架構師
+
+> **v1.1 修訂重點（2026-02-26）：** 補充廠區（Workspace）領域模型定義、工作區子地點（Sub-location）資料結構、需求公告板（Demand Board）設計，並將「手動人力調度無法操作」列為最高優先缺口（Critical Gap #0）。
 
 ---
 
@@ -36,7 +38,38 @@
 
 ## 1. 需求背景 Background
 
-玄武（Xuanwu）是一個以組織協作為核心的工作區平台，為組織提供多工作區、多成員的協同管理能力。隨著組織規模成長，**跨工作區的人力調度、技能比對與排程協調**成為不可或缺的平台能力。
+### 1.1 領域術語釐清（Domain Glossary）
+
+在本 PRD 中，以下術語具有特定的業務含義，**與日常用語不同，請嚴格遵守**：
+
+| 術語 | 業務定義 | 對應英文 |
+|------|---------|---------|
+| **Account（帳號/公司）** | 代表一家真實存在的公司或個人組織。Account 持有一批員工（OrgMember），負責對外承接業務並調配自己的人力資源。 | Company / Organization entity |
+| **Workspace（工作區/廠區）** | 一個**具有實際地址的廠區**（manufacturing site / worksite）。廠區有自己的業務需求，會向所屬 Account 提出人力需求。 | Physical worksite / factory zone |
+| **WorkspaceLocation（廠區子地點）** | 廠區內的具體位置，例如「A 棟 3 樓倉儲室」。一個廠區可包含多個子地點。 | Sub-location within a worksite |
+| **OrgMember（組織成員/員工）** | 屬於某 Account 的具體員工。其技能等級（SkillTier）決定其可接受的任務類型。 | Staff / Employee |
+| **ScheduleDemand（排班需求）** | 工作區（廠區）向所屬 Account 提出的**人力需求單**，包含需要的技能組合、時段、地點。 | Staffing demand / work order |
+| **ScheduleProposal（排班提案）** | Account 根據 ScheduleDemand 發起的指派流程，通過 Saga 驗證後形成正式指派（Assignment）。 | Assignment proposal |
+
+### 1.2 業務場景模型
+
+```
+Account（公司）
+  ├─ 持有員工（OrgMember × N）：每人有技能等級（SkillGrant / XP）
+  ├─ 持有廠區（Workspace × N）：每個廠區是一個真實地點
+  │    ├─ 廠區子地點（WorkspaceLocation × M）：棟/樓/室
+  │    └─ 廠區業務：排班需求、任務、文件
+  └─ 人力調度（核心功能）：
+       Workspace 提出 ScheduleDemand（含技能標籤）
+         ↓
+       Account 從自己的員工中找到符合條件的人
+         ↓
+       發起 ScheduleProposal → Saga 驗證 → Assignment（指派到廠區）
+```
+
+**關鍵約束**：廠區（Workspace）**不擁有**員工，它只能**提需求**。員工屬於 Account（公司）。Account 負責媒合員工到廠區的需求。
+
+### 1.3 系統現狀
 
 目前系統已具備：
 - **身份與帳號管理**（VS1–VS3）：帳號、角色、技能 XP 積累
@@ -50,42 +83,63 @@
 
 ## 2. 問題陳述 Problem Statement
 
-**核心問題：組織無法有效地把對的人、在對的時間、指派到對的任務上。**
+**核心問題：Account（公司）目前根本無法有效調配自己的人力到廠區（Workspace），手動都做不到，更遑論 AI 輔助。**
 
-具體而言：
+### 🔴 Critical Gap #0 — 手動人力調度完全缺失
+
+**現況**：雖然後端存在排班 Saga（`WorkspaceScheduleProposed → ScheduleAssigned`），但：
+- Account 管理者**沒有一個「需求公告板」**可以看到哪些廠區有人力缺口
+- Account 管理者**無法主動選擇「指派員工 X 去廠區 Y 的需求 Z」**
+- 當前 UI 只有廠區（Workspace）側的提案表單，缺少 Account 側的需求審核與人工指派功能
+- Saga 依賴自動比對，但**沒有手動指派的 fallback 路徑**，導致任何 Saga 失敗後流程卡死
+
+**後果**：整個排程功能鏈（手動 + 自動 + AI）都建立在一個**無法被使用者操作的地基**上。
+
+### 其他已確認問題
 
 1. **排程提案流程不透明**：工作區管理者提出人力需求後，不清楚目前審核狀態、指派進度與候選人資訊。
 2. **技能能見度不足**：組織無法一覽成員的技能組合與等級分佈，導致人力規劃依賴個人記憶或離線試算表。
 3. **資格驗證缺乏自動化**：手動比對技能需求（如需要 2 名 `expert` 等級的 `TypeScript` 工程師）費時且易出錯。
 4. **人力可用性不透明**：成員當前是否有衝突排班、是否 `eligible` 可接受新指派，目前無視覺化呈現。
 5. **排程生命週期缺乏追蹤**：從 `proposed → confirmed → completed/assignmentCancelled` 的完整生命週期，使用者無法直觀跟蹤。
+6. **廠區子地點缺失**：廠區（Workspace）沒有子地點（棟/樓/室）管理能力，排班無法指定到具體工作地點。
 
 ---
 
 ## 3. 痛點分析 Pain Points
 
-| 角色 | 痛點 | 頻率 | 嚴重度 |
-|------|------|------|--------|
-| **組織管理者** | 找不到符合技能需求的可用人員，需手動查詢多個系統 | 每日 | 🔴 高 |
-| **工作區擁有者** | 提案送出後缺乏進度回饋，不知道何時會有人確認 | 每週 | 🟠 中高 |
-| **前線人員** | 不清楚自己的技能等級與可接受哪類排班機會 | 不定期 | 🟡 中 |
-| **組織管理者** | 排班完成或取消後，成員 `eligible` 狀態未及時更新，造成誤判 | 每月 | 🔴 高 |
-| **前線人員** | 排班被取消時缺乏通知，造成出勤空窗 | 每月 | 🔴 高 |
-| **組織管理者** | 技能 XP 分佈不透明，無法做長期人才培育規劃 | 季度 | 🟡 中 |
+| # | 角色 | 痛點 | 頻率 | 嚴重度 |
+|---|------|------|------|--------|
+| **P0** | **Account 管理者（公司 HR）** | **根本無法查看哪些廠區有開放的人力需求，無法手動指派員工** | 每日 | 🔴 Critical |
+| **P0** | **Workspace 管理者（廠區）** | **廠區無法明確張貼「需要什麼技能、幾人、在哪個地點」的正式需求單** | 每日 | 🔴 Critical |
+| P1 | 組織管理者 | 找不到符合技能需求的可用人員，需手動查詢多個系統 | 每日 | 🔴 高 |
+| P1 | 工作區擁有者 | 提案送出後缺乏進度回饋，不知道何時會有人確認 | 每週 | 🟠 中高 |
+| P2 | 前線人員 | 不清楚自己的技能等級與可接受哪類排班機會 | 不定期 | 🟡 中 |
+| P2 | 組織管理者 | 排班完成或取消後，成員 `eligible` 狀態未及時更新，造成誤判 | 每月 | 🔴 高 |
+| P2 | 前線人員 | 排班被取消時缺乏通知，造成出勤空窗 | 每月 | 🔴 高 |
+| P3 | 組織管理者 | 技能 XP 分佈不透明，無法做長期人才培育規劃 | 季度 | 🟡 中 |
 
 ---
 
 ## 4. 目標 Goals
+
+### 🔴 Critical Prerequisites（P0 — 手動路徑必須先跑通）
+
+| # | 目標 | 可量化指標 |
+|---|------|-----------|
+| **G0a** | **需求公告板可操作**：廠區管理者能在 UI 張貼正式人力需求單（含技能標籤、時段、子地點），Account 管理者能在 UI 看到所有開放需求 | 需求張貼→可見時間 < 5 秒 |
+| **G0b** | **手動人工指派可操作**：Account 管理者可在 UI 選擇員工、點擊「指派到此需求」，完成一次手動指派，觸發 ScheduleProposal 流程 | 手動指派操作 ≤ 3 步完成 |
 
 ### 主要目標
 
 | # | 目標 | 可量化指標 |
 |---|------|-----------|
 | G1 | **排程提案可見性**：工作區可在 UI 發起排班需求，並實時看到審核狀態 | 提案→確認時間縮短 50% |
-| G2 | **自動化人力比對**：依技能需求自動篩選 `eligible` 候選人 | 符合資格候選人召回精準率 ≥ 90% |
+| G2 | **自動化人力比對**：依技能需求自動篩選 `eligible` 候選人（G0a/G0b 完成後可疊加） | 符合資格候選人召回精準率 ≥ 90% |
 | G3 | **技能資訊可視化**：成員可查看自己的技能組合；組織可查看整體人才圖譜 | 技能查詢 UI 使用率 ≥ 60% |
 | G4 | **生命週期完整性**：排班從提案到完成/取消的完整流程可操作、可追蹤 | 全流程操作完成率 ≥ 95% |
 | G5 | **人力 `eligible` 狀態準確性**：指派完成或取消後，成員可用狀態自動更新 | 狀態誤報率 < 0.1% |
+| G6 | **廠區子地點管理**：廠區（Workspace）可新增、編輯子地點（棟/樓/室），排班提案可指定子地點 | 子地點選擇 UI 可用 |
 
 ### 次要目標
 
@@ -109,36 +163,42 @@
 
 ## 6. 使用者角色 User Personas
 
-### Persona 1 — 組織管理者 (Org Admin / Scheduler)
+### Persona 1 — Account 管理者 / 公司 HR（Company HR / Workforce Dispatcher）
 
-- **背景**：負責多個工作區的人力協調，掌管組織成員的招募與角色授予
+- **背景**：代表一家真實的公司（Account），負責管理公司底下所有員工（OrgMember），掌管各廠區（Workspace）的人力調度
 - **技術能力**：中高，熟悉業務操作系統
-- **主要目標**：快速找到符合需求的人員並完成指派，最大化人力利用率
-- **挫折點**：等待審核、不清楚候選人資訊、技能資料散落各處
+- **主要目標**：
+  1. 看到所有廠區目前有哪些開放的人力需求
+  2. 根據員工的技能等級與可用狀態，**手動或自動把員工調派到廠區需求**
+  3. 最大化人力利用率，避免人員空窗或重複指派
+- **挫折點（Critical）**：目前完全看不到廠區需求，無法手動指派，整個人力調度流程停擺
 - **使用頻率**：每日使用，每週有 5–20 次排班決策
 
-### Persona 2 — 工作區擁有者 (Workspace Owner / Requester)
+### Persona 2 — Workspace 管理者 / 廠區主管（Worksite Manager / Requester）
 
-- **背景**：負責特定工作區的業務推進，需要向組織申請人力支援
+- **背景**：負責一個具有實際地址的廠區（Workspace）業務推進，廠區內有多個子地點（棟/室）。需要向所屬 Account（公司）申請人力支援
 - **技術能力**：中等
-- **主要目標**：快速提出排班需求並了解進度，確保業務不延誤
-- **挫折點**：排班需求送出後如石沉大海，不知何時有回應
+- **主要目標**：
+  1. 清楚填寫廠區的人力需求（需要什麼技能、幾人、在廠區哪個地點、哪個時段）
+  2. 提出需求後能即時看到 Account 的回應進度
+  3. 確保廠區業務不因人力缺口而延誤
+- **挫折點**：排班需求送出後如石沉大海，不知何時有回應；無法指定到廠區具體子地點
 - **使用頻率**：每週 2–5 次提案
 
-### Persona 3 — 前線人員 (Staff / Assignee)
+### Persona 3 — 前線人員 / 員工（Staff / Assignee）
 
-- **背景**：接受排班指派的執行者，可能同時隸屬多個工作區
+- **背景**：屬於某 Account（公司）的員工，接受排班指派後前往廠區（Workspace）執行任務
 - **技術能力**：低至中
-- **主要目標**：清楚知道自己的排班安排與技能成長狀況
-- **挫折點**：排班突然取消而沒有通知，技能等級不透明
+- **主要目標**：清楚知道自己的排班安排（去哪個廠區的哪個地點）與技能成長狀況
+- **挫折點**：排班突然取消而沒有通知，技能等級不透明，不知道自己能被指派到哪類廠區
 - **使用頻率**：每週查看 1–3 次排班狀態，被通知時確認
 
-### Persona 4 — 組織擁有者 (Org Owner / Strategist)
+### Persona 4 — Account 擁有者 / 公司決策者（Company Owner / Strategist）
 
-- **背景**：組織最高權限持有者，關注整體人才結構與長期規劃
+- **背景**：公司最高權限持有者，旗下有多個廠區（Workspace）與多名員工（OrgMember），關注整體人才結構與長期規劃
 - **技術能力**：高
-- **主要目標**：洞察組織技能分佈，做出人才培育決策
-- **使用頻率**：每月查看人才圖譜 1–2 次
+- **主要目標**：洞察公司技能分佈，做出人才培育決策；監控各廠區的人力需求滿足率
+- **使用頻率**：每月查看人才圖譜與廠區人力報表 1–2 次
 
 ---
 
@@ -148,22 +208,24 @@
 
 | ID | 情境 | 主要角色 | 觸發條件 |
 |----|------|---------|---------|
-| UC-S1 | 創建排班提案（含技能需求） | 工作區擁有者 | 業務需要人力支援 |
-| UC-S2 | 審核並指派成員到排班 | 組織管理者 | 收到 `proposed` 狀態提案 |
-| UC-S3 | 拒絕排班提案（技能不符/無可用人員） | 組織管理者 | 找不到符合條件的成員 |
-| UC-S4 | 取消排班提案（工作區端撤回） | 工作區擁有者 | 業務需求改變 |
-| UC-S5 | 完成排班（任務結束，釋放人員） | 組織管理者 | 排班期結束 |
-| UC-S6 | 取消已確認的指派（緊急狀況） | 組織管理者 | 業務異常或成員無法出勤 |
+| UC-S1 | 創建排班提案（含技能需求與子地點） | Workspace 管理者（廠區主管） | 廠區有業務需要人力支援 |
+| UC-S2 | 審核並手動指派成員到排班（Critical P0） | Account 管理者（公司 HR） | 收到 `proposed` 狀態提案 |
+| UC-S3 | 拒絕排班提案（技能不符/無可用人員） | Account 管理者 | 找不到符合條件的成員 |
+| UC-S4 | 取消排班提案（工作區端撤回） | Workspace 管理者 | 業務需求改變 |
+| UC-S5 | 完成排班（任務結束，釋放人員） | Account 管理者 | 排班期結束 |
+| UC-S6 | 取消已確認的指派（緊急狀況） | Account 管理者 | 業務異常或成員無法出勤 |
 | UC-S7 | 查看月曆排班概覽 | 所有角色 | 進入排程頁面 |
 
 ### UC-W (Workforce / 人力)
 
 | ID | 情境 | 主要角色 | 觸發條件 |
 |----|------|---------|---------|
-| UC-W1 | 查看組織人力總覽（可用/不可用成員列表） | 組織管理者 | 進行人力規劃 |
-| UC-W2 | 查看個別成員的技能與 `eligible` 狀態 | 組織管理者 | 評估指派候選人 |
-| UC-W3 | 依技能需求篩選可用人員 | 組織管理者 | 建立排班候選清單 |
-| UC-W4 | 查看成員當前排班衝突 | 組織管理者 | 避免雙重指派 |
+| **UC-W0** | **查看需求公告板（廠區開放的人力需求列表）** | **Account 管理者** | **進入人力管理或排班頁面** |
+| **UC-W1** | **手動指派員工到廠區需求（Force Assignment）** | **Account 管理者** | **選擇員工 → 點擊指派到需求** |
+| UC-W2 | 查看組織人力總覽（可用/不可用成員列表） | Account 管理者 | 進行人力規劃 |
+| UC-W3 | 查看個別成員的技能與 `eligible` 狀態 | Account 管理者 | 評估指派候選人 |
+| UC-W4 | 依技能需求篩選可用人員 | Account 管理者 | 建立排班候選清單 |
+| UC-W5 | 查看成員當前排班衝突 | Account 管理者 | 避免雙重指派 |
 
 ### UC-K (Skills / 技能)
 
@@ -172,8 +234,16 @@
 | UC-K1 | 查看個人技能組合與 XP 進度 | 前線人員 | 進入個人技能頁面 |
 | UC-K2 | 查看技能等級定義（Apprentice → Titan） | 所有成員 | 了解技能體系 |
 | UC-K3 | 透過任務完成獲得技能 XP | 前線人員 | 任務標記完成 |
-| UC-K4 | 查看技能升級記錄（XP 帳本） | 前線人員 / 組織管理者 | 審計或成長追蹤 |
-| UC-K5 | 查看組織技能人才分佈圖 | 組織擁有者 | 人才規劃決策 |
+| UC-K4 | 查看技能升級記錄（XP 帳本） | 前線人員 / Account 管理者 | 審計或成長追蹤 |
+| UC-K5 | 查看組織技能人才分佈圖 | Account 擁有者 | 人才規劃決策 |
+
+### UC-L (Location / 廠區子地點) — NEW
+
+| ID | 情境 | 主要角色 | 觸發條件 |
+|----|------|---------|---------|
+| UC-L1 | 新增廠區子地點（棟/樓/室等） | Workspace 管理者 | 設定廠區地點結構 |
+| UC-L2 | 在排班提案中指定子地點 | Workspace 管理者 | 提案需要指定到具體工作位置 |
+| UC-L3 | 員工查看指派到的廠區子地點 | 前線人員 | 確認出勤地點 |
 
 ---
 
@@ -273,13 +343,26 @@
 
 ### FR-W — 人力功能 (Workforce)
 
+> **Critical Gap #0 — 以下 FR-W0 / FR-W6 為 V1.0 最高優先缺口，是整個人力調度流程的前置條件。**
+
 | ID | 功能 | 優先級 | VS 歸屬 |
 |----|------|--------|---------|
+| **FR-W0** | **需求公告板（Demand Board）**：Account 管理者可在專屬頁面看到所有所屬廠區（Workspace）目前處於 `proposed` 狀態的排班需求，每張需求卡顯示廠區名稱、所需技能標籤、時段、子地點；支援依技能/廠區/日期篩選 | **P0** | **VS4/VS5** |
+| **FR-W6** | **手動指派（Force Assignment）**：Account 管理者在需求公告板或 Governance Panel 選擇某需求，展開可用人員清單（過濾 eligible + 技能符合），點擊指派即觸發 `workspace:schedule:proposed` + Saga 確認流程；整個操作不超過 3 步 | **P0** | **VS4/VS5** |
+| **FR-W7** | **指派候選人快速篩選**：在手動指派流程中，依技能標籤和等級即時過濾候選人列表；不符合需求技能的成員以灰色顯示但仍可選擇（Override Assignment，附警告） | **P0** | **VS4** |
 | FR-W1 | **人力總覽面板**：顯示組織全部成員列表，標示 `eligible/non-eligible` 狀態 | P0 | VS4 |
 | FR-W2 | **技能比對面板**：依技能需求顯示符合條件的可用人員清單，含技能等級與 XP | P0 | VS6 |
 | FR-W3 | **成員技能卡片**：查看特定成員的全部技能列表、等級與 XP 數值 | P1 | VS4 |
 | FR-W4 | **成員排班衝突警示**：當嘗試指派已有排班衝突的成員時顯示警告 | P1 | VS4 |
 | FR-W5 | **人力可用性過濾器**：依「全部/可用/不可用」篩選人力列表 | P1 | VS4 |
+
+### FR-L — 廠區地點功能 (Location)
+
+| ID | 功能 | 優先級 | VS 歸屬 |
+|----|------|--------|---------|
+| **FR-L1** | **廠區子地點管理**：Workspace OWNER 可在工作區設定中新增/編輯/刪除子地點（如「A棟3樓辦公室」、「B館裝配區」），每個子地點有名稱與用途描述 | **P0** | **VS5** |
+| **FR-L2** | **排班需求綁定子地點**：提交排班提案時可選擇指定子地點；子地點資訊跟隨排班卡片顯示 | **P0** | **VS5/VS6** |
+| FR-L3 | **子地點可用性概覽**：在排班月曆視圖中，可依子地點過濾顯示對應排班 | P1 | VS5 |
 
 ### FR-K — 技能功能 (Skills)
 
@@ -375,6 +458,48 @@
 
 ## 12. 資料模型假設 Data Assumptions
 
+### 廠區（Workspace）實體模型
+
+> **領域校正**：每個 Workspace 對應一個真實存在、具有實際地址的廠區（工廠/辦公園區）。廠區內部可劃分多個子地點（棟/樓/室/區）。
+
+```typescript
+interface Workspace {
+  workspaceId: string;      // 廠區唯一 ID
+  name: string;             // 廠區名稱（如「台南二廠」）
+  address: string;          // 廠區實際地址（必填）
+  orgId: string;            // 所屬 Account（公司）
+  locations: WorkspaceLocation[]; // 廠區內子地點列表
+}
+
+interface WorkspaceLocation {
+  locationId: string;       // 子地點唯一 ID
+  label: string;            // 顯示名（如「A棟3樓辦公室」、「B館裝配區-1」）
+  description?: string;     // 用途說明
+  capacity?: number;        // 可容納人數（可選）
+}
+```
+
+### 排班需求（ScheduleDemand）
+
+> **新增概念**：廠區提出的正式人力需求，是 Demand Board 的資料基礎，也是 Account 手動指派的輸入來源。
+
+```typescript
+interface ScheduleDemand {
+  demandId: string;           // 全局唯一 ID
+  workspaceId: string;        // 來源廠區
+  locationId?: string;        // 指定子地點（可選，FR-L2）
+  title: string;              // 需求標題
+  description?: string;       // 需求描述
+  startDate: string;          // ISO 8601
+  endDate: string;            // ISO 8601
+  requiredSkills: SkillRequirement[]; // [{ skillId, minTier, quantity }]
+  status: 'open' | 'assigned' | 'closed';
+  proposedScheduleItemId?: string; // 對應到 OrgScheduleProposal 的 ID
+  traceId?: string;           // R8 全鏈路追蹤 ID
+  createdAt: string;
+}
+```
+
 ### 排班聚合 (OrgScheduleProposal)
 
 ```typescript
@@ -386,6 +511,7 @@ interface OrgScheduleProposal {
   description?: string;         // 排班描述
   startDate: string;            // ISO 8601
   endDate: string;              // ISO 8601
+  locationId?: string;          // 子地點 ID（FR-L2）
   location: Location;           // { type: 'on-site'|'remote'|'hybrid', address?: string }
   requiredSkills: SkillRequirement[]; // [{ skillId, minTier, quantity }]
   status: OrgScheduleStatus;    // 'draft'|'proposed'|'confirmed'|'cancelled'|'completed'|'assignmentCancelled'
@@ -437,6 +563,16 @@ interface OrgEligibleMemberEntry {
 
 ## 13. 業務規則 Business Rules
 
+### BR-D — 需求公告板與指派規則 ⚠️ **核心缺口**
+
+| ID | 規則 | 實施層 |
+|----|------|--------|
+| **BR-D1** | **廠區需求公告**：工作區（廠區）在 `proposed` 狀態的排班，**必須在** Account 管理者的 Demand Board 上可見，不需要 Account 主動查詢每個廠區 | `workspace-business.schedule` + VS4 read model |
+| **BR-D2** | **手動指派入口**：Account 管理者在 Demand Board 上選擇某需求並手動指定成員，等同於觸發 Saga 強制確認（`approveOrgScheduleProposal`），無需等待 Saga 自動比對 | `account-organization.schedule/_actions.ts` |
+| **BR-D3** | **指派候選資格**：手動指派時，系統顯示所有組織成員，但對不符合技能需求或 `eligible=false` 的成員標示警告；管理者有最終決定權（Override） | UI validation, not hard block |
+| **BR-D4** | **廠區地址不可為空**：建立或更新 Workspace 時，`address` 為必填欄位（廠區必有實體地址） | Zod schema validation |
+| **BR-D5** | **子地點歸屬**：子地點（WorkspaceLocation）屬於特定廠區，不可在廠區間共享或移動；廠區刪除時子地點一同刪除 | `workspace-core` aggregate |
+
 ### BR-S — 排程規則
 
 | ID | 規則 | 實施層 |
@@ -468,6 +604,15 @@ interface OrgEligibleMemberEntry {
 ---
 
 ## 14. 邊界條件與例外處理 Edge Cases
+
+### EX-W — 手動指派邊界條件 ⚠️ **新增**
+
+| # | 情境 | 系統行為 | 使用者回饋 |
+|---|------|---------|-----------|
+| EX-W1 | 手動選擇的成員 `eligible=false`（已有確認排班） | 系統顯示衝突警告，但允許管理者覆蓋指派 | UI 紅色警告標示，確認按鈕改為「強制指派」 |
+| EX-W2 | 手動選擇的成員技能不符合需求（等級不足） | 系統顯示技能缺口警告，但允許管理者覆蓋 | UI 橙色警告，列出缺口技能 |
+| EX-W3 | 管理者嘗試指派後，成員在確認前離開組織 | Saga 觸發補償，需求退回 `open`；管理者收到通知 | Toast 通知「指派失敗，成員已離職」 |
+| EX-W4 | Demand Board 無任何 `proposed` 需求 | 顯示空白狀態畫面，引導廠區提交需求 | 空狀態圖示 + 說明文字 |
 
 ### EX-S — 排程邊界條件
 
