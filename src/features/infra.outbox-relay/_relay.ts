@@ -27,7 +27,7 @@ import {
   doc,
   updateDoc,
   setDoc,
-  serverTimestamp,
+  type serverTimestamp,
   type Unsubscribe,
   type QuerySnapshot,
   type DocumentData,

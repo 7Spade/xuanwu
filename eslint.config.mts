@@ -28,6 +28,8 @@ export default tseslint.config(
       "build/**",
       "next-env.d.ts",
       "functions/**",
+      // shadcn-ui scaffolded primitives — do not lint (flat config does not read .eslintignore)
+      "src/shared/shadcn-ui/**",
     ],
   },
   {

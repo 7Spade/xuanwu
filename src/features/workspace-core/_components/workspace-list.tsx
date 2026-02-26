@@ -20,7 +20,8 @@ function WorkspaceListItem({ workspace, onDelete }: WorkspaceListItemProps) {
   const protocolLabel = workspace.protocol || "Default Protocol";
 
   return (
-    <div 
+    <button
+      type="button"
       className="group flex w-full cursor-pointer items-center justify-between rounded-xl border border-border/60 bg-card p-4 text-left transition-colors hover:bg-muted/30"
       onClick={() => router.push(`/workspaces/${workspace.id}`)}
     >
@@ -58,7 +59,7 @@ function WorkspaceListItem({ workspace, onDelete }: WorkspaceListItemProps) {
           </Button>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 

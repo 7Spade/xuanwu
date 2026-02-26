@@ -80,7 +80,7 @@ export async function routeEvent(envelope: EventEnvelope, lane: IerLane): Promis
   );
   if (!matched.length) return;
   const results = await Promise.allSettled(matched.map((s) => s.handler(envelope)));
-  results.forEach((result, i) => {
+  results.forEach((result) => {
     if (result.status === 'rejected') {
       console.error(
         `[infra.event-router] handler failed for eventType="${envelope.eventType}" lane="${lane}":`,
