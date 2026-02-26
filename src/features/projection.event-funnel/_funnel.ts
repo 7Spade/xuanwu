@@ -29,7 +29,7 @@
 import type { WorkspaceEventBus } from '@/features/workspace-core.event-bus';
 import { upsertProjectionVersion } from '@/features/projection.registry';
 import { appendAuditEntry } from '@/features/projection.account-audit';
-import { applyScheduleAssigned } from '@/features/projection.account-schedule';
+import { applyScheduleAssigned, applyScheduleCompleted } from '@/features/projection.account-schedule';
 import { onOrgEvent } from '@/features/account-organization.event-bus';
 import { applyMemberJoined, applyMemberLeft } from '@/features/projection.organization-view';
 import { handleScheduleProposed } from '@/features/account-organization.schedule';
@@ -181,7 +181,29 @@ export function registerOrganizationFunnel(): () => void {
         endDate: payload.endDate,
         status: 'upcoming',
       }, payload.aggregateVersion, payload.traceId);
-      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, false, payload.aggregateVersion);
+      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, false, payload.aggregateVersion, payload.traceId);
+      await upsertProjectionVersion('account-schedule', Date.now(), new Date().toISOString());
+    })
+  );
+
+  // ScheduleCompleted → ACCOUNT_PROJECTION_SCHEDULE + ORG_ELIGIBLE_MEMBER_VIEW (eligible = true)
+  // Per Invariant #15: completed → eligible = true (member available for new assignments).
+  // [R8] traceId forwarded through the full saga chain.
+  unsubscribers.push(
+    onOrgEvent('organization:schedule:completed', async (payload) => {
+      await applyScheduleCompleted(payload.targetAccountId, payload.scheduleItemId, payload.aggregateVersion, payload.traceId);
+      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, true, payload.aggregateVersion, payload.traceId);
+      await upsertProjectionVersion('account-schedule', Date.now(), new Date().toISOString());
+    })
+  );
+
+  // ScheduleAssignmentCancelled → ORG_ELIGIBLE_MEMBER_VIEW (eligible = true)
+  // Per Invariant #15: post-assignment cancellation restores eligible flag to true.
+  // No change to account-schedule projection status — the assignment record remains for audit.
+  // [R8] traceId forwarded through the full saga chain.
+  unsubscribers.push(
+    onOrgEvent('organization:schedule:assignmentCancelled', async (payload) => {
+      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, true, payload.aggregateVersion, payload.traceId);
       await upsertProjectionVersion('account-schedule', Date.now(), new Date().toISOString());
     })
   );
