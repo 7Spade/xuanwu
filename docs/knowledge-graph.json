@@ -1,0 +1,245 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "initialized": "2026-02-26",
+    "source": ".github/prompts/ (32 files)",
+    "ssot": "docs/logic-overview.md",
+    "description": "Project governance knowledge graph. All AI agents MUST query this file before any code generation or refactoring. In any conflict, docs/logic-overview.md is the absolute authority."
+  },
+  "entities": [
+    {
+      "name": "Logic_Overview_SSOT",
+      "entityType": "Data_Schema",
+      "observations": [
+        "File: docs/logic-overview.md",
+        "SINGLE SOURCE OF TRUTH (SSOT) — highest authority for ALL architecture decisions",
+        "All other docs are validation-layer only",
+        "In any conflict, logic-overview.md takes precedence over all other documents and code",
+        "All code generation, refactoring, and architectural decisions MUST be verified against logic-overview.md first",
+        "Iterative refactor must re-run compliance check until 100% alignment achieved",
+        "Any non-standard modification bypassing logic-overview.md is strictly forbidden"
+      ]
+    },
+    {
+      "name": "Architecture_Governance_Principles",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/ai-architecture-governance.prompt.md",
+        "docs/logic-overview.md is the SINGLE SOURCE OF TRUTH (SSOT) for all architecture decisions",
+        "All design must align with 10 core docs in docs/",
+        "Hard constraints: no technology not defined in tech-stack.md; no concept not defined in domain-glossary.md; no cross-BC direct data writes; no breaking Command/Event flow; no traditional monolithic server design; no non-shadcn/ui component system",
+        "Planning pipeline: Global Planning → Sequential Validation → Convergence",
+        "Must use software-planning for macro design blueprints",
+        "Must use sequential-thinking for stepwise design validation",
+        "Must use Repomix MCP to extract repo context",
+        "Must use context7 when uncertain about any technology or documentation details",
+        "Self-check gate before output: must conform to logic-overview.md, no data-write boundary violations, no terminology drift, no undefined technologies, UI must use only shadcn/ui",
+        "Serverless constraint: all backend must be Serverless design with clear read/write responsibility and security rule boundaries"
+      ]
+    },
+    {
+      "name": "Technology_Stack",
+      "entityType": "Framework_Feature",
+      "observations": [
+        "Source file: .github/prompts/technology-stack-blueprint-generator.prompt.md",
+        "Core frameworks: Next.js 16 (App Router + Parallel Routes), Firebase ecosystem, shadcn/ui, Google Cloud, Genkit AI",
+        "Language: TypeScript with strict mode — never use 'any'",
+        "UI layer: shadcn/ui (Radix primitives + Tailwind CSS) — ONLY allowed UI component system",
+        "Backend: Firebase (Firestore + Firebase Auth) on Google Cloud, Serverless",
+        "AI: Genkit AI Flow for all AI business logic",
+        "Infrastructure: Google Cloud + Firebase — Serverless only, no traditional servers",
+        "Build tooling: ESLint, TypeScript compiler, Next.js build system"
+      ]
+    },
+    {
+      "name": "UI_Component_Standard",
+      "entityType": "Component_Standard",
+      "observations": [
+        "Source files: .github/prompts/shadcn.prompt.md, .github/prompts/ui-ux-consistency-sync.prompt.md",
+        "shadcn/ui is the ONLY allowed component library — prohibition on introducing any other UI package",
+        "All components must be based on Radix primitives with compositional design",
+        "Tailwind CSS is the ONLY styling system — classes must conform to project color palette, spacing, and typography spec",
+        "A11y (accessibility): all components must have aria- attributes and keyboard navigation",
+        "Atomicity: UI layer must contain NO business logic (Business Logic Leakage is a violation)",
+        "Prohibited: installing duplicate shadcn primitives, modifying shadcn internals, introducing Material-UI / Chakra / other component systems",
+        "UI/UX Consistency Sync workflow: scan src/components and src/features/**/ui via repomix, compare against docs/tech-stack.md and docs/project-structure.md"
+      ]
+    },
+    {
+      "name": "DDD_Boundaries",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/ddd-boundary-check.prompt.md",
+        "Domain rules must be cohesive within each Aggregate — Application Layer only coordinates flow",
+        "Violation: any code that bypasses Command Handler and writes directly to Firestore collection",
+        "Cross-BC communication: ONLY through Domain Events, Projections, or Anti-Corruption Layers (ACL)",
+        "No cross-aggregate direct writes",
+        "Bounded Context (BC) isolation: each BC must be independently encapsulated",
+        "Terminology must match domain-glossary.md — zero naming drift allowed",
+        "Single Responsibility Principle (SRP) must be enforced at module level",
+        "Write rules are authoritative in persistence-model-overview.md"
+      ]
+    },
+    {
+      "name": "DDD_Aggregate_Protection",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/boundary-check.prompt.md",
+        "Critical rule: any Firestore write that bypasses Command Handler is a SEVERE VIOLATION",
+        "Enforcement workflow: repomix extracts Data Layer and Repository implementations, sequential-thinking traces the full call chain from Request entry to Persistence",
+        "Single-direction dependency must be enforced — no reverse data flow",
+        "No cross-module direct writes or data contamination",
+        "All boundary violations must be reported with specific file locations and fix plans",
+        "Alert indicators: any direct Firestore collection operation outside of Command Handler"
+      ]
+    },
+    {
+      "name": "Vertical_Slice_Architecture",
+      "entityType": "Project_Convention",
+      "observations": [
+        "Source files: .github/prompts/ai-architecture-governance.prompt.md, .github/prompts/create-vertical-slice.prompt.md",
+        "Each feature is a self-contained vertical slice covering: UI + Application + Domain + Infrastructure layers",
+        "No horizontal pollution between slices",
+        "Directory convention: src/features/{slice-name}/ with public API exposed only via index.ts",
+        "Dependency direction: app → features/{slice}/index.ts → shared",
+        "Cross-slice access: import only from another slice's index.ts public API; never import private _* files across slices",
+        "Route layer: Parallel Routes and Intercepting Routes for independent UI regions; layouts must be thin",
+        "Server Actions in _actions.ts; queries in _queries.ts; form helpers in _form-actions.ts"
+      ]
+    },
+    {
+      "name": "Next_JS_16",
+      "entityType": "Framework_Feature",
+      "observations": [
+        "Next.js 16 with App Router is the primary frontend framework",
+        "Parallel Routes (@slot segments) for independent UI regions (e.g., @sidebar, @modal, @header, @plugintab)",
+        "Intercepting routes ((.), (..)) for overlays/modals — must preserve canonical URL access",
+        "Server Components (RSC) by default — use 'use client' only at leaf nodes",
+        "Streaming: route-level loading.tsx for initial suspense, local Suspense boundaries for sub-regions",
+        "Error boundaries: error.tsx for route-level recoverable failures",
+        "No next/dynamic with {ssr: false} inside Server Components",
+        "Async APIs: cookies(), headers(), draftMode() are async in App Router (Next.js 16)",
+        "Layouts must be thin: compose slots and shared chrome only, no feature business logic",
+        "Turbopack is the default dev bundler in Next.js 16"
+      ]
+    },
+    {
+      "name": "Server_Actions_Convention",
+      "entityType": "Project_Convention",
+      "observations": [
+        "All data mutations must use Server Actions placed in src/features/{slice}/_actions.ts",
+        "Every Server Action export MUST return CommandResult: { success: true, aggregateId: string, version: number } | { success: false, error: DomainError }",
+        "Never return void, undefined, or raw Firestore DocumentReference from Server Actions",
+        "DomainError interface: { code: string; message: string; aggregateId?: string }",
+        "Error codes must come from shared.kernel.constants ErrorCodes",
+        "Queries (read-only operations) must be in _queries.ts, not _actions.ts",
+        "traceId is injected ONCE at CBG_ENTRY and must NOT be overwritten by any downstream node",
+        "Every audit record in globalAuditView MUST contain traceId",
+        "FCM push notification metadata MUST include traceId",
+        "Use React 19 / Next.js 16 hooks: useActionState and useFormStatus (never legacy useFormState)",
+        "SK_CMD_RESULT contract (CommandResult) lives in shared.kernel.contract-interfaces"
+      ]
+    },
+    {
+      "name": "Command_Event_Flow",
+      "entityType": "Project_Convention",
+      "observations": [
+        "Flow: CBG_ENTRY → Command → Aggregate → Domain Event → Outbox → IER → Projection or Notification",
+        "traceId is injected ONCE at CBG_ENTRY and propagated through the entire chain unchanged",
+        "A-Track (normal): CBG_ENTRY → Command → Aggregate → Event → Projection",
+        "B-Track (error/exception): must NOT directly call back into A-Track — only communicates via Domain Events",
+        "Outbox records: must use buildIdempotencyKey(eventId, aggregateId, version) from shared.kernel.outbox-contract",
+        "DLQ tiers: SAFE_AUTO (auto-replay), REVIEW_REQUIRED (manual review), SECURITY_BLOCK (highest — RoleChanged/PolicyChanged; auto-replay FORBIDDEN)",
+        "SECURITY_BLOCK events: auto-replay is FORBIDDEN, requires explicit security team authorization, affected entity is FROZEN",
+        "Projections: must call applyVersionGuard before Firestore write; must store traceId in every record",
+        "Staleness SLA: TAG_MAX_STALENESS ≤ 30s, PROJ_STALE_CRITICAL ≤ 500ms, PROJ_STALE_STANDARD ≤ 10s — must use SK_STALENESS_CONTRACT constants, never hardcode",
+        "Workflow state machine transitions: Draft → InProgress → QA → Acceptance → Finance → Completed (CLOSED — no new transitions without updating logic-overview.md)",
+        "blockedBy Set is the ONLY blocking mechanism — no boolean flags or status strings"
+      ]
+    },
+    {
+      "name": "Knowledge_Graph_Governance",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/memory-governance.prompt.md",
+        "Core operating rule: READ FIRST — before any code generation, refactoring, or architectural design, query this knowledge graph",
+        "Durable store: docs/knowledge-graph.json (this file) — version-controlled in the repository",
+        "Memory MCP store: supplementary, not the primary source of truth (not reliably persistent across all agent environments)",
+        "Write ongoing: after completing new features, resolving complex bugs, or making architecture decisions — update this JSON file AND the Memory MCP",
+        "Entity types: Framework_Feature, Project_Convention, Component_Standard, Data_Schema, Architecture_Decision",
+        "Relation types: FOLLOWS, IMPLEMENTS, CONSTRAINS, DEPENDS_ON, REPLACES",
+        "All future code generation and iterative refactoring MUST query this file first"
+      ]
+    },
+    {
+      "name": "Genkit_AI_Flow",
+      "entityType": "Framework_Feature",
+      "observations": [
+        "Source file: .github/prompts/genkit-flow-design.prompt.md",
+        "Genkit AI Flow is the AI business logic layer — handles AI-driven operations",
+        "AI Flow is decoupled from UI and data layers",
+        "Must conform to Vertical Slice Architecture — AI flows live within their feature slice",
+        "Input and output schemas must be explicitly defined (not inferred)",
+        "Part of the Technology Stack: Google Cloud + Firebase + Genkit"
+      ]
+    },
+    {
+      "name": "Compliance_Audit_Standard",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/compliance-audit.prompt.md",
+        "Must ensure development output is highly consistent with all 10 core docs in docs/*.md",
+        "Audit workflow: repomix for global sync, sequential-thinking for deep comparison",
+        "Checks: any technology not in tech-stack.md? Request flow matches request-execution-overview.md? Infrastructure within infrastructure-overview.md scope?",
+        "Ultimate rule: if code conflicts with logic-overview.md, documentation takes precedence and a refactor plan must be proposed",
+        "Should be run before submitting PR or during global audits",
+        "Triggers iterative-alignment-refactor if non-compliance found"
+      ]
+    },
+    {
+      "name": "MCP_Tool_Registry",
+      "entityType": "Project_Convention",
+      "observations": [
+        "Source file: .github/prompts/AGENTS.md",
+        "Available MCP tools: sequential-thinking, software-planning, repomix, context7, shadcn, next-devtools",
+        "Tool usage rules: ALL tasks must prioritize calling the corresponding MCP tool first",
+        "Standard automation workflow: [Sense] repomix → [Align] compliance-audit → [Plan] software-planning + sequential-thinking → [Execute] create-vertical-slice or genkit-flow-design → [Verify] ddd-boundary-check → [Iterate] iterative-alignment-refactor until 100% aligned",
+        "Prohibitions: bypassing docs/logic-overview.md for any non-standard modification; any UI change without calling tool-shadcn"
+      ]
+    }
+  ],
+  "relations": [
+    { "from": "Next_JS_16",                   "relationType": "FOLLOWS",     "to": "Architecture_Governance_Principles" },
+    { "from": "Technology_Stack",              "relationType": "FOLLOWS",     "to": "Architecture_Governance_Principles" },
+    { "from": "Vertical_Slice_Architecture",   "relationType": "FOLLOWS",     "to": "Architecture_Governance_Principles" },
+    { "from": "Server_Actions_Convention",     "relationType": "FOLLOWS",     "to": "Architecture_Governance_Principles" },
+    { "from": "Command_Event_Flow",            "relationType": "FOLLOWS",     "to": "Architecture_Governance_Principles" },
+    { "from": "Genkit_AI_Flow",               "relationType": "FOLLOWS",     "to": "Architecture_Governance_Principles" },
+    { "from": "UI_Component_Standard",         "relationType": "FOLLOWS",     "to": "Architecture_Governance_Principles" },
+    { "from": "Server_Actions_Convention",     "relationType": "FOLLOWS",     "to": "Command_Event_Flow" },
+
+    { "from": "Architecture_Governance_Principles", "relationType": "DEPENDS_ON", "to": "Logic_Overview_SSOT" },
+    { "from": "Compliance_Audit_Standard",     "relationType": "DEPENDS_ON",  "to": "Logic_Overview_SSOT" },
+    { "from": "DDD_Boundaries",                "relationType": "DEPENDS_ON",  "to": "Logic_Overview_SSOT" },
+    { "from": "Vertical_Slice_Architecture",   "relationType": "DEPENDS_ON",  "to": "Logic_Overview_SSOT" },
+    { "from": "Knowledge_Graph_Governance",    "relationType": "DEPENDS_ON",  "to": "Logic_Overview_SSOT" },
+    { "from": "Vertical_Slice_Architecture",   "relationType": "DEPENDS_ON",  "to": "DDD_Boundaries" },
+    { "from": "Vertical_Slice_Architecture",   "relationType": "DEPENDS_ON",  "to": "Next_JS_16" },
+    { "from": "Technology_Stack",              "relationType": "DEPENDS_ON",  "to": "Next_JS_16" },
+    { "from": "Technology_Stack",              "relationType": "DEPENDS_ON",  "to": "UI_Component_Standard" },
+    { "from": "Technology_Stack",              "relationType": "DEPENDS_ON",  "to": "Genkit_AI_Flow" },
+
+    { "from": "Server_Actions_Convention",     "relationType": "CONSTRAINS",  "to": "DDD_Boundaries" },
+    { "from": "DDD_Boundaries",                "relationType": "CONSTRAINS",  "to": "Command_Event_Flow" },
+    { "from": "DDD_Aggregate_Protection",      "relationType": "CONSTRAINS",  "to": "Command_Event_Flow" },
+    { "from": "Knowledge_Graph_Governance",    "relationType": "CONSTRAINS",  "to": "Architecture_Governance_Principles" },
+    { "from": "Compliance_Audit_Standard",     "relationType": "CONSTRAINS",  "to": "Vertical_Slice_Architecture" },
+
+    { "from": "DDD_Aggregate_Protection",      "relationType": "IMPLEMENTS",  "to": "DDD_Boundaries" },
+    { "from": "UI_Component_Standard",         "relationType": "IMPLEMENTS",  "to": "Next_JS_16" },
+    { "from": "Compliance_Audit_Standard",     "relationType": "IMPLEMENTS",  "to": "Architecture_Governance_Principles" },
+    { "from": "MCP_Tool_Registry",             "relationType": "IMPLEMENTS",  "to": "Architecture_Governance_Principles" },
+    { "from": "MCP_Tool_Registry",             "relationType": "IMPLEMENTS",  "to": "Compliance_Audit_Standard" },
+    { "from": "MCP_Tool_Registry",             "relationType": "IMPLEMENTS",  "to": "DDD_Boundaries" }
+  ]
+}
