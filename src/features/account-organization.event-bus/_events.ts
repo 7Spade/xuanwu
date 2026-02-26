@@ -30,6 +30,8 @@ export interface ScheduleAssignedPayload {
    * Invariant #19: eligible update must use aggregateVersion monotonic increase as prerequisite.
    */
   aggregateVersion: number;
+  /** TraceID from the originating command — MUST be forwarded to FCM metadata [R8]. */
+  traceId?: string;
 }
 
 export interface OrgPolicyChangedPayload {
@@ -37,6 +39,8 @@ export interface OrgPolicyChangedPayload {
   policyId: string;
   changeType: 'created' | 'updated' | 'deleted';
   changedBy: string;
+  /** TraceID from the originating command — forwarded to notification delivery [R8]. */
+  traceId?: string;
 }
 
 export interface OrgMemberJoinedPayload {
@@ -44,6 +48,8 @@ export interface OrgMemberJoinedPayload {
   accountId: string;
   role: string;
   joinedBy: string;
+  /** TraceID from the originating command — forwarded to notification delivery [R8]. */
+  traceId?: string;
 }
 
 export interface OrgMemberLeftPayload {

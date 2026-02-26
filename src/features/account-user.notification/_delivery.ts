@@ -33,6 +33,8 @@ export interface NotificationDeliveryInput {
   sourceEvent: string;
   sourceId: string;
   workspaceId: string;
+  /** TraceID from the originating EventEnvelope — MUST be included in FCM metadata [R8]. */
+  traceId?: string;
 }
 
 export interface DeliveryResult {
@@ -80,6 +82,8 @@ export async function deliverNotification(
     sourceEvent: input.sourceEvent,
     sourceId: isExternal ? '[redacted]' : input.sourceId,
     workspaceId: isExternal ? '[redacted]' : input.workspaceId,
+    // [R8] traceId carried from originating EventEnvelope for globalAuditView correlation
+    ...(input.traceId !== undefined && { traceId: input.traceId }),
     read: false,
     timestamp: serverTimestamp(),
   });
@@ -95,8 +99,8 @@ export async function deliverNotification(
 
     if (fcmToken) {
       // In production: call Firebase Cloud Messaging REST API or Admin SDK
-      // Here we log the intent (actual FCM call requires server-side Admin SDK)
-      console.info(`[FCM] Sending to ${targetAccountId}: ${sanitizedTitle} (token: ${fcmToken.slice(0, 8)}…)`);
+      // FCM metadata MUST carry traceId per [R8] TRACE_PROPAGATION_RULE
+      console.info(`[FCM] Sending to ${targetAccountId}: ${sanitizedTitle} (token: ${fcmToken.slice(0, 8)}…, traceId: ${input.traceId ?? 'n/a'})`);
       fcmSent = true;
     }
   } catch {
