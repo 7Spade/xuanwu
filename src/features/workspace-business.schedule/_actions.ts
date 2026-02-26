@@ -3,6 +3,9 @@
  * @description Contains framework-agnostic action functions for managing member
  * assignments on schedule items. These functions can be called from React hooks,
  * context, or future Server Actions without any React dependencies.
+ *
+ * Per logic-overview.md [R4] COMMAND_RESULT_CONTRACT:
+ *   All mutations return CommandResult discriminated union.
  */
 
 import {
@@ -11,8 +14,13 @@ import {
   createScheduleItem as createScheduleItemFacade,
   updateScheduleItemStatus as updateScheduleItemStatusFacade,
   getScheduleItems as getScheduleItemsFacade,
-} from "@/shared/infra/firestore/firestore.facade"
-import type { ScheduleItem } from "@/shared/types"
+} from "@/shared/infra/firestore/firestore.facade";
+import type { ScheduleItem } from "@/shared/types";
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from "@/features/shared.kernel.contract-interfaces";
 
 /**
  * Assigns a member to a schedule item.
@@ -24,8 +32,16 @@ export async function assignMember(
   accountId: string,
   itemId: string,
   memberId: string
-): Promise<void> {
-  await assignMemberToScheduleItem(accountId, itemId, memberId)
+): Promise<CommandResult> {
+  try {
+    await assignMemberToScheduleItem(accountId, itemId, memberId);
+    return commandSuccess(itemId, Date.now());
+  } catch (err) {
+    return commandFailureFrom(
+      "ASSIGN_MEMBER_TO_SCHEDULE_FAILED",
+      err instanceof Error ? err.message : "Failed to assign member to schedule item"
+    );
+  }
 }
 
 /**
@@ -38,19 +54,34 @@ export async function unassignMember(
   accountId: string,
   itemId: string,
   memberId: string
-): Promise<void> {
-  await unassignMemberFromScheduleItem(accountId, itemId, memberId)
+): Promise<CommandResult> {
+  try {
+    await unassignMemberFromScheduleItem(accountId, itemId, memberId);
+    return commandSuccess(itemId, Date.now());
+  } catch (err) {
+    return commandFailureFrom(
+      "UNASSIGN_MEMBER_FROM_SCHEDULE_FAILED",
+      err instanceof Error ? err.message : "Failed to unassign member from schedule item"
+    );
+  }
 }
 
 /**
  * Creates a new schedule item in the account's schedule sub-collection.
  * @param itemData The data for the new schedule item (without id, createdAt, updatedAt).
- * @returns The ID of the newly created schedule item.
  */
 export async function createScheduleItem(
   itemData: Omit<ScheduleItem, "id" | "createdAt" | "updatedAt">
-): Promise<string> {
-  return createScheduleItemFacade(itemData)
+): Promise<CommandResult> {
+  try {
+    const id = await createScheduleItemFacade(itemData);
+    return commandSuccess(id, Date.now());
+  } catch (err) {
+    return commandFailureFrom(
+      "CREATE_SCHEDULE_ITEM_FAILED",
+      err instanceof Error ? err.message : "Failed to create schedule item"
+    );
+  }
 }
 
 /**
@@ -63,8 +94,16 @@ export async function updateScheduleItemStatus(
   organizationId: string,
   itemId: string,
   newStatus: "OFFICIAL" | "REJECTED"
-): Promise<void> {
-  return updateScheduleItemStatusFacade(organizationId, itemId, newStatus)
+): Promise<CommandResult> {
+  try {
+    await updateScheduleItemStatusFacade(organizationId, itemId, newStatus);
+    return commandSuccess(itemId, Date.now());
+  } catch (err) {
+    return commandFailureFrom(
+      "UPDATE_SCHEDULE_ITEM_STATUS_FAILED",
+      err instanceof Error ? err.message : "Failed to update schedule item status"
+    );
+  }
 }
 
 /**
@@ -76,5 +115,5 @@ export async function getScheduleItems(
   accountId: string,
   workspaceId?: string
 ): Promise<ScheduleItem[]> {
-  return getScheduleItemsFacade(accountId, workspaceId)
+  return getScheduleItemsFacade(accountId, workspaceId);
 }

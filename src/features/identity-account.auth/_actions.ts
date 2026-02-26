@@ -57,5 +57,6 @@ import { createUserAccount } from '@/features/account-user.profile'
 
 export async function completeRegistration(email: string, password: string, name: string): Promise<void> {
   const uid = await registerUser(email, password, name)
-  await createUserAccount(uid, name, email)
+  const result = await createUserAccount(uid, name, email)
+  if (!result.success) throw new Error(result.error.message)
 }

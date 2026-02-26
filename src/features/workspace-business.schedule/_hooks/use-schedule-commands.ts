@@ -78,7 +78,8 @@ export function useScheduleActions() {
     }
 
     try {
-      await assignMemberAction(item.accountId, item.id, memberId);
+      const result = await assignMemberAction(item.accountId, item.id, memberId);
+      if (!result.success) throw new Error(result.error.message);
       toast({ title: "Member Assigned", description: "The schedule item has been updated." });
     } catch (error) {
       console.error("Failed to assign member:", error);
@@ -102,7 +103,8 @@ export function useScheduleActions() {
     }
 
     try {
-      await unassignMemberAction(item.accountId, item.id, memberId);
+      const result = await unassignMemberAction(item.accountId, item.id, memberId);
+      if (!result.success) throw new Error(result.error.message);
       toast({ title: "Member Unassigned" });
     } catch (error) {
       console.error("Failed to unassign member:", error);
@@ -119,14 +121,16 @@ export function useScheduleActions() {
     if (!canTransitionScheduleStatus(item.status, "OFFICIAL")) {
       throw new Error(`Cannot approve: invalid transition ${item.status} → OFFICIAL`);
     }
-    await updateScheduleItemStatus(item.accountId, item.id, "OFFICIAL");
+    const result = await updateScheduleItemStatus(item.accountId, item.id, "OFFICIAL");
+    if (!result.success) throw new Error(result.error.message);
   }, []);
 
   const rejectItem = useCallback(async (item: ScheduleItem) => {
     if (!canTransitionScheduleStatus(item.status, "REJECTED")) {
       throw new Error(`Cannot reject: invalid transition ${item.status} → REJECTED`);
     }
-    await updateScheduleItemStatus(item.accountId, item.id, "REJECTED");
+    const result = await updateScheduleItemStatus(item.accountId, item.id, "REJECTED");
+    if (!result.success) throw new Error(result.error.message);
   }, []);
 
   return { assignMember, unassignMember, approveItem, rejectItem };
