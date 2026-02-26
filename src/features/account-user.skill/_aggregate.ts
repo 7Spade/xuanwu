@@ -76,27 +76,28 @@ function aggregatePath(accountId: string, skillId: string): string {
  *   2. Compute new clamped XP.
  *   3. Append ledger entry (BEFORE aggregate write — audit ordering guarantee).
  *   4. Persist updated aggregate (no tier stored — Invariant #12).
- *   Returns { newXp, xpDelta } — caller (_actions.ts) is responsible for
+ *   Returns { newXp, xpDelta, version } — caller (_actions.ts) is responsible for
  *   publishing SkillXpAdded to the org event bus (E1 — not the aggregate's concern).
  *
  * @param delta  Positive XP amount to add.
  * @param opts.orgId   Organization context (passed through to caller for event payload).
  * @param opts.reason  Human-readable reason for the ledger entry.
  * @param opts.sourceId  Optional source object ID (e.g. taskId, scheduleItemId).
- * @returns The new XP value and the actual applied delta (after clamping).
+ * @returns The new XP value, the actual applied delta (after clamping), and the new aggregate version.
  */
 export async function addXp(
   accountId: string,
   skillId: string,
   delta: number,
   opts: { orgId: string; reason?: string; sourceId?: string }
-): Promise<{ newXp: number; xpDelta: number }> {
+): Promise<{ newXp: number; xpDelta: number; version: number }> {
   const existing = await getDocument<AccountSkillRecord>(
     aggregatePath(accountId, skillId)
   );
   const oldXp = existing?.xp ?? 0;
   const newXp = clampXp(oldXp + delta);
   const actualDelta = newXp - oldXp;
+  const newVersion = (existing?.version ?? 0) + 1;
 
   // Invariant #13: ledger BEFORE aggregate write
   await appendXpLedgerEntry(accountId, {
@@ -110,18 +111,16 @@ export async function addXp(
     accountId,
     skillId,
     xp: newXp,
-    version: (existing?.version ?? 0) + 1,
+    version: newVersion,
   } satisfies AccountSkillRecord);
 
-  return { newXp, xpDelta: actualDelta };
+  return { newXp, xpDelta: actualDelta, version: newVersion };
 }
 
 /**
- * Deducts XP from an account's skill aggregate.
- *
  * Mirrors addXp; delta should be positive (the deduction amount).
  * Net XP is clamped at SKILL_XP_MIN (0).
- * Returns { newXp, xpDelta } — caller (_actions.ts) publishes SkillXpDeducted
+ * Returns { newXp, xpDelta, version } — caller (_actions.ts) publishes SkillXpDeducted
  * to the org event bus (E1 — not the aggregate's concern).
  */
 export async function deductXp(
@@ -129,13 +128,14 @@ export async function deductXp(
   skillId: string,
   delta: number,
   opts: { orgId: string; reason?: string; sourceId?: string }
-): Promise<{ newXp: number; xpDelta: number }> {
+): Promise<{ newXp: number; xpDelta: number; version: number }> {
   const existing = await getDocument<AccountSkillRecord>(
     aggregatePath(accountId, skillId)
   );
   const oldXp = existing?.xp ?? 0;
   const newXp = clampXp(oldXp - delta);
   const actualDelta = newXp - oldXp; // negative
+  const newVersion = (existing?.version ?? 0) + 1;
 
   // Invariant #13: ledger BEFORE aggregate write
   await appendXpLedgerEntry(accountId, {
@@ -149,10 +149,10 @@ export async function deductXp(
     accountId,
     skillId,
     xp: newXp,
-    version: (existing?.version ?? 0) + 1,
+    version: newVersion,
   } satisfies AccountSkillRecord);
 
-  return { newXp, xpDelta: actualDelta };
+  return { newXp, xpDelta: actualDelta, version: newVersion };
 }
 
 /**

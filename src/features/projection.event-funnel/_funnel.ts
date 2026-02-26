@@ -210,7 +210,14 @@ export function registerOrganizationFunnel(): () => void {
   unsubscribers.push(
     onOrgEvent('organization:skill:xpAdded', async (payload) => {
       await applySkillXpAdded(payload.accountId, payload.skillId, payload.newXp);
-      await applyOrgMemberSkillXp(payload.orgId, payload.accountId, payload.skillId, payload.newXp);
+      await applyOrgMemberSkillXp({
+        orgId: payload.orgId,
+        accountId: payload.accountId,
+        skillId: payload.skillId,
+        newXp: payload.newXp,
+        traceId: payload.traceId,
+        aggregateVersion: payload.aggregateVersion,
+      });
       await upsertProjectionVersion('account-skill-view', Date.now(), new Date().toISOString());
     })
   );
@@ -219,7 +226,14 @@ export function registerOrganizationFunnel(): () => void {
   unsubscribers.push(
     onOrgEvent('organization:skill:xpDeducted', async (payload) => {
       await applySkillXpDeducted(payload.accountId, payload.skillId, payload.newXp);
-      await applyOrgMemberSkillXp(payload.orgId, payload.accountId, payload.skillId, payload.newXp);
+      await applyOrgMemberSkillXp({
+        orgId: payload.orgId,
+        accountId: payload.accountId,
+        skillId: payload.skillId,
+        newXp: payload.newXp,
+        traceId: payload.traceId,
+        aggregateVersion: payload.aggregateVersion,
+      });
       await upsertProjectionVersion('account-skill-view', Date.now(), new Date().toISOString());
     })
   );

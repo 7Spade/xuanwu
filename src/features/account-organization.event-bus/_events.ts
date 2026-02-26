@@ -80,6 +80,10 @@ export interface SkillXpAddedPayload {
   /** New clamped XP value (0–525). Stored; tier must be derived via resolveSkillTier(xp). */
   newXp: number;
   reason?: string;
+  /** Skill aggregate version after this write — used by ORG_ELIGIBLE_VIEW S2 guard. */
+  aggregateVersion?: number;
+  /** [R8] Trace identifier propagated from CBG_ENTRY. */
+  traceId?: string;
 }
 
 /**
@@ -93,6 +97,10 @@ export interface SkillXpDeductedPayload {
   xpDelta: number;
   newXp: number;
   reason?: string;
+  /** Skill aggregate version after this write — used by ORG_ELIGIBLE_VIEW S2 guard. */
+  aggregateVersion?: number;
+  /** [R8] Trace identifier propagated from CBG_ENTRY. */
+  traceId?: string;
 }
 
 /**

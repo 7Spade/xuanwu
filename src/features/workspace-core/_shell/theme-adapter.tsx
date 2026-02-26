@@ -6,6 +6,10 @@ import { useApp } from "@/features/workspace-core";
 import { hexToHsl } from "@/shared/lib";
 import { Skeleton } from "@/shared/shadcn-ui/skeleton";
 
+// [S4] Named constant — disambiguates from PROJ_STALE_CRITICAL (500ms).
+// This is a placeholder AI-adapt simulation delay, not a staleness SLA value.
+const AI_ADAPT_PLACEHOLDER_DELAY_MS = 500;
+
 interface ThemeAdapterProps {
     children: React.ReactNode;
 }
@@ -28,7 +32,7 @@ export function ThemeAdapter({ children }: ThemeAdapterProps) {
       
       try {
         // This is a placeholder for a real AI call.
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, AI_ADAPT_PLACEHOLDER_DELAY_MS));
       } catch (error) {
         console.error("Theme adaptation failed:", error);
       } finally {

@@ -58,8 +58,13 @@ export interface OutboxDocument {
 
 const MAX_ATTEMPTS = 3;
 
-/** Exponential backoff delays (ms) per attempt index (0-based). */
-const BACKOFF_MS = [500, 2000, 8000] as const;
+/**
+ * Exponential backoff delays (ms) per attempt index (0-based).
+ * These are retry-timing constants, not SLA values.
+ * Named explicitly to avoid confusion with SK_STALENESS_CONTRACT values. [S4]
+ */
+const RETRY_BACKOFF_INITIAL_MS = 500;
+const RETRY_BACKOFF_MS = [RETRY_BACKOFF_INITIAL_MS, 2000, 8000] as const;
 
 /**
  * Callback invoked by the relay worker to deliver an event to IER.
@@ -159,7 +164,7 @@ async function relayEntry(
     }
 
     // Back off and mark for retry (leave status as pending)
-    const backoffMs = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)];
+    const backoffMs = RETRY_BACKOFF_MS[Math.min(attempt - 1, RETRY_BACKOFF_MS.length - 1)];
     await new Promise((resolve) => setTimeout(resolve, backoffMs));
 
     await updateDoc(docRef, {
