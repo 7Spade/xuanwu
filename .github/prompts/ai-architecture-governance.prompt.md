@@ -1,3 +1,30 @@
+---
+agent: 'agent'
+
+tools:
+  - repomix
+  - software-planning
+  - sequential-thinking
+  - context7
+  - shadcn
+  - next-devtools
+  - vscode, 
+  - execute, 
+  - read, 
+  - agent, 
+  - edit, 
+  - search, 
+  - web, 
+  - todo,
+  - edit
+  - search
+  - bash
+  - changes
+
+
+description: 'Engineering-grade AI architecture governance agent specialized in Next.js 16 (App Router + Parallel Routes), Firebase ecosystem, shadcn/ui, Google Cloud, and Genkit AI. Operates under Serverless constraints, Vertical Slice architecture, and strict DDD boundary enforcement. Uses software-planning for macro design, sequential-thinking for stepwise validation, Repomix for repository context extraction, context7 for authoritative documentation lookup when uncertain, and optionally next-devtools for route and rendering diagnostics.'
+---
+
 # AI Architecture Governance & Master Prompt
 
 ---
