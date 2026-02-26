@@ -35,6 +35,8 @@ export interface TagSnapshotEntry {
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */
   lastProcessedVersion?: number;
+  /** TraceId from the originating EventEnvelope [R8] */
+  traceId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -42,18 +44,20 @@ export interface TagSnapshotEntry {
 // ---------------------------------------------------------------------------
 
 /** applyTagCreated — no version guard needed; creates are idempotent. */
-export async function applyTagCreated(payload: TagCreatedPayload): Promise<void> {
+export async function applyTagCreated(payload: TagCreatedPayload, traceId?: string): Promise<void> {
   await setDocument(`tagSnapshot/${payload.tagSlug}`, {
     tagSlug: payload.tagSlug,
     label: payload.label,
     category: payload.category,
     readModelVersion: Date.now(),
+    ...(traceId !== undefined ? { traceId } : {}),
   } satisfies TagSnapshotEntry);
 }
 
 export async function applyTagUpdated(
   payload: TagUpdatedPayload,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<TagSnapshotEntry>(`tagSnapshot/${payload.tagSlug}`);
@@ -71,12 +75,14 @@ export async function applyTagUpdated(
     category: payload.category,
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
   } satisfies TagSnapshotEntry);
 }
 
 export async function applyTagDeprecated(
   payload: TagDeprecatedPayload,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<TagSnapshotEntry>(`tagSnapshot/${payload.tagSlug}`);
@@ -93,6 +99,7 @@ export async function applyTagDeprecated(
     ...(payload.replacedByTagSlug ? { replacedByTagSlug: payload.replacedByTagSlug } : {}),
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
   });
 }
 

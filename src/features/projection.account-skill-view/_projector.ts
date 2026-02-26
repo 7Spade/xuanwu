@@ -32,6 +32,8 @@ export interface AccountSkillEntry {
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */
   lastProcessedVersion?: number;
+  /** TraceId from the originating EventEnvelope [R8] */
+  traceId?: string;
   updatedAt: ReturnType<typeof serverTimestamp>;
 }
 
@@ -46,7 +48,8 @@ export async function applySkillXpAdded(
   accountId: string,
   skillId: string,
   newXp: number,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<AccountSkillEntry>(skillPath(accountId, skillId));
@@ -64,6 +67,7 @@ export async function applySkillXpAdded(
     xp: newXp,
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   } satisfies AccountSkillEntry);
 }
@@ -75,7 +79,8 @@ export async function applySkillXpDeducted(
   accountId: string,
   skillId: string,
   newXp: number,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<AccountSkillEntry>(skillPath(accountId, skillId));
@@ -93,6 +98,7 @@ export async function applySkillXpDeducted(
     xp: newXp,
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   } satisfies AccountSkillEntry);
 }

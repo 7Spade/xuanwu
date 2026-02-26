@@ -37,12 +37,15 @@ export interface AccountViewRecord {
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */
   lastProcessedVersion?: number;
+  /** TraceId from the originating EventEnvelope [R8] */
+  traceId?: string;
   updatedAt: ReturnType<typeof serverTimestamp>;
 }
 
 export async function projectAccountSnapshot(
   account: Account,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<AccountViewRecord>(`accountView/${account.id}`);
@@ -65,6 +68,7 @@ export async function projectAccountSnapshot(
     skillTagSlugs: account.skillGrants?.map((sg) => sg.tagSlug) ?? [],
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   };
   await setDocument(`accountView/${account.id}`, record);
@@ -74,7 +78,8 @@ export async function applyOrgRoleChange(
   accountId: string,
   orgId: string,
   role: string,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<AccountViewRecord>(`accountView/${accountId}`);
@@ -90,6 +95,7 @@ export async function applyOrgRoleChange(
     [`orgRoles.${orgId}`]: role,
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   });
 }
@@ -97,7 +103,8 @@ export async function applyOrgRoleChange(
 export async function applyAuthoritySnapshot(
   accountId: string,
   snapshot: AuthoritySnapshot,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<AccountViewRecord>(`accountView/${accountId}`);
@@ -113,6 +120,7 @@ export async function applyAuthoritySnapshot(
     authoritySnapshot: snapshot,
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   });
 }

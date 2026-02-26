@@ -47,6 +47,8 @@ export interface OrgEligibleMemberEntry {
    */
   lastProcessedVersion: number;
   readModelVersion: number;
+  /** TraceId from the originating EventEnvelope [R8] */
+  traceId?: string;
   updatedAt: ReturnType<typeof serverTimestamp>;
 }
 
@@ -59,7 +61,8 @@ function memberPath(orgId: string, accountId: string): string {
  */
 export async function initOrgMemberEntry(
   orgId: string,
-  accountId: string
+  accountId: string,
+  traceId?: string
 ): Promise<void> {
   await setDocument(memberPath(orgId, accountId), {
     orgId,
@@ -68,6 +71,7 @@ export async function initOrgMemberEntry(
     eligible: true,
     lastProcessedVersion: 0,
     readModelVersion: Date.now(),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   } satisfies OrgEligibleMemberEntry);
 }
@@ -92,7 +96,8 @@ export async function applyOrgMemberSkillXp(
   orgId: string,
   accountId: string,
   skillId: string,
-  newXp: number
+  newXp: number,
+  traceId?: string
 ): Promise<void> {
   const existing = await getDocument<OrgEligibleMemberEntry>(
     memberPath(orgId, accountId)
@@ -102,6 +107,7 @@ export async function applyOrgMemberSkillXp(
     await updateDocument(memberPath(orgId, accountId), {
       [`skills.${skillId}`]: { xp: newXp },
       readModelVersion: Date.now(),
+      ...(traceId !== undefined ? { traceId } : {}),
       updatedAt: serverTimestamp(),
     });
   } else {
@@ -112,6 +118,7 @@ export async function applyOrgMemberSkillXp(
       eligible: true,
       lastProcessedVersion: 0,
       readModelVersion: Date.now(),
+      ...(traceId !== undefined ? { traceId } : {}),
       updatedAt: serverTimestamp(),
     } satisfies OrgEligibleMemberEntry);
   }
@@ -135,7 +142,8 @@ export async function updateOrgMemberEligibility(
   orgId: string,
   accountId: string,
   eligible: boolean,
-  incomingAggregateVersion: number
+  incomingAggregateVersion: number,
+  traceId?: string
 ): Promise<void> {
   const existing = await getDocument<OrgEligibleMemberEntry>(memberPath(orgId, accountId));
 
@@ -148,6 +156,7 @@ export async function updateOrgMemberEligibility(
     eligible,
     lastProcessedVersion: incomingAggregateVersion,
     readModelVersion: Date.now(),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   });
 }

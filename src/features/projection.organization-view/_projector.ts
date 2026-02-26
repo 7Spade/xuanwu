@@ -28,12 +28,15 @@ export interface OrganizationViewRecord {
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */
   lastProcessedVersion?: number;
+  /** TraceId from the originating EventEnvelope [R8] */
+  traceId?: string;
   updatedAt: ReturnType<typeof serverTimestamp>;
 }
 
 export async function projectOrganizationSnapshot(
   org: Account,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<OrganizationViewRecord>(`organizationView/${org.id}`);
@@ -56,6 +59,7 @@ export async function projectOrganizationSnapshot(
     teamIndex: Object.fromEntries(org.teams?.map((t) => [t.id, t.name]) ?? []),
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   };
   await setDocument(`organizationView/${org.id}`, record);
@@ -64,7 +68,8 @@ export async function projectOrganizationSnapshot(
 export async function applyMemberJoined(
   orgId: string,
   memberId: string,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   const view = await getDocument<OrganizationViewRecord>(`organizationView/${orgId}`);
 
@@ -83,6 +88,7 @@ export async function applyMemberJoined(
     memberCount: memberIds.length,
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   });
 }
@@ -90,7 +96,8 @@ export async function applyMemberJoined(
 export async function applyMemberLeft(
   orgId: string,
   memberId: string,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   const view = await getDocument<OrganizationViewRecord>(`organizationView/${orgId}`);
 
@@ -109,6 +116,7 @@ export async function applyMemberLeft(
     memberCount: memberIds.length,
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   });
 }

@@ -21,6 +21,8 @@ export interface WorkspaceScopeGuardView {
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */
   lastProcessedVersion?: number;
+  /** TraceId from the originating EventEnvelope [R8] */
+  traceId?: string;
   updatedAt: Timestamp;
 }
 

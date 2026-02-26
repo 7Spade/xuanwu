@@ -24,6 +24,8 @@ export interface WorkspaceViewRecord {
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */
   lastProcessedVersion?: number;
+  /** TraceId from the originating EventEnvelope [R8] */
+  traceId?: string;
   updatedAt: ReturnType<typeof serverTimestamp>;
 }
 
@@ -32,7 +34,8 @@ export interface WorkspaceViewRecord {
  */
 export async function projectWorkspaceSnapshot(
   workspace: Workspace,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<WorkspaceViewRecord>(`workspaceView/${workspace.id}`);
@@ -54,6 +57,7 @@ export async function projectWorkspaceSnapshot(
     grantCount: workspace.grants?.length ?? 0,
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   };
   await setDocument(`workspaceView/${workspace.id}`, record);
@@ -65,7 +69,8 @@ export async function projectWorkspaceSnapshot(
 export async function applyCapabilityUpdate(
   workspaceId: string,
   capabilities: string[],
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<WorkspaceViewRecord>(`workspaceView/${workspaceId}`);
@@ -81,6 +86,7 @@ export async function applyCapabilityUpdate(
     capabilities,
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   });
 }

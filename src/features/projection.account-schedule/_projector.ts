@@ -28,6 +28,8 @@ export interface AccountScheduleProjection {
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */
   lastProcessedVersion?: number;
+  /** TraceId from the originating EventEnvelope [R8] */
+  traceId?: string;
   updatedAt: ReturnType<typeof serverTimestamp>;
 }
 
@@ -61,7 +63,8 @@ export async function initAccountScheduleProjection(accountId: string): Promise<
 export async function applyScheduleAssigned(
   accountId: string,
   assignment: AccountScheduleAssignment,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<AccountScheduleProjection>(`scheduleProjection/${accountId}`);
@@ -79,6 +82,7 @@ export async function applyScheduleAssigned(
     activeAssignmentIds: arrayUnion(assignment.scheduleItemId),
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   });
 }
@@ -91,7 +95,8 @@ export async function applyScheduleAssigned(
 export async function applyScheduleCompleted(
   accountId: string,
   scheduleItemId: string,
-  aggregateVersion?: number
+  aggregateVersion?: number,
+  traceId?: string
 ): Promise<void> {
   if (aggregateVersion !== undefined) {
     const existing = await getDocument<AccountScheduleProjection>(`scheduleProjection/${accountId}`);
@@ -109,6 +114,7 @@ export async function applyScheduleCompleted(
     activeAssignmentIds: arrayRemove(scheduleItemId),
     readModelVersion: Date.now(),
     ...(aggregateVersion !== undefined ? { lastProcessedVersion: aggregateVersion } : {}),
+    ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
   });
 }
