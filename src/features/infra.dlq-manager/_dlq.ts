@@ -60,14 +60,17 @@ const EVENT_TYPE_DLQ_LEVEL: Readonly<Record<string, DlqLevel>> = {
   'account:role:changed': 'SECURITY_BLOCK',
   'account:policy:changed': 'SECURITY_BLOCK',
 
-  // REVIEW_REQUIRED: financial and assignment events must not auto-replay.
+  // REVIEW_REQUIRED: financial and irreversible assignment events must not auto-replay.
   'account:wallet:deducted': 'REVIEW_REQUIRED',
   'account:wallet:credited': 'REVIEW_REQUIRED',
   'organization:schedule:assigned': 'REVIEW_REQUIRED',
-  'organization:schedule:completed': 'REVIEW_REQUIRED',
-  'organization:schedule:assignmentCancelled': 'REVIEW_REQUIRED',
-  'organization:schedule:assignRejected': 'REVIEW_REQUIRED',
   'organization:role:changed': 'REVIEW_REQUIRED',
+
+  // SAFE_AUTO: compensating / lifecycle events are idempotent — safe to auto-retry.
+  // Per logic-overview.md VS6 SCHED_OUTBOX: "Compensating Events → SAFE_AUTO".
+  'organization:schedule:completed': 'SAFE_AUTO',
+  'organization:schedule:assignmentCancelled': 'SAFE_AUTO',
+  'organization:schedule:assignRejected': 'SAFE_AUTO',
 };
 
 /**
