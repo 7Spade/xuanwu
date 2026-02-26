@@ -8,6 +8,29 @@ const actionInputSchema = z.object({
   documentDataUri: z.string().startsWith('data:'),
 });
 
+// [SEC-3] Allowlist for server-side file fetches to prevent SSRF.
+// Only Firebase Storage hostnames are permitted.
+const ALLOWED_STORAGE_HOSTS = new Set([
+  'firebasestorage.googleapis.com',
+  'storage.googleapis.com',
+]);
+
+function isAllowedStorageUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    // Must be HTTPS, an allowed host, no embedded credentials, no non-standard port
+    return (
+      parsed.protocol === 'https:' &&
+      ALLOWED_STORAGE_HOSTS.has(parsed.hostname) &&
+      parsed.username === '' &&
+      parsed.password === '' &&
+      parsed.port === ''
+    );
+  } catch {
+    return false;
+  }
+}
+
 export type ActionState = {
   data?: { workItems: WorkItem[] };
   error?: string;
@@ -37,6 +60,10 @@ export async function extractDataFromDocument(
     if (!urlFileName) {
       return { error: 'Missing file name for URL-based parse.' };
     }
+    // [SEC-3] Validate URL against the Firebase Storage allowlist before fetching.
+    if (!isAllowedStorageUrl(downloadURL)) {
+      return { error: 'File URL is not from an authorised storage host.' };
+    }
     try {
       const res = await fetch(downloadURL);
       if (!res.ok) {
@@ -48,7 +75,10 @@ export async function extractDataFromDocument(
       mimeType = res.headers.get('content-type') || (urlFileType || 'application/octet-stream');
       displayName = urlFileName;
     } catch (e) {
-      console.error('Server-side fetch failed:', e);
+      // [SEC-1] Log a safe message only — do not log the raw error object which
+      // may contain internal path details or sensitive request metadata.
+      const safeMsg = e instanceof Error ? e.message : 'network error';
+      console.error('[document-parser] Server-side fetch failed:', safeMsg);
       return { error: 'Could not retrieve the file from storage.' };
     }
   } else {
@@ -100,7 +130,10 @@ export async function extractDataFromDocument(
 
     return { data: { workItems: sanitizedItems }, fileName: displayName };
   } catch (e) {
-    console.error(e);
+    // [SEC-1] Log a safe message only — do not log the raw error object which
+    // may expose internal AI model details or stack traces to server logs.
+    const safeMsg = e instanceof Error ? e.message : 'unknown error';
+    console.error('[document-parser] AI extraction failed:', safeMsg);
     const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
     return { error: `Failed to process document: ${errorMessage}` };
   }

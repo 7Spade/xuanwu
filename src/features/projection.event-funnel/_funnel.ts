@@ -84,6 +84,9 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
         actorId,
         targetId: payload.task.id,
         summary: `Task "${payload.task.name}" blocked: ${payload.reason ?? ''}`,
+        // [R8] forward traceId from payload so globalAuditView record contains traceId
+        // Use truthy check to exclude both undefined AND empty strings per R8.
+        ...(payload.traceId && { traceId: payload.traceId }),
       });
       await upsertProjectionVersion('account-audit', Date.now(), new Date().toISOString());
     })
@@ -103,6 +106,9 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
         actorId: payload.resolvedBy,
         targetId: payload.issueId,
         summary: `Issue "${payload.issueTitle}" resolved`,
+        // [R8] forward traceId from payload so globalAuditView record contains traceId
+        // Use truthy check to exclude both undefined AND empty strings per R8.
+        ...(payload.traceId && { traceId: payload.traceId }),
       });
       await upsertProjectionVersion('account-audit', Date.now(), new Date().toISOString());
       // Track stream offset for workflow unblock (per Invariant A7 — Event Funnel is projection compose only)

@@ -21,13 +21,12 @@ export function ResetPasswordForm({ defaultEmail = "", onSuccess, onCancel }: Re
 
   const handleSend = async () => {
     if (!email) return;
-    try {
-      await sendPasswordResetEmail(email);
+    const result = await sendPasswordResetEmail(email);
+    if (result.success) {
       toast({ title: t("auth.resetProtocolSent") });
       onSuccess();
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Unknown error";
-      toast({ variant: "destructive", title: t("auth.resetFailed"), description: msg });
+    } else {
+      toast({ variant: "destructive", title: t("auth.resetFailed"), description: result.error.message });
     }
   };
 

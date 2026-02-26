@@ -20,7 +20,7 @@ import {
   deleteDocument,
 } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { buildIdempotencyKey } from '@/features/shared.kernel.outbox-contract';
+import { buildIdempotencyKey, type DlqTier } from '@/features/shared.kernel.outbox-contract';
 import { publishTagEvent } from './_bus';
 
 // ---------------------------------------------------------------------------
@@ -58,6 +58,8 @@ async function writeTagOutbox(
     eventType,
     envelopeJson: JSON.stringify(envelope),
     lane: 'BACKGROUND_LANE',
+    // [S1] dlqTier required by OutboxRecord contract — tag events are idempotent
+    dlqTier: 'SAFE_AUTO' satisfies DlqTier,
     status: 'pending',
     createdAt: occurredAt,
     attemptCount: 0,

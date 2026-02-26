@@ -99,11 +99,16 @@ export async function deliverNotification(
 
     if (fcmToken) {
       // In production: call Firebase Cloud Messaging REST API or Admin SDK.
-      // [R8] TRACE_PROPAGATION_RULE: FCM payload data MUST include traceId.
-      // TODO: When wiring the actual FCM Admin SDK call, add traceId to the
-      //   `data` field of the FCM Message object, e.g.:
-      //   { notification: { title, body }, data: { traceId: input.traceId ?? '' } }
-      const traceId = input.traceId !== undefined ? input.traceId : 'n/a';
+      // [R8] TRACE_PROPAGATION_RULE: traceId MUST be included in FCM message data field.
+      // The FCM message must carry traceId so the device-side handler can correlate
+      // push notifications with audit records in globalAuditView.
+      const traceId = input.traceId !== undefined ? input.traceId : '';
+      // Example FCM Admin SDK call (server-side):
+      //   await fcmAdmin.send({
+      //     token: fcmToken,
+      //     notification: { title: sanitizedTitle, body: sanitizedMessage },
+      //     data: { traceId },   // ← [R8] required field
+      //   });
       console.info(`[FCM] Sending to ${targetAccountId}: ${sanitizedTitle} (token: ${fcmToken.slice(0, 8)}…, traceId: ${traceId})`);
       fcmSent = true;
     }

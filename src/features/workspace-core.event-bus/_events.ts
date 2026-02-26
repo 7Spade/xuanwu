@@ -14,6 +14,8 @@ export type { WorkspaceScheduleProposedPayload } from '@/features/shared.kernel.
 
 export interface WorkspaceTaskCompletedPayload {
   task: WorkspaceTask
+  /** TraceID from the originating EventEnvelope — required for R8 audit trail. */
+  traceId?: string
 }
 
 export interface WorkspaceTaskScheduleRequestedPayload {
@@ -74,6 +76,8 @@ export interface WorkspaceIssueResolvedPayload {
   resolvedBy: string
   /** SourcePointer: ID of the A-track task to unblock after resolution (Discrete Recovery). */
   sourceTaskId?: string
+  /** TraceID from the originating EventEnvelope — required for R8 audit trail. */
+  traceId?: string
 }
 
 export interface WorkspaceFinanceDisbursementFailedPayload {
@@ -81,11 +85,15 @@ export interface WorkspaceFinanceDisbursementFailedPayload {
   taskTitle: string
   amount: number
   reason: string
+  /** TraceID from the originating EventEnvelope — required for R8 audit trail. */
+  traceId?: string
 }
 
 export interface WorkspaceTaskBlockedPayload {
   task: WorkspaceTask
   reason?: string
+  /** TraceID from the originating EventEnvelope — required for R8 audit trail. */
+  traceId?: string
 }
 
 export interface WorkspaceTaskAssignedPayload {
@@ -96,6 +104,8 @@ export interface WorkspaceTaskAssignedPayload {
   workspaceId: string
   /** SourcePointer: the IntentID that originated this task, if any. */
   sourceIntentId?: string
+  /** TraceID from the originating EventEnvelope — required for R8 audit trail. */
+  traceId?: string
 }
 
 // =================================================================

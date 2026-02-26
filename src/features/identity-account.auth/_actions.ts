@@ -9,14 +9,25 @@ import { authAdapter } from "@/shared/infra/auth/auth.adapter"
 import { createUserAccount } from '@/features/account-user.profile'
 import {
   type CommandResult,
+  commandSuccess,
   commandFailureFrom,
 } from '@/features/shared.kernel.contract-interfaces'
 
 /**
  * Signs in an existing user with email and password.
+ * Returns CommandResult [R4] — callers should check `result.success` instead of using try/catch.
+ *
+ * aggregateId: Firebase Auth UID of the authenticated user.
+ * version: 0 — sign-in authenticates an existing session; no versioned aggregate is written.
  */
-export async function signIn(email: string, password: string): Promise<void> {
-  await authAdapter.signInWithEmailAndPassword(email, password)
+export async function signIn(email: string, password: string): Promise<CommandResult> {
+  try {
+    const { user } = await authAdapter.signInWithEmailAndPassword(email, password)
+    return commandSuccess(user.uid, 0)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return commandFailureFrom('SIGN_IN_FAILED', message)
+  }
 }
 
 /**
@@ -41,23 +52,57 @@ async function registerUser(
 
 /**
  * Signs in anonymously.
+ * Returns CommandResult [R4] — callers should check `result.success` instead of using try/catch.
+ *
+ * aggregateId: Firebase Auth UID of the newly-created anonymous session.
+ * version: 0 — anonymous sign-in creates a transient credential; no versioned aggregate is written.
  */
-export async function signInAnonymously(): Promise<void> {
-  await authAdapter.signInAnonymously()
+export async function signInAnonymously(): Promise<CommandResult> {
+  try {
+    const { user } = await authAdapter.signInAnonymously()
+    return commandSuccess(user.uid, 0)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return commandFailureFrom('SIGN_IN_ANONYMOUS_FAILED', message)
+  }
 }
 
 /**
  * Sends a password reset email.
+ * Returns CommandResult [R4] — callers should check `result.success` instead of using try/catch.
+ *
+ * Note on aggregateId: Firebase Auth password-reset is unauthenticated — no user UID is
+ * available at call time. The email address is used as the request identifier.
+ * version: 0 because no versioned domain aggregate is written by this operation.
  */
-export async function sendPasswordResetEmail(email: string): Promise<void> {
-  await authAdapter.sendPasswordResetEmail(email)
+export async function sendPasswordResetEmail(email: string): Promise<CommandResult> {
+  try {
+    await authAdapter.sendPasswordResetEmail(email)
+    return commandSuccess(email, 0)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return commandFailureFrom('PASSWORD_RESET_FAILED', message)
+  }
 }
 
 /**
  * Signs out the current user.
+ * Returns CommandResult [R4] — callers should check `result.success` instead of using try/catch.
+ *
+ * Uses the current user's UID as aggregateId when available, falling back to 'anonymous'.
+ * version: 0 because sign-out does not write a new aggregate version.
  */
-export async function signOut(): Promise<void> {
-  await authAdapter.signOut()
+export async function signOut(): Promise<CommandResult> {
+  // Capture UID before the session is cleared by signOut()
+  const currentUser = authAdapter.getCurrentUser()
+  const aggregateId = currentUser?.uid ?? 'anonymous'
+  try {
+    await authAdapter.signOut()
+    return commandSuccess(aggregateId, 0)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return commandFailureFrom('SIGN_OUT_FAILED', message)
+  }
 }
 
 /**
