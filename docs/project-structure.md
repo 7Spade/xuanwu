@@ -31,7 +31,7 @@
 
 ## VS0 Shared Kernel — `src/features/shared.kernel.*`
 
-All 13 shared kernel slices. These contain ONLY contracts and pure functions — no I/O, no side effects (D8).
+All 12 shared kernel slices. These contain ONLY contracts and pure functions — no I/O, no side effects (D8).
 
 ```
 src/features/
@@ -41,9 +41,10 @@ src/features/
 │   └── index.ts
 ├── shared.kernel.skill-tier/             # SK_SKILL_TIER: getTier(xp)→SkillTier pure function (#12)
 │   └── index.ts
-├── shared.kernel.skill-requirement/      # SK_SKILL_REQ: SkillRequirement cross-slice contract
+├── shared.kernel.contract-interfaces/    # [R4] SK_CMD_RESULT: CommandSuccess/CommandFailure union
+│   ├── command-result-contract.ts
 │   └── index.ts
-├── shared.kernel.constants/              # SK_CMD_RESULT + system constants
+├── shared.kernel.constants/              # Cross-slice status enums (WorkflowStatus) + error codes
 │   └── index.ts
 ├── shared.kernel.tag-authority/          # Tag read-only reference rules (T1–T5)
 │   └── index.ts
@@ -61,6 +62,8 @@ src/features/
     └── index.ts
 ```
 
+> **Note**: The `SK_SKILL_REQ` (`SkillRequirement` cross-slice contract) type is currently implemented in `src/shared/types/skill.types.ts` rather than a dedicated `shared.kernel.skill-requirement/` slice. This is a known deviation from the VS0 ideal, accepted to satisfy ESLint cross-boundary import rules. The contract semantics remain unchanged.
+
 ---
 
 ## VS1 — Identity Slice
@@ -75,14 +78,7 @@ src/features/
 │   └── index.ts                 # Public API
 ```
 
-Context lifecycle and claims management:
-```
-src/features/
-├── active-account-context/      # context-lifecycle-manager + active-account-context
-│   └── index.ts
-└── claims-refresh-handler/      # VS1 Claims Management [S6]
-    └── index.ts
-```
+Context lifecycle is managed inside `identity-account.auth` via the `_claims-handler.ts` module. Claims refresh [S6] is triggered by the `TOKEN_REFRESH_SIGNAL` emitted from `_actions.ts`.
 
 ---
 
@@ -119,7 +115,9 @@ src/features/
 │   └── index.ts
 ├── account-governance.notification-router/
 │   └── index.ts                 # Stateless notification router (#A10)
-└── wallet.aggregate/            # account-user.wallet [SK_READ_CONSISTENCY: STRONG_READ] (#A1)
+└── account-user.wallet/         # Strong-consistency financial ledger [SK_READ_CONSISTENCY: STRONG_READ] (#A1)
+    ├── _actions.ts
+    ├── _queries.ts
     └── index.ts
 ```
 
@@ -129,7 +127,7 @@ src/features/
 
 ```
 src/features/
-└── account-skill-xp/            # account-skill.aggregate + xp-ledger
+└── account-user.skill/          # account-skill aggregate + xp-ledger
     ├── _aggregate.ts            # accountId / skillId(→tagSlug) / xp / version
     ├── _actions.ts              # AddXp, DeductXp Server Actions
     ├── _queries.ts
@@ -142,10 +140,12 @@ src/features/
 
 ```
 src/features/
-├── organization-core/           # organization-core.aggregate + event-bus
+├── account-organization.core/   # organization-core aggregate + event-bus
 │   ├── _aggregate.ts
 │   ├── _actions.ts
 │   ├── _queries.ts
+│   └── index.ts
+├── account-organization.event-bus/  # Org in-process event bus [E5]
 │   └── index.ts
 ├── account-organization.member/  # (see VS2 — shared membership model)
 ├── account-organization.partner/ # (see VS2)
@@ -187,6 +187,14 @@ src/features/
 │   ├── _hooks/
 │   ├── _components/
 │   └── index.ts
+├── workspace-governance.audit-convergence/  # Audit bridge: query adapter for projection.account-audit
+│   └── index.ts
+├── workspace-governance.members/  # Workspace member grants + member panel UI
+│   ├── _components/
+│   ├── _queries.ts
+│   └── index.ts
+├── workspace-governance.partners/  # Stub — views migrated to account-organization.partner
+│   └── index.ts
 ├── workspace-governance.schedule/
 │   └── index.ts
 ├── workspace-governance.teams/
@@ -195,8 +203,38 @@ src/features/
 │   ├── _hooks/
 │   ├── _components/
 │   └── index.ts
+├── workspace-business.document-parser/ # Document parsing [A4] → ParsingIntent digital twin
+│   ├── _actions.ts
+│   ├── _form-actions.ts
+│   └── index.ts
+├── workspace-business.parsing-intent/  # ParsingIntent digital twin contract (#A4)
+│   ├── _contract.ts
+│   └── index.ts
+├── workspace-business.tasks/
+│   ├── _actions.ts
+│   ├── _components/
+│   ├── _queries.ts
+│   └── index.ts
+├── workspace-business.daily/           # 施工日誌 (A-track daily log)
+│   ├── _actions.ts
+│   ├── _components/
+│   ├── _hooks/
+│   ├── _queries.ts
+│   └── index.ts
 ├── workspace-business.schedule/
 │   ├── _hooks/
+│   ├── _components/
+│   └── index.ts
+├── workspace-business.issues/          # B-track: issues + IssueResolved → unblock workflow (#A3)
+│   ├── _actions.ts
+│   ├── _components/
+│   └── index.ts
+├── workspace-business.workflow/        # workflow.aggregate + state machine [R6]
+│   ├── _aggregate.ts
+│   ├── _issue-handler.ts
+│   ├── _persistence.ts
+│   └── index.ts
+├── workspace-business.finance/
 │   ├── _components/
 │   └── index.ts
 ├── workspace-business.acceptance/
@@ -249,11 +287,9 @@ src/features/
 │   └── index.ts
 ├── projection.event-funnel/         # event-funnel: sole projection write path (#9, #A7, S2)
 │   └── index.ts
-├── projection.workspace-scope-guard-view/  # CRITICAL SLA ≤500ms, #A9
+├── projection.workspace-scope-guard/ # CRITICAL SLA ≤500ms; writes workspace-scope-guard-view #A9
 │   └── index.ts
 ├── projection.org-eligible-member-view/    # CRITICAL SLA ≤500ms, #14–#16, T3, #19
-│   └── index.ts
-├── projection.wallet-balance/        # CRITICAL (display), STRONG_READ for transactions [S3]
 │   └── index.ts
 ├── projection.workspace-view/        # STANDARD ≤10s
 │   └── index.ts
@@ -265,11 +301,15 @@ src/features/
 │   └── index.ts
 ├── projection.account-skill-view/    # STANDARD ≤10s, tier derived not stored (#12)
 │   └── index.ts
+├── projection.account-audit/         # STANDARD ≤10s, per-account audit entries [R8]
+│   └── index.ts
 ├── projection.global-audit-view/     # STANDARD ≤10s, every record has traceId [R8]
 │   └── index.ts
 └── projection.tag-snapshot/          # BACKGROUND ≤30s, read-only T5, [S4]
     └── index.ts
 ```
+
+> **Note**: The `wallet-balance` is a logical read model (used for display) served by `account-user.wallet/_queries.ts`. Precise financial transactions use STRONG_READ directly against the wallet aggregate [S3].
 
 ---
 
@@ -283,7 +323,14 @@ src/features/
 │   └── index.ts
 ├── infra.event-router/        # IER: integration-event-router + lane dispatch [P1]
 │   └── index.ts
-└── infra.outbox-relay/        # Outbox relay worker client-side interface [R1][S1]
+├── infra.outbox-relay/        # Outbox relay worker client-side interface [R1][S1]
+│   └── index.ts
+├── infra.dlq-manager/         # DLQ three-tier handler: SAFE_AUTO/REVIEW_REQUIRED/SECURITY_BLOCK [R5]
+│   └── index.ts
+└── infra.observability/       # VS9: trace-identifier, domain-metrics, domain-error-log [R8]
+    ├── _trace.ts
+    ├── _metrics.ts
+    ├── _error-log.ts
     └── index.ts
 ```
 

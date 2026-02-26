@@ -116,6 +116,8 @@ export interface ScheduleAssignRejectedPayload {
   /** Human-readable reason for rejection (e.g. skill tier insufficient). */
   reason: string;
   rejectedAt: string;
+  /** [R8] TraceID propagated from the originating scheduling saga. */
+  traceId?: string;
 }
 
 /**
@@ -145,6 +147,49 @@ export interface SkillRecognitionRevokedPayload {
 }
 
 /**
+ * Published when a confirmed schedule assignment is completed (member returns to eligible).
+ * Invariant #15: completed → eligible = true.
+ */
+export interface ScheduleCompletedPayload {
+  scheduleItemId: string;
+  workspaceId: string;
+  orgId: string;
+  targetAccountId: string;
+  completedBy: string;
+  completedAt: string;
+  /**
+   * Aggregate version when this event was produced. [R7]
+   * Used by ELIGIBLE_UPDATE_GUARD to enforce monotonic aggregateVersion.
+   */
+  aggregateVersion: number;
+  /** [R8] TraceID propagated from the originating command. */
+  traceId?: string;
+}
+
+/**
+ * Published when a confirmed schedule assignment is cancelled after it was confirmed
+ * (post-assignment cancellation). The member's eligible flag is restored to true.
+ * Invariant #15: cancelled → eligible = true.
+ * Distinct from ScheduleProposalCancelledPayload (pre-assignment cancellation).
+ */
+export interface ScheduleAssignmentCancelledPayload {
+  scheduleItemId: string;
+  workspaceId: string;
+  orgId: string;
+  targetAccountId: string;
+  cancelledBy: string;
+  cancelledAt: string;
+  reason?: string;
+  /**
+   * Aggregate version when this event was produced. [R7]
+   * Used by ELIGIBLE_UPDATE_GUARD to enforce monotonic aggregateVersion.
+   */
+  aggregateVersion: number;
+  /** [R8] TraceID propagated from the originating command. */
+  traceId?: string;
+}
+
+/**
  * Compensating event (Invariant A5) — published when an HR operator manually cancels
  * a pending schedule proposal (SchedulingSlice Saga).
  * Mirrors ScheduleAssignRejectedPayload but represents a deliberate governance action
@@ -162,6 +207,8 @@ export interface ScheduleProposalCancelledPayload {
   cancelledAt: string;
   /** Human-readable reason for cancellation. */
   reason?: string;
+  /** [R8] TraceID propagated from the originating scheduling saga. */
+  traceId?: string;
 }
 
 // =================================================================
@@ -170,6 +217,8 @@ export interface ScheduleProposalCancelledPayload {
 
 export interface OrganizationEventPayloadMap {
   'organization:schedule:assigned': ScheduleAssignedPayload;
+  'organization:schedule:completed': ScheduleCompletedPayload;
+  'organization:schedule:assignmentCancelled': ScheduleAssignmentCancelledPayload;
   'organization:schedule:assignRejected': ScheduleAssignRejectedPayload;
   'organization:schedule:proposalCancelled': ScheduleProposalCancelledPayload;
   'organization:policy:changed': OrgPolicyChangedPayload;

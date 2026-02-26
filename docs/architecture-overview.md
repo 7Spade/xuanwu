@@ -69,9 +69,9 @@ flowchart TD
 | `event-envelope` | SK_ENV | shared.kernel.event-envelope | All events carry `version·traceId·timestamp·idempotencyKey·eventId·aggregateId·aggregateVersion` |
 | `authority-snapshot` | SK_AUTH_SNAP | shared.kernel.authority-snapshot | Claims snapshot + TTL; NOT authoritative permission source (#5) |
 | `skill-tier` | SK_SKILL_TIER | shared.kernel.skill-tier | `getTier(xp)→Tier` pure function; Tier never stored (#12) |
-| `skill-requirement` | SK_SKILL_REQ | shared.kernel.skill-requirement | Cross-slice manpower requirement contract (`tagSlug × minXp`) |
-| `command-result-contract` | SK_CMD_RESULT | shared.kernel.constants | `CommandSuccess{aggregateId,version}` / `CommandFailure{DomainError}` for optimistic UI |
-| `constants` | — | shared.kernel.constants | System-wide constants |
+| `skill-requirement` | SK_SKILL_REQ | shared/types (skill.types.ts) | Cross-slice manpower requirement contract (`tagSlug × minXp`); implemented in shared types layer |
+| `command-result-contract` | SK_CMD_RESULT | shared.kernel.contract-interfaces | `CommandSuccess{aggregateId,version}` / `CommandFailure{DomainError}` for optimistic UI |
+| `constants` | — | shared.kernel.constants | Cross-slice status enums (WorkflowStatus) and error codes (ErrorCodes) |
 | `tag-authority` | — | shared.kernel.tag-authority | Tag read-only reference rules (T1–T5) |
 | `outbox-contract` | SK_OUTBOX_CONTRACT | **[S1]** | at-least-once + idempotency-key + DLQ tier declaration |
 | `version-guard` | SK_VERSION_GUARD | **[S2]** | `event.aggregateVersion > view.lastProcessedVersion` → allow; else discard |
@@ -85,7 +85,7 @@ flowchart TD
 ## Per-Slice Details
 
 ### VS1 — Identity Slice
-- **Slices**: `identity-account.auth`, `active-account-context`, `context-lifecycle-manager`, `claims-refresh-handler`
+- **Slices**: `identity-account.auth` (includes `_claims-handler.ts` for token refresh [S6])
 - **Bounded context**: 身份驗證
 - **Allowed dependencies**: VS0 (SK_AUTH_SNAP, SK_TOKEN_REFRESH_CONTRACT [S6])
 - **Key rule**: Only slice that emits `TOKEN_REFRESH_SIGNAL`. Full handshake spec is in SK_TOKEN_REFRESH_CONTRACT.
@@ -97,13 +97,13 @@ flowchart TD
 - **Key rule**: `WALLET_AGG` is STRONG_READ [S3]. `RoleChanged/PolicyChanged` → SECURITY_BLOCK DLQ.
 
 ### VS3 — Skill XP Slice
-- **Slices**: `account-skill.*`
+- **Slices**: `account-user.skill`
 - **Bounded context**: 能力成長
 - **Allowed dependencies**: VS0 (SK_ENV, SK_SKILL_TIER, SK_OUTBOX_CONTRACT [S1])
 - **Key rule**: Every XP mutation writes ledger (#13). Tier is always derived (#12).
 
 ### VS4 — Organization Slice
-- **Slices**: `organization-core.*`, `account-organization.*`, `organization-skill-recognition.*`
+- **Slices**: `account-organization.core`, `account-organization.event-bus`, `account-organization.member`, `account-organization.partner`, `account-organization.team`, `account-organization.policy`, `account-organization.skill-tag`, `account-organization.schedule` (see `docs/project-structure.md` VS4 for full slice tree)
 - **Bounded context**: 組織治理
 - **Allowed dependencies**: VS0 (SK_ENV, SK_STALENESS_CONTRACT [S4]), VS2 (via ACL only)
 - **Key rule**: `VS4_TAG_SUBSCRIBER` subscribes IER BACKGROUND_LANE to update SKILL_TAG_POOL (T2).
@@ -133,7 +133,7 @@ flowchart TD
 - **Key rule**: FUNNEL is the ONLY write path to all projections (#9). All lanes apply SK_VERSION_GUARD.
 
 ### VS9 — Observability
-- **Slices**: `trace-identifier`, `domain-metrics`, `domain-error-log`
+- **Slices**: `infra.observability` (`_trace.ts`, `_metrics.ts`, `_error-log.ts`)
 - **Bounded context**: 橫切面
 - **Allowed dependencies**: All slices (read-only tap; never modifies state)
 - **Key rule**: TraceID injected at CBG_ENTRY and propagated unchanged across the entire event chain [R8].

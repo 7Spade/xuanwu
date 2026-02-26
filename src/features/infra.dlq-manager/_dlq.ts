@@ -64,6 +64,9 @@ const EVENT_TYPE_DLQ_LEVEL: Readonly<Record<string, DlqLevel>> = {
   'account:wallet:deducted': 'REVIEW_REQUIRED',
   'account:wallet:credited': 'REVIEW_REQUIRED',
   'organization:schedule:assigned': 'REVIEW_REQUIRED',
+  'organization:schedule:completed': 'REVIEW_REQUIRED',
+  'organization:schedule:assignmentCancelled': 'REVIEW_REQUIRED',
+  'organization:schedule:assignRejected': 'REVIEW_REQUIRED',
   'organization:role:changed': 'REVIEW_REQUIRED',
 };
 

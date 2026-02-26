@@ -54,6 +54,8 @@ export interface SagaState {
   updatedAt: string;
   completedAt?: string;
   compensationReason?: string;
+  /** [R8] TraceID propagated from the originating WorkspaceScheduleProposed event. */
+  traceId?: string;
 }
 
 const SAGA_COLLECTION = 'sagaStates';
@@ -149,6 +151,8 @@ export async function startSchedulingSaga(
     currentStep: 'receive_proposal',
     startedAt: now,
     updatedAt: now,
+    // [R8] Persist traceId so all subsequent saga steps can propagate it.
+    ...(event.traceId ? { traceId: event.traceId } : {}),
   };
   await persistSaga(initialState);
   await handleScheduleProposed(event);
@@ -198,6 +202,8 @@ export async function startSchedulingSaga(
       title: event.title,
       startDate: event.startDate,
       endDate: event.endDate,
+      // [R8] Forward traceId from event to the approval step so published events carry the trace.
+      ...(event.traceId ? { traceId: event.traceId } : {}),
     },
     requirements.length > 0 ? requirements : undefined
   );

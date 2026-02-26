@@ -49,6 +49,8 @@ export interface WorkspaceScheduleProposedPayload {
   intentId?: string;
   /** Skill requirements forwarded from ParsingIntent to org-level Schedule for validation. */
   skillRequirements?: SkillRequirement[];
+  /** [R8] TraceID injected at CBG_ENTRY — must propagate end-to-end through the scheduling saga. */
+  traceId?: string;
 }
 
 /** Marker interface — org schedule handlers that consume this payload must declare conformance. */
