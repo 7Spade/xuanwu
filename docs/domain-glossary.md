@@ -1,7 +1,7 @@
 # Domain Glossary
 
 > Source of truth: `docs/logic-overview.md`
-> All terms, invariants, and rules below are derived from the v10 spec (v9 R1–R8 + v10 S1–S6).
+> All terms, invariants, and rules below are derived from the current spec (R1–R8, S1–S6, E1–E6, T1–T5, Q1–Q8, D1–D18).
 
 ---
 

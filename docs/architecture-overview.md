@@ -96,6 +96,22 @@
 src/features/
 ├── GEMINI.md                                ← AI 開發指南（整層）
 │
+│── ── VS0 · Shared Kernel + Tag Authority ─────────────────────────────
+├── shared-kernel/                           ← 便捷桶匯出（barrel only）
+├── shared.kernel.event-envelope/            ← EventEnvelope 契約 [Q3][R8]
+├── shared.kernel.authority-snapshot/        ← AuthoritySnapshot 契約 [Q4]
+├── shared.kernel.skill-tier/                ← SkillTier · SkillRequirement · ScheduleProposedPayload [#12][A5]
+├── shared.kernel.contract-interfaces/       ← CommandSuccess / CommandFailure / DomainError [R4]
+├── shared.kernel.constants/                 ← WorkflowStatus · ErrorCodes
+├── shared.kernel.tag-authority/             ← Re-export stub → centralized-tag
+├── shared.kernel.outbox-contract/           ← SK_OUTBOX_CONTRACT [S1]
+├── shared.kernel.version-guard/             ← SK_VERSION_GUARD [S2]
+├── shared.kernel.read-consistency/          ← SK_READ_CONSISTENCY [S3]
+├── shared.kernel.staleness-contract/        ← SK_STALENESS_CONTRACT [S4]
+├── shared.kernel.resilience-contract/       ← SK_RESILIENCE_CONTRACT [S5]
+├── shared.kernel.token-refresh-contract/    ← SK_TOKEN_REFRESH_CONTRACT [S6]
+├── centralized-tag/                         ← Tag Authority Center [#17][A6]
+│
 │── ── Identity Layer ──────────────────────────────────────────────────
 ├── identity-account.auth/                   ← 登入 · 註冊 · 重設密碼（Firebase Auth 入口）
 │
@@ -152,12 +168,17 @@ src/features/
 ├── workspace-business.issues/               ← 問題追蹤單 · IssueResolved 事件（B 軌）
 │
 │── ── Projection Layer ────────────────────────────────────────────────
+├── projection.event-funnel/               ← Event Funnel 統一寫入路徑 [#9][Q3][R8][S2]
 ├── projection.workspace-view/               ← 工作區讀模型（Workspace 投影視圖）
 ├── projection.workspace-scope-guard/        ← Scope Guard 專用讀模型
 ├── projection.account-view/                 ← 帳號讀模型 · 權限快照（authority-snapshot 合約）
 ├── projection.account-audit/                ← 帳號稽核投影
 ├── projection.account-schedule/             ← 帳號排程投影（過濾可用帳號）
+├── projection.account-skill-view/          ← 技能讀模型（xp；tier 推導 [#12]）
+├── projection.org-eligible-member-view/    ← 排班資格投影 [R7][S2][#14][#19]
 ├── projection.organization-view/            ← 組織讀模型
+├── projection.tag-snapshot/               ← Tag 讀模型 [S4][Q6][T5]
+├── projection.global-audit-view/          ← 全域跨切片稽核投影 [S2][R8]
 └── projection.registry/                     ← 事件串流偏移量 · 讀模型版本對照表
 ```
 
@@ -193,7 +214,7 @@ src/features/
 
 ### Identity Layer（身份層）
 
-| Feature Slice | 領域職責 | logic-overview_v10 節點 |
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
 |---------------|----------|---------------------|
 | `identity-account.auth` | Firebase 登入／註冊／重設密碼的 UI 與 Server Action | `ACCOUNT_AUTH` |
 | （Identity Layer 內部狀態，非獨立切片） | 持有 Firebase User，提供已驗證狀態 | `AUTHENTICATED_IDENTITY` |
@@ -203,7 +224,7 @@ src/features/
 
 ### Account Layer（帳號層）
 
-| Feature Slice | 領域職責 | logic-overview_v10 節點 |
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
 |---------------|----------|---------------------|
 | `account-user.profile` | 使用者個人資料、偏好設定、安全設定、FCM Token 儲存（**帳號數據中心共置**） | `USER_ACCOUNT_PROFILE` |
 | `account-user.wallet` | 個人錢包（代幣／積分，stub） | `USER_ACCOUNT_WALLET` |
@@ -215,7 +236,7 @@ src/features/
 
 ### Organization Layer（組織層）
 
-| Feature Slice | 領域職責 | logic-overview_v10 節點 |
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
 |---------------|----------|---------------------|
 | `account-organization.core` | 組織聚合實體，擁有工作區 | `ORGANIZATION_ENTITY` |
 | `account-organization.event-bus` | 組織領域事件總線 | `ORGANIZATION_EVENT_BUS` |
@@ -230,7 +251,7 @@ src/features/
 
 #### workspace-core（核心層）
 
-| Feature Slice | 領域職責 | logic-overview_v10 節點 |
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
 |---------------|----------|---------------------|
 | `workspace-core` | Workspace CRUD · shell · provider · list · settings（聚合根核心配置） | `WORKSPACE_SETTINGS` / `WORKSPACE_AGGREGATE` |
 | `workspace-core.event-bus` | 工作區事件總線 | `WORKSPACE_EVENT_BUS` |
@@ -238,13 +259,13 @@ src/features/
 
 #### workspace-application（應用層）
 
-| Feature Slice | 領域職責 | logic-overview_v10 節點 |
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
 |---------------|----------|---------------------|
 | `workspace-application` | 指令處理器 · 作用域守衛 · 政策引擎 · org-policy 防腐層快取 · 交易執行器 · Outbox | `WORKSPACE_COMMAND_HANDLER` / `WORKSPACE_SCOPE_GUARD` / `WORKSPACE_POLICY_ENGINE` / `WORKSPACE_TRANSACTION_RUNNER` / `WORKSPACE_OUTBOX` |
 
 #### workspace-governance（工作區治理）
 
-| Feature Slice | 領域職責 | logic-overview_v10 節點 |
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
 |---------------|----------|---------------------|
 | `workspace-governance.members` | 工作區成員存取控制 | `WORKSPACE_MEMBER` |
 | `workspace-governance.role` | 角色管理（從 members 拆分） | `WORKSPACE_ROLE` |
@@ -257,7 +278,7 @@ src/features/
 
 #### workspace-business（業務層，按執行流向排序）
 
-| Feature Slice | 領域職責 | logic-overview_v10 節點 |
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
 |---------------|----------|---------------------|
 | `workspace-business.tasks` | 任務管理 | `TRACK_A_TASKS` |
 | `workspace-business.quality-assurance` | 品質保證 | `TRACK_A_QA` |
@@ -268,6 +289,42 @@ src/features/
 | `workspace-business.files` | 檔案管理 | `W_B_FILES` |
 | `workspace-business.issues` | 問題追蹤（AB 雙軌問題單） | `TRACK_B_ISSUES` |
 | `workspace-business.schedule` | 排程管理 · 提案 · 決策（由 `workspace-governance.schedule` 遷移）→ 發布 ScheduleProposed 事件 | `W_B_SCHEDULE` |
+
+### VS6 · Scheduling Saga
+
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
+|---------------|----------|---------------------|
+| `scheduling-core.saga` | 跨 BC 排班協作 Saga · 補償事件 [A5] | `SCHEDULE_SAGA` |
+
+### VS7 · Notification（通知層）
+
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
+|---------------|----------|---------------------|
+| `account-governance.notification-router` | 通知路由器（依 TargetAccountID 分發，三層架構層二） | `NOTIF_ROUTER` |
+| `account-user.notification` | 個人推播通知（FCM-only，三層架構層三） | `USER_NOTIF` |
+
+### VS8 · Projection Layer（投影層）
+
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
+|---------------|----------|---------------------|
+| `projection.event-funnel` | Event Funnel 統一寫入路徑 [#9][Q3][R8][S2] | `FUNNEL` |
+| `projection.workspace-view` | 工作區讀模型 | `WORKSPACE_PROJ` |
+| `projection.workspace-scope-guard` | Scope Guard 專用讀模型 [A9] | `WS_SCOPE_VIEW` |
+| `projection.account-view` | 帳號讀模型 · 權限快照（authority-snapshot 合約）[S2] | `ACC_PROJ_VIEW_NODE` |
+| `projection.account-audit` | 帳號稽核投影 | `ACCOUNT_PROJECTION_AUDIT` |
+| `projection.account-schedule` | 帳號排程投影（過濾可用帳號） | `ACC_SCHED_VIEW` |
+| `projection.account-skill-view` | 技能讀模型（xp；tier 推導 [#12][S2]） | `SKILL_VIEW` |
+| `projection.org-eligible-member-view` | 排班資格投影 [R7][S2][#14][#19] | `ORG_ELIGIBLE_VIEW` |
+| `projection.organization-view` | 組織讀模型 | `ORG_PROJ_VIEW` |
+| `projection.tag-snapshot` | Tag 讀模型 [S4][Q6][T5] | `TAG_SNAPSHOT` |
+| `projection.global-audit-view` | 全域跨切片稽核投影 [S2][R8] | `GLOBAL_AUDIT_VIEW` |
+| `projection.registry` | 事件串流偏移量 · 讀模型版本對照表 | `PROJ_VER` / `READ_REG` |
+
+### VS9 · Observability（可觀測性）
+
+| Feature Slice | 領域職責 | logic-overview.md 節點 |
+|---------------|----------|---------------------|
+| `infra.observability` | trace-identifier [R8] · domain-metrics · domain-error-log（橫切 feature slice） | `TRACE_ID` / `DOMAIN_METRICS` / `DOMAIN_ERRORS` |
 
 ---
 
@@ -359,10 +416,13 @@ src/shared/
 
 ## 八、與 logic-overview.md 的對應關係
 
-| logic-overview_v10 層 | features 資料夾群組 |
+| logic-overview.md 層 | features 資料夾群組 |
 |----------------------|---------------------|
 | Firebase Authentication | 外部服務（不在 features） |
-| VS0 Shared Kernel + Tag Authority | `features/shared-kernel/`、`features/centralized-tag/`、`features/shared.kernel.*` stubs |
+| VS0 Shared Kernel — 基礎資料契約 | `features/shared-kernel/`、`features/shared.kernel.event-envelope/`、`features/shared.kernel.authority-snapshot/`、`features/shared.kernel.skill-tier/`、`features/shared.kernel.contract-interfaces/`、`features/shared.kernel.constants/`、`features/shared.kernel.tag-authority/` |
+| VS0 Shared Kernel — 基礎設施契約 [S1–S5] | `features/shared.kernel.outbox-contract/`、`features/shared.kernel.version-guard/`、`features/shared.kernel.read-consistency/`、`features/shared.kernel.staleness-contract/`、`features/shared.kernel.resilience-contract/` |
+| VS0 Shared Kernel — 授權信號契約 [S6] | `features/shared.kernel.token-refresh-contract/` |
+| VS0 Tag Authority | `features/centralized-tag/` |
 | VS1 Identity Layer | `features/identity-account.auth/` 等 `identity-*` 切片 |
 | VS2 Account Layer (shared + governance) | `features/account-governance.*` 切片 |
 | VS2 Account Layer (User sub-type) | `features/account-user.*` 切片 |
@@ -378,11 +438,11 @@ src/shared/
 | VS5 Workspace Container — Business | `features/workspace-business.*` 切片（含 workflow [R6]、parsing-intent [A4]） |
 | VS6 Scheduling Saga | `features/scheduling-core.saga/` |
 | VS7 Notification | `features/account-user.notification/`、`features/account-governance.notification-router/` |
-| VS8 Projection Layer | `features/projection.*` 切片（含 tag-snapshot [Q6]） |
+| VS8 Projection Layer | `features/projection.*` 切片（含 event-funnel [#9][S2]、tag-snapshot [Q6][S4]、global-audit-view [S2][R8]、org-eligible-member-view [R7][S2]） |
 | VS9 Observability [R8] | `features/infra.observability/`（橫切 feature slice） |
 | Firebase Cloud Messaging (FCM) | `shared/infra/messaging/` FCM 適配器（外部服務） |
 | USER_DEVICE | 裝置端（不在 features，為推播終點） |
 
 > 詳細領域邏輯流程請參閱 [`logic-overview.md`](./logic-overview.md)（唯一事實來源）。  
-> 持久化模型請參閱 [`persistence-model-overview.v3.md`](./persistence-model-overview.v3.md)。  
-> 基礎設施整合請參閱 [`infrastructure-overview.v3.md`](./infrastructure-overview.v3.md)。
+> 持久化模型請參閱 [`persistence-model-overview.md`](./persistence-model-overview.md)。  
+> 基礎設施整合請參閱 [`infrastructure-overview.md`](./infrastructure-overview.md)。

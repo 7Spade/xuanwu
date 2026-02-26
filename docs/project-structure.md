@@ -52,13 +52,19 @@ features/{name}/
 
 ```
 src/features/
-├── shared-kernel/                     ← Convenience barrel only (index.ts + GEMINI.md)
-├── shared.kernel.event-envelope/      ← EventEnvelope contract [Q3][R8]
-├── shared.kernel.authority-snapshot/  ← AuthoritySnapshot contract [Q4]
-├── shared.kernel.skill-tier/          ← SkillTier + SkillRequirement + ScheduleProposedPayload [#12][A5]
-├── shared.kernel.contract-interfaces/ ← CommandSuccess / CommandFailure / DomainError [R4]
-├── shared.kernel.constants/           ← WorkflowStatus, ErrorCodes
-└── shared.kernel.tag-authority/       ← Re-export stub → centralized-tag
+├── shared-kernel/                          ← Convenience barrel only (index.ts + GEMINI.md)
+├── shared.kernel.event-envelope/           ← EventEnvelope contract [Q3][R8]
+├── shared.kernel.authority-snapshot/       ← AuthoritySnapshot contract [Q4]
+├── shared.kernel.skill-tier/               ← SkillTier + SkillRequirement + ScheduleProposedPayload [#12][A5]
+├── shared.kernel.contract-interfaces/      ← CommandSuccess / CommandFailure / DomainError [R4]
+├── shared.kernel.constants/                ← WorkflowStatus, ErrorCodes
+├── shared.kernel.tag-authority/            ← Re-export stub → centralized-tag
+├── shared.kernel.outbox-contract/          ← SK_OUTBOX_CONTRACT [S1]
+├── shared.kernel.version-guard/            ← SK_VERSION_GUARD [S2]
+├── shared.kernel.read-consistency/         ← SK_READ_CONSISTENCY [S3]
+├── shared.kernel.staleness-contract/       ← SK_STALENESS_CONTRACT [S4]
+├── shared.kernel.resilience-contract/      ← SK_RESILIENCE_CONTRACT [S5]
+└── shared.kernel.token-refresh-contract/   ← SK_TOKEN_REFRESH_CONTRACT [S6]
 ```
 
 ```
