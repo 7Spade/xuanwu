@@ -1,21 +1,26 @@
 /**
  * infra.gateway-command — Public API
  *
- * [GW] 指令閘道器 (驗權、RateLimit、Entry)
+ * [GW] Command Bus Gateway — unified write entry point. [E4][R4][R8][Q4][Q7]
  *
- * Per tree.md: infra.gateway-command = Command Gateway
- *   — Authentication / authorization guard before dispatching commands.
- *   — Rate limiting per account/org.
- *   — Single entry point for all write operations.
- *   — Wires to workspace-application CommandHandler.
+ * Per logic-overview_v9.md GW_CMD:
+ *   CBG_ENTRY  — TraceID injection [E4][R8]
+ *   CBG_AUTH   — universal-authority-interceptor (AuthoritySnapshot [Q4];
+ *               ACTIVE_CTX wins over Claims on conflict)
+ *   CBG_ROUTE  — command-router → returns SK_CMD_RESULT [R4]
  *
- * TODO: Implement command gateway with auth guard and rate limiter.
+ * Usage (Server Actions):
+ *   import { dispatchCommand, registerCommandHandler } from '@/features/infra.gateway-command';
  *
- * Consumers:
- *   - src/app API route handlers (Server Actions dispatch through here)
- *   - workspace-application command coordinator
+ *   // register (slice init):
+ *   registerCommandHandler('workspace:task:assign', assignTaskHandler);
+ *
+ *   // dispatch (Server Action):
+ *   const result = await dispatchCommand(
+ *     { commandType: 'workspace:task:assign', aggregateId: wsId, ...payload },
+ *     { authority: authoritySnapshot }
+ *   );
  */
 
-// Placeholder — implementation pending.
-// Once implemented, export: dispatchCommand, type CommandGatewayConfig
-export {};
+export { dispatchCommand, registerCommandHandler } from './_gateway';
+export type { GatewayCommand, DispatchOptions } from './_gateway';
