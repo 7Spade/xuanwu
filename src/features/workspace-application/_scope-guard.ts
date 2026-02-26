@@ -3,7 +3,7 @@
  *
  * Validates workspace access for a given caller.
  *
- * Per logic-overview_v9.md invariant #7:
+ * Per logic-overview.md invariant #7:
  * Scope Guard reads ONLY local read model — never directly from external event buses.
  *
  * Implementation: queries projection.workspace-scope-guard read model first.

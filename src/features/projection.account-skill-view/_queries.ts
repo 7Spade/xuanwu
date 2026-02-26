@@ -4,7 +4,7 @@
  * Read-side queries for account skill XP.
  * Callers must derive tier via resolveSkillTier(xp) from shared/lib — never read tier from DB.
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  *   W_B_SCHEDULE -.→ ACCOUNT_SKILL_VIEW (読み取り only — via ORG_ELIGIBLE_MEMBER_VIEW)
  */
 

@@ -42,7 +42,7 @@ import ... from "@/shared/ui/...";         // shadcn-ui, constants
 
 ## Architecture Note [R2][S6]
 
-Per `logic-overview_v10.md` R2 / [SK_TOKEN_REFRESH_CONTRACT S6] — Claims refresh three-way handshake:
+Per `logic-overview.md` R2 / [SK_TOKEN_REFRESH_CONTRACT S6] — Claims refresh three-way handshake:
 
 ```
 Trigger:  RoleChanged | PolicyChanged → IER CRITICAL_LANE → CLAIMS_HANDLER

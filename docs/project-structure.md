@@ -1,6 +1,6 @@
 # Project Structure
 
-> Source of truth: `docs/overview/logic-overview_v10.md`
+> Source of truth: `docs/logic-overview.md`
 > Architecture: Vertical Slice Architecture (VSA)
 
 ---
@@ -16,7 +16,8 @@ xuanwu/
 │   └── ai/           ← Genkit AI flows (dev entry point)
 ├── functions/        ← Firebase Functions workspace (Outbox Relay, DLQ)
 ├── docs/             ← Architecture documentation
-│   └── overview/     ← logic-overview_v10.md (sole source of truth)
+│   ├── logic-overview.md  ← sole source of truth (replace to upgrade spec)
+│   └── overview/     ← versioned history (logic-overview_v3–v10)
 └── public/           ← Static assets
 ```
 

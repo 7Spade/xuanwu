@@ -59,7 +59,7 @@ export { OrgScheduleGovernance } from './_components/org-schedule-governance';
 
 ## Architecture Note [S1][S4][R7][R5]
 
-`logic-overview_v10.md` [SK_OUTBOX_CONTRACT S1] [SK_STALENESS_CONTRACT S4] [R7][R5]:
+`logic-overview.md` [SK_OUTBOX_CONTRACT S1] [SK_STALENESS_CONTRACT S4] [R7][R5]:
 - `WORKSPACE_OUTBOX →|ScheduleProposed（跨層事件 · saga）| ORGANIZATION_SCHEDULE`
 - `ORGANIZATION_SCHEDULE →|ScheduleAssigned + aggregateVersion [R7]| SCHED_OUTBOX → IER`
 - Invariant #14: reads `projection.org-eligible-member-view` only — never Account aggregate

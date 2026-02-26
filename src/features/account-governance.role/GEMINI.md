@@ -33,5 +33,5 @@ Account role management — defines roles assigned to accounts and triggers CUST
 
 ## Architecture Note
 
-`logic-overview_v10.md`: `ACCOUNT_ROLE → CUSTOM_CLAIMS`.
+`logic-overview.md`: `ACCOUNT_ROLE → CUSTOM_CLAIMS`.
 Role changes publish a domain event; custom-claims refresh is handled downstream.

@@ -23,7 +23,7 @@ member availability and skill tiers.
 
 ## SK_VERSION_GUARD Contract [S2]
 
-v10 泛化 #19 — per `logic-overview_v10.md` [S2]:
+v10 泛化 #19 — per `logic-overview.md` [S2]:
 ```
 Update rule:
   event.aggregateVersion > view.lastProcessedVersion → allow update
@@ -83,7 +83,7 @@ export type { OrgEligibleMemberEntry, OrgMemberSkillWithTier, OrgEligibleMemberV
 
 ## Architecture Note [S2][R7]
 
-`logic-overview_v10.md` [SK_VERSION_GUARD S2] D11:
+`logic-overview.md` [SK_VERSION_GUARD S2] D11:
 `EVENT_FUNNEL_INPUT → ORG_ELIGIBLE_MEMBER_VIEW`
 `ORG_ELIGIBLE_MEMBER_VIEW -.→ getTier 計算（不存 DB）`
 `W_B_SCHEDULE -.→ ORG_ELIGIBLE_MEMBER_VIEW（查詢可用帳號 · eligible=true · 只讀）`

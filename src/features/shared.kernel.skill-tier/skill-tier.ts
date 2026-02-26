@@ -4,7 +4,7 @@
  * Cross-BC domain contract: the canonical seven-tier proficiency scale and its
  * computation rule.
  *
- * Per logic-overview_v9.md Invariant #12:
+ * Per logic-overview.md Invariant #12:
  *   "Tier 永遠是推導值（純函式 getTier(xp)），不得存入任何 DB 欄位"
  *
  * Used by all four architectural layers:
@@ -94,7 +94,7 @@ export function resolveSkillTier(xp: number): SkillTier {
   return 'titan';
 }
 
-/** Alias for resolveSkillTier — canonical name per logic-overview_v9.md. */
+/** Alias for resolveSkillTier — canonical name per logic-overview.md. */
 export const getTier = resolveSkillTier;
 
 /** Returns the numeric rank for a tier (1 = lowest, 7 = highest). */

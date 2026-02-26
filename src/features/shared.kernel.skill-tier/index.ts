@@ -3,7 +3,7 @@
  *
  * [VS0] 技能等級與人力需求契約 (Skill Tier & Workforce Contracts)
  *
- * Per logic-overview_v9.md Invariant #12:
+ * Per logic-overview.md Invariant #12:
  *   "Tier 永遠是推導值（純函式 getTier(xp)），不得存入任何 DB 欄位"
  *
  * Three cohesive cross-BC contracts:

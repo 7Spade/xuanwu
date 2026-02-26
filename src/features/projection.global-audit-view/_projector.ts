@@ -1,4 +1,4 @@
-// projection.global-audit-view · VS8 STANDARD_PROJ_LANE · logic-overview_v10.md [S2][R8]
+// projection.global-audit-view · VS8 STANDARD_PROJ_LANE · logic-overview.md [S2][R8]
 // GLOBAL_AUDIT_VIEW — cross-slice governance audit projection
 // Feed path: AUDIT_COLLECTOR → IER BACKGROUND_LANE → FUNNEL → STANDARD_PROJ_LANE → here
 

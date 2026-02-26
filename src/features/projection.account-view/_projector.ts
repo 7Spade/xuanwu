@@ -6,7 +6,7 @@
  *
  * Stored at: accountView/{accountId}
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  *   EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_VIEW
  *   ACCOUNT_USER_NOTIFICATION -.→ ACCOUNT_PROJECTION_VIEW (content filtering by tag)
  *   ACCOUNT_PROJECTION_VIEW -.→ shared-kernel.authority-snapshot (contract)

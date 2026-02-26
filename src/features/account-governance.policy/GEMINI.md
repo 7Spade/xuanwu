@@ -33,5 +33,5 @@ Account policy management — defines access control policies and enforces them 
 
 ## Architecture Note
 
-`logic-overview_v10.md`: `ACCOUNT_POLICY → CUSTOM_CLAIMS`.
+`logic-overview.md`: `ACCOUNT_POLICY → CUSTOM_CLAIMS`.
 Policy changes publish a domain event; custom-claims refresh is handled downstream.

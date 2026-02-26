@@ -5,7 +5,7 @@
  *
  * Server actions for user wallet balance management.
  *
- * Per logic-overview_v9.md (A1):
+ * Per logic-overview.md (A1):
  *   USER_WALLET_AGGREGATE — strong consistency balance invariant.
  *   Balance must never go negative.
  *

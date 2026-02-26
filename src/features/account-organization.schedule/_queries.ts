@@ -4,7 +4,7 @@
  * Read queries for the org schedule proposal read model.
  * Stored at: orgScheduleProposals/{scheduleItemId}
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  *   WORKSPACE_OUTBOX → ORGANIZATION_SCHEDULE (writes proposals)
  *   ORGANIZATION_SCHEDULE → (queries expose proposals for org governance UI)
  *

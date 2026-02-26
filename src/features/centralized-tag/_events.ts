@@ -3,7 +3,7 @@
  *
  * TagLifecycleEvent contract.
  *
- * Per logic-overview_v9.md (VS0 Tag Authority Center):
+ * Per logic-overview.md (VS0 Tag Authority Center):
  *   CTA -->|"標籤異動廣播"| TAG_EVENTS
  *   TAG_EVENTS["TagLifecycleEvent\nTagCreated · TagUpdated\nTagDeprecated · TagDeleted\n→ Integration Event Router"]
  *

@@ -5,7 +5,7 @@
  *   - projection.workspace-scope-guard (invariant #7, #8)
  *   - projection.account-view         (invariant #8)
  *
- * Per logic-overview_v9.md:
+ * Per logic-overview.md:
  * %% Shared Kernel 區塊的虛線表示「契約遵循（implements contract）」而非跨 BC 讀寫依賴
  */
 

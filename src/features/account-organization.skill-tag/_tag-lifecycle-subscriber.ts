@@ -3,7 +3,7 @@
  *
  * VS4_TAG_SUBSCRIBER [R3] — keeps SKILL_TAG_POOL up to date when TagLifecycleEvents arrive.
  *
- * Per logic-overview_v9.md [R3] SKILL_TAG_POOL 更新路徑閉環:
+ * Per logic-overview.md [R3] SKILL_TAG_POOL 更新路徑閉環:
  *   IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
  *
  * This subscriber is the explicit named handler the Event Funnel delegates to.

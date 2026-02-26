@@ -33,7 +33,7 @@ Account projection view — read model for account state, including authority sn
 
 ## Architecture Note
 
-`logic-overview_v10.md`:
+`logic-overview.md`:
 - `EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_VIEW`
 - `ACCOUNT_USER_NOTIFICATION -.→ ACCOUNT_PROJECTION_VIEW` (content filtering by account tag)
 - Must implement `shared-kernel.authority-snapshot` contract (invariant #8).
