@@ -4,7 +4,7 @@
  * Tracks event stream offsets and read model versions for all projections.
  * Stored at: projectionMeta/{projectionName}
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  * - PROJECTION_VERSION: event stream offset ↔ read model version table
  * - READ_MODEL_REGISTRY: provides read-model version correspondence
  */

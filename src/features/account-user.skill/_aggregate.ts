@@ -14,7 +14,7 @@
  *   #12 — Tier is NEVER stored here. Derive via resolveSkillTier(xp) / getTier(xp).
  *   #13 — Every xp change MUST write a ledger entry BEFORE updating the aggregate.
  *
- * Write path per logic-overview.v3.md [E1]:
+ * Write path per logic-overview.md [E1]:
  *   Server Action → addXp/deductXp → clamp 0~525 → appendXpLedgerEntry
  *     → setDocument(aggregate) → return { newXp, xpDelta, orgId, skillId, reason }
  *   Cross-BC event publishing (SkillXpAdded/Deducted → IER → ORG_EVENT_BUS) is handled

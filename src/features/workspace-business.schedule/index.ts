@@ -1,5 +1,5 @@
 // workspace-business.schedule — Schedule items, shift proposals, member assignment, governance (approve/reject)
-// Migrated from workspace-governance.schedule per logic-overview.v3.md:
+// Migrated from workspace-governance.schedule per logic-overview.md:
 //   W_B_SCHEDULE is in WORKSPACE_BUSINESS; WORKSPACE_GOVERNANCE only contains members + role.
 
 // Views

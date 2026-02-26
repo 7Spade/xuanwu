@@ -3,7 +3,7 @@
  *
  * Server-side action wrappers for the AccountSkill aggregate.
  *
- * Call path per logic-overview.v3.md [E1]:
+ * Call path per logic-overview.md [E1]:
  *   SERVER_ACTION_SKILL →|addXp / deductXp Command| ACCOUNT_SKILL_AGGREGATE
  *   ACCOUNT_SKILL_AGGREGATE →|clamp 0~525 · 寫入 Ledger| ACCOUNT_SKILL_XP_LEDGER
  *   ACCOUNT_SKILL_AGGREGATE →|return { newXp, xpDelta }| _actions.ts
