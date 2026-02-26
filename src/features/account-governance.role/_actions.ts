@@ -161,7 +161,7 @@ export interface TokenRefreshSignal {
  * Security: accountId is validated against a safe Firestore document ID pattern
  * to prevent path-traversal injection [OWASP: A01 / CWE-22].
  */
-export async function emitTokenRefreshSignal(
+async function emitTokenRefreshSignal(
   accountId: string,
   reason: TokenRefreshReason
 ): Promise<void> {
