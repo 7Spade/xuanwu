@@ -4,7 +4,7 @@
  * Maintains the account audit projection.
  * Stored at: auditProjection/{accountId}/entries/{entryId}
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_AUDIT
  */
 
@@ -18,12 +18,15 @@ export interface AuditProjectionEntry {
   actorId: string;
   targetId?: string;
   summary: string;
+  /** traceId carried from the originating EventEnvelope [R8] */
+  traceId?: string;
   metadata?: Record<string, unknown>;
   occurredAt: ReturnType<typeof serverTimestamp>;
 }
 
 /**
  * Appends an audit event to the account audit projection.
+ * traceId should be forwarded from the originating EventEnvelope [R8].
  */
 export async function appendAuditEntry(
   accountId: string,

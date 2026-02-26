@@ -1,5 +1,5 @@
 // [職責] 事件發布/訂閱引擎 (The Bus)
-// Per logic-overview.v3.md:
+// Per logic-overview.md:
 //   WORKSPACE_EVENT_BUS -.->|事件契約遵循| SK_EVENT_ENVELOPE
 //   WORKSPACE_EVENT_BUS --> TRACE_IDENTIFIER (Observability)
 //   WORKSPACE_EVENT_BUS --> DOMAIN_METRICS   (Observability)
@@ -10,8 +10,8 @@ import type {
   SubscribeFn,
   WorkspaceEventPayloadMap,
 } from "./_events"
-import type { ImplementsEventEnvelopeContract } from "@/shared-kernel/events/event-envelope"
-import { recordEventPublished } from "@/shared/observability"
+import type { ImplementsEventEnvelopeContract } from '@/features/shared.kernel.event-envelope'
+import { recordEventPublished } from "@/features/infra.observability"
 
 // A map where keys are event names (strings) and values are arrays of handler functions (Observers).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

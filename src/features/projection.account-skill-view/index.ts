@@ -4,7 +4,7 @@
  * Account skill XP read model.
  * Tier is NEVER stored; callers compute it via resolveSkillTier(xp) from shared/lib.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   EVENT_FUNNEL_INPUT → ACCOUNT_SKILL_VIEW
  *   ACCOUNT_SKILL_VIEW -.→ getTier 計算（不存 DB）
  */

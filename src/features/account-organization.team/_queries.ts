@@ -6,7 +6,7 @@
  * Teams are stored as `accounts/{orgId}.teams[]` (type === 'internal').
  * onSnapshot on the org account document provides real-time updates.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   ORGANIZATION_TEAM["organization-governance.team（團隊管理 · 內部組視圖）"]
  *   ORGANIZATION_TEAM -.->|組內帳號標籤聚合視圖（唯讀）| SKILL_TAG_POOL
  *

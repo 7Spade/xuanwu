@@ -1,7 +1,7 @@
 /**
  * projection.registry — Event stream offset + read model version table.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  * - EVENT_FUNNEL_INPUT →|更新事件串流偏移量| PROJECTION_VERSION
  * - PROJECTION_VERSION →|提供 read-model 對應版本| READ_MODEL_REGISTRY
  */

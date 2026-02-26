@@ -38,9 +38,8 @@ export function useDailyActions() {
       }
 
       try {
-        // Here we could implement an optimistic update to the local state
-        // for a more responsive UI, before waiting for the backend call.
-        await toggleLikeAction(activeAccount.id, logId, user.id);
+        const result = await toggleLikeAction(activeAccount.id, logId, user.id);
+        if (!result.success) throw new Error(result.error.message);
       } catch (error) {
         console.error("Failed to toggle like:", error);
         toast({

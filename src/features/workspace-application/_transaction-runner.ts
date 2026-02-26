@@ -5,7 +5,7 @@
  * Provides an Outbox for collecting domain events during execution.
  * After handler completion, appends all events to the workspace event store.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  * - WORKSPACE_POLICY_ENGINE → WORKSPACE_TRANSACTION_RUNNER
  * - WORKSPACE_TRANSACTION_RUNNER → WORKSPACE_AGGREGATE
  * - WORKSPACE_AGGREGATE → WORKSPACE_EVENT_STORE
@@ -17,7 +17,7 @@
 
 import { appendDomainEvent } from '@/features/workspace-core.event-store';
 import { createOutbox, type Outbox, type OutboxEvent } from './_outbox';
-import { generateTraceId, logDomainError } from '@/shared/observability';
+import { generateTraceId, logDomainError } from '@/features/infra.observability';
 
 export interface TransactionContext {
   workspaceId: string;

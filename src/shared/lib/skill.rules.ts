@@ -2,25 +2,21 @@
  * @fileoverview shared/lib/skill — Skill domain utilities backed by shared-kernel.
  * No async, no I/O, no React, no Firebase.
  *
- * Cross-BC tier types and computation functions live in @/shared-kernel/skills/skill-tier.
- * This module re-exports them for convenience and adds Account-BC-specific helpers
- * that require SkillGrant (a Firestore-backed Account BC type).
+ * Type definitions live in @/shared/types/skill.types.
+ * Runtime functions (resolveSkillTier, TIER_DEFINITIONS, etc.) live in
+ * @/features/shared.kernel.skill-tier — import directly from there.
  */
 
-import type { SkillGrant } from '@/shared/types'
-import type { SkillRequirement } from '@/shared-kernel/workforce/skill-requirement'
-import { getTierRank } from '@/shared-kernel/skills/skill-tier'
+import type { SkillGrant, SkillTier, SkillRequirement } from '@/shared/types'
 
-// Re-export everything from shared-kernel so callers can use @/shared/lib
-// as a single import point for skill rules.
-export {
-  TIER_DEFINITIONS,
-  resolveSkillTier,
-  getTier,
-  getTierDefinition,
-  getTierRank,
-  tierSatisfies,
-} from '@/shared-kernel/skills/skill-tier';
+// ---------------------------------------------------------------------------
+// Local tier rank lookup (avoids a feature dependency for a trivial computation)
+// ---------------------------------------------------------------------------
+
+const TIER_RANK: Readonly<Record<SkillTier, number>> = {
+  apprentice: 1, journeyman: 2, expert: 3, artisan: 4,
+  grandmaster: 5, legendary: 6, titan: 7,
+};
 
 // ---------------------------------------------------------------------------
 // Account BC helper — requires SkillGrant (has Timestamp; stays in shared/lib)
@@ -39,7 +35,7 @@ export function grantSatisfiesRequirement(
   return grants.some(g => {
     const slugMatch = g.tagSlug === requirement.tagSlug;
     const idMatch = requirement.tagId !== undefined && g.tagId !== undefined && g.tagId === requirement.tagId;
-    return (slugMatch || idMatch) && getTierRank(g.tier) >= getTierRank(requirement.minimumTier);
+    return (slugMatch || idMatch) && (TIER_RANK[g.tier] ?? 0) >= (TIER_RANK[requirement.minimumTier] ?? 0);
   });
 }
 

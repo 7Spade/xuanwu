@@ -2,6 +2,11 @@
 title: Logic Overview v8 — Production-Grade Modernized Foundation
 ---
 
+> ⚠️ **DEPRECATED** — This is a historical reference (v8).
+> The current source of truth is `docs/logic-overview.md`.
+> Do not use this file for implementation decisions.
+
+
 %% ==========================================================================
 %% LOGIC OVERVIEW v8 · 現代化生產級基礎架構（開發基礎確保無誤版本）
 %% ==========================================================================

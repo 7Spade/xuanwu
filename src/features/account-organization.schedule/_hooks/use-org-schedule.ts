@@ -6,7 +6,7 @@
  * React hook for subscribing to org schedule proposals.
  * Used by the org governance UI to display and act on pending proposals.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   ORGANIZATION_SCHEDULE → (org governance reads pending proposals via this hook)
  */
 

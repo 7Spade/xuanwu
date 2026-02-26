@@ -4,7 +4,7 @@
  * Organization-scoped eligible member read model — the ONLY source
  * organization.schedule may use to check member availability and skill tiers.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   EVENT_FUNNEL_INPUT → ORG_ELIGIBLE_MEMBER_VIEW
  *   ORG_ELIGIBLE_MEMBER_VIEW -.→ getTier 計算（不存 DB）
  *   W_B_SCHEDULE / ORGANIZATION_SCHEDULE read this view (Invariant #14)

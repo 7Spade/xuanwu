@@ -3,14 +3,22 @@
  * @description Contains framework-agnostic action functions for interactive features
  * on daily log entries. These functions can be called from React hooks, context,
  * or future Server Actions without any React dependencies.
+ *
+ * Per logic-overview.md [R4] COMMAND_RESULT_CONTRACT:
+ *   All mutations return CommandResult discriminated union.
  */
 
 import {
   toggleDailyLogLike,
   addDailyLogComment as addDailyLogCommentFacade,
   getDailyLogs as getDailyLogsFacade,
-} from "@/shared/infra/firestore/firestore.facade"
-import type { DailyLog } from "@/shared/types"
+} from "@/shared/infra/firestore/firestore.facade";
+import type { DailyLog } from "@/shared/types";
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from "@/features/shared.kernel.contract-interfaces";
 
 /**
  * Toggles a like on a daily log entry.
@@ -22,8 +30,16 @@ export async function toggleLike(
   accountId: string,
   logId: string,
   userId: string
-): Promise<void> {
-  await toggleDailyLogLike(accountId, logId, userId)
+): Promise<CommandResult> {
+  try {
+    await toggleDailyLogLike(accountId, logId, userId);
+    return commandSuccess(logId, Date.now());
+  } catch (err) {
+    return commandFailureFrom(
+      "TOGGLE_DAILY_LOG_LIKE_FAILED",
+      err instanceof Error ? err.message : "Failed to toggle daily log like"
+    );
+  }
 }
 
 /**
@@ -38,8 +54,16 @@ export async function addDailyLogComment(
   logId: string,
   author: { uid: string; name: string; avatarUrl?: string },
   content: string
-): Promise<void> {
-  await addDailyLogCommentFacade(organizationId, logId, author, content)
+): Promise<CommandResult> {
+  try {
+    await addDailyLogCommentFacade(organizationId, logId, author, content);
+    return commandSuccess(logId, Date.now());
+  } catch (err) {
+    return commandFailureFrom(
+      "ADD_DAILY_LOG_COMMENT_FAILED",
+      err instanceof Error ? err.message : "Failed to add daily log comment"
+    );
+  }
 }
 
 /**
@@ -51,5 +75,5 @@ export async function getDailyLogs(
   accountId: string,
   limit = 30
 ): Promise<DailyLog[]> {
-  return getDailyLogsFacade(accountId, limit)
+  return getDailyLogsFacade(accountId, limit);
 }

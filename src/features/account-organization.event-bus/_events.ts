@@ -3,7 +3,7 @@
  *
  * Organization domain event contracts.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   ORGANIZATION_EVENT_BUS → ORGANIZATION_SCHEDULE (ScheduleAssigned)
  *   ORGANIZATION_EVENT_BUS → |政策變更| WORKSPACE_ORG_POLICY_CACHE
  *   ORGANIZATION_EVENT_BUS → |ScheduleAssigned 含 TargetAccountID| ACCOUNT_NOTIFICATION_ROUTER
@@ -23,6 +23,15 @@ export interface ScheduleAssignedPayload {
   startDate: string;
   endDate: string;
   title: string;
+  /**
+   * Aggregate version of the org-schedule aggregate when this event was produced. [R7]
+   * Used by ELIGIBLE_UPDATE_GUARD in projection.org-eligible-member-view to enforce
+   * monotonic aggregateVersion — prevents timing races from reverting eligible state.
+   * Invariant #19: eligible update must use aggregateVersion monotonic increase as prerequisite.
+   */
+  aggregateVersion: number;
+  /** TraceID from the originating command — MUST be forwarded to FCM metadata [R8]. */
+  traceId?: string;
 }
 
 export interface OrgPolicyChangedPayload {
@@ -30,6 +39,8 @@ export interface OrgPolicyChangedPayload {
   policyId: string;
   changeType: 'created' | 'updated' | 'deleted';
   changedBy: string;
+  /** TraceID from the originating command — forwarded to notification delivery [R8]. */
+  traceId?: string;
 }
 
 export interface OrgMemberJoinedPayload {
@@ -37,6 +48,8 @@ export interface OrgMemberJoinedPayload {
   accountId: string;
   role: string;
   joinedBy: string;
+  /** TraceID from the originating command — forwarded to notification delivery [R8]. */
+  traceId?: string;
 }
 
 export interface OrgMemberLeftPayload {
@@ -99,7 +112,7 @@ export interface ScheduleAssignRejectedPayload {
 
 /**
  * Fired by ORG_SKILL_RECOGNITION when an organization grants skill recognition
- * to a member.  Per logic-overview.v3.md:
+ * to a member.  Per logic-overview.md:
  *   ORG_SKILL_RECOGNITION →|SkillRecognitionGranted| ORGANIZATION_EVENT_BUS
  */
 export interface SkillRecognitionGrantedPayload {
@@ -113,7 +126,7 @@ export interface SkillRecognitionGrantedPayload {
 
 /**
  * Fired by ORG_SKILL_RECOGNITION when an organization revokes a skill recognition.
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   ORG_SKILL_RECOGNITION →|SkillRecognitionRevoked| ORGANIZATION_EVENT_BUS
  */
 export interface SkillRecognitionRevokedPayload {
@@ -129,7 +142,7 @@ export interface SkillRecognitionRevokedPayload {
  * Mirrors ScheduleAssignRejectedPayload but represents a deliberate governance action
  * rather than an automatic skill-check failure.
  *
- * Per logic-overview_v5.md VS6:
+ * Per logic-overview.md VS6:
  *   SCHEDULE_SAGA["scheduling-saga\nScheduleAssignRejected\nScheduleProposalCancelled"]
  *   SCHEDULE_SAGA -.->|"#A5 compensating event"| ORG_EVENT_BUS
  */

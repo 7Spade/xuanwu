@@ -4,7 +4,7 @@
  * FCM Layer 3: Notification Delivery
  * Receives routed notifications, stores them in Firestore, and pushes FCM.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   ACCOUNT_USER_NOTIFICATION → FCM_GATEWAY → USER_DEVICE
  *   USER_ACCOUNT_PROFILE -.→|提供 FCM Token（唯讀查詢）| ACCOUNT_USER_NOTIFICATION
  *
@@ -33,6 +33,8 @@ export interface NotificationDeliveryInput {
   sourceEvent: string;
   sourceId: string;
   workspaceId: string;
+  /** TraceID from the originating EventEnvelope — MUST be included in FCM metadata [R8]. */
+  traceId?: string;
 }
 
 export interface DeliveryResult {
@@ -80,6 +82,8 @@ export async function deliverNotification(
     sourceEvent: input.sourceEvent,
     sourceId: isExternal ? '[redacted]' : input.sourceId,
     workspaceId: isExternal ? '[redacted]' : input.workspaceId,
+    // [R8] traceId carried from originating EventEnvelope for globalAuditView correlation
+    ...(input.traceId !== undefined && { traceId: input.traceId }),
     read: false,
     timestamp: serverTimestamp(),
   });
@@ -94,9 +98,18 @@ export async function deliverNotification(
       : undefined;
 
     if (fcmToken) {
-      // In production: call Firebase Cloud Messaging REST API or Admin SDK
-      // Here we log the intent (actual FCM call requires server-side Admin SDK)
-      console.info(`[FCM] Sending to ${targetAccountId}: ${sanitizedTitle} (token: ${fcmToken.slice(0, 8)}…)`);
+      // In production: call Firebase Cloud Messaging REST API or Admin SDK.
+      // [R8] TRACE_PROPAGATION_RULE: traceId MUST be included in FCM message data field.
+      // The FCM message must carry traceId so the device-side handler can correlate
+      // push notifications with audit records in globalAuditView.
+      const traceId = input.traceId !== undefined ? input.traceId : '';
+      // Example FCM Admin SDK call (server-side):
+      //   await fcmAdmin.send({
+      //     token: fcmToken,
+      //     notification: { title: sanitizedTitle, body: sanitizedMessage },
+      //     data: { traceId },   // ← [R8] required field
+      //   });
+      console.info(`[FCM] Sending to ${targetAccountId}: ${sanitizedTitle} (token: ${fcmToken.slice(0, 8)}…, traceId: ${traceId})`);
       fcmSent = true;
     }
   } catch {

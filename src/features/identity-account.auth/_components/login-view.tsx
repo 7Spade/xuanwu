@@ -29,10 +29,18 @@ export function LoginView() {
     setIsLoading(true)
     try {
       if (type === "login") {
-        await signIn(email, password)
+        const result = await signIn(email, password)
+        if (!result.success) {
+          toast({ variant: "destructive", title: t("auth.authenticationFailed"), description: result.error.message })
+          return
+        }
       } else {
         if (!name) throw new Error(t("auth.pleaseSetDisplayName"))
-        await completeRegistration(email, password, name)
+        const result = await completeRegistration(email, password, name)
+        if (!result.success) {
+          toast({ variant: "destructive", title: t("auth.authenticationFailed"), description: result.error.message })
+          return
+        }
       }
       toast({ title: t("auth.identityResonanceSuccessful") })
       router.push("/dashboard")
@@ -47,7 +55,11 @@ export function LoginView() {
   const handleAnonymous = async () => {
     setIsLoading(true)
     try {
-      await signInAnonymously()
+      const result = await signInAnonymously()
+      if (!result.success) {
+        toast({ variant: "destructive", title: t("auth.authenticationFailed"), description: result.error.message })
+        return
+      }
       router.push("/dashboard")
     } finally {
       setIsLoading(false)

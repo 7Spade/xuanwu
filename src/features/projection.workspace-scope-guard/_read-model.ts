@@ -9,7 +9,7 @@
  */
 
 import type { Timestamp } from 'firebase/firestore';
-import type { AuthoritySnapshot } from '@/shared-kernel/identity/authority-snapshot';
+import type { AuthoritySnapshot } from '@/features/shared.kernel.authority-snapshot';
 
 export interface WorkspaceScopeGuardView {
   readonly implementsAuthoritySnapshot: true;
@@ -19,6 +19,10 @@ export interface WorkspaceScopeGuardView {
   grantIndex: Record<string, WorkspaceScopeGrantEntry>;
   /** Latest version processed from event stream */
   readModelVersion: number;
+  /** Last aggregate version processed by this projection [S2] */
+  lastProcessedVersion?: number;
+  /** TraceId from the originating EventEnvelope [R8] */
+  traceId?: string;
   updatedAt: Timestamp;
 }
 

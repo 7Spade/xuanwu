@@ -4,7 +4,7 @@
  * Account read model + authority snapshot contract.
  * Implements shared-kernel.authority-snapshot (invariant #8).
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_VIEW
  *   ACCOUNT_USER_NOTIFICATION -.→ ACCOUNT_PROJECTION_VIEW (content filter)
  *   ACCOUNT_PROJECTION_VIEW -.→ shared-kernel.authority-snapshot

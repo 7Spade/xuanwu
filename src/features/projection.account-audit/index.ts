@@ -4,7 +4,7 @@
  * Account audit projection.
  * Fed by EVENT_FUNNEL_INPUT.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_AUDIT
  */
 

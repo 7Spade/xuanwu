@@ -4,7 +4,7 @@
  * Scope Guard dedicated read model.
  * Implements shared-kernel.authority-snapshot contract.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   ACTIVE_ACCOUNT_CONTEXT → WORKSPACE_SCOPE_READ_MODEL → WORKSPACE_SCOPE_GUARD
  *   WORKSPACE_ORG_POLICY_CACHE → (update) → WORKSPACE_SCOPE_READ_MODEL
  */

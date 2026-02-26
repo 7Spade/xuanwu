@@ -16,12 +16,14 @@ export function useMemberManagement() {
 
   const recruitMember = useCallback(async (newId: string, name: string, email: string) => {
     if (!organizationId) throw new Error('No active organization selected');
-    return recruitMemberAction(organizationId, newId, name, email);
+    const result = await recruitMemberAction(organizationId, newId, name, email);
+    if (!result.success) throw new Error(result.error.message);
   }, [organizationId]);
 
   const dismissMember = useCallback(async (member: MemberReference) => {
     if (!organizationId) throw new Error('No active organization selected');
-    return dismissMemberAction(organizationId, member);
+    const result = await dismissMemberAction(organizationId, member);
+    if (!result.success) throw new Error(result.error.message);
   }, [organizationId]);
 
   return { recruitMember, dismissMember };

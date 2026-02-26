@@ -15,12 +15,14 @@ export function useTeamManagement() {
 
   const createTeam = useCallback(async (teamName: string, type: 'internal' | 'external') => {
     if (!organizationId) throw new Error('No active organization selected');
-    return createTeamAction(organizationId, teamName, type);
+    const result = await createTeamAction(organizationId, teamName, type);
+    if (!result.success) throw new Error(result.error.message);
   }, [organizationId]);
 
   const updateTeamMembers = useCallback(async (teamId: string, memberId: string, action: 'add' | 'remove') => {
     if (!organizationId) throw new Error('No active organization selected');
-    return updateTeamMembersAction(organizationId, teamId, memberId, action);
+    const result = await updateTeamMembersAction(organizationId, teamId, memberId, action);
+    if (!result.success) throw new Error(result.error.message);
   }, [organizationId]);
 
   return { createTeam, updateTeamMembers };

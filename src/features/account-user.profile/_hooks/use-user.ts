@@ -50,7 +50,8 @@ export function useUser() {
   const updateProfile = useCallback(
     async (data: Partial<Omit<Account, 'id'>>) => {
       if (!user) throw new Error('User not authenticated.')
-      await updateUserProfileAction(user.id, data)
+      const result = await updateUserProfileAction(user.id, data)
+      if (!result.success) throw new Error(result.error.message)
     },
     [user]
   )

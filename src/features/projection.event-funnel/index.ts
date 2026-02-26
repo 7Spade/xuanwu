@@ -3,7 +3,7 @@
  *
  * EVENT_FUNNEL_INPUT: the Projection Layer's only external entry point.
  *
- * Per logic-overview_v5.md (VS8 Projection Bus):
+ * Per logic-overview.md (VS8 Projection Bus):
  *   WORKSPACE_EVENT_BUS + ORGANIZATION_EVENT_BUS + TAG_LIFECYCLE_BUS → EVENT_FUNNEL_INPUT → all projections
  *
  * Usage: call once at app startup:

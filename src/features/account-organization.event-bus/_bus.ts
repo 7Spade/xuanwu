@@ -4,13 +4,13 @@
  * In-process organization event bus.
  * Mirrors the workspace event bus pattern.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   ORGANIZATION_ENTITY → ORGANIZATION_EVENT_BUS
  *   ORGANIZATION_EVENT_BUS → all downstream listeners
  *   ORGANIZATION_EVENT_BUS -.→ shared-kernel.event-envelope（契約遵循）
  */
 
-import type { ImplementsEventEnvelopeContract } from '@/shared-kernel/events/event-envelope';
+import type { ImplementsEventEnvelopeContract } from '@/features/shared.kernel.event-envelope';
 import type { OrganizationEventPayloadMap, OrganizationEventKey } from './_events';
 
 type OrgEventHandler<K extends OrganizationEventKey> = (

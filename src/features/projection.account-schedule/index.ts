@@ -4,7 +4,7 @@
  * Account schedule projection — used by workspace-business.schedule
  * to filter available accounts for assignment.
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_SCHEDULE
  *   W_B_SCHEDULE -.→ ACCOUNT_PROJECTION_SCHEDULE (過濾可用帳號)
  */

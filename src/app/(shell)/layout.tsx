@@ -9,6 +9,7 @@
  *     @sidebar  → DashboardSidebar (peer element for CSS transitions)
  *     @modal    → global overlay surface (null by default)
  *     children  → authenticated route content (wraps in SidebarInset via nested layout)
+ * - [S6] useTokenRefreshListener: fulfils Frontend Party 3 of Claims refresh handshake
  *
  * Does NOT carry business logic.
  */
@@ -22,6 +23,7 @@ import { Loader2 } from "lucide-react";
 import { SidebarProvider } from "@/shared/shadcn-ui/sidebar";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { AccountProvider } from "@/features/workspace-core";
+import { useTokenRefreshListener } from "@/features/identity-account.auth";
 
 type ShellLayoutProps = {
   children: ReactNode;
@@ -35,6 +37,9 @@ export default function ShellLayout({ children, sidebar, modal }: ShellLayoutPro
   const { state } = useAuth();
   const { user, authInitialized } = state;
   const router = useRouter();
+
+  // [S6] Frontend Party 3 — force-refresh Firebase token on TOKEN_REFRESH_SIGNAL
+  useTokenRefreshListener(user?.id ?? null);
 
   useEffect(() => {
     if (authInitialized && !user) {

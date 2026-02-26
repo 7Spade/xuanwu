@@ -4,7 +4,7 @@
  * Append-only domain event log for workspace aggregates.
  * Stored at: workspaces/{workspaceId}/events/{eventId}
  *
- * Per logic-overview.v3.md invariant #9:
+ * Per logic-overview.md invariant #9:
  * If this event store exists, Projections MUST be fully rebuildable from events.
  * This slice is append-only — no delete or update operations.
  */

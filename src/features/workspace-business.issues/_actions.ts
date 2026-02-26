@@ -10,6 +10,11 @@ import {
   addCommentToIssue as addCommentToIssueFacade,
   resolveIssue as resolveIssueFacade,
 } from "@/shared/infra/firestore/firestore.facade"
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/features/shared.kernel.contract-interfaces';
 
 export async function createIssue(
   workspaceId: string,
@@ -17,8 +22,14 @@ export async function createIssue(
   type: "technical" | "financial",
   priority: "high" | "medium",
   sourceTaskId?: string
-): Promise<void> {
-  return createIssueFacade(workspaceId, title, type, priority, sourceTaskId)
+): Promise<CommandResult> {
+  try {
+    await createIssueFacade(workspaceId, title, type, priority, sourceTaskId);
+    return commandSuccess(workspaceId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('ISSUE_CREATE_FAILED', message);
+  }
 }
 
 export async function addCommentToIssue(
@@ -26,13 +37,25 @@ export async function addCommentToIssue(
   issueId: string,
   author: string,
   content: string
-): Promise<void> {
-  return addCommentToIssueFacade(workspaceId, issueId, author, content)
+): Promise<CommandResult> {
+  try {
+    await addCommentToIssueFacade(workspaceId, issueId, author, content);
+    return commandSuccess(issueId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('ISSUE_COMMENT_FAILED', message);
+  }
 }
 
 export async function resolveIssue(
   workspaceId: string,
   issueId: string
-): Promise<void> {
-  return resolveIssueFacade(workspaceId, issueId)
+): Promise<CommandResult> {
+  try {
+    await resolveIssueFacade(workspaceId, issueId);
+    return commandSuccess(issueId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('ISSUE_RESOLVE_FAILED', message);
+  }
 }

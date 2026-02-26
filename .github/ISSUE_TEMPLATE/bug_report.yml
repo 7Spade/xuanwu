@@ -1,0 +1,37 @@
+name: "🐞 Bug Report"
+description: 報告程式碼錯誤或異常行為
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感謝回報問題！請提供詳細資訊以利 Copilot Agent 進行自動化修復。
+  - type: input
+    id: affected_slice
+    attributes:
+      label: 受影響的架構切片 (VSA Slice)
+      placeholder: "例如: src/features/auth, src/app/@sidebar"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: 錯誤描述
+      description: 發生了什麼事？預期結果與實際結果為何？
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 重現步驟
+      description: 請提供重現此問題的步驟。
+      placeholder: |
+        1. 進入 /dashboard
+        2. 點擊 Sidebar 的某個按鈕
+        3. 看到錯誤畫面...
+  - type: input
+    id: environment
+    attributes:
+      label: 環境資訊
+      placeholder: "Next.js 16.0.x, Browser: Chrome 130"

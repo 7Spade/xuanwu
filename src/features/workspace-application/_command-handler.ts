@@ -5,7 +5,7 @@
  * Orchestrates the full command processing pipeline:
  *   ScopeGuard → PolicyEngine → TransactionRunner → Outbox flush
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  * - SERVER_ACTION →|發送 Command| WORKSPACE_COMMAND_HANDLER
  * - WORKSPACE_COMMAND_HANDLER → WORKSPACE_SCOPE_GUARD
  * - WORKSPACE_COMMAND_HANDLER --> TRACE_IDENTIFIER (Observability)
@@ -31,7 +31,7 @@
 import { checkWorkspaceAccess } from './_scope-guard';
 import { evaluatePolicy, type WorkspaceRole } from './_policy-engine';
 import { runTransaction, type TransactionContext } from './_transaction-runner';
-import { createTraceContext, logDomainError } from '@/shared/observability';
+import { createTraceContext, logDomainError } from '@/features/infra.observability';
 
 export interface WorkspaceCommand {
   workspaceId: string;
@@ -40,7 +40,14 @@ export interface WorkspaceCommand {
   action: string;
 }
 
-export interface CommandResult<T = void> {
+/**
+ * Application-layer executor result — returned by executeCommand.
+ * NOTE: This is NOT the domain-level CommandResult from shared.kernel.contract-interfaces [R4].
+ * The canonical CommandResult (CommandSuccess | CommandFailure discriminated union) lives in
+ * shared.kernel.contract-interfaces and is used by _actions.ts exports.
+ * This type is workspace-application-internal only; do NOT re-export it.
+ */
+export interface WorkspaceExecutorResult<T = void> {
   success: boolean;
   value?: T;
   error?: string;
@@ -57,7 +64,7 @@ export async function executeCommand<T>(
   command: WorkspaceCommand,
   handler: (ctx: TransactionContext) => Promise<T>,
   publish?: (type: string, payload: unknown) => void
-): Promise<CommandResult<T>> {
+): Promise<WorkspaceExecutorResult<T>> {
   // TRACE_IDENTIFIER — create trace context for this command chain
   const trace = createTraceContext(`executeCommand:${command.action}`);
 

@@ -7,7 +7,7 @@
  * Tier is NEVER read from Firestore; it is computed at query time via resolveSkillTier(xp)
  * from shared/lib (Invariant #12).
  *
- * Per logic-overview.v3.md:
+ * Per logic-overview.md:
  *   W_B_SCHEDULE -.→ ORG_ELIGIBLE_MEMBER_VIEW (查詢可用帳號 · eligible=true · 只讀)
  *   ORGANIZATION_SCHEDULE reads this view (Invariant #14)
  *   ORG_ELIGIBLE_MEMBER_VIEW -.→ getTier 計算（不存 DB）
@@ -16,7 +16,7 @@
 import { getDocs, collection, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { resolveSkillTier } from '@/shared-kernel/skills/skill-tier';
+import { resolveSkillTier } from '@/features/shared.kernel.skill-tier';
 import type { SkillTier } from '@/shared/types';
 import type { OrgEligibleMemberEntry } from './_projector';
 

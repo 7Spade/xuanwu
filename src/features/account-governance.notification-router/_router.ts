@@ -5,7 +5,7 @@
  * Routes organization events to the correct target account notification slice
  * based on TargetAccountID.
  *
- * Per logic-overview.v3.md [E3]:
+ * Per logic-overview.md [E3]:
  *   IER →|ScheduleAssigned| ACCOUNT_NOTIFICATION_ROUTER
  *   ACCOUNT_NOTIFICATION_ROUTER →|路由至目標帳號| ACCOUNT_USER_NOTIFICATION
  *
@@ -42,6 +42,8 @@ export function registerNotificationRouter(): RouterRegistration {
         sourceEvent: 'organization:schedule:assigned',
         sourceId: payload.scheduleItemId,
         workspaceId: payload.workspaceId,
+        // [R8] forward traceId from the originating event envelope
+        traceId: payload.traceId,
       });
     })
   );
@@ -57,6 +59,8 @@ export function registerNotificationRouter(): RouterRegistration {
         sourceEvent: 'organization:policy:changed',
         sourceId: payload.policyId,
         workspaceId: payload.orgId,
+        // [R8] forward traceId from the originating event envelope
+        traceId: payload.traceId,
       });
     })
   );
@@ -71,6 +75,8 @@ export function registerNotificationRouter(): RouterRegistration {
         sourceEvent: 'organization:member:joined',
         sourceId: payload.orgId,
         workspaceId: payload.orgId,
+        // [R8] forward traceId from the originating event envelope
+        traceId: payload.traceId,
       });
     })
   );

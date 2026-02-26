@@ -6,7 +6,7 @@
  *                       (see shared/constants/skills.ts — no Firestore, no org dependency)
  *   - SkillGrant      = assignment of a skill + tier to an individual user (the "who has it")
  *                       Stored permanently on accounts/{userId} — survives org deletion.
- *   - SkillRequirement = cross-BC staffing contract — see @/shared-kernel/workforce/skill-requirement
+ *   - SkillRequirement = cross-BC staffing contract — see @/features/shared.kernel.skill-tier
  *
  * Key decisions:
  *   - The skill library is static code, not a Firestore collection.
@@ -18,12 +18,51 @@
 
 import type { Timestamp } from 'firebase/firestore'
 
-// SkillTier and SkillRequirement are cross-BC contracts — defined in shared-kernel.
-// Imported locally so they are available within this file, and re-exported so
-// existing @/shared/types imports continue to work.
-import type { SkillTier } from '@/shared-kernel/skills/skill-tier';
-export type { SkillTier, TierDefinition } from '@/shared-kernel/skills/skill-tier';
-export type { SkillRequirement } from '@/shared-kernel/workforce/skill-requirement';
+// ---------------------------------------------------------------------------
+// Skill tier & requirement — canonical type definitions
+// (runtime functions live in @/features/shared.kernel.skill-tier)
+// ---------------------------------------------------------------------------
+
+/**
+ * Seven-tier proficiency scale.
+ * Values are stable identifiers (safe for Firestore storage & AI prompts).
+ */
+export type SkillTier =
+  | 'apprentice'    // Tier 1 — 0–75 XP
+  | 'journeyman'    // Tier 2 — 75–150 XP
+  | 'expert'        // Tier 3 — 150–225 XP
+  | 'artisan'       // Tier 4 — 225–300 XP
+  | 'grandmaster'   // Tier 5 — 300–375 XP  (core colour)
+  | 'legendary'     // Tier 6 — 375–450 XP
+  | 'titan';        // Tier 7 — 450–525 XP
+
+/** Static metadata for a single tier. Used by UI and shared/lib. */
+export interface TierDefinition {
+  tier: SkillTier;
+  /** Ordinal position (1 = lowest). Used for tier comparison without importing runtime functions. */
+  rank: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  /** Display name shown in UI badges (e.g. "Apprentice", "Grandmaster"). */
+  label: string;
+  /** Inclusive lower XP bound for this tier. */
+  minXp: number;
+  /** Exclusive upper XP bound (last tier uses Number.MAX_SAFE_INTEGER as sentinel). */
+  maxXp: number;
+  /** Hex colour used for the badge background / ring (e.g. `"#9333ea"`). */
+  color: string;
+  /** CSS custom property name for theming (e.g. `"--tier-grandmaster"`). */
+  cssVar: string;
+}
+
+/**
+ * Expresses a staffing need inside a ScheduleItem proposal.
+ * Flows from Workspace BC → Organization BC via WORKSPACE_OUTBOX events.
+ */
+export interface SkillRequirement {
+  tagSlug: string;
+  tagId?: string;
+  minimumTier: SkillTier;
+  quantity: number;
+}
 
 // ---------------------------------------------------------------------------
 // Global skill-tag library (static reference type)
@@ -77,12 +116,12 @@ export interface SkillGrant {
   tagId?: string;
   /**
    * Proficiency tier — set manually by an admin or derived from `xp` via
-   * resolveSkillTier() in @/shared-kernel/skills/skill-tier.
+   * resolveSkillTier() in @/features/shared.kernel.skill-tier.
    */
   tier: SkillTier;
   /**
    * Accumulated XP (0–525).
-   * Drives tier progression; use resolveSkillTier(xp) from @/shared-kernel/skills/skill-tier.
+   * Drives tier progression; use resolveSkillTier(xp) from @/features/shared.kernel.skill-tier.
    */
   xp: number;
   /** The organisation in which this XP was earned (audit trail). */

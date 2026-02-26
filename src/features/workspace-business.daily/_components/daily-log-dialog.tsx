@@ -108,12 +108,13 @@ export function DailyLogDialog({ log, currentUser, isOpen, onOpenChange }: Daily
       if (!newComment.trim() || !log || !authState.user) return;
       setIsPosting(true);
       try {
-          await addDailyLogComment(
+          const result = await addDailyLogComment(
               log.accountId,
               log.id,
               { uid: authState.user.id, name: authState.user.name || "Anonymous", avatarUrl: authState.user.photoURL || "" },
               newComment
           );
+          if (!result.success) throw new Error(result.error.message);
           setNewComment("");
       } catch (error) {
           console.error("Failed to post comment:", error);

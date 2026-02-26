@@ -2,6 +2,11 @@
 title: Logic Overview v7 — Deep Runtime Efficiency & Consistency
 ---
 
+> ⚠️ **DEPRECATED** — This is a historical reference (v7).
+> The current source of truth is `docs/logic-overview.md`.
+> Do not use this file for implementation decisions.
+
+
 %% ==========================================================================
 %% LOGIC OVERVIEW v7 · 深層運行效率與一致性架構
 %% ==========================================================================

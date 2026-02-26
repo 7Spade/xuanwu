@@ -1,0 +1,37 @@
+name: "🚀 Feature Request"
+description: 提出新功能或改進建議
+title: "[Feature]: "
+labels: ["feature"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 此功能解決了什麼問題？
+      description: 請描述目前缺少的功能或痛點。
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: 預期的解決方案
+      description: 描述你希望如何實作此功能。
+      placeholder: "在 src/features/user 中新增 profile 修改功能，並透過 Server Actions 實作。"
+  - type: dropdown
+    id: architecture_impact
+    attributes:
+      label: 架構影響範圍
+      options:
+        - 新增 Feature Slice
+        - 修改現有 Feature Slice
+        - 僅修改 src/app (Composition)
+        - 修改 src/shared (Infrastructure)
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 開發檢查表
+      options:
+        - label: 我已確認此功能符合 Vertical Slice Architecture 規範
+        - label: 需要新增或更新 Server Actions
+        - label: 需要更新 Parallel Routes / Slots
