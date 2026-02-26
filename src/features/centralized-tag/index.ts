@@ -3,7 +3,7 @@
  *
  * CENTRALIZED_TAG_AGGREGATE: global semantic dictionary / Tag Authority Center.
  *
- * Per logic-overview_v5.md (VS0 Tag Authority Center):
+ * Per logic-overview_v9.md (VS0 Tag Authority Center):
  *   - This slice is the sole global authority for tagSlug semantics.
  *   - All other slices hold READ-ONLY tagSlug references; they must not maintain
  *     their own tag master data (Invariant #17, T1).

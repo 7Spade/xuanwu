@@ -1,27 +1,25 @@
 /**
  * infra.event-router — Public API
  *
- * [IER] 事件路由中心 (分流不同 Lanes [R2])
+ * [IER] Integration Event Router — CRITICAL/STANDARD/BACKGROUND lanes [R2]
  *
- * Per tree.md: infra.event-router = Integration Event Router
- *   — Receives events from infra.outbox-relay.
- *   — Routes events to the correct Lane:
- *       CRITICAL_LANE  — wallet, auth, claims (strong consistency)
- *       STANDARD_LANE  — schedule, roles (eventual consistency)
- *       BACKGROUND_LANE — tags, audit, notifications (fire-and-forget)
- *   — Fan-out to registered subscribers per event type.
+ * Per logic-overview_v9.md [R2]:
+ *   OUTBOX_RELAY_WORKER delivers to IER → IER fan-outs to lane subscribers.
  *
- * TODO: Implement IER with lane classification and subscriber registry.
- *
- * Lane definitions per R2:
+ * Lane definitions:
  *   CRITICAL_LANE:    WalletDeducted, ClaimsRefreshed, RoleChanged
  *   STANDARD_LANE:    ScheduleAssigned, MemberJoined, MemberRemoved
  *   BACKGROUND_LANE:  TagCreated, TagUpdated, AuditLogged, FCMDelivered
+ *
+ * Usage (application bootstrap):
+ *   import { registerSubscriber, publishToLane } from '@/features/infra.event-router';
+ *   import { startOutboxRelay } from '@/features/infra.outbox-relay';
+ *
+ *   registerSubscriber('tag:created', onTagCreated, 'BACKGROUND_LANE');
+ *   startOutboxRelay('tagOutbox', publishToLane);
  */
 
 /** IER delivery lane classification. [R2] */
-export type IerLane = 'CRITICAL_LANE' | 'STANDARD_LANE' | 'BACKGROUND_LANE';
+export type { IerLane } from './_router';
 
-// Placeholder — full routing implementation pending.
-// Once implemented, export: registerSubscriber, publishToLane, type LaneSubscriber
-export {};
+export { registerSubscriber, routeEvent, publishToLane } from './_router';

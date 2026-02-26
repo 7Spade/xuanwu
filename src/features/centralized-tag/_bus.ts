@@ -4,7 +4,7 @@
  * In-process tag lifecycle event bus.
  * Mirrors the organization event bus pattern.
  *
- * Per logic-overview_v5.md (VS0):
+ * Per logic-overview_v9.md (VS0):
  *   CTA -->|"標籤異動廣播"| TAG_EVENTS --> IER
  *   TAG_EVENTS -.->|"契約遵循"| SK_ENV
  */

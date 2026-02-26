@@ -3,7 +3,7 @@
  *
  * CENTRALIZED_TAG_AGGREGATE: global semantic dictionary for tagSlugs.
  *
- * Per logic-overview_v5.md (VS0 Tag Authority Center):
+ * Per logic-overview_v9.md (VS0 Tag Authority Center):
  *   CTA["centralized-tag.aggregate\n【語義字典主數據】\ntagSlug / label / category\ndeprecatedAt / deleteRule\n唯一性 & 刪除規則管理"]
  *
  * Invariants:
@@ -21,6 +21,39 @@ import {
 } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { publishTagEvent } from './_bus';
+
+// ---------------------------------------------------------------------------
+// Outbox helper [Q2] — writes a pending OutboxDocument to tagOutbox/{id}
+// The OUTBOX_RELAY_WORKER (infra.outbox-relay) picks this up via CDC and
+// delivers it to IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER.
+// ---------------------------------------------------------------------------
+
+async function writeTagOutbox(
+  eventType: string,
+  tagSlug: string,
+  payload: unknown
+): Promise<void> {
+  const outboxId = crypto.randomUUID();
+  const occurredAt = new Date().toISOString();
+  const envelope = {
+    eventId: outboxId,
+    eventType,
+    occurredAt,
+    sourceId: tagSlug,
+    payload,
+    idempotencyKey: `${outboxId}__${tagSlug}`,
+  };
+
+  await setDocument<Record<string, unknown>>(`tagOutbox/${outboxId}`, {
+    outboxId,
+    eventType,
+    envelopeJson: JSON.stringify(envelope),
+    lane: 'BACKGROUND_LANE',
+    status: 'pending',
+    createdAt: occurredAt,
+    attemptCount: 0,
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -80,13 +113,11 @@ export async function createTag(
 
   await setDocument(path, entry);
 
-  await publishTagEvent('tag:created', {
-    tagSlug,
-    label,
-    category,
-    createdBy,
-    createdAt: now,
-  });
+  const createdPayload = { tagSlug, label, category, createdBy, createdAt: now };
+  await writeTagOutbox('tag:created', tagSlug, createdPayload).catch((err) =>
+    console.error('[centralized-tag] tagOutbox write failed for tag:created', tagSlug, err)
+  );
+  await publishTagEvent('tag:created', createdPayload);
 }
 
 /**
@@ -116,13 +147,11 @@ export async function updateTag(
     updatedAt: now,
   });
 
-  await publishTagEvent('tag:updated', {
-    tagSlug,
-    label: newLabel,
-    category: newCategory,
-    updatedBy,
-    updatedAt: now,
-  });
+  const updatedPayload = { tagSlug, label: newLabel, category: newCategory, updatedBy, updatedAt: now };
+  await writeTagOutbox('tag:updated', tagSlug, updatedPayload).catch((err) =>
+    console.error('[centralized-tag] tagOutbox write failed for tag:updated', tagSlug, err)
+  );
+  await publishTagEvent('tag:updated', updatedPayload);
 }
 
 /**
@@ -150,12 +179,11 @@ export async function deprecateTag(
     updatedAt: now,
   });
 
-  await publishTagEvent('tag:deprecated', {
-    tagSlug,
-    replacedByTagSlug,
-    deprecatedBy,
-    deprecatedAt: now,
-  });
+  const deprecatedPayload = { tagSlug, replacedByTagSlug, deprecatedBy, deprecatedAt: now };
+  await writeTagOutbox('tag:deprecated', tagSlug, deprecatedPayload).catch((err) =>
+    console.error('[centralized-tag] tagOutbox write failed for tag:deprecated', tagSlug, err)
+  );
+  await publishTagEvent('tag:deprecated', deprecatedPayload);
 }
 
 /**
@@ -175,11 +203,11 @@ export async function deleteTag(tagSlug: string, deletedBy: string): Promise<voi
 
   await deleteDocument(path);
 
-  await publishTagEvent('tag:deleted', {
-    tagSlug,
-    deletedBy,
-    deletedAt: new Date().toISOString(),
-  });
+  const deletedPayload = { tagSlug, deletedBy, deletedAt: new Date().toISOString() };
+  await writeTagOutbox('tag:deleted', tagSlug, deletedPayload).catch((err) =>
+    console.error('[centralized-tag] tagOutbox write failed for tag:deleted', tagSlug, err)
+  );
+  await publishTagEvent('tag:deleted', deletedPayload);
 }
 
 /**
