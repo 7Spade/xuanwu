@@ -207,9 +207,11 @@ export function registerOrganizationFunnel(): () => void {
 
   // SkillXpAdded → ACCOUNT_SKILL_VIEW + ORG_ELIGIBLE_MEMBER_VIEW
   // Invariant #12: newXp is stored; tier is NEVER stored — derived at query time via resolveSkillTier(xp).
+  // [S2] aggregateVersion forwarded so the account-skill-view version guard fires.
+  // [R8] traceId forwarded into accountSkillView for end-to-end trace propagation.
   unsubscribers.push(
     onOrgEvent('organization:skill:xpAdded', async (payload) => {
-      await applySkillXpAdded(payload.accountId, payload.skillId, payload.newXp);
+      await applySkillXpAdded(payload.accountId, payload.skillId, payload.newXp, payload.aggregateVersion, payload.traceId);
       await applyOrgMemberSkillXp({
         orgId: payload.orgId,
         accountId: payload.accountId,
@@ -223,9 +225,11 @@ export function registerOrganizationFunnel(): () => void {
   );
 
   // SkillXpDeducted → ACCOUNT_SKILL_VIEW + ORG_ELIGIBLE_MEMBER_VIEW
+  // [S2] aggregateVersion forwarded so the account-skill-view version guard fires.
+  // [R8] traceId forwarded into accountSkillView for end-to-end trace propagation.
   unsubscribers.push(
     onOrgEvent('organization:skill:xpDeducted', async (payload) => {
-      await applySkillXpDeducted(payload.accountId, payload.skillId, payload.newXp);
+      await applySkillXpDeducted(payload.accountId, payload.skillId, payload.newXp, payload.aggregateVersion, payload.traceId);
       await applyOrgMemberSkillXp({
         orgId: payload.orgId,
         accountId: payload.accountId,
