@@ -21,7 +21,13 @@ import { getWalletBalance } from '@/features/account-user.wallet';
 
 /**
  * Register all four v9 QUERY_ROUTES with their projection handlers.
- * Returns an array of un-register functions for cleanup (tests / hot-reload).
+ *
+ * Call once at app startup after all projection slices are initialized,
+ * following the same pattern as registerWorkspaceFunnel().
+ * Calling this multiple times is safe — registerQuery() overwrites any
+ * existing handler with the same name.
+ *
+ * @returns Array of un-register functions for cleanup in tests or hot-reload.
  */
 export function registerAllQueryHandlers(): Array<() => void> {
   const unregOrgEligible = registerQuery(

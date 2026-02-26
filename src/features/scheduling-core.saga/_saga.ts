@@ -96,7 +96,11 @@ async function updateSagaStatus(
 
 function tierIndex(tier: string): number {
   const idx = TIER_ORDER.indexOf(tier as Tier);
-  return idx === -1 ? 0 : idx;
+  if (idx === -1) {
+    console.warn(`[scheduling-core.saga] Unknown tier value "${tier}", defaulting to 0 (apprentice).`);
+    return 0;
+  }
+  return idx;
 }
 
 // ---------------------------------------------------------------------------
@@ -156,6 +160,7 @@ export async function startSchedulingSaga(
   });
 
   const eligibleMembers = await getOrgEligibleMembersWithTier(event.orgId);
+  // requirements = [] means "any eligible member can be assigned" (no skill filtering)
   const requirements = event.skillRequirements ?? [];
 
   const candidate = eligibleMembers.find((member) => {
@@ -173,13 +178,14 @@ export async function startSchedulingSaga(
       requirements.length > 0
         ? `No eligible member found matching skills: ${requirements.map((r) => r.tagSlug).join(', ')}`
         : 'No eligible members found in org-eligible-member-view.';
+    const completedAt = new Date().toISOString();
     await updateSagaStatus(sagaId, {
       status: 'compensated',
       currentStep: 'compensate',
       compensationReason: reason,
-      completedAt: new Date().toISOString(),
+      completedAt,
     });
-    return { ...initialState, status: 'compensated', currentStep: 'compensate', compensationReason: reason };
+    return { ...initialState, status: 'compensated', currentStep: 'compensate', compensationReason: reason, completedAt, updatedAt: completedAt };
   }
 
   const approvalResult = await approveOrgScheduleProposal(
@@ -197,24 +203,28 @@ export async function startSchedulingSaga(
   );
 
   if (approvalResult.outcome === 'confirmed') {
+    const completedAt = new Date().toISOString();
     await updateSagaStatus(sagaId, {
       status: 'assigned',
       currentStep: 'assign',
-      completedAt: new Date().toISOString(),
+      completedAt,
     });
-    return { ...initialState, status: 'assigned', currentStep: 'assign' };
+    return { ...initialState, status: 'assigned', currentStep: 'assign', completedAt, updatedAt: completedAt };
   }
 
+  const completedAt = new Date().toISOString();
   await updateSagaStatus(sagaId, {
     status: 'compensated',
     currentStep: 'compensate',
     compensationReason: approvalResult.reason,
-    completedAt: new Date().toISOString(),
+    completedAt,
   });
   return {
     ...initialState,
     status: 'compensated',
     currentStep: 'compensate',
     compensationReason: approvalResult.reason,
+    completedAt,
+    updatedAt: completedAt,
   };
 }
