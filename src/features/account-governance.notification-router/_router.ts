@@ -59,6 +59,7 @@ export function registerNotificationRouter(): RouterRegistration {
         sourceEvent: 'organization:policy:changed',
         sourceId: payload.policyId,
         workspaceId: payload.orgId,
+        // [R8] forward traceId from the originating event envelope
         traceId: payload.traceId,
       });
     })
@@ -74,6 +75,7 @@ export function registerNotificationRouter(): RouterRegistration {
         sourceEvent: 'organization:member:joined',
         sourceId: payload.orgId,
         workspaceId: payload.orgId,
+        // [R8] forward traceId from the originating event envelope
         traceId: payload.traceId,
       });
     })
