@@ -1,7 +1,7 @@
 /**
  * shared.kernel.read-consistency — SK_READ_CONSISTENCY [S3]
  *
- * Per logic-overview_v10.md [S3]:
+ * Per logic-overview.md [S3]:
  *   精確交易 → 回源 Aggregate；顯示/統計 → Projection
  *   是可重用的全域讀模式規則
  *

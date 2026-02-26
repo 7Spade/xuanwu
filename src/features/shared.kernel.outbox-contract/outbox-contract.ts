@@ -1,7 +1,7 @@
 /**
  * shared.kernel.outbox-contract — SK_OUTBOX_CONTRACT [S1]
  *
- * Per logic-overview_v10.md [S1]:
+ * Per logic-overview.md [S1]:
  *   所有 OUTBOX 共用的行為規格（三要素缺一不可）：
  *   ① at-least-once：EventBus(in-process) → OUTBOX → RELAY → IER
  *   ② idempotency-key 必帶（eventId + aggId + version）

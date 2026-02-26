@@ -1,7 +1,7 @@
 /**
  * shared.kernel.resilience-contract — SK_RESILIENCE_CONTRACT [S5]
  *
- * Per logic-overview_v10.md [S5]:
+ * Per logic-overview.md [S5]:
  *   所有外部觸發入口的最低防護規格（不是 GW 內部實作細節）
  *
  *   R1 rate-limit：per user ∪ per org，超限 429 + retry-after header

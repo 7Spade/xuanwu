@@ -3,7 +3,7 @@
  *
  * SK_TOKEN_REFRESH_CONTRACT [S6] — Claims refresh three-way handshake protocol.
  *
- * Per logic-overview_v10.md [S6]:
+ * Per logic-overview.md [S6]:
  *   Shared by VS1 (emitter), IER (router), and frontend (consumer).
  *   Trigger: RoleChanged | PolicyChanged → IER CRITICAL_LANE → CLAIMS_HANDLER
  *   Signal:  TOKEN_REFRESH_SIGNAL (on success)

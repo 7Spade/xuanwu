@@ -1,7 +1,7 @@
 /**
  * shared.kernel.staleness-contract — SK_STALENESS_CONTRACT [S4]
  *
- * Per logic-overview_v10.md [S4]:
+ * Per logic-overview.md [S4]:
  *   全系統 Staleness SLA 常數（單一真相來源）
  *
  *   TAG_MAX_STALENESS    ≤ 30s   — tag 派生資料（SKILL_TAG_POOL / TAG_SNAPSHOT）

@@ -1,7 +1,7 @@
 /**
  * shared.kernel.token-refresh-contract — SK_TOKEN_REFRESH_CONTRACT [S6]
  *
- * Per logic-overview_v10.md [S6]:
+ * Per logic-overview.md [S6]:
  *   Claims 刷新是跨 VS1 / IER / 前端 的三方協議，不只是 VS1 內部邏輯
  *
  *   觸發條件：RoleChanged | PolicyChanged → IER CRITICAL_LANE → CLAIMS_HANDLER

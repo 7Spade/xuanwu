@@ -1,7 +1,7 @@
 /**
  * shared.kernel.version-guard — SK_VERSION_GUARD [S2]
  *
- * Per logic-overview_v10.md [S2]:
+ * Per logic-overview.md [S2]:
  *   所有 Projection 消費事件時的防亂序全域原則（不限於 eligible-view）
  *
  *   event.aggregateVersion > view.lastProcessedVersion → 允許寫入

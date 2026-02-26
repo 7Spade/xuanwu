@@ -5,7 +5,7 @@
 Vertical feature slices. Each slice is the **single source of truth** for its business domain —
 it owns types, server actions, queries, hooks, and UI components.
 
-> **Architecture reference:** `docs/overview/logic-overview_v10.md` (唯一事實來源)
+> **Architecture reference:** `docs/logic-overview.md` (唯一事實來源)
 > v9 → v10 change: six new VS0 infrastructure behavior contracts (S1~S6) added to shared.kernel.
 
 ## The Golden Rule

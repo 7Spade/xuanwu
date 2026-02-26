@@ -3,7 +3,7 @@
  *
  * SK_RESILIENCE_CONTRACT [S5] — minimum resilience spec for all external entry points.
  *
- * Per logic-overview_v10.md [S5]:
+ * Per logic-overview.md [S5]:
  *   R1 rate-limit (per user ∪ per org → 429 + retry-after)
  *   R2 circuit-break (5 consecutive 5xx → open; half-open probe recovery)
  *   R3 bulkhead (slice isolation; fault containment)

@@ -3,7 +3,7 @@
  *
  * SK_READ_CONSISTENCY [S3] — read consistency routing contract.
  *
- * Per logic-overview_v10.md [S3]:
+ * Per logic-overview.md [S3]:
  *   Unified read-pattern decision standard for all slices.
  *   STRONG_READ → Domain Aggregate; EVENTUAL_READ → Projection.
  *

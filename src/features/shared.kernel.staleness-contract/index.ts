@@ -3,7 +3,7 @@
  *
  * SK_STALENESS_CONTRACT [S4] — global staleness SLA constants.
  *
- * Per logic-overview_v10.md [S4]:
+ * Per logic-overview.md [S4]:
  *   Single source of truth for all staleness SLA values.
  *   Consumer nodes reference this slice — do NOT hardcode values locally.
  *
