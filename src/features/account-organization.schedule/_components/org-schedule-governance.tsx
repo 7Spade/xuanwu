@@ -27,6 +27,9 @@ import type { OrgScheduleProposal } from '../_schedule';
 import type { SkillRequirement } from '@/shared/types';
 import { getOrgEligibleMembersWithTier } from '@/features/projection.org-eligible-member-view';
 import type { OrgEligibleMemberView } from '@/features/projection.org-eligible-member-view';
+import { tierSatisfies } from '@/features/shared.kernel.skill-tier';
+import { subscribeToOrgMembers } from '@/features/account-organization.member';
+import type { MemberReference } from '@/shared/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import { Button } from '@/shared/shadcn-ui/button';
@@ -47,6 +50,9 @@ import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
 /**
  * Computes how many of the proposal's skill requirements the given member satisfies.
  * Returns [matched, total].
+ *
+ * Uses tierSatisfies from shared.kernel.skill-tier so comparison is against
+ * the canonical SkillTier values ('apprentice'..'titan'), not ad-hoc strings.
  */
 function computeSkillMatch(
   member: OrgEligibleMemberView,
@@ -56,9 +62,7 @@ function computeSkillMatch(
   const matched = skillRequirements.filter((req) => {
     const skill = member.skills.find((s) => s.skillId === req.tagSlug);
     if (!skill) return false;
-    // Compare tier levels: tier values are strings like 'F' 'E' 'D' 'C' 'B' 'A' 'S'
-    const tierOrder = ['F', 'E', 'D', 'C', 'B', 'A', 'S'];
-    return tierOrder.indexOf(skill.tier) >= tierOrder.indexOf(req.minimumTier);
+    return tierSatisfies(skill.tier, req.minimumTier);
   }).length;
   return [matched, skillRequirements.length];
 }
@@ -248,10 +252,12 @@ function ProposalRow({
 interface ConfirmedRowProps {
   proposal: OrgScheduleProposal;
   completedBy: string;
+  /** O(1) lookup map: accountId → display name. */
+  orgMemberMap: Map<string, string>;
   onCompleted: () => void;
 }
 
-function ConfirmedRow({ proposal, completedBy, onCompleted }: ConfirmedRowProps) {
+function ConfirmedRow({ proposal, completedBy, orgMemberMap, onCompleted }: ConfirmedRowProps) {
   const [loading, setLoading] = useState(false);
 
   const handleComplete = useCallback(async () => {
@@ -287,7 +293,7 @@ function ConfirmedRow({ proposal, completedBy, onCompleted }: ConfirmedRowProps)
           </p>
           {proposal.targetAccountId && (
             <p className="text-xs text-muted-foreground">
-              指派成員：{proposal.targetAccountId}
+              指派成員：{orgMemberMap.get(proposal.targetAccountId) ?? proposal.targetAccountId}
             </p>
           )}
         </div>
@@ -323,18 +329,27 @@ function ConfirmedRow({ proposal, completedBy, onCompleted }: ConfirmedRowProps)
  */
 export function OrgScheduleGovernance() {
   const { state: appState } = useApp();
-  const { activeAccount, accounts } = appState;
+  const { activeAccount } = appState;
   const router = useRouter();
 
   const orgId = activeAccount?.accountType === 'organization' ? activeAccount.id : null;
   const { proposals: pending, loading: pendingLoading } = usePendingScheduleProposals(orgId);
   const { proposals: confirmed, loading: confirmedLoading } = useConfirmedScheduleProposals(orgId);
 
-  const orgMembers = useMemo(() => {
-    if (!orgId) return [];
-    const org = accounts[orgId];
-    return (org?.members ?? []).map((m: { id: string; name: string }) => ({ id: m.id, name: m.name }));
-  }, [orgId, accounts]);
+  const [orgMembers, setOrgMembers] = useState<Array<{ id: string; name: string }>>([]);
+  useEffect(() => {
+    if (!orgId) { setOrgMembers([]); return; }
+    const unsub = subscribeToOrgMembers(orgId, (members: MemberReference[]) => {
+      setOrgMembers(members.map((m) => ({ id: m.id, name: m.name })));
+    });
+    return unsub;
+  }, [orgId]);
+
+  // O(1) lookup map so ConfirmedRow doesn't scan the array on every render.
+  const orgMemberMap = useMemo(
+    () => new Map(orgMembers.map((m) => [m.id, m.name])),
+    [orgMembers]
+  );
 
   // FR-W2: load eligible members with tier for skill match display
   const [eligibleMembers, setEligibleMembers] = useState<OrgEligibleMemberView[]>([]);
@@ -417,6 +432,7 @@ export function OrgScheduleGovernance() {
                       key={proposal.scheduleItemId}
                       proposal={proposal}
                       completedBy={actorId}
+                      orgMemberMap={orgMemberMap}
                       onCompleted={handleChange}
                     />
                   ))}

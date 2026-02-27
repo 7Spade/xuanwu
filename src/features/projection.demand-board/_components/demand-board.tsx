@@ -38,6 +38,8 @@ import {
   SelectValue,
 } from '@/shared/shadcn-ui/select';
 import { UserCheck, XCircle, Clock, CheckCircle2, Inbox } from 'lucide-react';
+import { subscribeToOrgMembers } from '@/features/account-organization.member';
+import type { MemberReference } from '@/shared/types';
 
 // ---------------------------------------------------------------------------
 // Named types (avoid inline type repetition)
@@ -203,7 +205,7 @@ function DemandRow({ demand, orgMembers, assignedBy }: DemandRowProps) {
  */
 export function DemandBoard() {
   const { state: appState } = useApp();
-  const { activeAccount, accounts } = appState;
+  const { activeAccount } = appState;
   const router = useRouter();
 
   const orgId =
@@ -225,14 +227,14 @@ export function DemandBoard() {
     return unsub;
   }, [orgId]);
 
-  const orgMembers = useMemo<OrgMember[]>(() => {
-    if (!orgId) return [];
-    const org = accounts[orgId];
-    return (org?.members ?? []).map((m: OrgMember) => ({
-      id: m.id,
-      name: m.name,
-    }));
-  }, [orgId, accounts]);
+  const [orgMembers, setOrgMembers] = useState<OrgMember[]>([]);
+  useEffect(() => {
+    if (!orgId) { setOrgMembers([]); return; }
+    const unsub = subscribeToOrgMembers(orgId, (members: MemberReference[]) => {
+      setOrgMembers(members.map((m) => ({ id: m.id, name: m.name })));
+    });
+    return unsub;
+  }, [orgId]);
 
   const assignedBy = activeAccount?.id ?? 'system';
 

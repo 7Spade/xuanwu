@@ -30,12 +30,19 @@ export function subscribeToOrgMembers(
   onUpdate: (members: MemberReference[]) => void
 ): Unsubscribe {
   const ref = doc(db, 'accounts', orgId)
-  return onSnapshot(ref, (snap) => {
-    if (!snap.exists()) {
+  return onSnapshot(
+    ref,
+    (snap) => {
+      if (!snap.exists()) {
+        onUpdate([])
+        return
+      }
+      const data = snap.data() as Account
+      onUpdate(data.members ?? [])
+    },
+    () => {
+      // On error, surface an empty list so the UI doesn't stay in a stale state.
       onUpdate([])
-      return
     }
-    const data = snap.data() as Account
-    onUpdate(data.members ?? [])
-  })
+  )
 }
