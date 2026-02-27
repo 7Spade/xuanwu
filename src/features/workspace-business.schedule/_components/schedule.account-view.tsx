@@ -13,7 +13,7 @@ import { toast } from "@/shared/utility-hooks/use-toast";
 import type { ScheduleItem } from "@/shared/types";
 import { UnifiedCalendarGrid } from "./unified-calendar-grid";
 import { ScheduleDataTable } from "./schedule-data-table";
-import { GovernanceSidebar } from "./governance-sidebar";
+import { OrgScheduleGovernance } from "@/features/account-organization.schedule";
 import { useGlobalSchedule } from "../_hooks/use-global-schedule";
 import { decisionHistoryColumns } from "./decision-history-columns";
 import { upcomingEventsColumns } from "./upcoming-events-columns";
@@ -36,7 +36,7 @@ export function AccountScheduleSection() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const { allItems, pendingProposals, decisionHistory, upcomingEvents, presentEvents, organizationMembers } = useGlobalSchedule();
+  const { allItems, decisionHistory, upcomingEvents, presentEvents, organizationMembers } = useGlobalSchedule();
   const { assignMember, unassignMember, approveItem, rejectItem } = useScheduleActions();
 
   const handleAction = useCallback(async (item: ScheduleItem, newStatus: 'OFFICIAL' | 'REJECTED') => {
@@ -135,11 +135,7 @@ export function AccountScheduleSection() {
             </div>
           </div>
           <div className="flex min-w-[300px] flex-col border-t md:flex-[1] md:border-l md:border-t-0">
-            <GovernanceSidebar
-              proposals={pendingProposals}
-              onApprove={approveProposal}
-              onReject={rejectProposal}
-            />
+            <OrgScheduleGovernance />
           </div>
         </div>
 

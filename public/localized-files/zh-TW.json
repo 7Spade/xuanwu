@@ -77,7 +77,9 @@
     "audit": "稽核",
     "orgSchedule": "HR 排程治理",
     "demandBoard": "需求看板",
-    "skills": "個人技能"
+    "skills": "個人技能",
+    "demandBoardDescription": "查看開放及已指派的人力需求",
+    "orgScheduleDescription": "審核提案、技能比對、指派成員"
   },
   "dimension": {
     "createTitle": "建立組織",

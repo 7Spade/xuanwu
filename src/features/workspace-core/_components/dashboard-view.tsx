@@ -3,7 +3,8 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { User as UserIcon } from "lucide-react"
+import { User as UserIcon, ClipboardList, CalendarRange } from "lucide-react"
+import Link from "next/link"
 import { Badge } from "@/shared/shadcn-ui/badge"
 import { useAuth } from "@/shared/app-providers/auth-provider"
 import { useI18n } from "@/shared/app-providers/i18n-provider"
@@ -14,6 +15,7 @@ import { AccountGrid } from "@/features/account-organization.core"
 import { PermissionTree } from "@/features/account-governance.role"
 import { WorkspaceList } from "./workspace-list"
 import { PageHeader } from "@/shared/ui/page-header"
+import { ROUTES } from "@/shared/constants/routes"
 
 
 /**
@@ -98,6 +100,32 @@ export function DashboardView() {
         <>
           <StatCards />
           <AccountGrid accounts={organizationsArray.filter((o) => o.id !== activeOrganization.id).slice(0, 3)} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Link
+              href={ROUTES.ACCOUNT_DEMAND_BOARD}
+              className="group flex items-center gap-4 rounded-2xl border border-border/60 bg-muted/30 p-5 transition-all hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <ClipboardList className="size-5" />
+              </div>
+              <div>
+                <p className="font-semibold leading-snug">{t("navigation.demandBoard")}</p>
+                <p className="text-xs text-muted-foreground">{t("navigation.demandBoardDescription")}</p>
+              </div>
+            </Link>
+            <Link
+              href={ROUTES.ACCOUNT_ORG_SCHEDULE}
+              className="group flex items-center gap-4 rounded-2xl border border-border/60 bg-muted/30 p-5 transition-all hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <CalendarRange className="size-5" />
+              </div>
+              <div>
+                <p className="font-semibold leading-snug">{t("navigation.orgSchedule")}</p>
+                <p className="text-xs text-muted-foreground">{t("navigation.orgScheduleDescription")}</p>
+              </div>
+            </Link>
+          </div>
         </>
       )}
 
