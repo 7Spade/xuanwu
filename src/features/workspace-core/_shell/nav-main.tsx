@@ -26,7 +26,8 @@ import {
   Calendar,
   ClipboardList,
   MessageSquare,
-  History
+  History,
+  BookOpen,
 } from "lucide-react";
 import { ROUTES } from "@/shared/constants/routes";
 
@@ -57,6 +58,15 @@ export function NavMain({ pathname, isOrganizationAccount, t }: NavMainProps) {
           <Link href={ROUTES.WORKSPACES}>
             <Layers />
             <span className="font-semibold">{t("navigation.workspaces")}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild isActive={isPartiallyActive(ROUTES.ACCOUNT_SKILLS)}>
+          <Link href={ROUTES.ACCOUNT_SKILLS}>
+            <BookOpen />
+            <span className="font-semibold">{t("navigation.skills")}</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>

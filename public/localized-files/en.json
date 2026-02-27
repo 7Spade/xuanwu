@@ -76,7 +76,8 @@
     "daily": "Daily",
     "audit": "Audit",
     "orgSchedule": "HR Schedule",
-    "demandBoard": "Demand Board"
+    "demandBoard": "Demand Board",
+    "skills": "Skills"
   },
   "dimension": {
     "createTitle": "Create Organization",

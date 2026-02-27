@@ -76,7 +76,8 @@
     "daily": "每日",
     "audit": "稽核",
     "orgSchedule": "HR 排程治理",
-    "demandBoard": "需求看板"
+    "demandBoard": "需求看板",
+    "skills": "個人技能"
   },
   "dimension": {
     "createTitle": "建立組織",

@@ -46,10 +46,10 @@ export function AccountScheduleSection() {
       } else {
         await rejectItem(item);
       }
-      const successTitle = newStatus === 'OFFICIAL' ? "Proposal Approved" : "Proposal Rejected";
-      toast({ title: successTitle, description: `"${item.title}" has been updated.` });
+      const successTitle = newStatus === 'OFFICIAL' ? "提案已核准" : "提案已拒絕";
+      toast({ title: successTitle, description: `「${item.title}」已更新。` });
     } catch (e: unknown) {
-      toast({ variant: "destructive", title: "Action Failed", description: e instanceof Error ? e.message : "An unknown error occurred." });
+      toast({ variant: "destructive", title: "操作失敗", description: e instanceof Error ? e.message : "發生未知錯誤。" });
     }
   }, [approveItem, rejectItem]);
 
