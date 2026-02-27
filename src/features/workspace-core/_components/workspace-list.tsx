@@ -92,7 +92,7 @@ export function WorkspaceList({ workspaces }: { workspaces: Workspace[] }) {
               onClick={() => router.push(ROUTES.WORKSPACES)}
               className="mt-2 text-xs font-bold uppercase tracking-widest text-primary"
             >
-              + 建立第一個工作空間
+              前往工作空間列表 →
             </Button>
           </div>
         )}

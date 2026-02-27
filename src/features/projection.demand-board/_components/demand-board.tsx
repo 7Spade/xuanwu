@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/shadcn-ui/select';
-import { UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { UserCheck, XCircle, Clock, CheckCircle2, Inbox } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Named types (avoid inline type repetition)
@@ -264,7 +264,7 @@ export function DemandBoard() {
               )}
               {!loading && openDemands.length === 0 && (
                 <div className="py-6 text-center">
-                  <Clock className="mx-auto mb-2 size-5 text-muted-foreground opacity-40" />
+                  <Inbox className="mx-auto mb-2 size-5 text-muted-foreground opacity-40" />
                   <p className="text-xs font-medium text-muted-foreground">目前無待指派需求</p>
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     HR 核准工作空間排程提案後，需求將自動顯示於此。
