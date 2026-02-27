@@ -16,8 +16,8 @@ interface WorkspaceListItemProps {
 function WorkspaceListItem({ workspace, onDelete }: WorkspaceListItemProps) {
   const router = useRouter();
   const isVisible = workspace.visibility === "visible";
-  const visibilityLabel = isVisible ? "Visible" : "Hidden";
-  const protocolLabel = workspace.protocol || "Default Protocol";
+  const visibilityLabel = isVisible ? "公開" : "隱藏";
+  const protocolLabel = workspace.protocol || "預設協議";
 
   return (
     <button
@@ -42,7 +42,7 @@ function WorkspaceListItem({ workspace, onDelete }: WorkspaceListItemProps) {
       </div>
       <div className="flex items-center gap-4">
         <div className="hidden text-right md:block">
-          <p className="mb-1 text-[9px] font-bold uppercase leading-none tracking-widest text-muted-foreground">Access Protocol</p>
+          <p className="mb-1 text-[9px] font-bold uppercase leading-none tracking-widest text-muted-foreground">存取協議</p>
           <p className="text-[11px] font-medium">{protocolLabel}</p>
         </div>
         <div className="flex items-center gap-1">
@@ -70,14 +70,14 @@ export function WorkspaceList({ workspaces }: { workspaces: Workspace[] }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-headline text-xl font-bold tracking-tight">Recent Workspaces</h2>
+        <h2 className="font-headline text-xl font-bold tracking-tight">最近工作空間</h2>
         <Button 
           variant="ghost" 
           size="sm"
           onClick={() => router.push(ROUTES.WORKSPACES)}
           className="text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary/5"
         >
-          View All <ArrowUpRight className="ml-1 size-3" />
+          查看全部 <ArrowUpRight className="ml-1 size-3" />
         </Button>
       </div>
       <div className="grid grid-cols-1 gap-3">
@@ -86,13 +86,13 @@ export function WorkspaceList({ workspaces }: { workspaces: Workspace[] }) {
         )) : (
           <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/40 bg-muted/5 p-8 text-center">
             <Terminal className="mb-3 size-8 text-muted-foreground opacity-20" />
-            <p className="text-sm text-muted-foreground">No workspace nodes have been created yet.</p>
+            <p className="text-sm text-muted-foreground">尚未建立任何工作空間節點。</p>
             <Button 
               variant="link"
               onClick={() => router.push(ROUTES.WORKSPACES)}
               className="mt-2 text-xs font-bold uppercase tracking-widest text-primary"
             >
-              + Create First Node
+              + 建立第一個工作空間
             </Button>
           </div>
         )}

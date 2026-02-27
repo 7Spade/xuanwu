@@ -16,12 +16,14 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { subscribeToDemandBoard } from '../_queries';
 import {
   manualAssignScheduleMember,
   cancelScheduleProposalAction,
 } from '@/features/account-organization.schedule';
 import { useApp } from '@/shared/app-providers/app-context';
+import { ROUTES } from '@/shared/constants/routes';
 import { toast } from '@/shared/utility-hooks/use-toast';
 import type { ScheduleDemand } from '@/shared/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
@@ -202,6 +204,7 @@ function DemandRow({ demand, orgMembers, assignedBy }: DemandRowProps) {
 export function DemandBoard() {
   const { state: appState } = useApp();
   const { activeAccount, accounts } = appState;
+  const router = useRouter();
 
   const orgId =
     activeAccount?.accountType === 'organization' ? activeAccount.id : null;
@@ -260,9 +263,21 @@ export function DemandBoard() {
                 <p className="py-6 text-center text-xs italic text-muted-foreground">載入中…</p>
               )}
               {!loading && openDemands.length === 0 && (
-                <p className="py-6 text-center text-xs italic text-muted-foreground">
-                  目前無待指派需求。
-                </p>
+                <div className="py-6 text-center">
+                  <Clock className="mx-auto mb-2 size-5 text-muted-foreground opacity-40" />
+                  <p className="text-xs font-medium text-muted-foreground">目前無待指派需求</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    HR 核准工作空間排程提案後，需求將自動顯示於此。
+                  </p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="mt-1.5 h-auto p-0 text-[11px] font-bold uppercase tracking-widest"
+                    onClick={() => router.push(ROUTES.ACCOUNT_ORG_SCHEDULE)}
+                  >
+                    前往 HR 治理面板 →
+                  </Button>
+                </div>
               )}
               {openDemands.map((d) => (
                 <DemandRow

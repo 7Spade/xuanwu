@@ -17,7 +17,9 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/shared/app-providers/app-context';
+import { ROUTES } from '@/shared/constants/routes';
 import { usePendingScheduleProposals, useConfirmedScheduleProposals } from '../_hooks/use-org-schedule';
 import { manualAssignScheduleMember, cancelScheduleProposalAction, completeOrgScheduleAction } from '../_actions';
 import { toast } from '@/shared/utility-hooks/use-toast';
@@ -322,6 +324,7 @@ function ConfirmedRow({ proposal, completedBy, onCompleted }: ConfirmedRowProps)
 export function OrgScheduleGovernance() {
   const { state: appState } = useApp();
   const { activeAccount, accounts } = appState;
+  const router = useRouter();
 
   const orgId = activeAccount?.accountType === 'organization' ? activeAccount.id : null;
   const { proposals: pending, loading: pendingLoading } = usePendingScheduleProposals(orgId);
@@ -371,9 +374,21 @@ export function OrgScheduleGovernance() {
               <p className="py-4 text-center text-xs italic text-muted-foreground">載入中…</p>
             )}
             {!pendingLoading && pending.length === 0 && confirmed.length === 0 && (
-              <p className="py-8 text-center text-xs italic text-muted-foreground">
-                目前無待核准或確認中的提案。
-              </p>
+              <div className="py-8 text-center">
+                <Flag className="mx-auto mb-3 size-6 text-muted-foreground opacity-40" />
+                <p className="text-xs font-medium text-muted-foreground">目前無待審核的提案</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  廠區人員可至各工作空間的「排程」分頁，點選日期提交排程提案。
+                </p>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="mt-2 h-auto p-0 text-[11px] font-bold uppercase tracking-widest"
+                  onClick={() => router.push(ROUTES.WORKSPACES)}
+                >
+                  前往工作空間列表 →
+                </Button>
+              </div>
             )}
             {pending.map((proposal: OrgScheduleProposal) => (
               <ProposalRow
