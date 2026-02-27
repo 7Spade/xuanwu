@@ -29,6 +29,8 @@ export interface Workspace {
   issues?: Record<string, WorkspaceIssue>;
   files?: Record<string, WorkspaceFile>;
   address?: Address; // The physical address of the entire workspace.
+  /** Sub-locations within this workspace (廠區子地點). FR-L1. */
+  locations?: WorkspaceLocation[];
   createdAt: Timestamp; // FirestoreTimestamp
 }
 
@@ -62,6 +64,18 @@ export interface Address {
   postalCode: string;
   country: string;
   details?: string;
+}
+
+/**
+ * WorkspaceLocation — a sub-location within a workspace (廠區子地點).
+ * Per docs/prd-schedule-workforce-skills.md FR-L1/FR-L2/FR-L3.
+ * Workspace OWNER can create/edit/delete sub-locations.
+ */
+export interface WorkspaceLocation {
+  locationId: string;
+  label: string;        // e.g. "A棟 2F 東北角", "主會議室"
+  description?: string;
+  capacity?: number;    // max number of people (optional)
 }
 
 export interface Location {

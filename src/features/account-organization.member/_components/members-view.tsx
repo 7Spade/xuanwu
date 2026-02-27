@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/shadcn-ui/card"
 import { Badge } from "@/shared/shadcn-ui/badge"
 import { Button } from "@/shared/shadcn-ui/button"
-import { UserPlus, Trash2, Mail, AlertCircle } from "lucide-react"
+import { UserPlus, Trash2, Mail, AlertCircle, Sparkles } from "lucide-react"
 import { toast } from "@/shared/utility-hooks/use-toast"
 import { useState, useEffect, useMemo } from "react"
 import { type MemberReference } from "@/shared/types"
@@ -11,6 +11,8 @@ import { useApp } from "@/shared/app-providers/app-context"
 import { useMemberManagement } from '../_hooks/use-member-management'
 import { useI18n } from "@/shared/app-providers/i18n-provider"
 import { PageHeader } from "@/shared/ui/page-header"
+import { getAllOrgMembersView } from "@/features/projection.org-eligible-member-view"
+import type { OrgEligibleMemberView } from "@/features/projection.org-eligible-member-view"
 
 export function MembersView() {
   const [mounted, setMounted] = useState(false)
@@ -19,9 +21,29 @@ export function MembersView() {
   const { accounts, activeAccount } = state
   const { recruitMember, dismissMember } = useMemberManagement()
 
+  // FR-W1: eligible status map
+  const [eligibilityMap, setEligibilityMap] = useState<Record<string, boolean>>({})
+
+  const orgId = useMemo(
+    () => activeAccount?.accountType === 'organization' ? activeAccount.id : null,
+    [activeAccount]
+  )
+
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // FR-W1: fetch eligible status for all org members
+  useEffect(() => {
+    if (!orgId) return
+    getAllOrgMembersView(orgId)
+      .then((views: OrgEligibleMemberView[]) => {
+        const map: Record<string, boolean> = {}
+        views.forEach((v) => { map[v.accountId] = v.eligible })
+        setEligibilityMap(map)
+      })
+      .catch(() => setEligibilityMap({}))
+  }, [orgId])
 
   const activeOrganization = useMemo(() => 
     activeAccount?.accountType === 'organization' ? accounts[activeAccount.id] : null,
@@ -106,9 +128,22 @@ export function MembersView() {
             </CardHeader>
             <CardContent>
               <div className="mb-4 mt-2 flex items-center justify-between">
-                <Badge variant="outline" className="border-primary/20 bg-primary/5 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">
-                  {member.role}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <Badge variant="outline" className="border-primary/20 bg-primary/5 px-2 py-0.5 text-[9px] font-bold uppercase text-primary">
+                    {member.role}
+                  </Badge>
+                  {/* FR-W1: eligible status badge */}
+                  {eligibilityMap[member.id] !== undefined && (
+                    <Badge
+                      variant="outline"
+                      className={`px-1.5 py-0.5 text-[9px] font-bold uppercase ${eligibilityMap[member.id] ? 'border-green-500/40 bg-green-500/10 text-green-600' : 'border-muted bg-muted/20 text-muted-foreground'}`}
+                      title={eligibilityMap[member.id] ? '可排班' : '不可排班'}
+                    >
+                      <Sparkles className="mr-0.5 inline size-2" />
+                      {eligibilityMap[member.id] ? '可排班' : '不可排班'}
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex items-center gap-1.5">
                   <span className={`size-1.5 rounded-full ${member.presence === 'active' ? 'animate-pulse bg-green-500' : 'bg-muted'}`} />
                   <span className="text-[10px] font-bold uppercase text-muted-foreground">{member.presence}</span>

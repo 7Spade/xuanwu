@@ -74,7 +74,10 @@
     "matrix": "Matrix",
     "schedule": "Schedule",
     "daily": "Daily",
-    "audit": "Audit"
+    "audit": "Audit",
+    "orgSchedule": "HR Schedule",
+    "demandBoard": "Demand Board",
+    "skills": "Skills"
   },
   "dimension": {
     "createTitle": "Create Organization",

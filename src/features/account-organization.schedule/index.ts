@@ -15,9 +15,14 @@ export {
   getOrgScheduleProposal,
   subscribeToOrgScheduleProposals,
   subscribeToPendingProposals,
+  subscribeToConfirmedProposals,
 } from './_queries';
 
-export { useOrgSchedule, usePendingScheduleProposals } from './_hooks/use-org-schedule';
+export { useOrgSchedule, usePendingScheduleProposals, useConfirmedScheduleProposals } from './_hooks/use-org-schedule';
 
 export { OrgScheduleGovernance } from './_components/org-schedule-governance';
+
+// FR-W6 — Server Actions for manual schedule assignment (Critical Gap #0)
+// FR-S6 — Server Action to complete a confirmed schedule
+export { manualAssignScheduleMember, cancelScheduleProposalAction, completeOrgScheduleAction } from './_actions';
 

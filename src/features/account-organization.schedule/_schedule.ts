@@ -73,6 +73,8 @@ export const orgScheduleProposalSchema = z.object({
   intentId: z.string().optional(),
   /** Skill requirements carried over from the workspace proposal — used during org approval. */
   skillRequirements: z.array(skillRequirementSchema).optional(),
+  /** Sub-location within the workspace. FR-L2. */
+  locationId: z.string().optional(),
   /**
    * Aggregate version of this org-schedule proposal. [R7]
    * Incremented on each state transition (proposed → confirmed/cancelled).
@@ -112,6 +114,8 @@ export async function handleScheduleProposed(
     intentId: payload.intentId,
     // Persist skill requirements so org governance can validate without re-fetching workspace data.
     ...(payload.skillRequirements?.length ? { skillRequirements: payload.skillRequirements } : {}),
+    // Persist sub-location reference. FR-L2.
+    ...(payload.locationId ? { locationId: payload.locationId } : {}),
     // [R8] Persist traceId for end-to-end audit trail.
     ...(payload.traceId ? { traceId: payload.traceId } : {}),
   });

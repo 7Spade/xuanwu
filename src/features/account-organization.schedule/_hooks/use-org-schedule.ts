@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { subscribeToOrgScheduleProposals, subscribeToPendingProposals } from '../_queries';
+import { subscribeToOrgScheduleProposals, subscribeToPendingProposals, subscribeToConfirmedProposals } from '../_queries';
 import type { OrgScheduleProposal, OrgScheduleStatus } from '../_schedule';
 
 /**
@@ -62,6 +62,33 @@ export function usePendingScheduleProposals(orgId: string | null) {
 
     setLoading(true);
     const unsub = subscribeToPendingProposals(orgId, (updated) => {
+      setProposals(updated);
+      setLoading(false);
+    });
+
+    return unsub;
+  }, [orgId]);
+
+  return { proposals, loading };
+}
+
+/**
+ * Convenience hook that returns confirmed proposals only (status = 'confirmed').
+ * Used by the FR-S6 "Complete Schedule" governance UI.
+ */
+export function useConfirmedScheduleProposals(orgId: string | null) {
+  const [proposals, setProposals] = useState<OrgScheduleProposal[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!orgId) {
+      setProposals([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsub = subscribeToConfirmedProposals(orgId, (updated) => {
       setProposals(updated);
       setLoading(false);
     });
