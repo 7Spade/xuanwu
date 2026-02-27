@@ -16,7 +16,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
 import { usePendingScheduleProposals } from '../_hooks/use-org-schedule';
-import { approveOrgScheduleProposal, cancelOrgScheduleProposal } from '../_schedule';
+import { manualAssignScheduleMember, cancelScheduleProposalAction } from '../_actions';
 import { toast } from '@/shared/utility-hooks/use-toast';
 import type { OrgScheduleProposal } from '../_schedule';
 import type { SkillRequirement } from '@/shared/types';
@@ -55,7 +55,7 @@ function ProposalRow({
     if (!selectedMemberId) return;
     setLoading(true);
     try {
-      const result = await approveOrgScheduleProposal(
+      const result = await manualAssignScheduleMember(
         proposal.scheduleItemId,
         selectedMemberId,
         approvedBy,
@@ -68,14 +68,14 @@ function ProposalRow({
         },
         proposal.skillRequirements
       );
-      if (result.outcome === 'confirmed') {
+      if (result.success) {
         toast({ title: '排程已指派', description: `「${proposal.title}」成員指派成功。` });
         onApproved();
       } else {
         toast({
           variant: 'destructive',
           title: '指派失敗',
-          description: result.reason,
+          description: result.error.message,
         });
       }
     } catch {
@@ -88,7 +88,7 @@ function ProposalRow({
   const handleCancel = useCallback(async () => {
     setLoading(true);
     try {
-      await cancelOrgScheduleProposal(
+      await cancelScheduleProposalAction(
         proposal.scheduleItemId,
         proposal.orgId,
         proposal.workspaceId,

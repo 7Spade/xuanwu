@@ -74,7 +74,9 @@
     "matrix": "矩陣",
     "schedule": "排程",
     "daily": "每日",
-    "audit": "稽核"
+    "audit": "稽核",
+    "orgSchedule": "HR 排程治理",
+    "demandBoard": "需求看板"
   },
   "dimension": {
     "createTitle": "建立組織",

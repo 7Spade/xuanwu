@@ -26,3 +26,5 @@ export {
 } from './_queries';
 
 export type { ScheduleDemand, ScheduleDemandCloseReason } from './_projector';
+
+export { DemandBoard } from './_components/demand-board';
