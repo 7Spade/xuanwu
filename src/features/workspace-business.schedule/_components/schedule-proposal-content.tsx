@@ -60,6 +60,7 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
       }}
       onSubmit={handleSubmit}
       initialDate={initialDate}
+      orgId={workspace.dimensionId}
     />
   )
 

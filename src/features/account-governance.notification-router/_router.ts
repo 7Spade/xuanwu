@@ -65,6 +65,22 @@ export function registerNotificationRouter(): RouterRegistration {
     })
   );
 
+  // Route assignment-cancelled events to the target member (FR-N3)
+  unsubscribers.push(
+    onOrgEvent('organization:schedule:assignmentCancelled', async (payload) => {
+      await deliverNotification(payload.targetAccountId, {
+        title: '排程取消通知',
+        message: `您的排程指派已被取消${payload.reason ? `：${payload.reason}` : ''}`,
+        type: 'warning',
+        sourceEvent: 'organization:schedule:assignmentCancelled',
+        sourceId: payload.scheduleItemId,
+        workspaceId: payload.workspaceId,
+        // [R8] forward traceId from the originating event envelope
+        traceId: payload.traceId,
+      });
+    })
+  );
+
   // Route member joined events to the new member
   unsubscribers.push(
     onOrgEvent('organization:member:joined', async (payload) => {

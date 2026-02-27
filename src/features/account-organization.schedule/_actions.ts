@@ -18,7 +18,7 @@
  *   Critical Gap #0 from docs/prd-schedule-workforce-skills.md v1.1.
  */
 
-import { approveOrgScheduleProposal, cancelOrgScheduleProposal } from './_schedule';
+import { approveOrgScheduleProposal, cancelOrgScheduleProposal, completeOrgSchedule } from './_schedule';
 import {
   type CommandResult,
   commandSuccess,
@@ -100,5 +100,40 @@ export async function cancelScheduleProposalAction(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return commandFailureFrom('SCHEDULE_PROPOSAL_CANCEL_FAILED', message);
+  }
+}
+
+// =================================================================
+// FR-S6 — Complete Schedule (confirmed → completed)
+// =================================================================
+
+/**
+ * HR marks a confirmed schedule assignment as completed.
+ *
+ * Invariant #15: completed → member's eligible flag restored to true.
+ * [R8] traceId threaded from the originating command.
+ */
+export async function completeOrgScheduleAction(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  targetAccountId: string,
+  completedBy: string,
+  /** [R8] TRACE_PROPAGATION_RULE: traceId from originating CBG_ENTRY. */
+  traceId?: string
+): Promise<CommandResult> {
+  try {
+    await completeOrgSchedule(
+      scheduleItemId,
+      orgId,
+      workspaceId,
+      targetAccountId,
+      completedBy,
+      traceId
+    );
+    return commandSuccess(scheduleItemId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('SCHEDULE_COMPLETE_FAILED', message);
   }
 }

@@ -28,6 +28,7 @@ export {
   getOrgEligibleMembers,
   getOrgMemberEligibilityWithTier,
   getOrgEligibleMembersWithTier,
+  getAllOrgMembersView,
 } from './_queries';
 
 export type {

@@ -24,3 +24,6 @@ export type { AccountSkillRecord } from './_aggregate';
 
 // Ledger types (for projectors that consume ledger entries)
 export type { XpLedgerEntry } from './_ledger';
+
+// FR-K1: Personal skill profile panel (XP + tier visualization)
+export { PersonalSkillPanel } from './_components/personal-skill-panel';
