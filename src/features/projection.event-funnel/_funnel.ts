@@ -29,7 +29,7 @@
 import type { WorkspaceEventBus } from '@/features/workspace-core.event-bus';
 import { upsertProjectionVersion } from '@/features/projection.registry';
 import { appendAuditEntry } from '@/features/projection.account-audit';
-import { applyScheduleAssigned } from '@/features/projection.account-schedule';
+import { applyScheduleAssigned, applyScheduleCompleted } from '@/features/projection.account-schedule';
 import { onOrgEvent } from '@/features/account-organization.event-bus';
 import { applyMemberJoined, applyMemberLeft } from '@/features/projection.organization-view';
 import { handleScheduleProposed } from '@/features/account-organization.schedule';
@@ -40,6 +40,14 @@ import {
   removeOrgMemberEntry,
   updateOrgMemberEligibility,
 } from '@/features/projection.org-eligible-member-view';
+import {
+  applyDemandProposed,
+  applyDemandAssigned,
+  applyDemandCompleted,
+  applyDemandAssignmentCancelled,
+  applyDemandProposalCancelled,
+  applyDemandAssignRejected,
+} from '@/features/projection.demand-board';
 import { onTagEvent } from '@/features/centralized-tag';
 import {
   applyTagCreated,
@@ -126,6 +134,8 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
   unsubscribers.push(
     bus.subscribe('workspace:schedule:proposed', async (payload) => {
       await handleScheduleProposed(payload);
+      // Demand Board: create open demand entry. FR-W0.
+      await applyDemandProposed(payload);
       await upsertProjectionVersion('org-schedule-proposals', Date.now(), new Date().toISOString());
     })
   );
@@ -168,10 +178,11 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
 export function registerOrganizationFunnel(): () => void {
   const unsubscribers: Array<() => void> = [];
 
-  // ScheduleAssigned → ACCOUNT_PROJECTION_SCHEDULE + ORG_ELIGIBLE_MEMBER_VIEW (eligible = false)
+  // ScheduleAssigned → ACCOUNT_PROJECTION_SCHEDULE + ORG_ELIGIBLE_MEMBER_VIEW (eligible = false) + DEMAND_BOARD
   // Per Invariant #15: schedule:assigned must update the eligible flag so double-booking is prevented.
   // Per Invariant #19 [R7]: pass aggregateVersion for ELIGIBLE_UPDATE_GUARD monotonic check.
   // [R8] TRACE_PROPAGATION_RULE: forward traceId from ScheduleAssignedPayload to projector.
+  // FR-W6: demand board updated to 'assigned' with assignedMemberId.
   unsubscribers.push(
     onOrgEvent('organization:schedule:assigned', async (payload) => {
       await applyScheduleAssigned(payload.targetAccountId, {
@@ -181,8 +192,51 @@ export function registerOrganizationFunnel(): () => void {
         endDate: payload.endDate,
         status: 'upcoming',
       }, payload.aggregateVersion, payload.traceId);
-      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, false, payload.aggregateVersion);
+      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, false, payload.aggregateVersion, payload.traceId);
+      await applyDemandAssigned(payload);
       await upsertProjectionVersion('account-schedule', Date.now(), new Date().toISOString());
+    })
+  );
+
+  // ScheduleCompleted → ACCOUNT_PROJECTION_SCHEDULE + ORG_ELIGIBLE_MEMBER_VIEW (eligible = true) + DEMAND_BOARD (closed)
+  // Per Invariant #15: completed → eligible = true (member available for new assignments).
+  // [R8] traceId forwarded through the full saga chain.
+  unsubscribers.push(
+    onOrgEvent('organization:schedule:completed', async (payload) => {
+      await applyScheduleCompleted(payload.targetAccountId, payload.scheduleItemId, payload.aggregateVersion, payload.traceId);
+      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, true, payload.aggregateVersion, payload.traceId);
+      await applyDemandCompleted(payload);
+      await upsertProjectionVersion('account-schedule', Date.now(), new Date().toISOString());
+    })
+  );
+
+  // ScheduleAssignmentCancelled → ORG_ELIGIBLE_MEMBER_VIEW (eligible = true) + DEMAND_BOARD (closed)
+  // Per Invariant #15: post-assignment cancellation restores eligible flag to true.
+  // No change to account-schedule projection status — the assignment record remains for audit.
+  // [R8] traceId forwarded through the full saga chain.
+  unsubscribers.push(
+    onOrgEvent('organization:schedule:assignmentCancelled', async (payload) => {
+      await updateOrgMemberEligibility(payload.orgId, payload.targetAccountId, true, payload.aggregateVersion, payload.traceId);
+      await applyDemandAssignmentCancelled(payload);
+      await upsertProjectionVersion('account-schedule', Date.now(), new Date().toISOString());
+    })
+  );
+
+  // ScheduleProposalCancelled → DEMAND_BOARD (closed/proposalCancelled)
+  // Compensating event (Invariant A5): HR cancelled a pending proposal.
+  unsubscribers.push(
+    onOrgEvent('organization:schedule:proposalCancelled', async (payload) => {
+      await applyDemandProposalCancelled(payload);
+      await upsertProjectionVersion('demand-board', Date.now(), new Date().toISOString());
+    })
+  );
+
+  // ScheduleAssignRejected → DEMAND_BOARD (closed/assignRejected)
+  // Compensating event (Invariant A5): skill-tier check failed — demand closed.
+  unsubscribers.push(
+    onOrgEvent('organization:schedule:assignRejected', async (payload) => {
+      await applyDemandAssignRejected(payload);
+      await upsertProjectionVersion('demand-board', Date.now(), new Date().toISOString());
     })
   );
 
@@ -207,19 +261,37 @@ export function registerOrganizationFunnel(): () => void {
 
   // SkillXpAdded → ACCOUNT_SKILL_VIEW + ORG_ELIGIBLE_MEMBER_VIEW
   // Invariant #12: newXp is stored; tier is NEVER stored — derived at query time via resolveSkillTier(xp).
+  // [S2] aggregateVersion forwarded so the account-skill-view version guard fires.
+  // [R8] traceId forwarded into accountSkillView for end-to-end trace propagation.
   unsubscribers.push(
     onOrgEvent('organization:skill:xpAdded', async (payload) => {
-      await applySkillXpAdded(payload.accountId, payload.skillId, payload.newXp);
-      await applyOrgMemberSkillXp(payload.orgId, payload.accountId, payload.skillId, payload.newXp);
+      await applySkillXpAdded(payload.accountId, payload.skillId, payload.newXp, payload.aggregateVersion, payload.traceId);
+      await applyOrgMemberSkillXp({
+        orgId: payload.orgId,
+        accountId: payload.accountId,
+        skillId: payload.skillId,
+        newXp: payload.newXp,
+        traceId: payload.traceId,
+        aggregateVersion: payload.aggregateVersion,
+      });
       await upsertProjectionVersion('account-skill-view', Date.now(), new Date().toISOString());
     })
   );
 
   // SkillXpDeducted → ACCOUNT_SKILL_VIEW + ORG_ELIGIBLE_MEMBER_VIEW
+  // [S2] aggregateVersion forwarded so the account-skill-view version guard fires.
+  // [R8] traceId forwarded into accountSkillView for end-to-end trace propagation.
   unsubscribers.push(
     onOrgEvent('organization:skill:xpDeducted', async (payload) => {
-      await applySkillXpDeducted(payload.accountId, payload.skillId, payload.newXp);
-      await applyOrgMemberSkillXp(payload.orgId, payload.accountId, payload.skillId, payload.newXp);
+      await applySkillXpDeducted(payload.accountId, payload.skillId, payload.newXp, payload.aggregateVersion, payload.traceId);
+      await applyOrgMemberSkillXp({
+        orgId: payload.orgId,
+        accountId: payload.accountId,
+        skillId: payload.skillId,
+        newXp: payload.newXp,
+        traceId: payload.traceId,
+        aggregateVersion: payload.aggregateVersion,
+      });
       await upsertProjectionVersion('account-skill-view', Date.now(), new Date().toISOString());
     })
   );

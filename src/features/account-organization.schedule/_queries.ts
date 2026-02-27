@@ -80,3 +80,14 @@ export function subscribeToPendingProposals(
 ): Unsubscribe {
   return subscribeToOrgScheduleProposals(orgId, onUpdate, { status: 'proposed' });
 }
+
+/**
+ * Subscribes to confirmed proposals only (status = 'confirmed').
+ * Used by the governance UI to show active assignments that can be completed. (FR-S6)
+ */
+export function subscribeToConfirmedProposals(
+  orgId: string,
+  onUpdate: (proposals: OrgScheduleProposal[]) => void
+): Unsubscribe {
+  return subscribeToOrgScheduleProposals(orgId, onUpdate, { status: 'confirmed' });
+}

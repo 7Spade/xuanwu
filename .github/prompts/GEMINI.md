@@ -65,6 +65,15 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 * `context7.prompt.md`: 外部技術文檔檢索。
 * `next-devtools.prompt.md`: 渲染邊界偵測。
 
+### 5. 部署、遺留系統與效能 (Deployment, Legacy & Performance)
+
+| 檔案名稱 | 功能描述 | 觸發場景 |
+| --- | --- | --- |
+| `cicd-deployment-orchestrator.prompt.md` | **CI/CD 部署總控**：負責部署流水線編排、金絲雀發佈、回滾策略與環境一致性驗證。 | 需要部署、發行或回滾應用時。 |
+| `performance-optimization-auditor.prompt.md` | **效能優化審計**：分析效能瓶頸（前端與後端）、生成優化任務與優先級清單，並建議監控指標與基準。 | 出現性能回歸、核心指標惡化或效能審查時。 |
+| `legacy-decoupling-specialist.prompt.md` | **遺留系統解耦專家**：設計分階段解耦策略、API 遷移計畫與兼容層，最小化風險與停機時間。 | 需從單體或遺留模組分拆、逐步現代化時。 |
+| `ui-ux-consistency-sync.prompt.md` | **UI/UX 一致性同步**：檢查設計系統一致性、元件樣式差異與可用性問題，並自動產生修正 PR 或樣式變更清單。 | 視覺/交互不一致或跨頁面元件行為差異時。 |
+
 ### 5. 測試與藍圖生成 (Testing & Generators)
 
 * `playwright-mcp-web-test-and-optimize.prompt.md`: 自動生成 E2E 測試並優化頁面效能。

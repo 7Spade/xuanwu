@@ -1,0 +1,646 @@
+{
+  "meta": {
+    "version": "3.0.0",
+    "initializedAt": "2026-02-26",
+    "updatedAt": "2026-02-26",
+    "source": "docs/logic-overview.md (SSOT) + docs/*.md (supplementary) + src/features/ (code state)",
+    "ssot": "docs/logic-overview.md",
+    "note": "v3: deep analysis from logic-overview.md. All invariants, contracts, slice definitions, code paths, and IER routing fully captured."
+  },
+  "entities": [
+    {
+      "name": "Logic_Overview_SSOT",
+      "entityType": "Data_Schema",
+      "observations": [
+        "File: docs/logic-overview.md",
+        "SINGLE SOURCE OF TRUTH (SSOT) — highest authority for ALL architecture decisions. ALL conflicts resolve to this file.",
+        "Defines VS0-VS9 vertical slices, 3-Gateway CQRS architecture (Command Bus / IER / Query Gateway)",
+        "Contains 6 VS0 shared kernel infrastructure contracts: S1 (SK_OUTBOX_CONTRACT), S2 (SK_VERSION_GUARD), S3 (SK_READ_CONSISTENCY), S4 (SK_STALENESS_CONTRACT), S5 (SK_RESILIENCE_CONTRACT), S6 (SK_TOKEN_REFRESH_CONTRACT)",
+        "Contains 5 VS0 foundation data contracts: SK_ENV, SK_AUTH_SNAP, SK_SKILL_TIER, SK_SKILL_REQ, SK_CMD_RESULT",
+        "Contains 19 Consistency Invariants (#1-#19), 11 Atomicity Rules (#A1-#A11), 18 Development Rules (D1-D18), 5 Tag Authority rules (T1-T5)",
+        "v10 key changes: S1-S6 six cross-slice patterns formalized as explicit contracts in VS0; D13-D18 development rules added"
+      ]
+    },
+    {
+      "name": "Architecture_Governance_Principles",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/ai-architecture-governance.prompt.md",
+        "docs/logic-overview.md is the SINGLE SOURCE OF TRUTH (SSOT) for all architecture decisions",
+        "Any architectural decision NOT in logic-overview.md requires updating that document first",
+        "10 cross-slice communication prohibitions: no direct cross-BC aggregate mutation, no cross-BC internal state reads, no domain rules in Application Layer, TX Runner cannot create events, Custom Claims not authoritative, Notification Router reads only Projections, Scope Guard reads only its own read model, cross-BC sharing must be via shared.kernel.*, Projections must be rebuildable from events, no cross-module internal Context reads",
+        "File import rules (D7): only import from {slice}/index.ts, never from private _* files across slices"
+      ]
+    },
+    {
+      "name": "Technology_Stack",
+      "entityType": "Framework_Feature",
+      "observations": [
+        "Source file: .github/prompts/technology-stack-blueprint-generator.prompt.md + docs/tech-stack.md",
+        "Core frameworks: Next.js App Router (targeting Next.js 16 App Router patterns), Firebase Auth + Firestore, React 19",
+        "State management: Server Actions for mutations, React Server Components first, 'use client' only at leaf nodes",
+        "Infrastructure: Firebase Firestore as event store + projection store, Firebase Cloud Messaging (FCM) for push notifications",
+        "AI layer: Genkit AI Flow for AI-driven business logic operations",
+        "Styling: Tailwind CSS v4, shadcn/ui components exclusively"
+      ]
+    },
+    {
+      "name": "UI_Component_Standard",
+      "entityType": "Component_Standard",
+      "observations": [
+        "Source files: .github/prompts/shadcn.prompt.md, .github/prompts/ui-ux-consistency-sync.prompt.md",
+        "shadcn/ui is the ONLY allowed component library — prohibition on introducing any other UI package",
+        "Prohibited: Material-UI (MUI), Chakra UI, Ant Design, Radix UI standalone, any non-shadcn component library",
+        "Component location: src/shared/components/ui/ for shared components",
+        "Server Component first: use 'use client' only at leaf interactive components",
+        "All UI components must follow docs/logic-overview.md boundary rules — no direct Firestore access in components"
+      ]
+    },
+    {
+      "name": "DDD_Boundaries",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/ddd-boundary-check.prompt.md",
+        "Domain rules must be cohesive within each Aggregate — Application Layer only coordinates flow",
+        "Invariant #1: Each BC can ONLY modify its own Aggregates — no direct cross-BC aggregate mutations",
+        "Invariant #2: Cross-BC interaction ONLY via Domain Event, Projection read, or ACL anti-corruption layer",
+        "Invariant #3: Application Layer coordinates only — domain logic lives in Aggregates exclusively",
+        "Invariant #10: If a module needs another module's internal Context state, it is a boundary design error — redesign required"
+      ]
+    },
+    {
+      "name": "DDD_Aggregate_Protection",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/boundary-check.prompt.md + docs/logic-overview.md",
+        "Critical rule: any Firestore write that bypasses Command Handler is a SEVERE VIOLATION",
+        "Invariant #4: Domain Events only produced by Aggregates; TX Runner (#A8) only delivers to Outbox — never creates events",
+        "Invariant #8: Shared Kernel must be explicitly annotated — unannotated cross-BC reuse is treated as intrusion",
+        "#A8: TX Runner is 1-command/1-aggregate atomic commit — no multi-aggregate transactions",
+        "All commands must enter through unified-command-gateway (CBG_ENTRY) — traceId injected here and never regenerated"
+      ]
+    },
+    {
+      "name": "Vertical_Slice_Architecture",
+      "entityType": "Project_Convention",
+      "observations": [
+        "Source files: .github/prompts/create-vertical-slice.prompt.md, docs/project-structure.md",
+        "Top-level structure: src/app (Next.js composition only), src/features (vertical slices), src/shared (cross-cutting infra)",
+        "Dependency direction: app -> features/{slice}/index.ts -> shared",
+        "Cross-slice access only via {slice}/index.ts public API — never import private _* files across slices (D7)",
+        "Each slice has: _aggregate.ts, _actions.ts, _queries.ts, _hooks/, _components/, index.ts",
+        "src/features/shared-kernel: core domain models and utilities shared across features (accessed via shared.kernel.*)"
+      ]
+    },
+    {
+      "name": "Next_JS_16",
+      "entityType": "Framework_Feature",
+      "observations": [
+        "Next.js 16 with App Router is the primary frontend framework (targeting v16 patterns even if current package is ^15.5.12)",
+        "Parallel Routes (@slot segments) for independent UI regions (e.g., @sidebar, @modal, @header, @plugintab)",
+        "Intercepting routes for overlays/modals: (.)/(..) syntax",
+        "Async request APIs: cookies(), headers(), params/searchParams may be Promises in Server Components — always await",
+        "Cache Components: cacheComponents flag (experimental in 16.0.0), use cache directive, cacheLife, cacheTag, updateTag",
+        "Server Actions in src/features/{slice}/_actions.ts for ALL data mutations — must return CommandResult"
+      ]
+    },
+    {
+      "name": "Server_Actions_Convention",
+      "entityType": "Project_Convention",
+      "observations": [
+        "All data mutations must use Server Actions placed in src/features/{slice}/_actions.ts",
+        "Every Server Action export MUST return CommandResult: { success: true, aggregateId: string, version: number } | { success: false, error: DomainError }",
+        "NEVER return void, undefined, or raw Firestore DocumentReference from _actions.ts (R4 rule)",
+        "Query functions that read data must go in _queries.ts, NOT _actions.ts (R4 compliance)",
+        "Form-specific helpers in _form-actions.ts if needed",
+        "SK_CMD_RESULT contract file: src/features/shared.kernel.contract-interfaces/index.ts"
+      ]
+    },
+    {
+      "name": "Command_Event_Flow",
+      "entityType": "Project_Convention",
+      "observations": [
+        "Flow: _actions.ts → GW_GUARD (rate-limit/circuit-break/bulkhead) → CBG_ENTRY (traceId inject) → CBG_AUTH → CBG_ROUTE → TX_RUNNER → Aggregate → EventBus (in-process) → OUTBOX → OUTBOX_RELAY → IER → FUNNEL/NOTIF_ROUTER/CLAIMS_HANDLER",
+        "traceId is injected ONCE at CBG_ENTRY and propagated through entire chain unchanged [R8]",
+        "OUTBOX_RELAY uses Firestore onSnapshot CDC to scan all OUTBOXes and deliver to IER [R1]",
+        "FUNNEL enforces SK_VERSION_GUARD: event.aggregateVersion > view.lastProcessedVersion → update, else discard [S2]",
+        "FUNNEL is the ONLY Projection write path (#9) — all Projection updates must go through event-funnel",
+        "IER routes: CRITICAL_LANE → Claims/Wallet/OrgContextACL; STANDARD_LANE → FUNNEL/NOTIF_ROUTER; BACKGROUND_LANE → TagSubscriber/AuditCollector"
+      ]
+    },
+    {
+      "name": "Knowledge_Graph_Governance",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/memory-governance.prompt.md",
+        "Core operating rule: READ FIRST — before any code generation, refactoring, or architectural design, query this knowledge graph",
+        "Two-store strategy: docs/knowledge-graph.json (primary durable store, version-controlled) + Memory MCP (supplementary, session-local)",
+        "Recovery workflow: if Memory MCP empty → load docs/knowledge-graph.json → call memory.create_entities + memory.create_relations",
+        "Update protocol: after any architecture decision, update BOTH docs/knowledge-graph.json AND Memory MCP",
+        "Use memory.read_graph() (not search_nodes) — search_nodes may return empty in some environments"
+      ]
+    },
+    {
+      "name": "Genkit_AI_Flow",
+      "entityType": "Framework_Feature",
+      "observations": [
+        "Source file: .github/prompts/genkit-flow-design.prompt.md",
+        "Genkit AI Flow is the AI business logic layer — handles AI-driven operations such as document parsing",
+        "Genkit flows must respect VS5 document-parser boundary — ParsingIntent digital twin (#A4)",
+        "AI-generated outputs are treated as proposals only — must enter Workspace via Command Handler",
+        "ParsingIntent: Digital Twin contract at src/features/workspace-business.parsing-intent/_contract.ts",
+        "ParsingIntent allowed to propose: task drafts, finance commands, parsing exceptions (B-track issues)"
+      ]
+    },
+    {
+      "name": "Compliance_Audit_Standard",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source file: .github/prompts/compliance-audit.prompt.md",
+        "Must ensure development output is highly consistent with all docs in docs/*.md",
+        "Audit checklist covers: R4 (CommandResult), R8 (traceId), S1 (DLQ tier), S2 (version guard), S5 (resilience), S6 (claims)",
+        "Global audit view (projection.global-audit-view) stores every audit record with traceId [R8]",
+        "Account audit (projection.account-audit) also stores per-account audit records with traceId",
+        "Audit-event-collector in VS5 subscribes to IER BACKGROUND_LANE and writes to global-audit-view"
+      ]
+    },
+    {
+      "name": "MCP_Tool_Registry",
+      "entityType": "Project_Convention",
+      "observations": [
+        "Source file: .github/prompts/AGENTS.md",
+        "Available MCP tools: sequential-thinking, software-planning, repomix, context7, shadcn, next-devtools, memory, store_memory",
+        "memory.read_graph() is preferred over memory.search_nodes() for reliability",
+        "Workflow: read knowledge graph first → plan with software-planning → implement → update graph",
+        "GEMINI.md (.github/prompts/GEMINI.md) documents agent workflow prompts and governance specs"
+      ]
+    },
+    {
+      "name": "SK_Outbox_Contract",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Contract ID: S1 — VS0 shared kernel infrastructure contract",
+        "File: src/features/shared.kernel.outbox-contract/index.ts",
+        "Three required elements: ① at-least-once (EventBus→OUTBOX→RELAY→IER), ② idempotency-key (format: eventId+aggId+version), ③ DLQ tier declaration per event type",
+        "DLQ tiers: SAFE_AUTO (idempotent events, auto-retry), REVIEW_REQUIRED (financial/scheduling/role events, manual review), SECURITY_BLOCK (security events, freeze+alert+manual confirm)",
+        "D13: New OUTBOX additions must reference this contract — must NOT redefine at-least-once semantics locally",
+        "Current DLQ assignments: RoleChanged/PolicyChanged → SECURITY_BLOCK; WalletDeducted → REVIEW_REQUIRED; ScheduleAssigned → REVIEW_REQUIRED; OrgContextProvisioned → REVIEW_REQUIRED; AccountCreated/MemberJoined/MemberLeft/TagLifecycleEvent → SAFE_AUTO"
+      ]
+    },
+    {
+      "name": "SK_Version_Guard",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Contract ID: S2 — VS0 shared kernel infrastructure contract",
+        "File: src/features/shared.kernel.version-guard/index.ts",
+        "Rule: event.aggregateVersion > view.lastProcessedVersion → allow update; else → discard (stale event, silent)",
+        "Invariant #19: All Projection updates must use aggregateVersion monotonic-increase as precondition (generalized from v9 where it was only eligible-view)",
+        "D14: All new Projections must reference SK_VERSION_GUARD in FUNNEL — must NOT skip aggregateVersion comparison before writing",
+        "applyVersionGuard(aggregateVersion, lastProcessedVersion) function from shared.kernel.version-guard"
+      ]
+    },
+    {
+      "name": "SK_Read_Consistency",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Contract ID: S3 — VS0 shared kernel infrastructure contract",
+        "File: src/features/shared.kernel.read-consistency/index.ts",
+        "STRONG_READ: query Domain Aggregate directly — for financial transactions, security operations, irreversible actions",
+        "EVENTUAL_READ: query Projection — for display, statistics, listings",
+        "Decision rule: involves balance/authorization/scheduling conflict → STRONG_READ; other display scenarios → EVENTUAL_READ",
+        "D15: Read scenario decision — check SK_READ_CONSISTENCY first; financial/auth/irreversible → STRONG_READ; else → EVENTUAL_READ",
+        "#A1: account-user.wallet requires STRONG_READ for precise transactions; profile/notification are weakly consistent"
+      ]
+    },
+    {
+      "name": "SK_Staleness_Contract",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Contract ID: S4 — VS0 shared kernel infrastructure contract",
+        "File: src/features/shared.kernel.staleness-contract/index.ts",
+        "Constants (single source of truth): TAG_MAX_STALENESS ≤ 30s (tag-derived data), PROJ_STALE_CRITICAL ≤ 500ms (auth/scheduling Projections), PROJ_STALE_STANDARD ≤ 10s (general Projections)",
+        "D16: SLA values FORBIDDEN in node text hardcoded — must reference SK_STALENESS_CONTRACT constants",
+        "TAG_STALE_GUARD in VS0 validates tag freshness before scheduling assignment — emits StaleTagWarning on stale/deprecated",
+        "Consumers: WS_SCOPE_VIEW and ORG_ELIGIBLE_VIEW use PROJ_STALE_CRITICAL; SKILL_TAG_POOL and TAG_SNAPSHOT use TAG_MAX_STALENESS"
+      ]
+    },
+    {
+      "name": "SK_Resilience_Contract",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Contract ID: S5 — VS0 shared kernel infrastructure contract",
+        "File: src/features/shared.kernel.resilience-contract/index.ts",
+        "Three required protections: R1 rate-limit (per user ∪ per org, excess → 429 + retry-after), R2 circuit-break (consecutive 5xx → trip, half-open probe restore), R3 bulkhead (slice isolation, independent thread pool, no cross-slice failure cascade)",
+        "Applies to: _actions.ts, Webhook, Edge Function, scheduled jobs — all paths reaching CBG_ENTRY",
+        "D17: New external entry points (non-_actions.ts) must satisfy SK_RESILIENCE_CONTRACT before production",
+        "infra.gateway-command: src/features/infra.gateway-command/ — implements rate-limiter, circuit-breaker, bulkhead-router"
+      ]
+    },
+    {
+      "name": "SK_Token_Refresh_Contract",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Contract ID: S6 — VS0 shared kernel infrastructure contract",
+        "File: src/features/shared.kernel.token-refresh-contract/index.ts",
+        "Three-party handshake: VS1 (identity-account.auth CLAIMS_HANDLER) ↔ IER (CRITICAL_LANE) ↔ Frontend (token listener)",
+        "Trigger: RoleChanged | PolicyChanged → IER CRITICAL_LANE → CLAIMS_HANDLER → custom-claims set → TOKEN_REFRESH_SIGNAL",
+        "Client obligation: receive TOKEN_REFRESH_SIGNAL → force re-fetch Firebase Token → next request carries new Claims",
+        "Failure path: ClaimsRefresh failure → DLQ SECURITY_BLOCK → DOMAIN_ERRORS security alert",
+        "D18: Claims refresh logic changes require simultaneous update to all THREE parties",
+        "Auto-replay FORBIDDEN for SECURITY_BLOCK DLQ events — requires explicit security team authorization"
+      ]
+    },
+    {
+      "name": "Consistency_Invariants",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source: docs/logic-overview.md + docs/domain-glossary.md — invariants #1-#19",
+        "#1: Each BC can ONLY modify its own Aggregates — no direct cross-BC aggregate mutations",
+        "#2: Cross-BC communication ONLY via: Domain Event, Projection read, or ACL anti-corruption layer",
+        "#3: Application Layer only coordinates — domain rules live in Aggregates only",
+        "#4: Domain Events only produced by Aggregates; TX Runner only delivers to Outbox — must NOT create events",
+        "#5: Custom Claims are snapshot only — NOT authoritative permission source; expire with Firebase token",
+        "#6: Notification Router reads only Projection — must NOT query Aggregates directly",
+        "#7: Scope Guard reads only its own Context Read Model — must NOT cross slice boundaries for authorization",
+        "#8: Shared Kernel must be explicitly annotated — unannotated cross-BC reuse is treated as intrusion",
+        "#9: Projection must be fully rebuildable from its event stream",
+        "#10: If module needs another module's internal Context state → boundary design error → redesign",
+        "#11: XP belongs to Account BC; Organization only sets thresholds (minXpRequired)",
+        "#12: Tier is always derived (getTier(xp)→Tier pure function) — never stored in DB",
+        "#13: XP mutations must write to XP ledger (account-skill-xp-ledger)",
+        "#14: Schedule only reads ORG_ELIGIBLE_MEMBER_VIEW — never queries Aggregates for eligibility",
+        "#15: eligible lifecycle: joined→true, assigned→false, completed/cancelled→true",
+        "#16: Talent Repository = member + partner + team → ORG_ELIGIBLE_MEMBER_VIEW",
+        "#17: centralized-tag.aggregate is sole authority for tagSlug semantics",
+        "#18: workspace-governance role inherits org-governance.policy hard constraints",
+        "#19: All Projection updates must use aggregateVersion monotonic-increase as precondition [S2 generalized]"
+      ]
+    },
+    {
+      "name": "Atomicity_Rules",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source: docs/logic-overview.md — atomicity rules #A1-#A11",
+        "#A1: account-user.wallet strong consistency; account-user.profile and notification weakly consistent",
+        "#A2: organization-account.binding only uses ACL/Projection anti-corruption layer",
+        "#A3: blockWorkflow → blockedBy Set; unblockWorkflow requires blockedBy.isEmpty(); IssueResolved event → blockedBy.delete(issueId) (ONLY trigger)",
+        "#A4: ParsingIntent only allowed to propose events — no direct state mutation",
+        "#A5: schedule cross-BC uses saga/compensating events (ScheduleAssignRejected, ScheduleProposalCancelled)",
+        "#A6: centralized-tag.aggregate is semantic sole authority for tagSlug",
+        "#A7: Event Funnel only does compose — no business logic in funnel",
+        "#A8: TX Runner 1-command/1-aggregate atomic commit — no multi-aggregate transactions",
+        "#A9: Scope Guard is fast-path; high-risk operations re-source from aggregate",
+        "#A10: Notification Router is stateless routing — no state stored",
+        "#A11: eligible = 'no scheduling conflict' snapshot, not a static status field"
+      ]
+    },
+    {
+      "name": "Development_Rules",
+      "entityType": "Project_Convention",
+      "observations": [
+        "Source: docs/logic-overview.md — D1-D18 development rules (D1-D12 from v9, D13-D18 new in v10)",
+        "D1: Event delivery MUST be Aggregate → EventBus(in-process) → OUTBOX → RELAY → IER — no direct EventBus-to-IER shortcut",
+        "D2: All events must carry event-envelope (version/traceId/timestamp/idempotencyKey/eventId/aggregateId/aggregateVersion)",
+        "D3: Server Actions (_actions.ts) are the ONLY external entry point to command flow",
+        "D4: Workspace commands must pass through WS_SCOPE_GUARD before TX_RUNNER",
+        "D5: Queries must use Query Gateway (read-model-registry) — no direct Firestore queries in components",
+        "D6: All Projections registered in projection.registry",
+        "D7: Cross-slice imports only from {slice}/index.ts — never from private _* files",
+        "D8: Cross-BC shared types must live in shared.kernel.* and be explicitly annotated",
+        "D13 (v10 new): New OUTBOX must declare DLQ tier in SK_OUTBOX_CONTRACT — must NOT redefine at-least-once locally",
+        "D14 (v10 new): New Projection must reference SK_VERSION_GUARD in FUNNEL — must NOT skip aggregateVersion comparison",
+        "D15 (v10 new): Read scenario → check SK_READ_CONSISTENCY first",
+        "D16 (v10 new): SLA values must reference SK_STALENESS_CONTRACT — no hardcoded ms values",
+        "D17 (v10 new): New external entry points must satisfy SK_RESILIENCE_CONTRACT",
+        "D18 (v10 new): Claims refresh changes require simultaneous update to all three parties (VS1/IER/Frontend)"
+      ]
+    },
+    {
+      "name": "IER_Lane_Routing",
+      "entityType": "Project_Convention",
+      "observations": [
+        "Source: docs/logic-overview.md — IER full routing table (v10 final), docs/command-event-overview.md",
+        "IER = integration-event-router — central event hub; ONLY Projection write path (#9); preserves envelope.traceId [R8]",
+        "CRITICAL_LANE (high-priority eventual consistency): RoleChanged/PolicyChanged → CLAIMS_HANDLER [S6][E6] + TOKEN_REFRESH_SIGNAL; WalletDeducted/WalletCredited → FUNNEL CRITICAL_PROJ; OrgContextProvisioned → ORG_CONTEXT_ACL [E2]",
+        "STANDARD_LANE (async eventual SLA < 2s): SkillXpAdded/SkillXpDeducted → FUNNEL CRITICAL_PROJ [P2]; ScheduleAssigned → NOTIF_ROUTER + FUNNEL [E3]; ScheduleProposed → ORG_SCHEDULE Saga [A5]; MemberJoined/Left → FUNNEL [#16]; All Domain Events → FUNNEL [#9]",
+        "BACKGROUND_LANE (low-freq SLA < 30s): TagLifecycleEvent → FUNNEL + VS4_TAG_SUBSCRIBER [T1][R3]; AuditEvents → AUDIT_COLLECTOR [Q5]",
+        "DLQ: 3 tiers: SAFE_AUTO (auto-replay with idempotency-key), REVIEW_REQUIRED (manual confirm), SECURITY_BLOCK (alert+freeze, manual only, NO auto-replay)",
+        "infra.event-router: src/features/infra.event-router/ — IER implementation"
+      ]
+    },
+    {
+      "name": "Tag_Authority",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source: docs/logic-overview.md — VS0 Tag Authority Center + T1-T5 rules, docs/domain-glossary.md",
+        "centralized-tag.aggregate: global semantic dictionary master data — sole authority for tagSlug semantics (#17, #A6)",
+        "Code: src/features/centralized-tag/ — aggregate file",
+        "T1: New slices extend by subscribing to TagLifecycleEvent (BACKGROUND_LANE)",
+        "T2: SKILL_TAG_POOL = Tag Authority org-scoped read-only Projection (updated by VS4_TAG_SUBSCRIBER)",
+        "T3: ORG_ELIGIBLE_MEMBER_VIEW.skills{tagSlug→xp} cross-snapshot",
+        "T4: Schedule skill requirements = SK_SKILL_REQ × Tag Authority tagSlug",
+        "T5: TAG_SNAPSHOT consumers FORBIDDEN to write — read-only",
+        "TAG_STALE_GUARD validates freshness before scheduling: TAG_MAX_STALENESS ≤ 30s [S4]; deprecated tag → StaleTagWarning → DOMAIN_ERRORS"
+      ]
+    },
+    {
+      "name": "Vertical_Slice_Definitions",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source: docs/logic-overview.md — VS0-VS9 subgraph definitions, docs/project-structure.md, src/features/ directory (code state)",
+        "VS0 Shared Kernel (12 slices): shared.kernel.authority-snapshot, shared.kernel.constants, shared.kernel.contract-interfaces (SK_CMD_RESULT), shared.kernel.event-envelope, shared.kernel.outbox-contract, shared.kernel.read-consistency, shared.kernel.resilience-contract, shared.kernel.skill-tier, shared.kernel.staleness-contract, shared.kernel.tag-authority, shared.kernel.token-refresh-contract, shared.kernel.version-guard",
+        "VS1 Identity: identity-account.auth (CLAIMS_HANDLER, TOKEN_REFRESH_SIGNAL, completeRegistration→CommandResult)",
+        "VS2 Account: account-governance.role, account-governance.policy, account-governance.notification-router, account-organization.member, account-organization.partner, account-organization.policy, account-user.wallet (STRONG_READ #A1), account-user.profile, account-user.notification",
+        "VS3 Skill XP: account-user.skill (aggregate+XP ledger, _actions.ts AddXp/DeductXp → CommandResult, _queries.ts)",
+        "VS4 Organization: account-organization.core, account-organization.event-bus, account-organization.team, account-organization.skill-tag (SKILL_TAG_POOL + TAG_SUBSCRIBER), account-organization.schedule (HR scheduling, reads ORG_ELIGIBLE_MEMBER_VIEW #14, TAG_STALE_GUARD before assign), centralized-tag",
+        "VS5 Workspace: workspace-core, workspace-core.event-bus, workspace-core.event-store, workspace-application (cmd-handler/scope-guard/policy-engine/tx-runner), workspace-governance.role (#18), workspace-governance.audit, workspace-governance.audit-convergence, workspace-governance.members, workspace-governance.partners, workspace-governance.schedule, workspace-governance.teams, workspace-business.files, workspace-business.document-parser, workspace-business.parsing-intent, workspace-business.tasks, workspace-business.daily, workspace-business.quality-assurance, workspace-business.acceptance, workspace-business.finance, workspace-business.issues, workspace-business.schedule, workspace-business.workflow (state machine R6)",
+        "VS6 Scheduling: account-organization.schedule + scheduling-core.saga (compensating events: ScheduleAssignRejected, ScheduleProposalCancelled)",
+        "VS7 Notification: account-governance.notification-router, account-user.notification (FCM push with traceId [R8])",
+        "VS8 Projections: projection.event-funnel (ONLY write path #9, SK_VERSION_GUARD S2), projection.registry, projection.workspace-scope-guard (CRITICAL ≤500ms #A9), projection.org-eligible-member-view (CRITICAL ≤500ms #14 #15 #16), projection.account-schedule, projection.account-skill-view (#12 getTier), projection.account-view (FCM Token #6), projection.organization-view, projection.global-audit-view (traceId R8), projection.account-audit (traceId R8), projection.tag-snapshot (BACKGROUND ≤30s T5), projection.workspace-view",
+        "VS9 Observability: infra.observability (trace-identifier, domain-metrics, domain-error-log); infra.dlq-manager, infra.event-router, infra.gateway-command, infra.gateway-query, infra.outbox-relay"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "Architecture_Governance_Principles",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "DDD_Boundaries",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Compliance_Audit_Standard",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Vertical_Slice_Architecture",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Knowledge_Graph_Governance",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Consistency_Invariants",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Atomicity_Rules",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Development_Rules",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "IER_Lane_Routing",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Tag_Authority",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Vertical_Slice_Definitions",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "SK_Outbox_Contract",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "SK_Version_Guard",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "SK_Read_Consistency",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "SK_Staleness_Contract",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "SK_Resilience_Contract",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "SK_Token_Refresh_Contract",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Next_JS_16",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "FOLLOWS"
+    },
+    {
+      "from": "Technology_Stack",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "FOLLOWS"
+    },
+    {
+      "from": "Vertical_Slice_Architecture",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "FOLLOWS"
+    },
+    {
+      "from": "Server_Actions_Convention",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "FOLLOWS"
+    },
+    {
+      "from": "Command_Event_Flow",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "FOLLOWS"
+    },
+    {
+      "from": "Genkit_AI_Flow",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "FOLLOWS"
+    },
+    {
+      "from": "UI_Component_Standard",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "FOLLOWS"
+    },
+    {
+      "from": "DDD_Boundaries",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "FOLLOWS"
+    },
+    {
+      "from": "Development_Rules",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "FOLLOWS"
+    },
+    {
+      "from": "Knowledge_Graph_Governance",
+      "to": "Architecture_Governance_Principles",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "Server_Actions_Convention",
+      "to": "DDD_Boundaries",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "DDD_Boundaries",
+      "to": "Command_Event_Flow",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "DDD_Aggregate_Protection",
+      "to": "Command_Event_Flow",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "SK_Outbox_Contract",
+      "to": "Command_Event_Flow",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "SK_Version_Guard",
+      "to": "IER_Lane_Routing",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "SK_Token_Refresh_Contract",
+      "to": "IER_Lane_Routing",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "SK_Staleness_Contract",
+      "to": "Tag_Authority",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "Consistency_Invariants",
+      "to": "DDD_Boundaries",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "Atomicity_Rules",
+      "to": "DDD_Aggregate_Protection",
+      "relationType": "CONSTRAINS"
+    },
+    {
+      "from": "DDD_Aggregate_Protection",
+      "to": "DDD_Boundaries",
+      "relationType": "IMPLEMENTS"
+    },
+    {
+      "from": "MCP_Tool_Registry",
+      "to": "Knowledge_Graph_Governance",
+      "relationType": "IMPLEMENTS"
+    },
+    {
+      "from": "MCP_Tool_Registry",
+      "to": "Compliance_Audit_Standard",
+      "relationType": "IMPLEMENTS"
+    },
+    {
+      "from": "Server_Actions_Convention",
+      "to": "SK_Resilience_Contract",
+      "relationType": "IMPLEMENTS"
+    },
+    {
+      "from": "Command_Event_Flow",
+      "to": "SK_Outbox_Contract",
+      "relationType": "IMPLEMENTS"
+    },
+    {
+      "from": "Command_Event_Flow",
+      "to": "SK_Version_Guard",
+      "relationType": "IMPLEMENTS"
+    },
+    {
+      "from": "Vertical_Slice_Definitions",
+      "to": "Vertical_Slice_Architecture",
+      "relationType": "IMPLEMENTS"
+    },
+    {
+      "from": "IER_Lane_Routing",
+      "to": "SK_Outbox_Contract",
+      "relationType": "IMPLEMENTS"
+    },
+    {
+      "from": "Vertical_Slice_Architecture",
+      "to": "DDD_Boundaries",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Vertical_Slice_Architecture",
+      "to": "Next_JS_16",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Development_Rules",
+      "to": "SK_Outbox_Contract",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Development_Rules",
+      "to": "SK_Version_Guard",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Development_Rules",
+      "to": "SK_Read_Consistency",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Development_Rules",
+      "to": "SK_Staleness_Contract",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Development_Rules",
+      "to": "SK_Resilience_Contract",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Development_Rules",
+      "to": "SK_Token_Refresh_Contract",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Tag_Authority",
+      "to": "SK_Staleness_Contract",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "IER_Lane_Routing",
+      "to": "Command_Event_Flow",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Compliance_Audit_Standard",
+      "to": "Command_Event_Flow",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Compliance_Audit_Standard",
+      "to": "Server_Actions_Convention",
+      "relationType": "DEPENDS_ON"
+    }
+  ]
+}

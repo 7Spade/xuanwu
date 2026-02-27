@@ -18,7 +18,7 @@ import { useEffect } from 'react';
 import { onSnapshot, doc } from 'firebase/firestore';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { auth } from '@/shared/infra/auth/auth.client';
-import { ImplementsTokenRefreshContract } from '@/features/shared.kernel.token-refresh-contract';
+import type { ImplementsTokenRefreshContract } from '@/features/shared.kernel.token-refresh-contract';
 
 // Marker — confirms this module fulfils Party 3 of the SK_TOKEN_REFRESH_CONTRACT [S6]
 const _contractConformance: ImplementsTokenRefreshContract = {
@@ -48,7 +48,7 @@ export function useTokenRefreshListener(accountId: string | null | undefined): v
     // We skip the first emission to avoid unnecessary token refreshes on mount.
     let isFirstEmission = true;
 
-    const unsubscribe = onSnapshot(signalRef, async () => {
+    const unsubscribe = onSnapshot(signalRef, () => {
       if (isFirstEmission) {
         isFirstEmission = false;
         return;
@@ -57,14 +57,12 @@ export function useTokenRefreshListener(accountId: string | null | undefined): v
       const currentUser = auth.currentUser;
       if (!currentUser) return;
 
-      try {
-        // [S6] CLIENT_TOKEN_REFRESH_OBLIGATION: force-refresh so subsequent requests
-        // carry updated Custom Claims reflecting the new role or policy.
-        await currentUser.getIdToken(/* forceRefresh */ true);
-      } catch {
+      // [S6] CLIENT_TOKEN_REFRESH_OBLIGATION: force-refresh so subsequent requests
+      // carry updated Custom Claims reflecting the new role or policy.
+      void currentUser.getIdToken(/* forceRefresh */ true).catch(() => {
         // Non-fatal: the token will be refreshed on the next natural expiry cycle.
         // Governance slices will detect stale claims via DLQ SECURITY_BLOCK if required.
-      }
+      });
     });
 
     return () => {

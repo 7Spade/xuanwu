@@ -57,6 +57,8 @@ export async function addSkillXp(input: AddXpInput): Promise<CommandResult> {
       xpDelta: result.xpDelta,
       newXp: result.newXp,
       reason: input.reason,
+      aggregateVersion: result.version,
+      ...(input.traceId ? { traceId: input.traceId } : {}),
     });
     return commandSuccess(input.accountId, Date.now());
   } catch (err) {
@@ -98,6 +100,8 @@ export async function deductSkillXp(input: DeductXpInput): Promise<CommandResult
       xpDelta: result.xpDelta,
       newXp: result.newXp,
       reason: input.reason,
+      aggregateVersion: result.version,
+      ...(input.traceId ? { traceId: input.traceId } : {}),
     });
     return commandSuccess(input.accountId, Date.now());
   } catch (err) {

@@ -37,10 +37,18 @@ export const StalenessMs = {
    * [SK_STALENESS_CONTRACT: PROJ_STALE_STANDARD ≤ 10s]
    */
   PROJ_STALE_STANDARD: 10_000,
+
+  /**
+   * Maximum allowed staleness for the Demand Board projection.
+   * Per docs/prd-schedule-workforce-skills.md NFR PROJ_STALE_DEMAND_BOARD.
+   * Applies to: projection.demand-board (orgDemandBoard view).
+   * [SK_STALENESS_CONTRACT: PROJ_STALE_DEMAND_BOARD ≤ 5s]
+   */
+  PROJ_STALE_DEMAND_BOARD: 5_000,
 } as const;
 
 /** Staleness tier classification. [S4] */
-export type StalenessTier = 'TAG' | 'CRITICAL' | 'STANDARD';
+export type StalenessTier = 'TAG' | 'CRITICAL' | 'STANDARD' | 'DEMAND_BOARD';
 
 /**
  * Retrieve the SLA threshold (ms) for a given staleness tier. [S4]
@@ -53,6 +61,8 @@ export function getSlaMs(tier: StalenessTier): number {
       return StalenessMs.PROJ_STALE_CRITICAL;
     case 'STANDARD':
       return StalenessMs.PROJ_STALE_STANDARD;
+    case 'DEMAND_BOARD':
+      return StalenessMs.PROJ_STALE_DEMAND_BOARD;
   }
 }
 

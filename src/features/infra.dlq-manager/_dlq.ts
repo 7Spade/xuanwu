@@ -6,14 +6,18 @@
  * Per logic-overview.md [R5] DLQ 三級策略:
  *
  *   SAFE_AUTO       — TagLifecycle・MemberJoined (idempotent, auto-retry)
- *   REVIEW_REQUIRED — WalletDeducted・ScheduleAssigned・RoleChanged (human review before replay)
- *   SECURITY_BLOCK  — ClaimsRefresh failure (security event: alert + freeze + manual confirmation)
+ *   REVIEW_REQUIRED — WalletDeducted・ScheduleAssigned (financial/assignment, human review before replay)
+ *   SECURITY_BLOCK  — RoleChanged・PolicyChanged・ClaimsRefresh failure
+ *                     (security event: alert + entity freeze + manual authorization before any replay)
+ *                     [GEMINI.md §4: auto-replay FORBIDDEN for SECURITY_BLOCK]
  *
  * The infra.outbox-relay worker attaches a `dlqLevel` to every entry it routes to the DLQ
  * so that DLQ consumers can enforce the correct replay policy without inspecting the
  * event payload again.
  *
  * Invariant: WalletDeducted MUST NOT be auto-replayed — double-deduction risk.
+ * Invariant: RoleChanged/PolicyChanged MUST route to SECURITY_BLOCK — not REVIEW_REQUIRED.
+ *            [logic-overview.md VS2 ACC_OUTBOX, GEMINI.md §4]
  * Invariant: ClaimsRefresh failure MUST trigger security alert and account freeze.
  */
 
@@ -50,15 +54,23 @@ export interface DlqEntry {
  * explicitly when a new high-risk event type is introduced.
  */
 const EVENT_TYPE_DLQ_LEVEL: Readonly<Record<string, DlqLevel>> = {
-  // SECURITY_BLOCK: ClaimsRefresh failures are security events.
+  // SECURITY_BLOCK: security events — alert + entity freeze + manual authorization before any replay.
+  // [logic-overview.md VS2 ACC_OUTBOX] [GEMINI.md §4: auto-replay FORBIDDEN]
   'identity:claims:refreshFailed': 'SECURITY_BLOCK',
+  'account:role:changed': 'SECURITY_BLOCK',
+  'account:policy:changed': 'SECURITY_BLOCK',
 
-  // REVIEW_REQUIRED: financial and assignment events must not auto-replay.
+  // REVIEW_REQUIRED: financial and irreversible assignment events must not auto-replay.
   'account:wallet:deducted': 'REVIEW_REQUIRED',
   'account:wallet:credited': 'REVIEW_REQUIRED',
   'organization:schedule:assigned': 'REVIEW_REQUIRED',
   'organization:role:changed': 'REVIEW_REQUIRED',
-  'account:role:changed': 'REVIEW_REQUIRED',
+
+  // SAFE_AUTO: compensating / lifecycle events are idempotent — safe to auto-retry.
+  // Per logic-overview.md VS6 SCHED_OUTBOX: "Compensating Events → SAFE_AUTO".
+  'organization:schedule:completed': 'SAFE_AUTO',
+  'organization:schedule:assignmentCancelled': 'SAFE_AUTO',
+  'organization:schedule:assignRejected': 'SAFE_AUTO',
 };
 
 /**

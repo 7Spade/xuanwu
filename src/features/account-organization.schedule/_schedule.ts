@@ -8,6 +8,11 @@
  *   WORKSPACE_OUTBOX →|ScheduleProposed（跨層事件 · saga）| ORGANIZATION_SCHEDULE
  *   ORGANIZATION_SCHEDULE → ORGANIZATION_EVENT_BUS → ACCOUNT_NOTIFICATION_ROUTER (FCM Layer 2+)
  *
+ * Aggregate lifecycle (state machine):
+ *   draft → proposed → confirmed → completed        (normal path)
+ *                                 → assignmentCancelled  (post-approval cancellation)
+ *                    → cancelled                    (proposal rejected / compensating path)
+ *
  * Invariants respected:
  *   #1  — This BC only writes its own aggregate (orgScheduleProposals collection).
  *   #2  — Reads workspace schedule data only via the event payload (not domain model).
@@ -33,12 +38,14 @@ import type { SkillRequirement } from '@/shared/types';
 /**
  * Aggregate lifecycle states for organization.schedule.
  *
- *   draft     — initial state; exists only in memory / not yet persisted
- *   proposed  — received from workspace layer; persisted, awaiting org approval
- *   confirmed — skill check passed; ScheduleAssigned event published
- *   cancelled — skill check failed or manually cancelled; ScheduleAssignRejected published
+ *   draft               — initial state; exists only in memory / not yet persisted
+ *   proposed            — received from workspace layer; persisted, awaiting org approval
+ *   confirmed           — skill check passed; ScheduleAssigned event published
+ *   cancelled           — skill check failed or manually cancelled; ScheduleAssignRejected published
+ *   completed           — assignment successfully fulfilled; ScheduleCompleted event published
+ *   assignmentCancelled — confirmed assignment withdrawn post-approval; ScheduleAssignmentCancelled event published
  */
-export const ORG_SCHEDULE_STATUSES = ['draft', 'proposed', 'confirmed', 'cancelled'] as const;
+export const ORG_SCHEDULE_STATUSES = ['draft', 'proposed', 'confirmed', 'cancelled', 'completed', 'assignmentCancelled'] as const;
 export type OrgScheduleStatus = (typeof ORG_SCHEDULE_STATUSES)[number];
 
 // =================================================================
@@ -66,12 +73,16 @@ export const orgScheduleProposalSchema = z.object({
   intentId: z.string().optional(),
   /** Skill requirements carried over from the workspace proposal — used during org approval. */
   skillRequirements: z.array(skillRequirementSchema).optional(),
+  /** Sub-location within the workspace. FR-L2. */
+  locationId: z.string().optional(),
   /**
    * Aggregate version of this org-schedule proposal. [R7]
    * Incremented on each state transition (proposed → confirmed/cancelled).
    * Included in published events so ELIGIBLE_UPDATE_GUARD can enforce monotonic updates.
    */
   version: z.number().int().min(1).default(1),
+  /** [R8] TraceID injected at CBG_ENTRY — persisted for end-to-end audit trail. */
+  traceId: z.string().optional(),
 });
 
 export type OrgScheduleProposal = z.infer<typeof orgScheduleProposalSchema>;
@@ -103,6 +114,10 @@ export async function handleScheduleProposed(
     intentId: payload.intentId,
     // Persist skill requirements so org governance can validate without re-fetching workspace data.
     ...(payload.skillRequirements?.length ? { skillRequirements: payload.skillRequirements } : {}),
+    // Persist sub-location reference. FR-L2.
+    ...(payload.locationId ? { locationId: payload.locationId } : {}),
+    // [R8] Persist traceId for end-to-end audit trail.
+    ...(payload.traceId ? { traceId: payload.traceId } : {}),
   });
   await setDocument(`orgScheduleProposals/${payload.scheduleItemId}`, proposal);
 }
@@ -145,6 +160,8 @@ export async function approveOrgScheduleProposal(
     title: string;
     startDate: string;
     endDate: string;
+    /** [R8] TraceID propagated from the originating WorkspaceScheduleProposed event. */
+    traceId?: string;
   },
   skillRequirements?: SkillRequirement[]
 ): Promise<ScheduleApprovalResult> {
@@ -203,6 +220,8 @@ export async function approveOrgScheduleProposal(
     endDate: opts.endDate,
     title: opts.title,
     aggregateVersion: nextVersion,
+    // [R8] Forward traceId to ScheduleAssigned event for end-to-end trace propagation.
+    ...(opts.traceId ? { traceId: opts.traceId } : {}),
   });
 
   return { outcome: 'confirmed', scheduleItemId };
@@ -215,7 +234,7 @@ export async function approveOrgScheduleProposal(
 async function _cancelProposal(
   scheduleItemId: string,
   targetAccountId: string,
-  opts: { workspaceId: string; orgId: string },
+  opts: { workspaceId: string; orgId: string; traceId?: string },
   reason: string
 ): Promise<void> {
   await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
@@ -230,6 +249,8 @@ async function _cancelProposal(
     targetAccountId,
     reason,
     rejectedAt: new Date().toISOString(),
+    // [R8] Forward traceId to compensating event for end-to-end trace propagation.
+    ...(opts.traceId ? { traceId: opts.traceId } : {}),
   });
 }
 
@@ -253,7 +274,9 @@ export async function cancelOrgScheduleProposal(
   orgId: string,
   workspaceId: string,
   cancelledBy: string,
-  reason?: string
+  reason?: string,
+  /** [R8] TraceID propagated from the originating scheduling saga. */
+  traceId?: string
 ): Promise<void> {
   await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
     status: 'cancelled' satisfies OrgScheduleStatus,
@@ -266,5 +289,111 @@ export async function cancelOrgScheduleProposal(
     cancelledBy,
     cancelledAt: new Date().toISOString(),
     ...(reason ? { reason } : {}),
+    // [R8] Forward traceId to compensating event for end-to-end trace propagation.
+    ...(traceId ? { traceId } : {}),
+  });
+}
+
+// =================================================================
+// Domain Service: completeOrgSchedule
+// =================================================================
+
+/**
+ * Marks a confirmed schedule assignment as completed.
+ *
+ * Invariant #15: completed → eligible = true.
+ * The `organization:schedule:completed` event published here is consumed by
+ * the event funnel which calls both `applyScheduleCompleted` (account-schedule
+ * projection) and `updateOrgMemberEligibility(orgId, accountId, true)` to
+ * restore the member's eligible flag.
+ *
+ * Invariant #1: only writes to this BC's own aggregate (orgScheduleProposals).
+ */
+export async function completeOrgSchedule(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  targetAccountId: string,
+  completedBy: string,
+  /** [R8] TraceID propagated from the originating command. */
+  traceId?: string
+): Promise<void> {
+  const existing = await getDocument<OrgScheduleProposal>(`orgScheduleProposals/${scheduleItemId}`);
+  if (!existing || existing.status !== 'confirmed') {
+    throw new Error(
+      `completeOrgSchedule: invalid state transition — scheduleItemId "${scheduleItemId}" is "${existing?.status ?? 'not found'}", expected "confirmed".`
+    );
+  }
+  const nextVersion = existing.version + 1;
+
+  await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
+    status: 'completed' satisfies OrgScheduleStatus,
+    version: nextVersion,
+  });
+
+  await publishOrgEvent('organization:schedule:completed', {
+    scheduleItemId,
+    workspaceId,
+    orgId,
+    targetAccountId,
+    completedBy,
+    completedAt: new Date().toISOString(),
+    aggregateVersion: nextVersion,
+    // [R8] Forward traceId for end-to-end trace propagation.
+    ...(traceId ? { traceId } : {}),
+  });
+}
+
+// =================================================================
+// Domain Service: cancelOrgScheduleAssignment
+// =================================================================
+
+/**
+ * Cancels a previously confirmed schedule assignment (post-assignment cancellation).
+ *
+ * Distinct from `cancelOrgScheduleProposal` which operates on proposals that
+ * have NOT yet been confirmed. This function handles the case where a confirmed
+ * assignment is later withdrawn by HR, restoring the member's eligible flag.
+ *
+ * Invariant #15: cancelled → eligible = true.
+ * Publishes `organization:schedule:assignmentCancelled` consumed by the event
+ * funnel which calls `updateOrgMemberEligibility(orgId, accountId, true)`.
+ *
+ * Invariant #1: only writes to this BC's own aggregate (orgScheduleProposals).
+ */
+export async function cancelOrgScheduleAssignment(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  targetAccountId: string,
+  cancelledBy: string,
+  reason?: string,
+  /** [R8] TraceID propagated from the originating command. */
+  traceId?: string
+): Promise<void> {
+  const existing = await getDocument<OrgScheduleProposal>(`orgScheduleProposals/${scheduleItemId}`);
+  if (!existing || existing.status !== 'confirmed') {
+    throw new Error(
+      `cancelOrgScheduleAssignment: invalid state transition — scheduleItemId "${scheduleItemId}" is "${existing?.status ?? 'not found'}", expected "confirmed".`
+    );
+  }
+  const nextVersion = existing.version + 1;
+
+  await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
+    status: 'assignmentCancelled' satisfies OrgScheduleStatus,
+    version: nextVersion,
+  });
+
+  await publishOrgEvent('organization:schedule:assignmentCancelled', {
+    scheduleItemId,
+    workspaceId,
+    orgId,
+    targetAccountId,
+    cancelledBy,
+    cancelledAt: new Date().toISOString(),
+    aggregateVersion: nextVersion,
+    ...(reason ? { reason } : {}),
+    // [R8] Forward traceId for end-to-end trace propagation.
+    ...(traceId ? { traceId } : {}),
   });
 }

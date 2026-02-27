@@ -33,9 +33,6 @@ export async function createWorkspaceWithCapabilities(
 
 import { toast } from "@/shared/utility-hooks/use-toast"
 
-const getErrorMessage = (error: unknown, fallback: string) =>
-  error instanceof Error ? error.message : fallback
-
 export const handleCreateWorkspace = async (
   name: string,
   activeAccount: Account | null,

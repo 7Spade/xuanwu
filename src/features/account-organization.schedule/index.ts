@@ -4,7 +4,7 @@
 // Tier derived via resolveSkillTier(xp), never stored in DB (Invariant #12).
 // ScheduleAssignRejected and ScheduleProposalCancelled are compensating events (Scheduling Saga, Invariant A5).
 
-export { handleScheduleProposed, approveOrgScheduleProposal, cancelOrgScheduleProposal, orgScheduleProposalSchema, ORG_SCHEDULE_STATUSES } from './_schedule';
+export { handleScheduleProposed, approveOrgScheduleProposal, cancelOrgScheduleProposal, completeOrgSchedule, cancelOrgScheduleAssignment, orgScheduleProposalSchema, ORG_SCHEDULE_STATUSES } from './_schedule';
 export type {
   OrgScheduleProposal,
   OrgScheduleStatus,
@@ -15,9 +15,14 @@ export {
   getOrgScheduleProposal,
   subscribeToOrgScheduleProposals,
   subscribeToPendingProposals,
+  subscribeToConfirmedProposals,
 } from './_queries';
 
-export { useOrgSchedule, usePendingScheduleProposals } from './_hooks/use-org-schedule';
+export { useOrgSchedule, usePendingScheduleProposals, useConfirmedScheduleProposals } from './_hooks/use-org-schedule';
 
 export { OrgScheduleGovernance } from './_components/org-schedule-governance';
+
+// FR-W6 — Server Actions for manual schedule assignment (Critical Gap #0)
+// FR-S6 — Server Action to complete a confirmed schedule
+export { manualAssignScheduleMember, cancelScheduleProposalAction, completeOrgScheduleAction } from './_actions';
 

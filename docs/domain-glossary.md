@@ -28,14 +28,15 @@
 
 | Projection | Lane | SLA | Description |
 |-----------|------|-----|-------------|
-| `workspace-scope-guard-view` | CRITICAL | ≤ 500ms | Authorization fast-path (#A9). Consumed by `CBG_AUTH`. |
+| `workspace-scope-guard-view` | CRITICAL | ≤ 500ms | Authorization fast-path (#A9). Consumed by `CBG_AUTH`. Written by `projection.workspace-scope-guard`. |
 | `org-eligible-member-view` | CRITICAL | ≤ 500ms | Schedule eligibility snapshot. Skills cross-snapshot (T3). Version monotonic (#19). |
-| `wallet-balance` | CRITICAL | ≤ 500ms | Display-only wallet. Precise transactions use STRONG_READ [S3]. |
+| `wallet-balance` | CRITICAL | ≤ 500ms | Display-only wallet. Precise transactions use STRONG_READ directly on `account-user.wallet` aggregate [S3]. |
 | `workspace-view` | STANDARD | ≤ 10s | Workspace list and status display. |
 | `account-schedule` | STANDARD | ≤ 10s | Per-account assigned schedule view. |
 | `account-view` | STANDARD | ≤ 10s | Account profile. Exposes FCM Token for notification routing (#6). |
 | `organization-view` | STANDARD | ≤ 10s | Organization display data. |
 | `account-skill-view` | STANDARD | ≤ 10s | Per-account skill XP + Tier (derived, not stored #12). |
+| `account-audit` | STANDARD | ≤ 10s | Per-account audit log entries. Every record contains `traceId` [R8]. Written by `projection.account-audit`. |
 | `global-audit-view` | STANDARD | ≤ 10s | Every record contains `traceId` [R8]. Append-only audit log. |
 | `tag-snapshot` | BACKGROUND | ≤ 30s | Read-only tag data snapshot (T5). Staleness ≤ TAG_MAX_STALENESS [S4]. |
 

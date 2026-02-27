@@ -25,6 +25,7 @@ import { toast } from "@/shared/utility-hooks/use-toast";
 import { type Location, type SkillRequirement, type SkillTier } from "@/shared/types";
 import { SKILLS } from "@/shared/constants/skills";
 import { TIER_DEFINITIONS } from "@/features/shared.kernel.skill-tier";
+import { getOrgSkillTags } from "@/features/account-organization.skill-tag";
 
 const MAX_SKILL_REQUIREMENT_QUANTITY = 99;
 
@@ -40,6 +41,8 @@ interface ProposalDialogProps {
     requiredSkills: SkillRequirement[];
   }) => Promise<void>;
   initialDate: Date;
+  /** FR-K5: Org ID used to load the org's skill tag pool instead of the global library. */
+  orgId?: string;
 }
 
 /**
@@ -48,12 +51,14 @@ interface ProposalDialogProps {
  * It encapsulates the entire form logic for submitting a new schedule item.
  * The requiredSkills section connects to SKILL_TAG_POOL (account-organization.skill-tag)
  * so that schedule proposals can specify staffing skill requirements.
+ * FR-K5: When orgId is provided, loads the org's tag pool; otherwise falls back to global SKILLS.
  */
 export function ProposalDialog({
   isOpen,
   onOpenChange,
   onSubmit,
   initialDate,
+  orgId,
 }: ProposalDialogProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [title, setTitle] = useState("");
@@ -65,18 +70,35 @@ export function ProposalDialog({
   const [selectedTier, setSelectedTier] = useState<SkillTier>("apprentice");
   const [selectedQuantity, setSelectedQuantity] = useState<string>("1");
 
+  // FR-K5: Org skill tag pool — loaded once per dialog open when orgId is provided.
+  const [skillOptions, setSkillOptions] = useState<{ slug: string; name: string }[]>([]);
+
   useEffect(() => {
-    if (isOpen) {
-      setDateRange({ from: initialDate, to: initialDate });
-      setTitle("");
-      setDescription("");
-      setLocation({ description: '' });
-      setRequiredSkills([]);
-      setSelectedSkillSlug("");
-      setSelectedTier("apprentice");
-      setSelectedQuantity("1");
+    if (!isOpen) return;
+    setDateRange({ from: initialDate, to: initialDate });
+    setTitle("");
+    setDescription("");
+    setLocation({ description: '' });
+    setRequiredSkills([]);
+    setSelectedSkillSlug("");
+    setSelectedTier("apprentice");
+    setSelectedQuantity("1");
+
+    if (orgId) {
+      getOrgSkillTags(orgId)
+        .then((tags) => {
+          if (tags.length > 0) {
+            setSkillOptions(tags.map((t) => ({ slug: t.tagSlug, name: t.tagName ?? t.tagSlug })));
+          } else {
+            // Fallback to global skills list when org pool is empty
+            setSkillOptions(SKILLS.map((s) => ({ slug: s.slug, name: s.name })));
+          }
+        })
+        .catch(() => setSkillOptions(SKILLS.map((s) => ({ slug: s.slug, name: s.name }))));
+    } else {
+      setSkillOptions(SKILLS.map((s) => ({ slug: s.slug, name: s.name })));
     }
-  }, [isOpen, initialDate]);
+  }, [isOpen, initialDate, orgId]);
 
   const handleLocationChange = (field: keyof Location, value: string) => {
     setLocation(prev => ({
@@ -188,7 +210,7 @@ export function ProposalDialog({
             {requiredSkills.length > 0 && (
               <div className="flex flex-wrap gap-2 py-1">
                 {requiredSkills.map(req => {
-                  const skillName = SKILLS.find(s => s.slug === req.tagSlug)?.name ?? req.tagSlug;
+                  const skillName = skillOptions.find(s => s.slug === req.tagSlug)?.name ?? req.tagSlug;
                   return (
                     <Badge key={req.tagSlug} variant="secondary" className="gap-1 pr-1">
                       {skillName} · {req.minimumTier} · ×{req.quantity}
@@ -211,7 +233,7 @@ export function ProposalDialog({
                     <SelectValue placeholder="Select skill..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {SKILLS.map(skill => (
+                    {skillOptions.map(skill => (
                       <SelectItem key={skill.slug} value={skill.slug} className="text-xs">
                         {skill.name}
                       </SelectItem>

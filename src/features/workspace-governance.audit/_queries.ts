@@ -1,5 +1,5 @@
 /**
- * @fileoverview audit.commands.ts — Read-only actions for audit log retrieval.
+ * @fileoverview _queries.ts — Read-only queries for audit log retrieval.
  * @description Provides server-side read functions for fetching audit log history.
  * Callable from RSC pages, hooks, and context without React dependencies.
  */

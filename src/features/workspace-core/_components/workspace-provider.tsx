@@ -70,7 +70,7 @@ interface WorkspaceContextType {
   /** Resolves a B-track issue via the Transaction Runner + Outbox pipeline. */
   resolveIssue: (issueId: string, issueTitle: string, resolvedBy: string, sourceTaskId?: string) => Promise<void>;
   // Schedule Management
-  createScheduleItem: (itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string>;
+  createScheduleItem: (itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>) => Promise<CommandResult>;
   // Pending parse file — set by files-view when "Parse with AI" is clicked;
   // read by document-parser on mount to auto-trigger parsing cross-tab.
   pendingParseFile: FileSendToParserPayload | null;
@@ -171,28 +171,34 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
     }
   }, [workspaceId, eventBus]);
 
-  const createScheduleItem = useCallback(async (itemData: Omit<ScheduleItem, 'id' | 'createdAt'>) => {
-    const itemId = await createScheduleItemAction(itemData);
+  const createScheduleItem = useCallback(async (itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const result = await createScheduleItemAction(itemData);
     // Cross-layer Outbox event: WORKSPACE_OUTBOX →|workspace:schedule:proposed| ORGANIZATION_SCHEDULE
     // Per logic-overview.v3.md: W_B_SCHEDULE publishes this event so account-organization.schedule
     // can persist an orgScheduleProposal and start the HR governance approval flow.
-    if (workspace?.dimensionId) {
-      eventBus.publish('workspace:schedule:proposed', {
-        scheduleItemId: itemId,
-        workspaceId: workspaceId,
-        orgId: workspace.dimensionId,
-        title: itemData.title,
-        startDate: firestoreTimestampToISO(itemData.startDate),
-        endDate: firestoreTimestampToISO(itemData.endDate),
-        proposedBy: activeAccount?.id ?? 'system',
-        skillRequirements: itemData.requiredSkills,
-      });
-    } else {
-      console.warn(
-        `[W_B_SCHEDULE] workspace:schedule:proposed not published for item "${itemId}" — workspace.dimensionId is missing. Org-level scheduling will not be triggered.`
-      );
+    if (result.success) {
+      if (workspace?.dimensionId) {
+        // [R8] Inject traceId at CBG_ENTRY (this is the top of the scheduling saga chain).
+        // Use Web Crypto API (available in modern browsers and Node 18+).
+        const traceId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        eventBus.publish('workspace:schedule:proposed', {
+          scheduleItemId: result.aggregateId,
+          workspaceId: workspaceId,
+          orgId: workspace.dimensionId,
+          title: itemData.title,
+          startDate: firestoreTimestampToISO(itemData.startDate),
+          endDate: firestoreTimestampToISO(itemData.endDate),
+          proposedBy: activeAccount?.id ?? 'system',
+          skillRequirements: itemData.requiredSkills,
+          traceId,
+        });
+      } else {
+        console.warn(
+          `[W_B_SCHEDULE] workspace:schedule:proposed not published for item "${result.aggregateId}" — workspace.dimensionId is missing. Org-level scheduling will not be triggered.`
+        );
+      }
     }
-    return itemId;
+    return result;
   }, [workspaceId, workspace?.dimensionId, activeAccount?.id, eventBus]);
 
 

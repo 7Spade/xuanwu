@@ -82,6 +82,9 @@ export const getWorkspaceTasks = repositories.getWorkspaceTasks
 export const getWorkspaceIssues = repositories.getWorkspaceIssues
 export const getWorkspaceFiles = repositories.getWorkspaceFiles
 export const getWorkspaceGrants = repositories.getWorkspaceGrants
+export const createWorkspaceLocation = repositories.createWorkspaceLocation
+export const updateWorkspaceLocation = repositories.updateWorkspaceLocation
+export const deleteWorkspaceLocation = repositories.deleteWorkspaceLocation
 
 // workspace-business.files — subcollection CRUD
 export const createWorkspaceFile = repositories.createWorkspaceFile

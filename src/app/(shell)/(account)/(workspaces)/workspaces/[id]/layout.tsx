@@ -85,6 +85,14 @@ function WorkspaceLayoutInner({ workspaceId, businesstab, modal, panel }: { work
           >
             <Settings className="size-3.5" /> Space Settings
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-2 text-[10px] font-bold uppercase tracking-widest"
+            onClick={() => router.push(ROUTES.WORKSPACE_LOCATIONS(workspaceId))}
+          >
+            <MapPin className="size-3.5" /> 子地點
+          </Button>
         </div>
       </PageHeader>
       

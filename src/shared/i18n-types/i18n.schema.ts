@@ -73,6 +73,8 @@ export interface TranslationMessages {
     permissions: string;
     matrix: string;
     schedule: string;
+    orgSchedule: string;
+    demandBoard: string;
     daily: string;
     audit: string;
   };

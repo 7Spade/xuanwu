@@ -12,6 +12,10 @@ import { batchImportTasks } from "@/features/workspace-business.tasks";
 import { markParsingIntentImported } from "@/features/workspace-business.document-parser";
 import { Timestamp } from "firebase/firestore";
 
+// [S4] Named constant — disambiguates from PROJ_STALE_STANDARD (10s).
+// This is a UI toast duration, not a staleness SLA value.
+const TOAST_LONG_DURATION_MS = 10_000;
+
 /**
  * useWorkspaceEventHandler — side-effect hook (no render output).
  * Call inside any Client Component that is a descendant of WorkspaceProvider.
@@ -142,7 +146,7 @@ export function useWorkspaceEventHandler() {
       toast({
         title: `Found ${payload.items.length} items from "${payload.sourceDocument}".`,
         description: "Do you want to import them as new root tasks?",
-        duration: 10000,
+        duration: TOAST_LONG_DURATION_MS,
         action: (
           <ToastAction altText="Import" onClick={importItems}>
             Import

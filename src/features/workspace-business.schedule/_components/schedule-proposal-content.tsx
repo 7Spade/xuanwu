@@ -46,8 +46,8 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
       ...(data.requiredSkills.length > 0 ? { requiredSkills: data.requiredSkills } : {}),
     } as Omit<ScheduleItem, "id" | "createdAt" | "updatedAt">)
     toast({
-      title: "Schedule Proposal Sent",
-      description: "Your request has been sent for organization approval.",
+      title: "排程提案已送出",
+      description: "您的申請已送至組織審核。",
     })
     router.back()
   }
@@ -60,6 +60,7 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
       }}
       onSubmit={handleSubmit}
       initialDate={initialDate}
+      orgId={workspace.dimensionId}
     />
   )
 

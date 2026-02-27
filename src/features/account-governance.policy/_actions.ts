@@ -17,6 +17,7 @@
  */
 
 import { addDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import {
   type CommandResult,
   commandSuccess,
@@ -153,10 +154,18 @@ export async function updateAccountPolicy(
 
 /**
  * Deletes an account policy.
+ * [R8] Reads the policy first to obtain accountId, then emits a token-refresh
+ * signal so stale claims are invalidated — matching the create/update pattern.
  */
-export async function deleteAccountPolicy(policyId: string): Promise<CommandResult> {
+export async function deleteAccountPolicy(policyId: string, traceId?: string): Promise<CommandResult> {
   try {
+    // Read accountId before deletion so we can emit the refresh signal [R8].
+    const existing = await getDocument<AccountPolicy>(`accountPolicies/${policyId}`);
     await deleteDocument(`accountPolicies/${policyId}`);
+    // If we found the policy, emit a token-refresh signal so stale claims are invalidated.
+    if (existing?.accountId) {
+      await emitPolicyChangedRefreshSignal(existing.accountId, traceId);
+    }
     return commandSuccess(policyId, Date.now());
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

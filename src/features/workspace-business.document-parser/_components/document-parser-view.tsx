@@ -9,7 +9,7 @@ import { Button } from '@/shared/shadcn-ui/button';
 import {
   extractDataFromDocument,
   type ActionState,
-} from '../_actions';
+} from '../_form-actions';
 import { saveParsingIntent } from '../_intent-actions';
 import { subscribeToParsingIntents } from '../_queries';
 import type { WorkItem } from '@/shared/ai/schemas/docu-parse';

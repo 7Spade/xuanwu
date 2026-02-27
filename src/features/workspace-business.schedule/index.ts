@@ -16,4 +16,6 @@ export { useScheduleActions } from './_hooks/use-schedule-commands'
 export { useWorkspaceSchedule } from './_hooks/use-workspace-schedule'
 export { useScheduleEventHandler } from './_hooks/use-schedule-event-handler'
 // Actions (server)
-export { createScheduleItem, assignMember, unassignMember, updateScheduleItemStatus, getScheduleItems } from './_actions'
+export { createScheduleItem, assignMember, unassignMember, updateScheduleItemStatus } from './_actions'
+// Queries (read-only)
+export { getScheduleItems } from './_queries'

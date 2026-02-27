@@ -100,28 +100,32 @@ export async function assignAccountRole(input: AssignRoleInput): Promise<Command
  * Revokes an org-level role from an account.
  * Publishes OrgMemberLeft event downstream — triggers CUSTOM_CLAIMS refresh.
  * Emits TOKEN_REFRESH_SIGNAL after role change so the frontend refreshes its token. [R2]
+ * [R8] traceId propagated from CBG_ENTRY into event publish and signal document.
  */
 export async function revokeAccountRole(
   accountId: string,
   orgId: string,
-  revokedBy: string
+  revokedBy: string,
+  traceId?: string
 ): Promise<CommandResult> {
   try {
     await updateDocument(`accountRoles/${orgId}_${accountId}`, {
       isActive: false,
       revokedAt: new Date().toISOString(),
+      ...(traceId ? { traceId } : {}),
     });
 
     await publishOrgEvent('organization:member:left', {
       orgId,
       accountId,
       removedBy: revokedBy,
+      ...(traceId ? { traceId } : {}),
     });
 
     // TOKEN_REFRESH_SIGNAL [R2]: notify frontend that claims have changed.
     // Wrapped in try-catch: a signal failure must NOT roll back the role revocation.
     try {
-      await emitTokenRefreshSignal(accountId, 'role:revoked');
+      await emitTokenRefreshSignal(accountId, 'role:revoked', traceId);
     } catch (err) {
       console.error('[account-governance.role] Failed to emit TOKEN_REFRESH_SIGNAL after role revoke:', err);
     }
@@ -146,6 +150,8 @@ export interface TokenRefreshSignal {
   reason: TokenRefreshReason;
   /** ISO 8601 timestamp. Frontend uses this to detect new signals (idempotent on repeat). */
   issuedAt: string;
+  /** [R8] Trace identifier propagated from CBG_ENTRY for distributed tracing. */
+  traceId?: string;
 }
 
 /**
@@ -161,9 +167,10 @@ export interface TokenRefreshSignal {
  * Security: accountId is validated against a safe Firestore document ID pattern
  * to prevent path-traversal injection [OWASP: A01 / CWE-22].
  */
-export async function emitTokenRefreshSignal(
+async function emitTokenRefreshSignal(
   accountId: string,
-  reason: TokenRefreshReason
+  reason: TokenRefreshReason,
+  traceId?: string
 ): Promise<void> {
   // Guard against path-traversal: accountId must be a safe Firestore document ID
   // (alphanumeric, hyphens, underscores only — no slashes or special chars).
@@ -174,6 +181,7 @@ export async function emitTokenRefreshSignal(
     accountId,
     reason,
     issuedAt: new Date().toISOString(),
+    ...(traceId ? { traceId } : {}),
   };
   await setDocument(`tokenRefreshSignals/${accountId}`, signal);
 }

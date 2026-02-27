@@ -17,7 +17,7 @@ import { cn } from "@/shared/lib";
 import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from "date-fns";
 import { Plus, Check, X, Layers, ChevronLeft, ChevronRight } from "lucide-react";
 
-const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS_OF_WEEK = ["日", "一", "二", "三", "四", "五", "六"];
 
 interface UnifiedCalendarGridProps {
   items: ScheduleItem[];

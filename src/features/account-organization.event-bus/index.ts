@@ -12,6 +12,8 @@
 export { onOrgEvent, publishOrgEvent } from './_bus';
 export type {
   ScheduleAssignedPayload,
+  ScheduleCompletedPayload,
+  ScheduleAssignmentCancelledPayload,
   ScheduleAssignRejectedPayload,
   ScheduleProposalCancelledPayload,
   OrgPolicyChangedPayload,

@@ -134,6 +134,21 @@ export async function getOrgMemberEligibilityWithTier(
 }
 
 /**
+ * Returns all member entries for an organization (including non-eligible).
+ * Used by FR-W1 members overview to display eligible status for all members.
+ * NOTE: This returns ALL members, not just eligible ones.
+ */
+export async function getAllOrgMembersView(
+  orgId: string
+): Promise<OrgEligibleMemberView[]> {
+  const snap = await getDocs(
+    collection(db, `orgEligibleMemberView/${orgId}/members`)
+  );
+  return snap.docs
+    .map((d: QueryDocumentSnapshot) => enrichWithTier(d.data() as OrgEligibleMemberEntry));
+}
+
+/**
  * Returns all eligible members with COMPUTED tier for each skill.
  * Filters by eligible=true.
  */

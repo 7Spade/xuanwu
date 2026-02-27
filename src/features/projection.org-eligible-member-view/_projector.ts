@@ -46,6 +46,12 @@ export interface OrgEligibleMemberEntry {
    * from reverting the eligible flag to an incorrect state.
    */
   lastProcessedVersion: number;
+  /**
+   * Highest skill-aggregate version processed for XP updates. [S2]
+   * XP_VERSION_GUARD: only update when incomingSkillVersion > lastProcessedSkillVersion.
+   * Prevents stale XP from overwriting a newer value due to out-of-order delivery.
+   */
+  lastProcessedSkillVersion: number;
   readModelVersion: number;
   /** TraceId from the originating EventEnvelope [R8] */
   traceId?: string;
@@ -70,6 +76,7 @@ export async function initOrgMemberEntry(
     skills: {},
     eligible: true,
     lastProcessedVersion: 0,
+    lastProcessedSkillVersion: 0,
     readModelVersion: Date.now(),
     ...(traceId !== undefined ? { traceId } : {}),
     updatedAt: serverTimestamp(),
@@ -86,26 +93,47 @@ export async function removeOrgMemberEntry(
   await deleteDocument(memberPath(orgId, accountId));
 }
 
+export interface ApplyOrgMemberSkillXpInput {
+  orgId: string;
+  accountId: string;
+  skillId: string;
+  newXp: number;
+  traceId?: string;
+  /** Skill aggregate version — used by S2 XP_VERSION_GUARD. */
+  aggregateVersion?: number;
+}
+
 /**
  * Updates the XP for a specific skill on a member's eligible-member entry.
  * Creates the entry if it does not yet exist.
  *
+ * Enforces SK_VERSION_GUARD [S2] via `versionGuardAllows` using
+ * `lastProcessedSkillVersion` to discard stale out-of-order XP events.
+ *
  * Called when organization:skill:xpAdded or organization:skill:xpDeducted fires.
  */
 export async function applyOrgMemberSkillXp(
-  orgId: string,
-  accountId: string,
-  skillId: string,
-  newXp: number,
-  traceId?: string
+  input: ApplyOrgMemberSkillXpInput
 ): Promise<void> {
+  const { orgId, accountId, skillId, newXp, traceId, aggregateVersion } = input;
   const existing = await getDocument<OrgEligibleMemberEntry>(
     memberPath(orgId, accountId)
   );
 
   if (existing) {
+    // [S2] XP_VERSION_GUARD: discard stale events when aggregateVersion is provided.
+    if (
+      aggregateVersion !== undefined &&
+      !versionGuardAllows({
+        eventVersion: aggregateVersion,
+        viewLastProcessedVersion: existing.lastProcessedSkillVersion ?? 0,
+      })
+    ) {
+      return;
+    }
     await updateDocument(memberPath(orgId, accountId), {
       [`skills.${skillId}`]: { xp: newXp },
+      ...(aggregateVersion !== undefined ? { lastProcessedSkillVersion: aggregateVersion } : {}),
       readModelVersion: Date.now(),
       ...(traceId !== undefined ? { traceId } : {}),
       updatedAt: serverTimestamp(),
@@ -117,6 +145,7 @@ export async function applyOrgMemberSkillXp(
       skills: { [skillId]: { xp: newXp } },
       eligible: true,
       lastProcessedVersion: 0,
+      lastProcessedSkillVersion: aggregateVersion ?? 0,
       readModelVersion: Date.now(),
       ...(traceId !== undefined ? { traceId } : {}),
       updatedAt: serverTimestamp(),
