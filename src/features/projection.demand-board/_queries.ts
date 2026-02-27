@@ -16,6 +16,8 @@ import {
   getDocs,
   onSnapshot,
   type Unsubscribe,
+  type QueryDocumentSnapshot,
+  type QuerySnapshot,
 } from 'firebase/firestore';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import type { ScheduleDemand } from '@/shared/types';
@@ -34,7 +36,7 @@ export async function getActiveDemands(orgId: string): Promise<ScheduleDemand[]>
   const col = collection(db, `orgDemandBoard/${orgId}/demands`);
   const q = query(col, where('status', 'in', ['open', 'assigned']));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data() as ScheduleDemand);
+  return snap.docs.map((d: QueryDocumentSnapshot) => d.data() as ScheduleDemand);
 }
 
 /**
@@ -48,8 +50,8 @@ export function subscribeToDemandBoard(
 ): Unsubscribe {
   const col = collection(db, `orgDemandBoard/${orgId}/demands`);
   const q = query(col, where('status', 'in', ['open', 'assigned']));
-  return onSnapshot(q, (snap) => {
-    onChange(snap.docs.map((d) => d.data() as ScheduleDemand));
+  return onSnapshot(q, (snap: QuerySnapshot) => {
+    onChange(snap.docs.map((d: QueryDocumentSnapshot) => d.data() as ScheduleDemand));
   });
 }
 
@@ -59,5 +61,5 @@ export function subscribeToDemandBoard(
 export async function getAllDemands(orgId: string): Promise<ScheduleDemand[]> {
   const col = collection(db, `orgDemandBoard/${orgId}/demands`);
   const snap = await getDocs(col);
-  return snap.docs.map((d) => d.data() as ScheduleDemand);
+  return snap.docs.map((d: QueryDocumentSnapshot) => d.data() as ScheduleDemand);
 }

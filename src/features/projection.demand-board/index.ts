@@ -25,4 +25,4 @@ export {
   DEMAND_BOARD_STALENESS,
 } from './_queries';
 
-export type { ScheduleDemand } from './_projector';
+export type { ScheduleDemand, ScheduleDemandCloseReason } from './_projector';

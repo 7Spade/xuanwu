@@ -41,6 +41,20 @@ export interface ScheduleItem {
  */
 export type ScheduleDemandStatus = 'open' | 'assigned' | 'closed';
 
+/**
+ * Typed union for demand close reasons — required for audit traceability (PRD §3.2, BR-D2/D3/D4).
+ *
+ *   completed           — schedule was fulfilled and completed normally (Invariant #15)
+ *   assignmentCancelled — confirmed assignment was cancelled post-confirmation
+ *   proposalCancelled   — HR cancelled the open proposal before assignment
+ *   assignRejected      — skill-tier eligibility check failed (Invariant A5)
+ */
+export type ScheduleDemandCloseReason =
+  | 'completed'
+  | 'assignmentCancelled'
+  | 'proposalCancelled'
+  | 'assignRejected';
+
 export interface ScheduleDemand {
   scheduleItemId: string;
   orgId: string;
@@ -55,9 +69,8 @@ export interface ScheduleDemand {
   /**
    * Reason for closing the demand — required for audit traceability (PRD §3.2, BR-D2/D3/D4).
    * Populated when status transitions to 'closed'.
-   * Values: 'completed' | 'cancelled' | 'assignRejected' | 'proposalCancelled'
    */
-  closeReason?: string;
+  closeReason?: ScheduleDemandCloseReason;
   requiredSkills?: SkillRequirement[];
   /** Sub-location within the workspace. FR-L2. */
   locationId?: string;

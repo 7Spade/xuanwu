@@ -21,7 +21,7 @@
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
-import type { ScheduleDemand, ScheduleDemandStatus } from '@/shared/types';
+import type { ScheduleDemand, ScheduleDemandStatus, ScheduleDemandCloseReason } from '@/shared/types';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared.kernel.skill-tier';
 import type {
   ScheduleAssignedPayload,
@@ -35,6 +35,9 @@ import type {
 function demandPath(orgId: string, scheduleItemId: string): string {
   return `orgDemandBoard/${orgId}/demands/${scheduleItemId}`;
 }
+
+/** Initial lastProcessedVersion for newly created demand documents. */
+const DEMAND_INITIAL_VERSION = 1;
 
 /**
  * Upserts an open demand when a schedule proposal arrives.
@@ -55,7 +58,7 @@ export async function applyDemandProposed(
     status: 'open',
     requiredSkills: payload.skillRequirements,
     locationId: payload.locationId,
-    lastProcessedVersion: 1,
+    lastProcessedVersion: DEMAND_INITIAL_VERSION,
     traceId: payload.traceId,
     updatedAt: new Date().toISOString(),
   };
@@ -122,15 +125,20 @@ export async function applyDemandAssignmentCancelled(
 /**
  * Marks a demand as closed with reason 'proposalCancelled'.
  * Called by projection.event-funnel on 'organization:schedule:proposalCancelled'.
- * Version not available in this event — uses 0 to allow any transition.
+ * [S2] No aggregateVersion in this payload — guard via status: skip if already closed.
  */
 export async function applyDemandProposalCancelled(
   payload: ScheduleProposalCancelledPayload
 ): Promise<void> {
   const path = demandPath(payload.orgId, payload.scheduleItemId);
+  const existing = await getDocument<ScheduleDemand>(path);
+  // [S2] Status-based guard: idempotent — skip if demand is already closed.
+  if (!existing || existing.status === 'closed') {
+    return;
+  }
   await updateDocument(path, {
     status: 'closed' as ScheduleDemandStatus,
-    closeReason: 'proposalCancelled',
+    closeReason: 'proposalCancelled' as ScheduleDemandCloseReason,
     traceId: payload.traceId,
     updatedAt: new Date().toISOString(),
   });
@@ -139,14 +147,20 @@ export async function applyDemandProposalCancelled(
 /**
  * Marks a demand as closed with reason 'assignRejected'.
  * Called by projection.event-funnel on 'organization:schedule:assignRejected'.
+ * [S2] No aggregateVersion in this payload — guard via status: skip if already closed.
  */
 export async function applyDemandAssignRejected(
   payload: ScheduleAssignRejectedPayload
 ): Promise<void> {
   const path = demandPath(payload.orgId, payload.scheduleItemId);
+  const existing = await getDocument<ScheduleDemand>(path);
+  // [S2] Status-based guard: idempotent — skip if demand is already closed.
+  if (!existing || existing.status === 'closed') {
+    return;
+  }
   await updateDocument(path, {
     status: 'closed' as ScheduleDemandStatus,
-    closeReason: 'assignRejected',
+    closeReason: 'assignRejected' as ScheduleDemandCloseReason,
     traceId: payload.traceId,
     updatedAt: new Date().toISOString(),
   });
@@ -159,7 +173,7 @@ export async function applyDemandAssignRejected(
 async function _closeDemand(
   orgId: string,
   scheduleItemId: string,
-  closeReason: string,
+  closeReason: ScheduleDemandCloseReason,
   aggregateVersion: number,
   traceId?: string
 ): Promise<void> {
@@ -182,5 +196,5 @@ async function _closeDemand(
   });
 }
 
-// Re-export type for convenience
-export type { ScheduleDemand };
+// Re-export types for convenience
+export type { ScheduleDemand, ScheduleDemandCloseReason };
