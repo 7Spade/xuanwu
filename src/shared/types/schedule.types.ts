@@ -20,6 +20,50 @@ export interface ScheduleItem {
   originTaskId?: string;
   assigneeIds: string[];
   location?: Location;
+  /** Sub-location within the workspace. FR-L2. */
+  locationId?: string;
   /** Skill & staffing requirements proposed by the workspace. */
   requiredSkills?: SkillRequirement[];
+}
+
+/**
+ * ScheduleDemand — Demand Board read model.
+ * Per docs/prd-schedule-workforce-skills.md FR-W0 / FR-W6.
+ *
+ * Stored at: orgDemandBoard/{orgId}/demands/{scheduleItemId}
+ *
+ * Status semantics:
+ *   open     — proposal submitted, awaiting assignment (FR-W0: visible to org HR)
+ *   assigned — member confirmed (FR-W6: visible to org HR with assignee details)
+ *   closed   — completed, cancelled, or rejected (FR-W0: hidden from default board view)
+ *
+ * closeReason: ScheduleDemand.closeReason enables audit traceability (PRD §3.2).
+ */
+export type ScheduleDemandStatus = 'open' | 'assigned' | 'closed';
+
+export interface ScheduleDemand {
+  scheduleItemId: string;
+  orgId: string;
+  workspaceId: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  proposedBy: string;
+  /** Resolved member ID after assignment. FR-W6. */
+  assignedMemberId?: string;
+  status: ScheduleDemandStatus;
+  /**
+   * Reason for closing the demand — required for audit traceability (PRD §3.2, BR-D2/D3/D4).
+   * Populated when status transitions to 'closed'.
+   * Values: 'completed' | 'cancelled' | 'assignRejected' | 'proposalCancelled'
+   */
+  closeReason?: string;
+  requiredSkills?: SkillRequirement[];
+  /** Sub-location within the workspace. FR-L2. */
+  locationId?: string;
+  /** Projection read-model version [S2]. */
+  lastProcessedVersion?: number;
+  /** [R8] TraceID from originating command — persisted for end-to-end audit. */
+  traceId?: string;
+  updatedAt: string; // ISO 8601
 }

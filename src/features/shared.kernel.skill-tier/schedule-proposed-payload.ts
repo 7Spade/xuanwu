@@ -49,6 +49,8 @@ export interface WorkspaceScheduleProposedPayload {
   intentId?: string;
   /** Skill requirements forwarded from ParsingIntent to org-level Schedule for validation. */
   skillRequirements?: SkillRequirement[];
+  /** Sub-location within the workspace. FR-L2. */
+  locationId?: string;
   /** [R8] TraceID injected at CBG_ENTRY — must propagate end-to-end through the scheduling saga. */
   traceId?: string;
 }

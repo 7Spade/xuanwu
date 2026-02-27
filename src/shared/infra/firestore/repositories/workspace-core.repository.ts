@@ -29,6 +29,7 @@ import type {
   Capability,
   WorkspaceLifecycleState,
   Account,
+  WorkspaceLocation,
 } from '@/shared/types';
 
 /**
@@ -228,4 +229,70 @@ export const getWorkspaceGrants = async (
   if (!snap.exists()) return [];
   const data = snap.data() as Workspace;
   return data.grants ?? [];
+};
+
+// =================================================================
+// WorkspaceLocation CRUD — FR-L1/FR-L2/FR-L3
+// =================================================================
+
+/**
+ * Adds a new sub-location to a workspace.
+ * FR-L1: Workspace OWNER can create sub-locations.
+ */
+export const createWorkspaceLocation = async (
+  workspaceId: string,
+  location: WorkspaceLocation
+): Promise<void> => {
+  const wsRef = doc(db, 'workspaces', workspaceId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(wsRef);
+    if (!snap.exists()) throw new Error(`Workspace ${workspaceId} not found`);
+    const data = snap.data() as Workspace;
+    const existing = data.locations ?? [];
+    if (existing.some((l) => l.locationId === location.locationId)) {
+      throw new Error(`Location ${location.locationId} already exists`);
+    }
+    tx.update(wsRef, { locations: arrayUnion(location) });
+  });
+};
+
+/**
+ * Updates a sub-location label/description/capacity.
+ * FR-L2: Workspace OWNER can edit sub-locations.
+ */
+export const updateWorkspaceLocation = async (
+  workspaceId: string,
+  locationId: string,
+  updates: Partial<Pick<WorkspaceLocation, 'label' | 'description' | 'capacity'>>
+): Promise<void> => {
+  const wsRef = doc(db, 'workspaces', workspaceId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(wsRef);
+    if (!snap.exists()) throw new Error(`Workspace ${workspaceId} not found`);
+    const data = snap.data() as Workspace;
+    const locations = (data.locations ?? []).map((l) =>
+      l.locationId === locationId ? { ...l, ...updates } : l
+    );
+    tx.update(wsRef, { locations });
+  });
+};
+
+/**
+ * Removes a sub-location from a workspace.
+ * FR-L3: Workspace OWNER can delete sub-locations.
+ */
+export const deleteWorkspaceLocation = async (
+  workspaceId: string,
+  locationId: string
+): Promise<void> => {
+  const wsRef = doc(db, 'workspaces', workspaceId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(wsRef);
+    if (!snap.exists()) throw new Error(`Workspace ${workspaceId} not found`);
+    const data = snap.data() as Workspace;
+    const location = (data.locations ?? []).find((l) => l.locationId === locationId);
+    if (location) {
+      tx.update(wsRef, { locations: arrayRemove(location) });
+    }
+  });
 };

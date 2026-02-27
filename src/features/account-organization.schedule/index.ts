@@ -21,3 +21,6 @@ export { useOrgSchedule, usePendingScheduleProposals } from './_hooks/use-org-sc
 
 export { OrgScheduleGovernance } from './_components/org-schedule-governance';
 
+// FR-W6 — Server Actions for manual schedule assignment (Critical Gap #0)
+export { manualAssignScheduleMember, cancelScheduleProposalAction } from './_actions';
+
