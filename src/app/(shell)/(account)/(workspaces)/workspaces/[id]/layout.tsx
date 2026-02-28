@@ -2,11 +2,11 @@
 // [職責] 為特定工作區的所有頁面提供共享的 Context 和 UI 佈局。
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { Button } from "@/shared/shadcn-ui/button";
 import { ArrowLeft, Settings, Trash2, ChevronRight, MapPin } from "lucide-react";
-import { useState, use } from "react";
-import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useWorkspaceCommands } from "@/features/workspace-core"
+import { useEffect, useMemo, useState, use } from "react";
+import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useWorkspaceCommands, useApp } from "@/features/workspace-core"
 import { ROUTES } from "@/shared/constants/routes";
 import {
   Dialog,
@@ -24,11 +24,30 @@ import { PageHeader } from "@/shared/ui/page-header";
 function WorkspaceLayoutInner({ workspaceId, businesstab, modal, panel }: { workspaceId: string; businesstab: React.ReactNode; modal: React.ReactNode; panel: React.ReactNode }) {
   useWorkspaceEventHandler()
   const { workspace } = useWorkspace()
+  const { state } = useApp();
   const router = useRouter();
+  const activeCapability = useSelectedLayoutSegment("businesstab");
   const { handleDeleteWorkspace } = useWorkspaceCommands();
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const allowedCapabilityIds = useMemo(() => {
+    const permanent = ["capabilities", "audit"];
+    const isPersonalWorkspace = state.activeAccount?.accountType === "user" && workspace.dimensionId === state.activeAccount.id;
+    const governance = isPersonalWorkspace ? [] : ["members"];
+    const mountedBusiness = (workspace.capabilities ?? [])
+      .map((cap) => cap.id)
+      .filter((capId) => !["capabilities", "members", "audit"].includes(capId));
+
+    return new Set([...permanent, ...governance, ...mountedBusiness]);
+  }, [state.activeAccount, workspace.dimensionId, workspace.capabilities]);
+
+  useEffect(() => {
+    if (activeCapability === null) return;
+    if (allowedCapabilityIds.has(activeCapability)) return;
+    router.replace(`/workspaces/${workspaceId}/capabilities`);
+  }, [activeCapability, allowedCapabilityIds, router, workspaceId]);
 
   const onDeleteWorkspace = async () => {
     setLoading(true);
