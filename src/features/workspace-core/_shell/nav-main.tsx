@@ -24,7 +24,6 @@ import {
   Settings,
   Grid3X3,
   Calendar,
-  ClipboardList,
   MessageSquare,
   History,
   BookOpen,
@@ -90,8 +89,6 @@ export function NavMain({ pathname, isOrganizationAccount, t }: NavMainProps) {
                   { path: ROUTES.ACCOUNT_SETTINGS, icon: Settings, label: t('navigation.settings') },
                   { path: ROUTES.ACCOUNT_MATRIX, icon: Grid3X3, label: t('navigation.permissions') },
                   { path: ROUTES.ACCOUNT_SCHEDULE, icon: Calendar, label: t('navigation.schedule') },
-                  { path: ROUTES.ACCOUNT_ORG_SCHEDULE, icon: Calendar, label: t('navigation.orgSchedule') },
-                  { path: ROUTES.ACCOUNT_DEMAND_BOARD, icon: ClipboardList, label: t('navigation.demandBoard') },
                   { path: ROUTES.ACCOUNT_DAILY, icon: MessageSquare, label: t('navigation.daily') },
                   { path: ROUTES.ACCOUNT_AUDIT, icon: History, label: t('navigation.audit') },
                 ].map((item) => (
