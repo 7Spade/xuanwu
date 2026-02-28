@@ -38,7 +38,7 @@ export const createParsingIntent = async (
 export const updateParsingIntentStatus = async (
   workspaceId: string,
   intentId: string,
-  status: 'imported' | 'failed'
+  status: 'imported' | 'failed' | 'superseded'
 ): Promise<void> => {
   const updates: Record<string, unknown> = { status };
   if (status === 'imported') {

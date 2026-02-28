@@ -143,6 +143,11 @@ export function useWorkspaceEventHandler() {
           });
       };
 
+      if (payload.autoImport) {
+        importItems();
+        return;
+      }
+
       toast({
         title: `Found ${payload.items.length} items from "${payload.sourceDocument}".`,
         description: "Do you want to import them as new root tasks?",

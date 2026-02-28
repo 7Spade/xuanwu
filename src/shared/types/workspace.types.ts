@@ -176,7 +176,7 @@ export interface ParsingIntent {
   lineItems: ParsedLineItem[];
   /** Skill requirements extracted from the document — fed to organization.schedule proposals. */
   skillRequirements?: SkillRequirement[];
-  status: 'pending' | 'imported' | 'failed';
+  status: 'pending' | 'imported' | 'superseded' | 'failed';
   createdAt: Timestamp;
   importedAt?: Timestamp;
 }

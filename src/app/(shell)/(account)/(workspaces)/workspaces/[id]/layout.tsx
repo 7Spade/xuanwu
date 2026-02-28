@@ -2,11 +2,11 @@
 // [職責] 為特定工作區的所有頁面提供共享的 Context 和 UI 佈局。
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { Button } from "@/shared/shadcn-ui/button";
 import { ArrowLeft, Settings, Trash2, ChevronRight, MapPin } from "lucide-react";
-import { useState, use } from "react";
-import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useWorkspaceCommands } from "@/features/workspace-core"
+import { useEffect, useMemo, useRef, useState, use } from "react";
+import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useWorkspaceCommands, useApp } from "@/features/workspace-core"
 import { ROUTES } from "@/shared/constants/routes";
 import {
   Dialog,
@@ -17,6 +17,13 @@ import {
 } from "@/shared/shadcn-ui/dialog";
 import { PageHeader } from "@/shared/ui/page-header";
 
+const PERMANENT_CAPABILITY_IDS = ["capabilities", "audit"];
+const GOVERNANCE_CAPABILITY_ID = "members";
+const NON_BUSINESS_CAPABILITY_IDS = [
+  ...PERMANENT_CAPABILITY_IDS,
+  GOVERNANCE_CAPABILITY_ID,
+];
+
 /**
  * WorkspaceLayoutInner - The actual UI layout component.
  * It consumes the context provided by WorkspaceLayout.
@@ -24,11 +31,45 @@ import { PageHeader } from "@/shared/ui/page-header";
 function WorkspaceLayoutInner({ workspaceId, businesstab, modal, panel }: { workspaceId: string; businesstab: React.ReactNode; modal: React.ReactNode; panel: React.ReactNode }) {
   useWorkspaceEventHandler()
   const { workspace } = useWorkspace()
+  const { state } = useApp();
   const router = useRouter();
+  const activeCapability = useSelectedLayoutSegment("businesstab");
   const { handleDeleteWorkspace } = useWorkspaceCommands();
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const redirectingCapabilityRef = useRef<string | null>(null);
+
+  const allowedCapabilityIds = useMemo(() => {
+    const activeAccount = state.activeAccount;
+    const isPersonalWorkspace =
+      activeAccount?.accountType === "user" && activeAccount.id === workspace.dimensionId;
+    const governance = isPersonalWorkspace ? [] : [GOVERNANCE_CAPABILITY_ID];
+    const mountedBusiness = (workspace.capabilities ?? [])
+      .map((cap) => cap.id)
+      .filter((capId) => !NON_BUSINESS_CAPABILITY_IDS.includes(capId));
+
+    return new Set([...PERMANENT_CAPABILITY_IDS, ...governance, ...mountedBusiness]);
+  }, [state.activeAccount, workspace.dimensionId, workspace.capabilities]);
+
+  useEffect(() => {
+    if (activeCapability === null) {
+      redirectingCapabilityRef.current = null;
+      return;
+    }
+
+    if (allowedCapabilityIds.has(activeCapability)) {
+      redirectingCapabilityRef.current = null;
+      return;
+    }
+
+    if (redirectingCapabilityRef.current === activeCapability) {
+      return;
+    }
+
+    redirectingCapabilityRef.current = activeCapability;
+    router.replace(`/workspaces/${workspaceId}/capabilities`);
+  }, [activeCapability, allowedCapabilityIds, router, workspaceId]);
 
   const onDeleteWorkspace = async () => {
     setLoading(true);
