@@ -5,7 +5,7 @@
 import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { Button } from "@/shared/shadcn-ui/button";
 import { ArrowLeft, Settings, Trash2, ChevronRight, MapPin } from "lucide-react";
-import { useEffect, useMemo, useState, use } from "react";
+import { useEffect, useMemo, useRef, useState, use } from "react";
 import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useWorkspaceCommands, useApp } from "@/features/workspace-core"
 import { ROUTES } from "@/shared/constants/routes";
 import {
@@ -16,6 +16,13 @@ import {
   DialogFooter,
 } from "@/shared/shadcn-ui/dialog";
 import { PageHeader } from "@/shared/ui/page-header";
+
+const PERMANENT_CAPABILITY_IDS = ["capabilities", "audit"];
+const GOVERNANCE_CAPABILITY_ID = "members";
+const NON_BUSINESS_CAPABILITY_IDS = [
+  ...PERMANENT_CAPABILITY_IDS,
+  GOVERNANCE_CAPABILITY_ID,
+];
 
 /**
  * WorkspaceLayoutInner - The actual UI layout component.
@@ -31,21 +38,36 @@ function WorkspaceLayoutInner({ workspaceId, businesstab, modal, panel }: { work
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const redirectingCapabilityRef = useRef<string | null>(null);
 
   const allowedCapabilityIds = useMemo(() => {
-    const permanent = ["capabilities", "audit"];
-    const isPersonalWorkspace = state.activeAccount?.accountType === "user" && workspace.dimensionId === state.activeAccount.id;
-    const governance = isPersonalWorkspace ? [] : ["members"];
+    const activeAccount = state.activeAccount;
+    const isPersonalWorkspace =
+      activeAccount?.accountType === "user" && activeAccount.id === workspace.dimensionId;
+    const governance = isPersonalWorkspace ? [] : [GOVERNANCE_CAPABILITY_ID];
     const mountedBusiness = (workspace.capabilities ?? [])
       .map((cap) => cap.id)
-      .filter((capId) => !["capabilities", "members", "audit"].includes(capId));
+      .filter((capId) => !NON_BUSINESS_CAPABILITY_IDS.includes(capId));
 
-    return new Set([...permanent, ...governance, ...mountedBusiness]);
+    return new Set([...PERMANENT_CAPABILITY_IDS, ...governance, ...mountedBusiness]);
   }, [state.activeAccount, workspace.dimensionId, workspace.capabilities]);
 
   useEffect(() => {
-    if (activeCapability === null) return;
-    if (allowedCapabilityIds.has(activeCapability)) return;
+    if (activeCapability === null) {
+      redirectingCapabilityRef.current = null;
+      return;
+    }
+
+    if (allowedCapabilityIds.has(activeCapability)) {
+      redirectingCapabilityRef.current = null;
+      return;
+    }
+
+    if (redirectingCapabilityRef.current === activeCapability) {
+      return;
+    }
+
+    redirectingCapabilityRef.current = activeCapability;
     router.replace(`/workspaces/${workspaceId}/capabilities`);
   }, [activeCapability, allowedCapabilityIds, router, workspaceId]);
 
