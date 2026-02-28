@@ -55,11 +55,13 @@ src/features/
 ├─ workspace-business.files                       (VS5 Workspace Slice / Business)
 ├─ workspace-business.document-parser             (VS5 Workspace Slice / Business / Parsing)
 ├─ workspace-business.workflow                    (VS5 Workspace Slice / State Machine)
-│  ├─ A-track.tasks                               (主流程：任務)
-│  ├─ A-track.quality-assurance                   (主流程：QA)
-│  ├─ A-track.acceptance                          (主流程：驗收)
-│  ├─ A-track.finance                             (主流程：財務)
-│  └─ B-track.issues                              (異常流程：問題單)
+│  ├─ A-track/                                    (主流程)
+│  │  ├─ tasks
+│  │  ├─ quality-assurance
+│  │  ├─ acceptance
+│  │  └─ finance
+│  └─ B-track/                                    (異常流程)
+│     └─ issues
 ├─ workspace-business.daily                       (VS5 Workspace Slice / Business)
 ├─ workspace-business.schedule                    (VS5 Workspace Slice / Business)
 │
@@ -92,4 +94,4 @@ src/features/
 2. 在對應切片內擴充，不跨切片偷放。
 3. 跨切片契約先放 VS0 `shared.kernel.*`，不要先丟到其他共享桶。
 4. `issues` 是 B-track（異常軌）節點，只能透過事件回到 A-track（見 `logic-overview.md` A/B 軌規則）。
-5. VS5 的 `tasks/qa/acceptance/finance/issues/daily/schedule` 都是 **Workspace Slice 內部業務節點**，不是新的獨立切片。
+5. VS5 的 `A-track/tasks|quality-assurance|acceptance|finance`、`B-track/issues`、`workspace-business.daily`、`workspace-business.schedule` 都是 **Workspace Slice 內部業務節點**，不是新的獨立切片。
