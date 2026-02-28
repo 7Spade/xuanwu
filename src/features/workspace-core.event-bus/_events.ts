@@ -45,6 +45,8 @@ export interface WorkspaceAcceptancePassedPayload {
 export interface DocumentParserItemsExtractedPayload {
   sourceDocument: string
   intentId: string
+  /** When true, import should execute immediately without an extra confirmation toast. */
+  autoImport?: boolean
   items: Array<{
     name: string
     quantity: number
