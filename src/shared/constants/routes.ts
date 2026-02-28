@@ -3,6 +3,8 @@
  * Use these instead of hardcoding path strings in components.
  */
 
+const ACCOUNT_SCHEDULE_PATH = "/dashboard/account/schedule";
+
 export const ROUTES = {
   LOGIN: "/login",
   DASHBOARD: "/dashboard",
@@ -16,9 +18,10 @@ export const ROUTES = {
   ACCOUNT_PARTNERS: "/dashboard/account/partners",
   ACCOUNT_SETTINGS: "/dashboard/account/settings",
   ACCOUNT_MATRIX: "/dashboard/account/matrix",
-  ACCOUNT_SCHEDULE: "/dashboard/account/schedule",
-  ACCOUNT_ORG_SCHEDULE: "/dashboard/account/schedule",
-  ACCOUNT_DEMAND_BOARD: "/dashboard/account/schedule",
+  ACCOUNT_SCHEDULE: ACCOUNT_SCHEDULE_PATH,
+  // Legacy route keys intentionally kept for backward compatibility; both now use unified account schedule path.
+  ACCOUNT_ORG_SCHEDULE: ACCOUNT_SCHEDULE_PATH,
+  ACCOUNT_DEMAND_BOARD: ACCOUNT_SCHEDULE_PATH,
   ACCOUNT_DAILY: "/dashboard/account/daily",
   ACCOUNT_AUDIT: "/dashboard/account/audit",
   /** FR-K1: Personal skill profile page (XP + tier visualization). */
