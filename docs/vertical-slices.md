@@ -24,7 +24,7 @@
 
 **VS4: 排程與任務流 (Scheduling & Sagas)**
 - **職責**: 長周期工作、排程、補償與 Saga 協調（工作排程、重試、延遲任務）。
-- **關鍵元件**: scheduling-core.saga、定時器、排程視圖、延遲隊列。
+- **關鍵元件**: scheduling-saga、定時器、排程視圖、延遲隊列。
 - **邊界**: 不處理業務資料建模本身，只管事件驅動的流程和補償邏輯。
 - **事件/合約**: 定時 job 觸發、Saga 開始/完成/補償事件。
 
@@ -42,7 +42,7 @@
 
 **VS7: 標籤、技能與搜尋 (Tags, Skills & Indexing)**
 - **職責**: 集中標籤系統、技能索引、搜尋/過濾能力與標籤快照管理。
-- **關鍵元件**: centralized-tag、account-user.skill、projection.tag-snapshot、搜尋索引服務。
+- **關鍵元件**: centralized-tag、account-skill、projection.tag-snapshot、搜尋索引服務。
 - **邊界**: 與帳戶/組織的關聯屬於各自切片，但標籤定義與快照由此切片維護。
 - **事件/合約**: 標籤/技能新增、更新、索引重建事件。
 

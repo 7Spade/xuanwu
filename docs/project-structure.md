@@ -140,7 +140,7 @@ src/features/
 
 ```
 src/features/
-└── account-user.skill/          # account-skill aggregate + xp-ledger
+└── account-skill/               # account-skill aggregate + xp-ledger
     ├── _aggregate.ts            # accountId / skillId(→tagSlug) / xp / version
     ├── _actions.ts              # AddXp, DeductXp Server Actions
     ├── _queries.ts
@@ -165,7 +165,7 @@ src/features/
 ├── account-organization.team/
 │   └── index.ts
 ├── account-organization.policy/  # (see VS2)
-├── account-organization.skill-tag/
+├── organization-skill-recognition/
 │   └── index.ts                 # SKILL_TAG_POOL + VS4_TAG_SUBSCRIBER [T1, T2]
 └── account-organization.schedule/ # HR scheduling (VS6 coordination)
     ├── _hooks/
@@ -270,7 +270,7 @@ src/features/
 │   ├── _hooks/
 │   ├── _components/
 │   └── index.ts
-└── scheduling-core.saga/            # ScheduleAssignRejected, ScheduleProposalCancelled sagas
+└── scheduling-saga/                 # ScheduleAssignRejected, ScheduleProposalCancelled sagas
     └── index.ts
 ```
 
