@@ -1,5 +1,5 @@
 /**
- * account-organization.skill-tag — _queries.ts
+ * organization-skill-recognition — _queries.ts
  *
  * Read queries for the Skill Tag Pool and Org Skill Recognition aggregates.
  *

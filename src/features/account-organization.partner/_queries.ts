@@ -12,7 +12,7 @@
  *
  * Boundary constraint:
  *   These queries read ONLY from this org's account document and subcollections.
- *   Skill tag data is referenced by tagSlug — read from account-organization.skill-tag.
+ *   Skill tag data is referenced by tagSlug — read from organization-skill-recognition.
  */
 
 import { collection, doc, onSnapshot, orderBy, query, type Unsubscribe } from 'firebase/firestore';

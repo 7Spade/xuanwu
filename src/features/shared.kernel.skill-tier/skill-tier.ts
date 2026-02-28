@@ -8,7 +8,7 @@
  *   "Tier 永遠是推導值（純函式 getTier(xp)），不得存入任何 DB 欄位"
  *
  * Used by all four architectural layers:
- *   - Account BC    : account-user.skill, account-user.profile
+ *   - Account BC    : account-skill, account-user.profile
  *   - Organization BC: account-organization.schedule
  *   - Workspace BC  : workspace-business.schedule
  *   - Projection layer: projection.account-skill-view, projection.org-eligible-member-view

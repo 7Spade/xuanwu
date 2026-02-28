@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * account-user.skill — _components/personal-skill-panel.tsx
+ * account-skill — _components/personal-skill-panel.tsx
  *
  * FR-K1: Personal skill profile page — XP bar and tier badge for each skill.
  *

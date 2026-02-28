@@ -1,5 +1,5 @@
 /**
- * account-user.skill — _actions.ts
+ * account-skill — _actions.ts
  *
  * Server-side action wrappers for the AccountSkill aggregate.
  *
