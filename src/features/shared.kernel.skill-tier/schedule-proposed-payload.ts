@@ -51,6 +51,8 @@ export interface WorkspaceScheduleProposedPayload {
   skillRequirements?: SkillRequirement[];
   /** Sub-location within the workspace. FR-L2. */
   locationId?: string;
+  /** Human-readable workspace name — carried for Demand Board display. */
+  workspaceName?: string;
   /** [R8] TraceID injected at CBG_ENTRY — must propagate end-to-end through the scheduling saga. */
   traceId?: string;
 }

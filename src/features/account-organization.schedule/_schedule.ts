@@ -64,6 +64,8 @@ export const orgScheduleProposalSchema = z.object({
   workspaceId: z.string().min(1),
   orgId: z.string().min(1),
   title: z.string().min(1),
+  /** Optional free-text description of the schedule demand. FR-S1. */
+  description: z.string().optional(),
   startDate: z.string().min(1),
   endDate: z.string().min(1),
   proposedBy: z.string().min(1),
@@ -160,6 +162,8 @@ export async function approveOrgScheduleProposal(
     title: string;
     startDate: string;
     endDate: string;
+    /** AccountId of the workspace scheduler who submitted the proposal (FR-N2). */
+    proposedBy?: string;
     /** [R8] TraceID propagated from the originating WorkspaceScheduleProposed event. */
     traceId?: string;
   },
@@ -234,7 +238,7 @@ export async function approveOrgScheduleProposal(
 async function _cancelProposal(
   scheduleItemId: string,
   targetAccountId: string,
-  opts: { workspaceId: string; orgId: string; traceId?: string },
+  opts: { workspaceId: string; orgId: string; traceId?: string; proposedBy?: string },
   reason: string
 ): Promise<void> {
   await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
@@ -247,6 +251,8 @@ async function _cancelProposal(
     orgId: opts.orgId,
     workspaceId: opts.workspaceId,
     targetAccountId,
+    // FR-N2: carry proposedBy so the notification router can also notify the workspace owner.
+    ...(opts.proposedBy ? { proposedBy: opts.proposedBy } : {}),
     reason,
     rejectedAt: new Date().toISOString(),
     // [R8] Forward traceId to compensating event for end-to-end trace propagation.

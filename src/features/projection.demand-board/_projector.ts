@@ -51,6 +51,7 @@ export async function applyDemandProposed(
     scheduleItemId: payload.scheduleItemId,
     orgId: payload.orgId,
     workspaceId: payload.workspaceId,
+    workspaceName: payload.workspaceName,
     title: payload.title,
     startDate: payload.startDate,
     endDate: payload.endDate,

@@ -24,5 +24,5 @@ export { OrgScheduleGovernance } from './_components/org-schedule-governance';
 
 // FR-W6 — Server Actions for manual schedule assignment (Critical Gap #0)
 // FR-S6 — Server Action to complete a confirmed schedule
-export { manualAssignScheduleMember, cancelScheduleProposalAction, completeOrgScheduleAction } from './_actions';
+export { manualAssignScheduleMember, cancelScheduleProposalAction, cancelOrgScheduleAssignmentAction, completeOrgScheduleAction } from './_actions';
 

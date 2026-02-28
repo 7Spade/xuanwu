@@ -74,6 +74,8 @@ export interface ScheduleDemand {
   requiredSkills?: SkillRequirement[];
   /** Sub-location within the workspace. FR-L2. */
   locationId?: string;
+  /** Human-readable workspace name — carried from the proposal for Demand Board display. */
+  workspaceName?: string;
   /** Projection read-model version [S2]. */
   lastProcessedVersion?: number;
   /** [R8] TraceID from originating command — persisted for end-to-end audit. */

@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { cn } from "@/shared/lib";
 import { toast } from "@/shared/utility-hooks/use-toast";
 import { type Location, type SkillRequirement, type SkillTier } from "@/shared/types";
+import type { WorkspaceLocation } from "@/shared/types";
 import { SKILLS } from "@/shared/constants/skills";
 import { TIER_DEFINITIONS } from "@/features/shared.kernel.skill-tier";
 import { getOrgSkillTags } from "@/features/account-organization.skill-tag";
@@ -38,11 +39,14 @@ interface ProposalDialogProps {
     startDate?: Date;
     endDate?: Date;
     location: Location;
+    locationId?: string;
     requiredSkills: SkillRequirement[];
   }) => Promise<void>;
   initialDate: Date;
   /** FR-K5: Org ID used to load the org's skill tag pool instead of the global library. */
   orgId?: string;
+  /** FR-L2: Workspace sub-locations for the location-id selector. */
+  locations?: WorkspaceLocation[];
 }
 
 /**
@@ -59,12 +63,15 @@ export function ProposalDialog({
   onSubmit,
   initialDate,
   orgId,
+  locations = [],
 }: ProposalDialogProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [location, setLocation] = useState<Location>({ description: '' });
+  // FR-L2: sub-location selector — '' means "no sub-location selected"
+  const [locationId, setLocationId] = useState<string>('');
   const [requiredSkills, setRequiredSkills] = useState<SkillRequirement[]>([]);
   const [selectedSkillSlug, setSelectedSkillSlug] = useState("");
   const [selectedTier, setSelectedTier] = useState<SkillTier>("apprentice");
@@ -79,6 +86,7 @@ export function ProposalDialog({
     setTitle("");
     setDescription("");
     setLocation({ description: '' });
+    setLocationId('');
     setRequiredSkills([]);
     setSelectedSkillSlug("");
     setSelectedTier("apprentice");
@@ -112,7 +120,7 @@ export function ProposalDialog({
     if (!selectedSkillSlug) return;
     const alreadyAdded = requiredSkills.some(r => r.tagSlug === selectedSkillSlug);
     if (alreadyAdded) {
-      toast({ variant: 'destructive', title: 'Skill already added' });
+      toast({ variant: 'destructive', title: '此技能已新增' });
       return;
     }
     const requirement: SkillRequirement = {
@@ -131,12 +139,12 @@ export function ProposalDialog({
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      toast({ variant: 'destructive', title: 'Title is required' });
+      toast({ variant: 'destructive', title: '請輸入排程標題' });
       return;
     }
     setIsAdding(true);
     try {
-      await onSubmit({ title, description, startDate: dateRange?.from, endDate: dateRange?.to, location, requiredSkills });
+      await onSubmit({ title, description, startDate: dateRange?.from, endDate: dateRange?.to, location, locationId: locationId || undefined, requiredSkills });
     } finally {
       setIsAdding(false);
     }
@@ -172,6 +180,25 @@ export function ProposalDialog({
               </PopoverContent>
             </Popover>
           </div>
+          {/* FR-L2: Sub-location selector — shown only when workspace has defined sub-locations */}
+          {locations.length > 0 && (
+            <div className="space-y-2">
+              <Label>Sub-location (Optional)</Label>
+              <Select value={locationId} onValueChange={setLocationId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a sub-location..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">— No specific sub-location —</SelectItem>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.locationId} value={loc.locationId}>
+                      {loc.label}{loc.capacity != null ? ` (cap: ${loc.capacity})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
            <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                     <MapPin className="size-4"/> Location

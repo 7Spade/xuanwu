@@ -28,6 +28,7 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
     startDate?: Date
     endDate?: Date
     location: Location
+    locationId?: string
     requiredSkills: SkillRequirement[]
   }) => {
     await createScheduleItem({
@@ -44,6 +45,8 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
       // Omit optional fields rather than passing undefined — Firestore rejects undefined values.
       ...(data.description?.trim() ? { description: data.description.trim() } : {}),
       ...(data.requiredSkills.length > 0 ? { requiredSkills: data.requiredSkills } : {}),
+      // FR-L2: sub-location reference
+      ...(data.locationId ? { locationId: data.locationId } : {}),
     } as Omit<ScheduleItem, "id" | "createdAt" | "updatedAt">)
     toast({
       title: "排程提案已送出",
@@ -61,6 +64,7 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
       onSubmit={handleSubmit}
       initialDate={initialDate}
       orgId={workspace.dimensionId}
+      locations={workspace.locations ?? []}
     />
   )
 

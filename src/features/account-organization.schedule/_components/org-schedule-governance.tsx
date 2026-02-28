@@ -21,7 +21,7 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/shared/app-providers/app-context';
 import { ROUTES } from '@/shared/constants/routes';
 import { usePendingScheduleProposals, useConfirmedScheduleProposals } from '../_hooks/use-org-schedule';
-import { manualAssignScheduleMember, cancelScheduleProposalAction, completeOrgScheduleAction } from '../_actions';
+import { manualAssignScheduleMember, cancelScheduleProposalAction, completeOrgScheduleAction, cancelOrgScheduleAssignmentAction } from '../_actions';
 import { toast } from '@/shared/utility-hooks/use-toast';
 import type { OrgScheduleProposal } from '../_schedule';
 import type { SkillRequirement } from '@/shared/types';
@@ -105,6 +105,7 @@ function ProposalRow({
           title: proposal.title,
           startDate: proposal.startDate,
           endDate: proposal.endDate,
+          proposedBy: proposal.proposedBy,
         },
         proposal.skillRequirements
       );
@@ -255,9 +256,10 @@ interface ConfirmedRowProps {
   /** O(1) lookup map: accountId → display name. */
   orgMemberMap: Map<string, string>;
   onCompleted: () => void;
+  onAssignmentCancelled: () => void;
 }
 
-function ConfirmedRow({ proposal, completedBy, orgMemberMap, onCompleted }: ConfirmedRowProps) {
+function ConfirmedRow({ proposal, completedBy, orgMemberMap, onCompleted, onAssignmentCancelled }: ConfirmedRowProps) {
   const [loading, setLoading] = useState(false);
 
   const handleComplete = useCallback(async () => {
@@ -283,6 +285,31 @@ function ConfirmedRow({ proposal, completedBy, orgMemberMap, onCompleted }: Conf
     }
   }, [proposal, completedBy, onCompleted]);
 
+  // FR-S7 / cancelOrgScheduleAssignment: HR withdraws a confirmed assignment, restoring eligibility.
+  const handleCancelAssignment = useCallback(async () => {
+    if (!proposal.targetAccountId) return;
+    setLoading(true);
+    try {
+      const result = await cancelOrgScheduleAssignmentAction(
+        proposal.scheduleItemId,
+        proposal.orgId,
+        proposal.workspaceId,
+        proposal.targetAccountId,
+        completedBy
+      );
+      if (result.success) {
+        toast({ title: '指派已取消', description: `「${proposal.title}」的成員指派已撤銷，成員恢復可派遣。` });
+        onAssignmentCancelled();
+      } else {
+        toast({ variant: 'destructive', title: '操作失敗', description: result.error.message });
+      }
+    } catch {
+      toast({ variant: 'destructive', title: '操作失敗', description: '請稍後再試。' });
+    } finally {
+      setLoading(false);
+    }
+  }, [proposal, completedBy, onAssignmentCancelled]);
+
   return (
     <div className="space-y-2 rounded-lg border border-green-500/20 bg-green-50/10 p-4 dark:bg-green-950/10">
       <div className="flex items-start justify-between gap-2">
@@ -301,7 +328,19 @@ function ConfirmedRow({ proposal, completedBy, orgMemberMap, onCompleted }: Conf
           已確認
         </Badge>
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        {/* FR-S7: Cancel assignment — restores member eligibility */}
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 gap-1.5 text-[10px] font-bold uppercase tracking-widest text-destructive hover:bg-destructive/10"
+          disabled={loading || !proposal.targetAccountId}
+          onClick={handleCancelAssignment}
+          title="取消成員指派"
+        >
+          <XCircle className="size-3" />
+          撤銷指派
+        </Button>
         <Button
           size="sm"
           variant="outline"
@@ -434,6 +473,7 @@ export function OrgScheduleGovernance() {
                       completedBy={actorId}
                       orgMemberMap={orgMemberMap}
                       onCompleted={handleChange}
+                      onAssignmentCancelled={handleChange}
                     />
                   ))}
                 </div>

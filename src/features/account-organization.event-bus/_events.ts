@@ -113,6 +113,8 @@ export interface ScheduleAssignRejectedPayload {
   orgId: string;
   workspaceId: string;
   targetAccountId: string;
+  /** AccountId of the workspace scheduler who submitted the proposal (FR-N2 notification target). */
+  proposedBy?: string;
   /** Human-readable reason for rejection (e.g. skill tier insufficient). */
   reason: string;
   rejectedAt: string;

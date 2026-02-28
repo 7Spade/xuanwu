@@ -56,8 +56,19 @@ export function subscribeToDemandBoard(
 }
 
 /**
- * Fetches all demands for an org (including closed), for audit/history view.
+ * Real-time subscription to all org demands including closed ones.
+ * Used by the "Show Closed" toggle in the Demand Board (FR-W0).
+ * Returns an unsubscribe function.
  */
+export function subscribeToAllDemands(
+  orgId: string,
+  onChange: (demands: ScheduleDemand[]) => void
+): Unsubscribe {
+  const col = collection(db, `orgDemandBoard/${orgId}/demands`);
+  return onSnapshot(col, (snap: QuerySnapshot) => {
+    onChange(snap.docs.map((d: QueryDocumentSnapshot) => d.data() as ScheduleDemand));
+  });
+}
 export async function getAllDemands(orgId: string): Promise<ScheduleDemand[]> {
   const col = collection(db, `orgDemandBoard/${orgId}/demands`);
   const snap = await getDocs(col);

@@ -81,6 +81,31 @@ export function registerNotificationRouter(): RouterRegistration {
     })
   );
 
+  // Route assign-rejected events to the target member and workspace proposer (FR-N2)
+  unsubscribers.push(
+    onOrgEvent('organization:schedule:assignRejected', async (payload) => {
+      const rejectionBase = {
+        title: '排程指派拒絕通知',
+        message: `排程「${payload.scheduleItemId}」指派被拒絕${payload.reason ? `：${payload.reason}` : ''}`,
+        type: 'alert' as const,
+        sourceEvent: 'organization:schedule:assignRejected',
+        sourceId: payload.scheduleItemId,
+        workspaceId: payload.workspaceId,
+        // [R8] forward traceId from the originating event envelope
+        traceId: payload.traceId,
+      };
+      await deliverNotification(payload.targetAccountId, rejectionBase);
+      // Also notify the workspace scheduler who submitted the proposal (FR-N2)
+      if (payload.proposedBy && payload.proposedBy !== payload.targetAccountId) {
+        await deliverNotification(payload.proposedBy, {
+          ...rejectionBase,
+          title: '排程提案指派失敗通知',
+          message: `您提交的排程「${payload.scheduleItemId}」指派未能通過資格審核${payload.reason ? `：${payload.reason}` : ''}`,
+        });
+      }
+    })
+  );
+
   // Route member joined events to the new member
   unsubscribers.push(
     onOrgEvent('organization:member:joined', async (payload) => {

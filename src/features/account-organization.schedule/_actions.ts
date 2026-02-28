@@ -18,7 +18,7 @@
  *   Critical Gap #0 from docs/prd-schedule-workforce-skills.md v1.1.
  */
 
-import { approveOrgScheduleProposal, cancelOrgScheduleProposal, completeOrgSchedule } from './_schedule';
+import { approveOrgScheduleProposal, cancelOrgScheduleProposal, cancelOrgScheduleAssignment, completeOrgSchedule } from './_schedule';
 import {
   type CommandResult,
   commandSuccess,
@@ -50,6 +50,8 @@ export async function manualAssignScheduleMember(
     title: string;
     startDate: string;
     endDate: string;
+    /** AccountId of the workspace scheduler who submitted the proposal (FR-N2). */
+    proposedBy?: string;
     /** [R8] TRACE_PROPAGATION_RULE: traceId from originating CBG_ENTRY. */
     traceId?: string;
   },
@@ -100,6 +102,46 @@ export async function cancelScheduleProposalAction(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return commandFailureFrom('SCHEDULE_PROPOSAL_CANCEL_FAILED', message);
+  }
+}
+
+// =================================================================
+// FR-S7 — Cancel Assignment (confirmed → assignmentCancelled)
+// =================================================================
+
+/**
+ * HR cancels a previously confirmed schedule assignment.
+ *
+ * Distinct from `cancelScheduleProposalAction` (which operates on proposals
+ * that have not yet been confirmed). This action handles post-assignment
+ * withdrawal, restoring the member's eligible flag.
+ *
+ * [R8] traceId threaded from the originating command.
+ */
+export async function cancelOrgScheduleAssignmentAction(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  targetAccountId: string,
+  cancelledBy: string,
+  reason?: string,
+  /** [R8] TRACE_PROPAGATION_RULE: traceId from originating CBG_ENTRY. */
+  traceId?: string
+): Promise<CommandResult> {
+  try {
+    await cancelOrgScheduleAssignment(
+      scheduleItemId,
+      orgId,
+      workspaceId,
+      targetAccountId,
+      cancelledBy,
+      reason,
+      traceId
+    );
+    return commandSuccess(scheduleItemId, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('SCHEDULE_ASSIGNMENT_CANCEL_FAILED', message);
   }
 }
 

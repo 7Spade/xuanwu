@@ -22,6 +22,7 @@ export {
   getActiveDemands,
   getAllDemands,
   subscribeToDemandBoard,
+  subscribeToAllDemands,
   DEMAND_BOARD_STALENESS,
 } from './_queries';
 
