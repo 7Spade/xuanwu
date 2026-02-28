@@ -1,7 +1,7 @@
 ---
 agent: 'agent'
 tools: ['edit/editFiles', 'search', 'bash']
-description: 'Generate modern Next.js App Router code using parallel routes, intercepting routes, streaming, and minimal-risk architecture-safe changes.'
+description: 'Generate modern Next.js App Router code using parallel routes, intercepting routes, streaming, and root-cause-driven architecture-safe changes.'
 ---
 
 # Generate Next.js Parallel Routes (Modern Pattern)

@@ -1,7 +1,7 @@
 ---
 agent: 'agent'
 tools: ['edit/editFiles', 'playwright-browser_*', 'bash']
-description: 'Run Playwright MCP end-to-end checks on project pages, diagnose UI/runtime/performance bottlenecks, and apply minimal safe fixes.'
+description: 'Run Playwright MCP end-to-end checks on project pages, diagnose UI/runtime/performance bottlenecks, and apply root-cause-safe fixes.'
 ---
 
 # Playwright MCP Web Test, Diagnose, Fix & Optimize
@@ -19,7 +19,7 @@ For shared test environments, rotate this password and load credentials from sec
 ## Execution Contract
 
 1. Use Playwright MCP to run real browser flows (no shortcut via only curl/log inspection).
-2. Test target pages, collect errors/bottlenecks, then patch with smallest possible change.
+2. Test target pages, collect errors/bottlenecks, identify root cause, then patch with the smallest change that fully resolves the root cause.
 3. Re-test the same flows to prove the issue is fixed and no new regressions are introduced.
 
 ## Mandatory Steps
@@ -60,7 +60,7 @@ Summarize issues by priority:
 
 ### D. Fix and optimize
 
-- Apply minimal, behavior-preserving fixes.
+- Apply root-cause, behavior-preserving fixes.
 - Prefer existing project patterns/components.
 - Keep architecture boundaries and SRP intact.
 
