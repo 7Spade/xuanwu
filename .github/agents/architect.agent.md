@@ -1,6 +1,7 @@
 ---
 description: "Next.js App Router 與 Firebase 架構設計專家。負責將需求轉化為具體的檔案目錄結構，規劃平行路由（Parallel Routes）與攔截路由（Intercepting Routes）。Use when you need to design route structure, define Server vs Client component boundaries, or plan Firestore data models."
 name: "Architect"
+model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

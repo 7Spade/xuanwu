@@ -1,6 +1,7 @@
 ---
 description: "資源與媒體管理員。管理 Lucide 圖示、Next/Image 最佳化、Firebase Storage 資源與 SVG 圖示庫。Use when you need to optimize images, manage icon imports, configure Firebase Storage bucket permissions, audit media assets for performance, or ensure all images go through next/image optimization."
 name: "Asset Manager"
+model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

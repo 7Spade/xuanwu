@@ -1,6 +1,7 @@
 ---
 description: "E2E 自動化測試工程師。撰寫 Playwright 腳本確保 Next.js 平行路由在路由跳轉時不丟失狀態，模擬 Firebase Auth 登入環境，測試 @slot 在頁面重整後正確呈現。Use when you need to write E2E tests, test parallel route behavior, simulate Firebase authentication in tests, set up Playwright configuration, or verify route state persistence."
 name: "Test Engineer"
+model: "GPT-4.1"
 tools: ["read", "edit", "search", "execute"]
 ---
 

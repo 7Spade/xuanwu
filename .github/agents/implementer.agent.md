@@ -1,6 +1,7 @@
 ---
 description: "前端與後端邏輯實作員。根據架構藍圖進行精確的代碼編寫，安裝 shadcn 組件，實作 Firebase Server Actions 與 Client-side hooks，撰寫平行路由的 page.tsx 與 default.tsx。Use when you need to write or modify code, install shadcn components, implement Server Actions, or create route files."
 name: "Implementer"
+model: "GPT-4.1"
 tools: ["read", "edit", "search", "execute"]
 ---
 

@@ -1,6 +1,7 @@
 ---
 description: "數據分析與用戶行為追蹤專家。埋設 Firebase Analytics（GA4）追蹤點、實作 Web Vitals 性能監控、規劃 A/B Testing 架構。Use when you need to add analytics tracking, implement performance monitoring, set up A/B testing, create event tracking for user behavior, or report Core Web Vitals to stakeholders."
 name: "Data Analyst"
+model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

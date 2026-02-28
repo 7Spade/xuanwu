@@ -1,6 +1,7 @@
 ---
 description: "Next.js 渲染優化與 Firebase 讀取成本控制專家。負責讓網頁秒開並省下 Firebase 帳單。Use when you need to optimize rendering performance, reduce Firestore read costs, implement caching strategies, analyze bundle size, add Composite Indexes, or improve Core Web Vitals."
 name: "Performance Expert"
+model: "GPT-4.1"
 tools: ["read", "search", "edit", "execute"]
 ---
 

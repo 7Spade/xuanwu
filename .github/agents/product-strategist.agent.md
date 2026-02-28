@@ -1,6 +1,7 @@
 ---
 description: "商業邏輯精煉師。在開發前梳理業務流程、挖掘隱藏需求、防止過度開發。Use when you need to clarify requirements, identify logical contradictions in business flows, define MVP scope, analyze Firestore schema for future scalability, or refine vague user requests into clear acceptance criteria."
 name: "Product Strategist"
+model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

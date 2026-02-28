@@ -1,6 +1,7 @@
 ---
 description: "i18n 國際化專家。管理 Next.js 16 動態路由語言切換（/[lang]/page.tsx）、整合多語言內容、確保 Shadcn 組件在 RTL 語言下布局正常。Use when you need to add multi-language support, implement locale-based routing, manage translation files, configure RTL layout, or integrate Firebase Remote Config for content localization."
 name: "i18n Specialist"
+model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

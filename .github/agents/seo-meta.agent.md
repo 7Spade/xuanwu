@@ -1,6 +1,7 @@
 ---
 description: "搜尋引擎優化與社交媒體分享預覽專家。動態生成 Next.js generateMetadata、維護 sitemap.ts 與 robots.ts、確保語義化 HTML 結構。Use when you need to implement dynamic metadata, optimize Open Graph tags, generate sitemaps, configure robots.txt, or ensure correct semantic HTML heading structure."
 name: "SEO Meta"
+model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

@@ -1,6 +1,7 @@
 ---
 description: "CI/CD、環境變數與部署配置專家。確保從開發環境到生產環境的平滑轉換，管理 Vercel 部署設定、GitHub Actions 自動化測試、Firebase Hosting 配置。Use when you need to configure CI/CD pipelines, manage .env files, set up deployment, configure GitHub Actions workflows, or troubleshoot build pipeline failures."
 name: "Infra Master"
+model: "GPT-4.1"
 tools: ["read", "edit", "search", "execute"]
 ---
 

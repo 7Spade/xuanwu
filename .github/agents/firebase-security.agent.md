@@ -1,6 +1,7 @@
 ---
 description: "Firebase Security Rules 與後端驗證邏輯專家。撰寫 Firestore Rules、審查 Server Actions 權限邏輯、管理 Firebase Auth 自定義 Claims。Use when you need to write or audit firestore.rules, verify user permission checks in Server Actions, manage Custom Claims for RBAC, or review authentication flows."
 name: "Firebase Security"
+model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

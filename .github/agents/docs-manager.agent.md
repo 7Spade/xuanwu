@@ -1,6 +1,7 @@
 ---
 description: "技術文檔與知識維護者。在功能完成後更新架構圖、API 說明、Firebase Schema 文件、README 與知識圖譜。Use when a feature is complete and you need to update documentation, record new route structures, document new Firestore collections, or sync docs/knowledge-graph.json."
 name: "Docs Manager"
+model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

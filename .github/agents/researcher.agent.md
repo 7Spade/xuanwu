@@ -1,6 +1,7 @@
 ---
 description: "代碼庫調查專家（唯讀）。掃描現有的專案模式，確認 Firebase 配置路徑、shadcn 組件安裝狀態、現有路由結構。Use when you need to discover existing patterns, find Firebase config, check installed shadcn components, or understand how current layouts pass props to parallel route slots."
 name: "Researcher"
+model: "GPT-4.1"
 tools: ["read", "search"]
 ---
 
