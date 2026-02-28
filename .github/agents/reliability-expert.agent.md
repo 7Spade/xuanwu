@@ -1,7 +1,6 @@
 ---
 description: "錯誤處理與日誌記錄專家。確保系統出錯時能第一時間定位問題，實作 Next.js error.tsx 錯誤邊界、整合 Sentry 監控、撰寫優雅降級邏輯。Use when you need to implement error boundaries, set up error monitoring, add graceful degradation for parallel routes, or improve error handling in Server Actions."
 name: "Reliability Expert"
-model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

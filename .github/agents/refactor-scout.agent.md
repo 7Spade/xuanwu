@@ -1,7 +1,6 @@
 ---
 description: "代碼優化與重構偵察兵。掃描技術債、重複代碼，將其封裝成 Shadcn 風格通用組件，拆分過大的 Server Components，減少不必要的 useEffect。Use when you need to reduce code duplication, split oversized components, eliminate technical debt, apply DRY principles, or refactor Firebase data access patterns."
 name: "Refactor Scout"
-model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

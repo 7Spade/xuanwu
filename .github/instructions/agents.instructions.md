@@ -25,7 +25,6 @@ Every agent file must include YAML frontmatter with the following fields:
 description: 'Brief description of the agent purpose and capabilities'
 name: 'Agent Display Name'
 tools: ['read', 'edit', 'search']
-model: 'Claude Sonnet 4.5'
 target: 'vscode'
 infer: true
 ---

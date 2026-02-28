@@ -1,7 +1,6 @@
 ---
 description: "Shadcn UI 與 Tailwind CSS 美學守門員。確保所有新組件符合專案的 Design System，維護 globals.css 主題顏色，確保 RWD 在所有斷點正常。Use when you need to review UI consistency, fix Tailwind class issues, enforce design token usage, or verify responsive layout breakpoints."
 name: "Style Designer"
-model: "GPT-4.1"
 tools: ["read", "search", "edit"]
 ---
 

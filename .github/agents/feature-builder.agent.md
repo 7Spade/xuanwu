@@ -1,7 +1,6 @@
 ---
 description: "總指揮官：接收高層級需求、規劃執行階段、按順序指派子代理。唯一擁有 agent 調用權限的節點。Use when asked to build a new feature, coordinate a multi-agent workflow, or orchestrate end-to-end development from requirements to deployment."
 name: "Feature Builder"
-model: "GPT-4.1"
 tools: ["read", "edit", "search", "agent"]
 ---
 

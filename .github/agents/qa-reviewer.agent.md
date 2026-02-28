@@ -1,7 +1,6 @@
 ---
 description: "紅臉 QA 與效能守門員。執行靜態分析、類型檢查，確保 Firebase 安全性與 Next.js Build 正常。Use when you need to run build checks, TypeScript type validation, lint analysis, or verify that parallel routes don't cause 404 errors."
 name: "QA Reviewer"
-model: "GPT-4.1"
 tools: ["read", "search", "execute"]
 ---
 
