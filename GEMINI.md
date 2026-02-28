@@ -114,7 +114,30 @@ import { privateHelper } from '@/features/workspace-core/_tx-runner';
 import { applyVersionGuard } from '@/features/shared.kernel.version-guard';
 ```
 
-### 2.3 Server Action Entry Point Rule (D3, D5)
+### 2.3 Type Placement & Import Precedence (D8 extension)
+
+```
+✅ PREFERRED — cross-BC contract from shared kernel
+import { SkillRequirement } from '@/features/shared.kernel.skill-tier';
+// Note: if current codebase is still in transition, follow temporary compatibility rules
+// documented in docs/project-structure.md before completing migration.
+
+✅ ALLOWED — slice-owned type via public API
+import type { WorkspaceLocation } from '@/features/workspace-core';
+
+⚠ LEGACY ONLY — src/shared/types for compatibility/common DTOs
+import type { SomeLegacyDto } from '@/shared/types';
+
+❌ FORBIDDEN — adding new cross-BC domain contracts to src/shared/types by default
+// Put new cross-BC contracts in shared.kernel.* first
+```
+
+Rule priority:
+1. shared.kernel.* (cross-BC contract)
+2. feature slice public API (`{slice}/index.ts`)
+3. shared/types only as legacy/common fallback
+
+### 2.4 Server Action Entry Point Rule (D3, D5)
 
 ```
 ✅ ALLOWED

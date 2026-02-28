@@ -62,7 +62,20 @@ src/features/
     └── index.ts
 ```
 
-> **Note**: The `SK_SKILL_REQ` (`SkillRequirement` cross-slice contract) type is currently implemented in `src/shared/types/skill.types.ts` rather than a dedicated `shared.kernel.skill-requirement/` slice. This is a known deviation from the VS0 ideal, accepted to satisfy ESLint cross-boundary import rules. The contract semantics remain unchanged.
+> **Temporary exception (must be treated as legacy compatibility)**: `SK_SKILL_REQ` (`SkillRequirement` cross-slice contract) is currently implemented in `src/shared/types/skill.types.ts` instead of a dedicated `shared.kernel.skill-requirement/` slice. This deviation is accepted only for current compatibility constraints. **Import precedence remains VS0-first**: where shared-kernel export exists, consuming code should import from `@/features/shared.kernel.*` as the authoritative boundary contract.
+
+### Type Ownership Matrix (Authoritative)
+
+| Location | Owns what | Not allowed |
+| --- | --- | --- |
+| `src/features/shared.kernel.*` | Cross-BC contracts and pure cross-slice domain functions (VS0 SK contracts) | Infra I/O, feature-specific persistence/read-model shapes |
+| `src/features/{slice}` | Slice-owned aggregate/event/projection/persistence/view types | Exporting private slice internals across slices |
+| `src/shared/types` | Legacy/common app DTOs used by multiple layers when no VS0/slice owner exists | New cross-BC domain contracts (use `shared.kernel.*` instead) |
+
+**Import precedence rule**:
+1. If a type is defined/exported in `shared.kernel.*`, import from `@/features/shared.kernel.*`.
+2. If type is slice-owned, import from that slice `index.ts` public API.
+3. Use `src/shared/types/*` only when neither of the above applies (legacy/common DTO use).
 
 ---
 

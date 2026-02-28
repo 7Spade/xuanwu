@@ -664,6 +664,10 @@ TOKEN_REFRESH_SIGNAL -.->|"刷新失敗告警 [S6]"| DOMAIN_ERRORS
 %%     必須在 SK_RESILIENCE_CONTRACT 驗收後上線 [S5]
 %% D18 Claims 刷新邏輯變更：
 %%     以 SK_TOKEN_REFRESH_CONTRACT 為唯一規範，三方同步修改 [S6]
+%% D19 型別歸屬規則：跨 BC 契約必須優先放在 shared.kernel.*；
+%%     shared/types 僅可作 legacy/common DTO fallback，不得作為新跨片契約預設落點
+%% D20 匯入優先序：shared.kernel.* > feature slice index.ts > shared/types
+%%     若同一概念同時存在於 shared.kernel 與 shared/types，以 shared.kernel 為唯一權威
 %% ==========================================================================
 
 %% ==========================================================================
