@@ -38,30 +38,30 @@ src/features/
 ├─ account-organization.policy                    (VS4 Organization Slice)
 ├─ organization-skill-recognition                 (VS4 Organization Slice)
 │
-├─ org-context.acl                                (VS5 Workspace Slice)
-├─ workspace-application                          (VS5 Application Coordinator)
+├─ org-context.acl                                (VS5 Workspace Slice / ACL)
+├─ workspace-application                          (VS5 Workspace Slice / Application Coordinator)
 │  ├─ command-handler
 │  ├─ scope-guard
 │  ├─ policy-engine
 │  ├─ transaction-runner
 │  └─ ws-outbox
-├─ workspace-core                                 (VS5 Workspace Core)
+├─ workspace-core                                 (VS5 Workspace Slice / Core)
 │  ├─ workspace-core.aggregate
 │  ├─ workspace-core.event-bus
 │  ├─ workspace-core.event-store
 │  └─ workspace-core.settings
-├─ workspace-governance.role                      (VS5 Governance)
-├─ workspace-governance.audit                     (VS5 Governance)
-├─ workspace-business.files                       (VS5 Business)
-├─ workspace-business.document-parser             (VS5 Business / Parsing loop)
-├─ workflow                                       (VS5 Workflow State Machine)
-├─ tasks                                          (VS5 A-track)
-├─ quality-assurance                              (VS5 A-track)
-├─ acceptance                                     (VS5 A-track)
-├─ finance                                        (VS5 A-track)
-├─ issues                                         (VS5 B-track)
-├─ daily                                          (VS5 Business)
-├─ schedule                                       (VS5 Business)
+├─ workspace-governance.role                      (VS5 Workspace Slice / Governance)
+├─ workspace-governance.audit                     (VS5 Workspace Slice / Governance)
+├─ workspace-business.files                       (VS5 Workspace Slice / Business)
+├─ workspace-business.document-parser             (VS5 Workspace Slice / Business / Parsing)
+├─ workspace-business.workflow                    (VS5 Workspace Slice / State Machine)
+│  ├─ A-track.tasks                               (主流程：任務)
+│  ├─ A-track.quality-assurance                   (主流程：QA)
+│  ├─ A-track.acceptance                          (主流程：驗收)
+│  ├─ A-track.finance                             (主流程：財務)
+│  └─ B-track.issues                              (異常流程：問題單)
+├─ workspace-business.daily                       (VS5 Workspace Slice / Business)
+├─ workspace-business.schedule                    (VS5 Workspace Slice / Business)
 │
 ├─ account-organization.schedule                  (VS6 Scheduling Slice)
 ├─ scheduling-saga                                (VS6 Scheduling Slice)
@@ -92,3 +92,4 @@ src/features/
 2. 在對應切片內擴充，不跨切片偷放。
 3. 跨切片契約先放 VS0 `shared.kernel.*`，不要先丟到其他共享桶。
 4. `issues` 是 B-track（異常軌）節點，只能透過事件回到 A-track（見 `logic-overview.md` A/B 軌規則）。
+5. VS5 的 `tasks/qa/acceptance/finance/issues/daily/schedule` 都是 **Workspace Slice 內部業務節點**，不是新的獨立切片。
