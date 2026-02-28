@@ -16,6 +16,8 @@ import { useMemo, useState, useEffect } from "react";
 import { useWorkspace } from "@/features/workspace-core";
 import { useAccount } from "@/features/workspace-core";
 import { useApp } from "@/shared/app-providers/app-context";
+import { subscribeToOrgMembers } from "@/features/account-organization.member";
+import type { MemberReference } from "@/shared/types";
 import { useRouter } from "next/navigation";
 import { toast } from "@/shared/utility-hooks/use-toast";
 import { addMonths, subMonths, format } from "date-fns";
@@ -24,7 +26,7 @@ export function useWorkspaceSchedule() {
   const { workspace } = useWorkspace();
   const { state: appState, dispatch: appDispatch } = useApp();
   const { state: accountState } = useAccount();
-  const { accounts, activeAccount, scheduleTaskRequest } = appState;
+  const { activeAccount, scheduleTaskRequest } = appState;
   const router = useRouter();
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -33,19 +35,27 @@ export function useWorkspaceSchedule() {
   useEffect(() => {
     if (scheduleTaskRequest && scheduleTaskRequest.workspaceId === workspace.id) {
       toast({
-        title: "Schedule Request Hint",
-        description: `A new task "${scheduleTaskRequest.taskName}" is ready. You can now add it to the schedule.`,
+        title: "排程請求提示",
+        description: `任務「${scheduleTaskRequest.taskName}」已就緒，可加入排程。`,
       });
       appDispatch({ type: "CLEAR_SCHEDULE_TASK_REQUEST" });
     }
   }, [scheduleTaskRequest, workspace.id, appDispatch]);
 
-  const activeOrganization = useMemo(() =>
-    activeAccount?.accountType === "organization" ? accounts[activeAccount.id] : null,
-    [accounts, activeAccount]
+  const activeOrgId = useMemo(() =>
+    activeAccount?.accountType === "organization" ? activeAccount.id : null,
+    [activeAccount]
   );
 
-  const organizationMembers = useMemo(() => activeOrganization?.members || [], [activeOrganization]);
+  // Subscribe to live org member list so assignee dropdowns are always populated.
+  const [organizationMembers, setOrganizationMembers] = useState<MemberReference[]>([]);
+  useEffect(() => {
+    if (!activeOrgId) {
+      setOrganizationMembers([]);
+      return;
+    }
+    return subscribeToOrgMembers(activeOrgId, setOrganizationMembers);
+  }, [activeOrgId]);
 
   const localItems = useMemo(() =>
     Object.values(accountState.schedule_items || {}).filter(item => item.workspaceId === workspace.id),

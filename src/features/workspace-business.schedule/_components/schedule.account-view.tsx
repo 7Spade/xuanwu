@@ -72,7 +72,7 @@ export function AccountScheduleSection() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-60">
-        <DropdownMenuLabel>Assign Member</DropdownMenuLabel>
+        <DropdownMenuLabel>指派成員</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {organizationMembers.map(member => (
           <DropdownMenuCheckboxItem
@@ -98,9 +98,9 @@ export function AccountScheduleSection() {
     return (
       <div className="flex flex-col items-center gap-4 p-8 text-center">
         <AlertCircle className="size-10 text-muted-foreground" />
-        <h3 className="font-bold">Schedule Not Available</h3>
+        <h3 className="font-bold">排程不可用</h3>
         <p className="text-sm text-muted-foreground">
-          The organization-wide schedule is only available within an organization dimension.
+          組織排程僅在組織帳號中可用。
         </p>
       </div>
     );
@@ -110,9 +110,9 @@ export function AccountScheduleSection() {
     <div className="mx-auto flex h-full max-w-full flex-col duration-700 animate-in fade-in">
       <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div className="space-y-1">
-          <h1 className="font-headline text-4xl font-bold tracking-tight">Organization Schedule</h1>
+          <h1 className="font-headline text-4xl font-bold tracking-tight">組織排程</h1>
           <p className="text-muted-foreground">
-            Aggregated view of all proposed and official schedule items across all workspaces.
+            跨所有工作空間的提案與正式排程項目整合檢視。
           </p>
         </div>
       </div>
@@ -143,21 +143,21 @@ export function AccountScheduleSection() {
           <div>
             <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
               <Calendar className="size-4" />
-              Future Events
+              即將到來的活動
             </h3>
             <ScheduleDataTable columns={upcomingEventsColumns} data={upcomingEvents} />
           </div>
           <div>
             <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
               <ListChecks className="size-4" />
-              Present Events
+              進行中的活動
             </h3>
             <ScheduleDataTable columns={upcomingEventsColumns} data={presentEvents} />
           </div>
           <div>
             <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
               <History className="size-4" />
-              Decision History (Last 7 Days)
+              決策記錄（最近 7 天）
             </h3>
             <ScheduleDataTable columns={decisionHistoryColumns} data={decisionHistory} />
           </div>

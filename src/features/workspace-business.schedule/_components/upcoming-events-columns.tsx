@@ -26,7 +26,7 @@ export const upcomingEventsColumns: ColumnDef<UpcomingEventItem>[] = [
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Date
+            日期
             <ArrowUpDown className="ml-2 size-4" />
           </Button>
         )
@@ -41,7 +41,7 @@ export const upcomingEventsColumns: ColumnDef<UpcomingEventItem>[] = [
   },
   {
     accessorKey: "workspaceName",
-    header: "Workspace",
+    header: "工作空間",
   },
   {
     accessorKey: "title",
@@ -51,7 +51,7 @@ export const upcomingEventsColumns: ColumnDef<UpcomingEventItem>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Event
+          活動名稱
           <ArrowUpDown className="ml-2 size-4" />
         </Button>
       )
@@ -59,7 +59,7 @@ export const upcomingEventsColumns: ColumnDef<UpcomingEventItem>[] = [
   },
   {
     accessorKey: "requiredSkills",
-    header: "Required Skills",
+    header: "所需技能",
     cell: ({ row }) => {
       const requirements = row.original.requiredSkills
       if (!requirements || requirements.length === 0) {
@@ -81,7 +81,7 @@ export const upcomingEventsColumns: ColumnDef<UpcomingEventItem>[] = [
   },
   {
     accessorKey: "assignees",
-    header: "Assignees",
+    header: "指派人員",
     cell: ({ row }) => {
       const assignees = row.original.assigneeIds || []
       const members = row.original.members || []
@@ -89,7 +89,7 @@ export const upcomingEventsColumns: ColumnDef<UpcomingEventItem>[] = [
       const assigneeDetails = assignees.map(id => members.find(m => m.id === id)).filter(Boolean) as MemberReference[];
 
       if (assigneeDetails.length === 0) {
-        return <span className="text-[10px] italic text-muted-foreground/50">Unassigned</span>
+        return <span className="text-[10px] italic text-muted-foreground/50">未指派</span>
       }
 
       return (

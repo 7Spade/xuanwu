@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAccount } from "@/features/workspace-core";
 import { useApp } from "@/shared/app-providers/app-context";
+import { subscribeToOrgMembers } from "@/features/account-organization.member";
+import type { MemberReference } from "@/shared/types";
 import { subDays, isFuture, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
 /**
@@ -14,14 +16,23 @@ export function useGlobalSchedule() {
   const { state: appState } = useApp();
   const { state: accountState } = useAccount();
   const { workspaces, schedule_items } = accountState;
-  const { accounts, activeAccount } = appState;
+  const { activeAccount } = appState;
 
-  const activeOrganization = useMemo(() =>
-    activeAccount?.accountType === 'organization' ? accounts[activeAccount.id] : null,
-    [accounts, activeAccount]
+  const activeOrgId = useMemo(() =>
+    activeAccount?.accountType === 'organization' ? activeAccount.id : null,
+    [activeAccount]
   );
 
-  const organizationMembers = useMemo(() => activeOrganization?.members || [], [activeOrganization]);
+  // Subscribe to live org member list so assignee dropdowns and calendar
+  // avatars are always populated (accounts[orgId]?.members is typically empty).
+  const [organizationMembers, setOrganizationMembers] = useState<MemberReference[]>([]);
+  useEffect(() => {
+    if (!activeOrgId) {
+      setOrganizationMembers([]);
+      return;
+    }
+    return subscribeToOrgMembers(activeOrgId, setOrganizationMembers);
+  }, [activeOrgId]);
 
   const allItems = useMemo(() => {
     return Object.values(schedule_items || {}).map(item => ({

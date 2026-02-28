@@ -22,13 +22,13 @@ import {
   approveOrgScheduleProposal,
 } from '@/features/account-organization.schedule';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared.kernel.skill-tier';
+import { tierSatisfies } from '@/features/shared.kernel.skill-tier';
+import type { SkillTier } from '@/features/shared.kernel.skill-tier';
 import { getOrgEligibleMembersWithTier } from '@/features/projection.org-eligible-member-view';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-/** Discrete steps the saga executes in order. */
 export type SagaStep =
   | 'receive_proposal'
   | 'eligibility_check'
@@ -60,18 +60,6 @@ export interface SagaState {
 
 const SAGA_COLLECTION = 'sagaStates';
 
-const TIER_ORDER = [
-  'apprentice',
-  'journeyman',
-  'expert',
-  'artisan',
-  'grandmaster',
-  'legendary',
-  'titan',
-] as const;
-
-type Tier = (typeof TIER_ORDER)[number];
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -94,15 +82,6 @@ async function updateSagaStatus(
   >
 ): Promise<void> {
   await updateDocument(sagaPath(sagaId), { ...patch, updatedAt: new Date().toISOString() });
-}
-
-function tierIndex(tier: string): number {
-  const idx = TIER_ORDER.indexOf(tier as Tier);
-  if (idx === -1) {
-    console.warn(`[scheduling-core.saga] Unknown tier value "${tier}", defaulting to 0 (apprentice).`);
-    return 0;
-  }
-  return idx;
 }
 
 // ---------------------------------------------------------------------------
@@ -172,7 +151,7 @@ export async function startSchedulingSaga(
     return requirements.every((req) => {
       const skill = member.skills.find((s) => s.skillId === req.tagSlug);
       if (!skill) return false;
-      return tierIndex(skill.tier) >= tierIndex(req.minimumTier);
+      return tierSatisfies(skill.tier as SkillTier, req.minimumTier as SkillTier);
     });
   });
 
