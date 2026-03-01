@@ -119,7 +119,7 @@ src/
 │   ├── account-user.*          # VS2 — personal account + wallet
 │   ├── account-organization.*  # VS4 — org governance
 │   ├── workspace-*             # VS5 — workspace business logic
-│   ├── scheduling-core.saga    # VS6 — cross-BC scheduling saga
+│   ├── scheduling-saga         # VS6 — cross-BC scheduling saga
 │   ├── account-governance.*    # VS7 — notification routing
 │   ├── projection.*            # VS8 — read models
 │   └── infra.*                 # gateways, event-router, relay

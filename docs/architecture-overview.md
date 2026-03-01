@@ -97,13 +97,13 @@ flowchart TD
 - **Key rule**: `WALLET_AGG` is STRONG_READ [S3]. `RoleChanged/PolicyChanged` → SECURITY_BLOCK DLQ.
 
 ### VS3 — Skill XP Slice
-- **Slices**: `account-user.skill`
+- **Slices**: `account-skill`
 - **Bounded context**: 能力成長
 - **Allowed dependencies**: VS0 (SK_ENV, SK_SKILL_TIER, SK_OUTBOX_CONTRACT [S1])
 - **Key rule**: Every XP mutation writes ledger (#13). Tier is always derived (#12).
 
 ### VS4 — Organization Slice
-- **Slices**: `account-organization.core`, `account-organization.event-bus`, `account-organization.member`, `account-organization.partner`, `account-organization.team`, `account-organization.policy`, `account-organization.skill-tag`, `account-organization.schedule` (see `docs/project-structure.md` VS4 for full slice tree)
+- **Slices**: `account-organization.core`, `account-organization.event-bus`, `account-organization.member`, `account-organization.partner`, `account-organization.team`, `account-organization.policy`, `organization-skill-recognition`, `account-organization.schedule` (see `docs/project-structure.md` VS4 for full slice tree)
 - **Bounded context**: 組織治理
 - **Allowed dependencies**: VS0 (SK_ENV, SK_STALENESS_CONTRACT [S4]), VS2 (via ACL only)
 - **Key rule**: `VS4_TAG_SUBSCRIBER` subscribes IER BACKGROUND_LANE to update SKILL_TAG_POOL (T2).

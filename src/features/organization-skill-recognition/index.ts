@@ -1,5 +1,5 @@
 /**
- * account-organization.skill-tag — Public API
+ * organization-skill-recognition — Public API
  *
  * Two aggregates live in this slice:
  *

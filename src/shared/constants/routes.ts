@@ -17,8 +17,6 @@ export const ROUTES = {
   ACCOUNT_SETTINGS: "/dashboard/account/settings",
   ACCOUNT_MATRIX: "/dashboard/account/matrix",
   ACCOUNT_SCHEDULE: "/dashboard/account/schedule",
-  ACCOUNT_ORG_SCHEDULE: "/dashboard/account/org-schedule",
-  ACCOUNT_DEMAND_BOARD: "/dashboard/account/demand-board",
   ACCOUNT_DAILY: "/dashboard/account/daily",
   ACCOUNT_AUDIT: "/dashboard/account/audit",
   /** FR-K1: Personal skill profile page (XP + tier visualization). */

@@ -1,5 +1,5 @@
 /**
- * account-organization.skill-tag — _org-skill-recognition.ts
+ * organization-skill-recognition — _org-skill-recognition.ts
  *
  * Organization Skill Recognition Aggregate.
  *

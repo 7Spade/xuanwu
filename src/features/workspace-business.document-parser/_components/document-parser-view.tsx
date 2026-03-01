@@ -204,6 +204,7 @@ export function WorkspaceDocumentParser() {
     eventBus.publish('workspace:document-parser:itemsExtracted', {
         sourceDocument: state.fileName || 'Unknown Document',
         intentId,
+        autoImport: true,
         items: lineItems,
     });
 

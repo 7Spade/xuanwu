@@ -59,7 +59,7 @@ import {
   handleTagUpdatedForPool,
   handleTagDeprecatedForPool,
   handleTagDeletedForPool,
-} from '@/features/account-organization.skill-tag';
+} from '@/features/organization-skill-recognition';
 
 /**
  * Registers workspace event handlers on the bus to keep projections in sync.

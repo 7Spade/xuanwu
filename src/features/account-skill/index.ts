@@ -1,5 +1,5 @@
 /**
- * account-user.skill — Public API
+ * account-skill — Public API
  *
  * AccountSkill aggregate: addXp / deductXp with mandatory Ledger writes.
  *

@@ -1,5 +1,5 @@
 /**
- * scheduling-core.saga — _saga.ts
+ * scheduling-saga — _saga.ts
  *
  * [VS6] 跨組織排班協作 Saga 協調器
  *
@@ -99,7 +99,7 @@ async function updateSagaStatus(
 function tierIndex(tier: string): number {
   const idx = TIER_ORDER.indexOf(tier as Tier);
   if (idx === -1) {
-    console.warn(`[scheduling-core.saga] Unknown tier value "${tier}", defaulting to 0 (apprentice).`);
+    console.warn(`[scheduling-saga] Unknown tier value "${tier}", defaulting to 0 (apprentice).`);
     return 0;
   }
   return idx;

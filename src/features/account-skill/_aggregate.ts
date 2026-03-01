@@ -1,5 +1,5 @@
 /**
- * account-user.skill — _aggregate.ts
+ * account-skill — _aggregate.ts
  *
  * AccountSkill Aggregate Root.
  *

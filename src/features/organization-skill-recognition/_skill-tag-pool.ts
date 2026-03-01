@@ -1,10 +1,10 @@
 /**
- * account-organization.skill-tag — _skill-tag-pool.ts
+ * organization-skill-recognition — _skill-tag-pool.ts
  *
  * Skill Tag Pool: organization-scoped view of the global Tag Authority Center.
  *
  * Per logic-overview.md (VS4):
- *   SKILL_TAG_POOL[("職能標籤庫\naccount-organization.skill-tag\n= Tag Authority 的組織作用域快照\n消費 TagLifecycleEvent 被動更新")]
+ *   SKILL_TAG_POOL[("職能標籤庫\norganization-skill-recognition\n= Tag Authority 的組織作用域快照\n消費 TagLifecycleEvent 被動更新")]
  *
  * v5 Role Change:
  *   - CENTRALIZED_TAG_AGGREGATE (centralized-tag) is now the global semantic dictionary

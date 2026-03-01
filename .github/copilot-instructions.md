@@ -1,6 +1,6 @@
 # Copilot Instructions for `7Spade/xuanwu`
 
-This repository is onboarding Copilot with a **minimal, architecture-first rule set**, integrated with **Memory MCP** for long-term project context.
+This repository is onboarding Copilot with an **architecture-first, root-cause-first rule set**, integrated with **Memory MCP** for long-term project context.
 
 ---
 
@@ -96,9 +96,9 @@ store_memory({
 ---
 
 ## Core principles
-- Follow **Occam's Razor**: prefer the simplest change that fully solves the task.
+- Follow **Root-Cause First**: always identify and fix the fundamental cause before choosing implementation size.
 - Keep code in the repository's **Vertical Slice Architecture (VSA)**.
-- Keep changes **small and local**; avoid creating new abstractions unless required.
+- Apply **small/local patches only after** root cause and affected boundaries are fully verified; do not use “minimal change” as a shortcut.
 - **SSOT**: `docs/logic-overview.md` 是本專案唯一最高權威文件，所有衝突以此為準。
 
 ## Memory MCP & Knowledge Graph (Crucial)

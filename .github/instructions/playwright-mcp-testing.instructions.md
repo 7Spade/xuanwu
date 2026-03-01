@@ -12,7 +12,7 @@ Use Playwright MCP as the default browser-validation path for this project to:
 1. verify real page behavior (not only HTTP status),
 2. detect UI/runtime errors,
 3. identify bottlenecks,
-4. apply minimal fixes without changing intended behavior.
+4. apply root-cause fixes without changing intended behavior.
 
 ## Test Account (Project Test Environment Only)
 
@@ -54,11 +54,11 @@ Prioritize bottlenecks in this order:
 3. slow first render / blocking UI states,
 4. obvious re-render hotspots from interactions.
 
-### 5) Fix with minimal impact
+### 5) Fix from root cause first
 
-- Keep changes surgical and scoped.
-- Do not redesign UI unless necessary for the bug/perf issue.
-- Preserve behavior and existing contracts.
+- Identify and document the root cause before patching symptoms.
+- Implement the smallest change that fully resolves the root cause (not just visible symptoms).
+- Preserve behavior and existing contracts unless requirement explicitly changes them.
 - Re-run the same Playwright scenario to verify no regressions.
 
 ## Required Route Coverage (minimum)

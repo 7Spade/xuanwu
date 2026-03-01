@@ -25,7 +25,7 @@ import { toast } from "@/shared/utility-hooks/use-toast";
 import { type Location, type SkillRequirement, type SkillTier } from "@/shared/types";
 import { SKILLS } from "@/shared/constants/skills";
 import { TIER_DEFINITIONS } from "@/features/shared.kernel.skill-tier";
-import { getOrgSkillTags } from "@/features/account-organization.skill-tag";
+import { getOrgSkillTags } from "@/features/organization-skill-recognition";
 
 const MAX_SKILL_REQUIREMENT_QUANTITY = 99;
 
@@ -49,7 +49,7 @@ interface ProposalDialogProps {
  * @fileoverview ProposalDialog - A dedicated dialog component for creating schedule proposals.
  * @description This is a "dumb" component that receives its state and callbacks via props.
  * It encapsulates the entire form logic for submitting a new schedule item.
- * The requiredSkills section connects to SKILL_TAG_POOL (account-organization.skill-tag)
+ * The requiredSkills section connects to SKILL_TAG_POOL (organization-skill-recognition)
  * so that schedule proposals can specify staffing skill requirements.
  * FR-K5: When orgId is provided, loads the org's tag pool; otherwise falls back to global SKILLS.
  */

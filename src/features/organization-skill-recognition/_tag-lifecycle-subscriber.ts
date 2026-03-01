@@ -1,5 +1,5 @@
 /**
- * account-organization.skill-tag — _tag-lifecycle-subscriber.ts
+ * organization-skill-recognition — _tag-lifecycle-subscriber.ts
  *
  * VS4_TAG_SUBSCRIBER [R3] — keeps SKILL_TAG_POOL up to date when TagLifecycleEvents arrive.
  *
@@ -7,7 +7,7 @@
  *   IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
  *
  * This subscriber is the explicit named handler the Event Funnel delegates to.
- * It stays within the account-organization.skill-tag slice boundary (切片內部消費,
+ * It stays within the organization-skill-recognition slice boundary (切片內部消費,
  * 不穿透邊界) and MUST NOT import from other feature slices.
  *
  * Cross-org fan-out strategy:

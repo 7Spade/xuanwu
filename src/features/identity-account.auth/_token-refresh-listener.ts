@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * identity-account.auth — _token-refresh-listener.ts
  *

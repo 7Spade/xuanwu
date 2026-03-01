@@ -337,12 +337,12 @@ subgraph VS6["🟨 VS6 · Scheduling Slice（排班協作）"]
     end
 
     subgraph VS6_OUTBOX["📤 Schedule Outbox [S1]"]
-        SCHED_OUTBOX["sched-outbox\n[SK_OUTBOX_CONTRACT S1]\n─────────────────\nDLQ 分級宣告：\nScheduleAssigned\n  → REVIEW_REQUIRED\nScheduleCompleted / ScheduleAssignmentCancelled\n/ AssignRejected / ProposalCancelled\n  → SAFE_AUTO"]
+        SCHED_OUTBOX["sched-outbox\n[SK_OUTBOX_CONTRACT S1]\n─────────────────\nDLQ 分級宣告：\nScheduleAssigned\n  → REVIEW_REQUIRED\nCompensating Events\n  → SAFE_AUTO"]
     end
 
     ORG_SCHEDULE -.->|"#14 只讀 eligible=true"| QGWAY_SCHED
     ORG_SCHEDULE -.->|"tagSlug 新鮮度校驗"| TAG_STALE_GUARD
-    ORG_SCHEDULE -->|"ScheduleAssigned · ScheduleCompleted · ScheduleAssignmentCancelled"| SCHED_OUTBOX
+    ORG_SCHEDULE -->|"ScheduleAssigned + aggregateVersion"| SCHED_OUTBOX
     ORG_SCHEDULE -.->|"人力需求契約"| SK_SKILL_REQ
     ORG_SCHEDULE -.->|"tagSlug 唯讀"| TAG_READONLY
     SCHEDULE_SAGA -->|"compensating event"| SCHED_OUTBOX
@@ -603,7 +603,7 @@ TOKEN_REFRESH_SIGNAL -.->|"刷新失敗告警 [S6]"| DOMAIN_ERRORS
 %% #12 Tier 永遠是推導值，不存 DB
 %% #13 XP 異動必須寫 Ledger
 %% #14 Schedule 只讀 ORG_ELIGIBLE_MEMBER_VIEW
-%% #15 eligible 生命週期：joined→true · assigned→false · completed/assignmentCancelled→true
+%% #15 eligible 生命週期：joined→true · assigned→false · completed/cancelled→true
 %% #16 Talent Repository = member + partner + team
 %% #17 centralized-tag.aggregate 為 tagSlug 唯一真相
 %% #18 workspace-governance role 繼承 policy 硬約束
@@ -664,6 +664,10 @@ TOKEN_REFRESH_SIGNAL -.->|"刷新失敗告警 [S6]"| DOMAIN_ERRORS
 %%     必須在 SK_RESILIENCE_CONTRACT 驗收後上線 [S5]
 %% D18 Claims 刷新邏輯變更：
 %%     以 SK_TOKEN_REFRESH_CONTRACT 為唯一規範，三方同步修改 [S6]
+%% D19 型別歸屬規則：跨 BC 契約必須優先放在 shared.kernel.*；
+%%     shared/types 僅可作 legacy/common DTO fallback，不得作為新跨片契約預設落點
+%% D20 匯入優先序：shared.kernel.* > feature slice index.ts > shared/types
+%%     若同一概念同時存在於 shared.kernel 與 shared/types，以 shared.kernel 為唯一權威
 %% ==========================================================================
 
 %% ==========================================================================
