@@ -58,10 +58,15 @@ export function UnifiedCalendarGrid({
     [members]
   );
   
-  const toDate = (timestamp: Timestamp | Date | null | undefined): Date | null => {
+  const toDate = (timestamp: Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined): Date | null => {
     if (!timestamp) return null;
     if (timestamp instanceof Date) return timestamp;
-    return timestamp.toDate();
+    if (typeof (timestamp as Timestamp).toDate === 'function') return (timestamp as Timestamp).toDate();
+    // Handle plain-object serialized Timestamps (e.g. passed through React state)
+    if (typeof (timestamp as { seconds: number }).seconds === 'number') {
+      return new Date((timestamp as { seconds: number }).seconds * 1000);
+    }
+    return null;
   };
   
   const itemsByDate = useMemo(() => {
