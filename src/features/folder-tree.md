@@ -20,7 +20,7 @@ src/features/
 │  ├─ resilience-contract                         (S5)
 │  └─ token-refresh-contract                      (S6)
 │
-├─ identity-account.auth                          (VS1 Identity Slice)
+├─ identity.slice                                 (VS1 Identity Slice)
 │
 ├─ account-user.profile                           (VS2 Account Slice)
 ├─ account-user.wallet                            (VS2 Account Slice)

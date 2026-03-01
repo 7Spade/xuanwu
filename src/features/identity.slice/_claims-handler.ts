@@ -1,5 +1,5 @@
 /**
- * identity-account.auth — _claims-handler.ts
+ * identity.slice — _claims-handler.ts
  *
  * CLAIMS_HANDLER — single Claims refresh trigger point [E6][S6]
  *
@@ -89,7 +89,7 @@ async function handleClaimsRefreshTrigger(envelope: EventEnvelope): Promise<void
     logDomainError({
       occurredAt: new Date().toISOString(),
       traceId,
-      source: 'identity-account.auth:claims-handler',
+      source: 'identity.slice:claims-handler',
       message: `SECURITY_BLOCK — ClaimsRefresh received event without accountId: eventType="${envelope.eventType}" eventId="${envelope.eventId}"`,
     });
     return;
@@ -103,7 +103,7 @@ async function handleClaimsRefreshTrigger(envelope: EventEnvelope): Promise<void
     logDomainError({
       occurredAt: new Date().toISOString(),
       traceId,
-      source: 'identity-account.auth:claims-handler',
+      source: 'identity.slice:claims-handler',
       message: `SECURITY_BLOCK — ClaimsRefresh failed for account "${accountId}": ${message}`,
       detail: `eventType=${envelope.eventType} eventId=${envelope.eventId}`,
     });

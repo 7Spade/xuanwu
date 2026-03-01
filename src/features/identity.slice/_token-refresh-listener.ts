@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * identity-account.auth — _token-refresh-listener.ts
+ * identity.slice — _token-refresh-listener.ts
  *
  * Frontend Party [S6] — Client Token Refresh Listener
  *

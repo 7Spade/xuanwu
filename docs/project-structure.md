@@ -83,15 +83,15 @@ src/features/
 
 ```
 src/features/
-├── identity-account.auth/
-│   ├── _aggregate.ts            # authenticated-identity, account-identity-link
+├── identity.slice/
 │   ├── _actions.ts              # login, logout, register Server Actions
-│   ├── _queries.ts              # identity link queries
+│   ├── _claims-handler.ts       # CLAIMS_HANDLER [S6]
+│   ├── _token-refresh-listener.ts # Frontend Party 3 [S6]
 │   ├── _components/             # Login/Register UI components ("use client")
 │   └── index.ts                 # Public API
 ```
 
-Context lifecycle is managed inside `identity-account.auth` via the `_claims-handler.ts` module. Claims refresh [S6] is triggered by the `TOKEN_REFRESH_SIGNAL` emitted from `_actions.ts`.
+Context lifecycle is managed inside `identity.slice` via the `_claims-handler.ts` module. Claims refresh [S6] is triggered by the `TOKEN_REFRESH_SIGNAL` emitted from `_actions.ts`.
 
 ---
 
@@ -408,7 +408,7 @@ The App Router is for **composition only** — no business logic in layouts or p
 src/app/
 ├── (auth)/
 │   └── login/
-│       └── page.tsx           # Login/register page (uses identity-account.auth)
+│       └── page.tsx           # Login/register page (uses identity.slice)
 │
 └── (shell)/
     └── (account)/
