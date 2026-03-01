@@ -1,6 +1,19 @@
 # Firebase Infrastructure Structure
-> 對應 `logic-overview-v1.md` · L7 FIREBASE_ACL + L8 FIREBASE_EXT
+> 對應 `logic-overview-v1.md` · L2 Command Gateway + L6 Query Gateway + L7 FIREBASE_ACL + L8 FIREBASE_EXT
 > 規則：[D24] feature slice 禁止直接 import firebase/* · [D25] 新功能必須新增 Adapter
+
+---
+
+## 架構層對應一覽
+
+| 架構層 | 位置 | 說明 |
+|---|---|---|
+| L2 Command Gateway（雲端入口） | `firebase/functions/src/gateway/command-gateway.fn.ts` | CBG_ENTRY · TraceID 注入 [R8] · Cloud Function |
+| L2 Command Gateway（應用層） | `src/features/infra.gateway-command/` | dispatchCommand / registerCommandHandler · 應用層命令派發 |
+| L6 Query Gateway（應用層） | `src/features/infra.gateway-query/` | executeQuery / registerQuery / QUERY_ROUTES · 讀取模型路由 |
+| L7 FIREBASE_ACL | `src/shared/infra/{auth\|firestore\|messaging\|storage}/` | 防腐層 · 唯一合法 firebase/* 呼叫點 [D24] |
+| SK_PORTS | `src/shared/ports/` | IAuthService · IFirestoreRepo · IMessaging · IFileStore |
+| L8 FIREBASE_EXT | `firebase/functions/src/` | Cloud Functions · IER · DLQ · Projection · Observability |
 
 ---
 
@@ -143,3 +156,15 @@ src/shared/infra/*/                         firebase/functions/src/
 | `IFirestoreRepo` | `firestore.facade.ts` | `firebase/firestore` | VS8 projection [S2] |
 | `IMessaging` | `messaging.adapter.ts` | `firebase/messaging` | VS7 notification [R8] |
 | `IFileStore` | `storage.facade.ts` | `firebase/storage` | VS5 workspace/files |
+
+---
+
+## Gateway 設計位置速查
+
+| 元件 | 位置 | 職責 |
+|---|---|---|
+| `command.gateway`（Cloud Function 入口） | `firebase/functions/src/gateway/command-gateway.fn.ts` | CBG_ENTRY：HTTP 接收命令、注入 traceId [R8]、Rate Limit [S5] |
+| `command.gateway`（應用層派發） | `src/features/infra.gateway-command/` | CBG_AUTH → CBG_ROUTE：驗證 + 派發至 slice handler [R4] |
+| `query.gateway`（應用層讀取） | `src/features/infra.gateway-query/` | read-model-registry：registerQuery / executeQuery / QUERY_ROUTES [S2][S3] |
+| `firebase.acl.adapters` | `src/shared/infra/{auth\|firestore\|messaging\|storage}/` | 防腐層：唯一合法 firebase/* 呼叫點 [D24] |
+| `firebase.infrastructure` | `firebase/functions/src/` | Cloud Functions：IER / DLQ / Projection / Relay / Observability |
