@@ -2,10 +2,11 @@
  * account.slice — Public API
  *
  * Consolidated VS2 Account vertical slice.
- * Covers: User Profile, User Wallet, User Notifications,
+ * Covers: User Profile, User Wallet,
  *         Org Members, Org Partners, Org Policy,
- *         Account Governance Role, Account Governance Policy,
- *         Notification Router.
+ *         Account Governance Role, Account Governance Policy.
+ *
+ * Notification delivery (VS7) has been moved to notification.slice.
  *
  * External consumers import exclusively from this file.
  */
@@ -17,14 +18,6 @@ export { UserSettingsView, UserSettings, ProfileCard, PreferencesCard, SecurityC
 export { useUser } from './user.profile';
 export { createUserAccount, updateUserProfile } from './user.profile';
 export { getUserProfile } from './user.profile';
-
-// =================================================================
-// User Notification (account-user.notification)
-// =================================================================
-export { deliverNotification, type NotificationDeliveryInput, type DeliveryResult } from './user.notification';
-export { subscribeToNotifications, markNotificationRead } from './user.notification';
-export { useUserNotifications } from './user.notification';
-export { NotificationBadge, NotificationList } from './user.notification';
 
 // =================================================================
 // User Wallet (account-user.wallet)
@@ -57,12 +50,6 @@ export { createOrgPolicy, updateOrgPolicy, deleteOrgPolicy } from './org.policy'
 export type { OrgPolicy, OrgPolicyRule, CreateOrgPolicyInput, UpdateOrgPolicyInput } from './org.policy';
 export { getOrgPolicy, subscribeToOrgPolicies, getOrgPoliciesByScope } from './org.policy';
 export { useOrgPolicy } from './org.policy';
-
-// =================================================================
-// Governance: Notification Router (account-governance.notification-router)
-// FCM Layer 2 — routes org events to target accounts [E3]
-// =================================================================
-export { registerNotificationRouter, type RouterRegistration } from './gov.notification-router';
 
 // =================================================================
 // Governance: Account Role (account-governance.role)
