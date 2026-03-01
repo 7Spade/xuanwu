@@ -2,13 +2,13 @@
  * account-organization.schedule — _queries.ts
  *
  * Read queries for the org schedule proposal read model.
- * Stored at: orgScheduleProposals/{scheduleItemId}
+ * Single source of truth: accounts/{orgId}/schedule_items
  *
  * Per logic-overview.md:
  *   WORKSPACE_OUTBOX → ORGANIZATION_SCHEDULE (writes proposals)
  *   ORGANIZATION_SCHEDULE → (queries expose proposals for org governance UI)
  *
- * Invariant #2: reads only this BC's own Firestore collection.
+ * Invariant #2: reads only from accounts/{orgId}/schedule_items (ScheduleItem SSOT).
  */
 
 import {
@@ -22,36 +22,36 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { OrgScheduleProposal, OrgScheduleStatus } from './_schedule';
+import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
 
 /**
- * Fetches a single org schedule proposal by scheduleItemId.
+ * Fetches a single schedule item by orgId + scheduleItemId.
  */
 export async function getOrgScheduleProposal(
+  orgId: string,
   scheduleItemId: string
-): Promise<OrgScheduleProposal | null> {
-  return getDocument<OrgScheduleProposal>(`orgScheduleProposals/${scheduleItemId}`);
+): Promise<ScheduleItem | null> {
+  return getDocument<ScheduleItem>(`accounts/${orgId}/schedule_items/${scheduleItemId}`);
 }
 
 /**
- * Subscribes to org schedule proposals for a given orgId, optionally filtered by status.
+ * Subscribes to schedule items for a given orgId, optionally filtered by status.
  * Returns an unsubscribe function.
  *
  * Primary consumer: org governance UI (approve/reject pending proposals).
  */
 export function subscribeToOrgScheduleProposals(
   orgId: string,
-  onUpdate: (proposals: OrgScheduleProposal[]) => void,
+  onUpdate: (items: ScheduleItem[]) => void,
   opts?: {
-    status?: OrgScheduleStatus;
+    status?: ScheduleStatus;
     maxItems?: number;
   }
 ): Unsubscribe {
-  const ref = collection(db, 'orgScheduleProposals');
+  const ref = collection(db, `accounts/${orgId}/schedule_items`);
 
   const constraints: Parameters<typeof query>[1][] = [
-    where('orgId', '==', orgId),
-    orderBy('receivedAt', 'desc'),
+    orderBy('createdAt', 'desc'),
   ];
   if (opts?.status) {
     constraints.push(where('status', '==', opts.status));
@@ -63,31 +63,32 @@ export function subscribeToOrgScheduleProposals(
   const q = query(ref, ...constraints);
 
   return onSnapshot(q, (snap) => {
-    const proposals = snap.docs.map((d) => ({
+    const items = snap.docs.map((d) => ({
+      id: d.id,
       ...d.data(),
-    } as OrgScheduleProposal));
-    onUpdate(proposals);
+    } as ScheduleItem));
+    onUpdate(items);
   });
 }
 
 /**
- * Subscribes to pending proposals only (status = 'proposed').
+ * Subscribes to pending proposals only (status = 'PROPOSAL').
  * Convenience wrapper for the governance approval UI.
  */
 export function subscribeToPendingProposals(
   orgId: string,
-  onUpdate: (proposals: OrgScheduleProposal[]) => void
+  onUpdate: (items: ScheduleItem[]) => void
 ): Unsubscribe {
-  return subscribeToOrgScheduleProposals(orgId, onUpdate, { status: 'proposed' });
+  return subscribeToOrgScheduleProposals(orgId, onUpdate, { status: 'PROPOSAL' });
 }
 
 /**
- * Subscribes to confirmed proposals only (status = 'confirmed').
+ * Subscribes to confirmed (OFFICIAL) items only.
  * Used by the governance UI to show active assignments that can be completed. (FR-S6)
  */
 export function subscribeToConfirmedProposals(
   orgId: string,
-  onUpdate: (proposals: OrgScheduleProposal[]) => void
+  onUpdate: (items: ScheduleItem[]) => void
 ): Unsubscribe {
-  return subscribeToOrgScheduleProposals(orgId, onUpdate, { status: 'confirmed' });
+  return subscribeToOrgScheduleProposals(orgId, onUpdate, { status: 'OFFICIAL' });
 }

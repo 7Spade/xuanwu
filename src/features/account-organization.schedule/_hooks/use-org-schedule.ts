@@ -3,26 +3,28 @@
 /**
  * account-organization.schedule — _hooks/use-org-schedule.ts
  *
- * React hook for subscribing to org schedule proposals.
+ * React hook for subscribing to org schedule items.
  * Used by the org governance UI to display and act on pending proposals.
  *
  * Per logic-overview.md:
  *   ORGANIZATION_SCHEDULE → (org governance reads pending proposals via this hook)
+ *
+ * Single source of truth: accounts/{orgId}/schedule_items
  */
 
 import { useState, useEffect } from 'react';
 import { subscribeToOrgScheduleProposals, subscribeToPendingProposals, subscribeToConfirmedProposals } from '../_queries';
-import type { OrgScheduleProposal, OrgScheduleStatus } from '../_schedule';
+import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
 
 /**
- * Subscribes to all org schedule proposals for the given orgId.
+ * Subscribes to all org schedule items for the given orgId.
  * Optionally filter to a specific status.
  */
 export function useOrgSchedule(
   orgId: string | null,
-  opts?: { status?: OrgScheduleStatus }
+  opts?: { status?: ScheduleStatus }
 ) {
-  const [proposals, setProposals] = useState<OrgScheduleProposal[]>([]);
+  const [proposals, setProposals] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const status = opts?.status;
 
@@ -46,11 +48,11 @@ export function useOrgSchedule(
 }
 
 /**
- * Convenience hook that only returns pending proposals (status = 'proposed').
+ * Convenience hook that only returns pending proposals (status = 'PROPOSAL').
  * Used by the approval workflow in the org governance UI.
  */
 export function usePendingScheduleProposals(orgId: string | null) {
-  const [proposals, setProposals] = useState<OrgScheduleProposal[]>([]);
+  const [proposals, setProposals] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -73,11 +75,11 @@ export function usePendingScheduleProposals(orgId: string | null) {
 }
 
 /**
- * Convenience hook that returns confirmed proposals only (status = 'confirmed').
+ * Convenience hook that returns confirmed items only (status = 'OFFICIAL').
  * Used by the FR-S6 "Complete Schedule" governance UI.
  */
 export function useConfirmedScheduleProposals(orgId: string | null) {
-  const [proposals, setProposals] = useState<OrgScheduleProposal[]>([]);
+  const [proposals, setProposals] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -1,10 +1,10 @@
 /**
  * projection.demand-board — Public API
  *
- * Demand Board projection — org HR visibility into open/assigned schedule demands.
+ * Demand Board projection — org HR visibility into open/assigned schedule items.
  * Per docs/prd-schedule-workforce-skills.md FR-W0, FR-W6.
  *
- * Stored at: orgDemandBoard/{orgId}/demands/{scheduleItemId}
+ * Single source of truth: accounts/{orgId}/schedule_items
  *
  * Staleness tier: DEMAND_BOARD (≤ 5s per SK_STALENESS_CONTRACT).
  */
@@ -24,7 +24,5 @@ export {
   subscribeToDemandBoard,
   DEMAND_BOARD_STALENESS,
 } from './_queries';
-
-export type { ScheduleDemand, ScheduleDemandCloseReason } from './_projector';
 
 export { DemandBoard } from './_components/demand-board';

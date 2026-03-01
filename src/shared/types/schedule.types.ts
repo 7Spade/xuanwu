@@ -26,6 +26,13 @@ export interface ScheduleItem {
   requiredSkills?: SkillRequirement[];
   /** Who submitted this schedule proposal (workspace actor or automation). */
   proposedBy?: string;
+  /**
+   * Aggregate version — incremented on each state transition. [R7]
+   * Used by domain functions and version guards to prevent stale writes.
+   */
+  version?: number;
+  /** [R8] TraceID from the originating CBG_ENTRY — persisted for end-to-end audit. */
+  traceId?: string;
 }
 
 /**
