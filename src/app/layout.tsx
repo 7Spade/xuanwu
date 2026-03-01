@@ -1,6 +1,6 @@
 
 import type {Metadata} from 'next';
-import '../styles/globals.css';
+import './globals.css';
 import {Toaster} from '@/shared/shadcn-ui/toaster';
 import { cn } from '@/shared/lib';
 import { ThemeProvider } from '@/shared/app-providers/theme-provider';
