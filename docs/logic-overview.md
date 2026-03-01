@@ -659,8 +659,21 @@ TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 %%     消除：握手規則僅在 VS1 TOKEN_REFRESH_SIGNAL 節點文字
 %%     效益：前端 / IER / VS1 三方共享唯一握手規範
 %% ==========================================================================
-%% ── v10 統一開發守則（D1~D12 沿用 v9，新增 D13~D18）──
-%% D1~D12 : 沿用 v9（見 v9 說明）
+%% ── v10 統一開發守則（D1~D20 完整守則）──
+%% ── 基礎路徑約束（D1~D12，原 v9 守則，現內聯於此作為唯一真相）──
+%% D1  事件傳遞：只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
+%% D2  跨切片引用：import ... from '@/features/{slice}/index' only；_*.ts 為私有
+%% D3  所有 mutation：src/features/{slice}/_actions.ts only
+%% D4  所有 read：src/features/{slice}/_queries.ts only
+%% D5  src/app/ 與 UI 元件禁止 import src/shared/infra/firestore
+%% D6  "use client" 只在 _components/ 葉節點；layout / page server components 禁用
+%% D7  跨切片：import ... from '@/features/{other-slice}/index'；禁止 _private 引用
+%% D8  shared.kernel.* 禁止 async functions、Firestore calls、side effects
+%% D9  workspace-application/ TX Runner 協調 mutation；slices 不得互相 mutate
+%% D10 EventEnvelope.traceId 僅在 infra.gateway-command/CBG_ENTRY 設定；其他地方唯讀
+%% D11 workspace-core.event-store 支援 projection rebuild；必須持續同步
+%% D12 getTier() 必須從 shared.kernel.skill-tier import；Firestore 寫入禁帶 tier 欄位
+%% ── v10 新增守則（D13~D20）──
 %% D13 新增 OUTBOX：必須在 SK_OUTBOX_CONTRACT 宣告 DLQ 分級，
 %%     不得自行在節點文字重新定義 at-least-once 語義 [S1]
 %% D14 新增 Projection：必須在 FUNNEL 引用 SK_VERSION_GUARD，

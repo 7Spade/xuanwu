@@ -30,7 +30,7 @@ import { publishOrgEvent } from '@/features/account-organization.event-bus';
 import { getOrgMemberEligibility } from '@/features/projection.org-eligible-member-view';
 import { resolveSkillTier, tierSatisfies } from '@/features/shared.kernel.skill-tier';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared.kernel.skill-tier';
-import type { SkillRequirement } from '@/shared/types';
+import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
 
 // =================================================================
 // Aggregate State (DDD state machine)

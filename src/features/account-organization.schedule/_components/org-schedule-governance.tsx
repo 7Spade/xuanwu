@@ -22,7 +22,7 @@ import { usePendingScheduleProposals, useConfirmedScheduleProposals } from '../_
 import { manualAssignScheduleMember, cancelScheduleProposalAction, completeOrgScheduleAction } from '../_actions';
 import { toast } from '@/shared/utility-hooks/use-toast';
 import type { OrgScheduleProposal } from '../_schedule';
-import type { SkillRequirement } from '@/shared/types';
+import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
 import { getOrgEligibleMembersWithTier } from '@/features/projection.org-eligible-member-view';
 import type { OrgEligibleMemberView } from '@/features/projection.org-eligible-member-view';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
