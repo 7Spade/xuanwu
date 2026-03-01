@@ -288,7 +288,7 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
         end
 
         W_B_DAILY["daily\n施工日誌"]
-        W_B_SCHEDULE["schedule\n(tagSlug T4)"]
+        W_B_SCHEDULE["workspace-business.schedule\n(tagSlug T4)\nWorkspaceScheduleProposed → VS6 [A5]"]
 
         W_FILES -.->|原始檔案| W_PARSER
         W_PARSER -->|解析完成| PARSING_INTENT
@@ -340,7 +340,7 @@ subgraph VS6["🟨 VS6 · Scheduling Slice（排班協作）"]
     end
 
     subgraph VS6_SAGA["⚙ Scheduling Saga（#A5）"]
-        SCHEDULE_SAGA["scheduling-saga\nScheduleAssignRejected\nScheduleProposalCancelled"]
+        SCHEDULE_SAGA["scheduling-saga\n[A5] 接收 ScheduleProposed\neligibility check (#14)\ncompensating: ScheduleAssignRejected\n / ScheduleProposalCancelled"]
     end
 
     subgraph VS6_OUTBOX["📤 Schedule Outbox [S1]"]
@@ -353,9 +353,10 @@ subgraph VS6["🟨 VS6 · Scheduling Slice（排班協作）"]
     ORG_SCHEDULE -.->|"人力需求契約"| SK_SKILL_REQ
     ORG_SCHEDULE -.->|"tagSlug 唯讀"| TAG_READONLY
     SCHEDULE_SAGA -->|"compensating event"| SCHED_OUTBOX
+    SCHEDULE_SAGA -.->|"協調 handleScheduleProposed / approve"| ORG_SCHEDULE
 end
 
-IER -.->|"ScheduleProposed #A5"| ORG_SCHEDULE
+IER -.->|"ScheduleProposed #A5"| SCHEDULE_SAGA
 SCHED_OUTBOX -->|"STANDARD_LANE"| IER
 
 %% ==========================================================================
@@ -398,7 +399,7 @@ end
 %%  STANDARD_LANE（非同步最終一致 SLA < 2s）：
 %%    SkillXpAdded/Deducted         → FUNNEL CRITICAL_PROJ [P2]
 %%    ScheduleAssigned              → NOTIF_ROUTER + FUNNEL [E3]
-%%    ScheduleProposed              → ORG_SCHEDULE Saga [A5]
+%%    ScheduleProposed              → SCHEDULE_SAGA [A5] (scheduling-saga 協調 ORG_SCHEDULE)
 %%    MemberJoined/Left             → FUNNEL [#16]
 %%    All Domain Events             → FUNNEL [#9]
 %%  BACKGROUND_LANE（低頻 SLA < 30s）：
