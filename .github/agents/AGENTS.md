@@ -15,7 +15,7 @@
 - QA: 測試計畫、邊界案例與回歸測試策略。
 - Refine Requirement or Issue: 將不明需求細化為可執行的接受準則與技術考量。
 - TDD Green/Red/Refactor phases: 支援 TDD 三階段的實作代理（快速讓測試通過、撰寫失敗測試、重構）。
-- gem-devops / gem-implementer / gem-planner: DevOps、實作與規劃類代理。
+- gem-browser-tester: 瀏覽器自動化 E2E 測試代理（艦隊成員）。
 
 如何擴充：若要新增代理，請在 `.github/agents/` 中建立對應的 `NAME.agent.md` 或在中央 `AGENTS.md` 新增條目，並在 `.github/prompts/` 新增對應 prompt 範本。
 
@@ -110,14 +110,7 @@ Feature Builder: 「任務完成」
 - `expert-react-frontend-engineer.agent.md` — React 19 前端工程師
 - `feature-builder.agent.md` — **[艦隊]** 開發任務總指揮官
 - `firebase-security.agent.md` — **[艦隊]** Firebase Security Rules 專家
-- `gem-browser-tester.agent.md` — 瀏覽器自動化測試
-- `gem-devops.agent.md` — DevOps、容器、CI/CD
-- `gem-documentation-writer.agent.md` — 技術文件撰寫
-- `gem-implementer.agent.md` — TDD 代碼實作
-- `gem-orchestrator.agent.md` — 通用任務編排器
-- `gem-planner.agent.md` — DAG 計畫與任務分解
-- `gem-researcher.agent.md` — 代碼庫上下文研究
-- `gem-reviewer.agent.md` — OWASP 安全稽核
+- `gem-browser-tester.agent.md` — **[艦隊]** 瀏覽器自動化 & E2E 測試師
 - `github-actions-expert.agent.md` — GitHub Actions CI/CD 配置
 - `hlbpa.agent.md` — 高層架構文件審查
 - `i18n-specialist.agent.md` — **[艦隊]** 多語言路由 & RTL 專家
@@ -143,7 +136,6 @@ Feature Builder: 「任務完成」
 - `tdd-red.agent.md` — TDD Red 階段（撰寫失敗測試）
 - `tdd-refactor.agent.md` — TDD Refactor 階段（重構）
 - `tech-debt-remediation-plan.agent.md` — 技術債修復計畫
-- `gem-browser-tester.agent.md` — **[艦隊]** 瀏覽器自動化 & E2E 測試師
 
 > **[艦隊]** 標記表示屬於本專案 18 人核心開發艦隊，由 `feature-builder` 統一調度。
 
