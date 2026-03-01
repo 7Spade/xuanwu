@@ -23,6 +23,7 @@
 %%   TX Runner MUST NOT create events → Aggregates only (#4)
 %%   SECURITY_BLOCK DLQ: auto-replay FORBIDDEN; human review required
 %%   B-track MUST NOT call back A-track → communicate via Domain Event
+%% Full rule definitions (D1–D23, S1–S6, #1–#19, #A1–#A11, TE1–TE6) encoded below.
 %% ==========================================================================
 
 flowchart TD

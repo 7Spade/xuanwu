@@ -1,6 +1,7 @@
 # Knowledge Graph Guide
 
-> **SSOT**: `docs/knowledge-graph.json` (v4 · 27 entities · 59 relations)
+> **SSOT**: `docs/knowledge-graph.json` (v4 · 27 entities · 59 relations) — SSOT for semantic knowledge relations only.
+> Architecture rules → `docs/logic-overview.md` · Domain vocabulary → `docs/domain-glossary.md`
 > **Protocol**: `memory.read_graph()` is MANDATORY before code generation; `store_memory` + graph update MANDATORY after task completion.
 > Two mandatory session workflows: **Start** (load graph) · **End** (persist facts).
 

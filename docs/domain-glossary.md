@@ -1,7 +1,8 @@
 # Domain Glossary
 
-> **SSOT ownership**: `docs/logic-overview.md` (architecture) · `docs/domain-glossary.md` (vocabulary) · `docs/schema-definition.md` (TypeScript contracts)
+> **SSOT ownership** (R4): `docs/logic-overview.md` (architecture — highest authority) · `docs/domain-glossary.md` (vocabulary) · `docs/schema-definition.md` (TypeScript contracts)
 > Canonical vocabulary for all domain entities, events, projections, and invariants. No synonyms — use identifiers exactly as listed.
+> In case of conflict between any doc and `logic-overview.md`, `logic-overview.md` takes precedence.
 
 ---
 
