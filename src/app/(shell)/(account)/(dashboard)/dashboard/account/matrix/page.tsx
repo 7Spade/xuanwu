@@ -1,4 +1,4 @@
-import { PermissionMatrixView } from "@/features/account-governance.role"
+import { PermissionMatrixView } from "@/features/account.slice"
 
 export default function PermissionMatrixPage() {
   return <PermissionMatrixView />

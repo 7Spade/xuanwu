@@ -6,7 +6,7 @@
  */
 
 import { authAdapter } from "@/shared/infra/auth/auth.adapter"
-import { createUserAccount } from '@/features/account-user.profile'
+import { createUserAccount } from '@/features/account.slice'
 import {
   type CommandResult,
   commandSuccess,

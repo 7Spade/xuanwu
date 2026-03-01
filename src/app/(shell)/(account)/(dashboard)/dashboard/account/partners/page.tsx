@@ -1,4 +1,4 @@
-import { PartnersView } from "@/features/account-organization.partner"
+import { PartnersView } from "@/features/account.slice"
 
 /**
  * PartnersPage - Manages logical groupings of EXTERNAL partners (Partner Teams).

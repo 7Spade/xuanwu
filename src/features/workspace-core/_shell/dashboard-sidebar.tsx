@@ -38,7 +38,7 @@ import {
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { useI18n } from "@/shared/app-providers/i18n-provider";
 import { useApp , useVisibleWorkspaces } from "@/features/workspace-core";
-import { useUser } from "@/features/account-user.profile";
+import { useUser } from "@/features/account.slice";
 import { useOrganizationManagement } from "@/features/account-organization.core";
 
 // ============================================================================

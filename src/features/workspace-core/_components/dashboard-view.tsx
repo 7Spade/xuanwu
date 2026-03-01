@@ -11,7 +11,7 @@ import { useApp } from "@/features/workspace-core"
 import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces"
 import { StatCards } from "./stat-cards"
 import { AccountGrid } from "@/features/account-organization.core"
-import { PermissionTree } from "@/features/account-governance.role"
+import { PermissionTree } from "@/features/account.slice"
 import { WorkspaceList } from "./workspace-list"
 import { PageHeader } from "@/shared/ui/page-header"
 

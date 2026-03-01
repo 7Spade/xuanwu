@@ -22,20 +22,24 @@ src/features/
 │
 ├─ identity.slice                                 (VS1 Identity Slice)
 │
-├─ account-user.profile                           (VS2 Account Slice)
-├─ account-user.wallet                            (VS2 Account Slice)
-├─ organization-account.settings                  (VS2 Account Slice)
-├─ organization-account.binding                   (VS2 Account Slice)
-├─ account-governance.role                        (VS2 Account Slice)
-├─ account-governance.policy                      (VS2 Account Slice)
+├─ account.slice                                  (VS2 Account Slice — unified)
+│  ├─ user.profile                                (user-account profile + FCM token)
+│  ├─ user.notification                           (FCM delivery + device token management)
+│  ├─ user.wallet                                 (strong-consistency financial ledger [S3])
+│  ├─ org.member                                  (organization-account + binding [ACL #A2])
+│  ├─ org.partner                                 (partner team management)
+│  ├─ org.policy                                  (organization-level policy management)
+│  ├─ gov.notification-router                     (stateless notification router [#A10])
+│  ├─ gov.role                                    (account-level role → CUSTOM_CLAIMS [S6])
+│  └─ gov.policy                                  (account-level policy → CUSTOM_CLAIMS [S6])
 │
 ├─ account-skill                                  (VS3 Skill XP Slice)
 │
-├─ organization-core                              (VS4 Organization Slice)
-├─ account-organization.member                    (VS4 Organization Slice)
-├─ account-organization.partner                   (VS4 Organization Slice)
+├─ account-organization.core                      (VS4 Organization Slice)
+├─ account-organization.member                    (VS4 Organization Slice — see also VS2 account.slice/org.member)
+├─ account-organization.partner                   (VS4 Organization Slice — see also VS2 account.slice/org.partner)
 ├─ account-organization.team                      (VS4 Organization Slice)
-├─ account-organization.policy                    (VS4 Organization Slice)
+├─ account-organization.policy                    (VS4 Organization Slice — see also VS2 account.slice/org.policy)
 ├─ organization-skill-recognition                 (VS4 Organization Slice)
 │
 ├─ org-context.acl                                (VS5 Workspace Slice / ACL)
@@ -79,8 +83,8 @@ src/features/
 ├─ projection.demand-board                        (VS6 — @deprecated shim → scheduling.slice)
 ├─ projection.account-schedule                    (VS6 — @deprecated shim → scheduling.slice)
 │
-├─ notification-router                            (VS7 Notification Slice)
-├─ account-user.notification                      (VS7 Notification Slice)
+├─ notification-router                            (VS7 Notification Slice — see VS2 account.slice/gov.notification-router)
+├─ account-user.notification                      (VS7 Notification Slice — see VS2 account.slice/user.notification)
 │
 ├─ projection-bus                                 (VS8 Projection Bus)
 │  ├─ projection.workspace-view

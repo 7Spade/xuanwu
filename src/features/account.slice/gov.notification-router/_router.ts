@@ -1,5 +1,5 @@
 /**
- * account-governance.notification-router — _router.ts
+ * account.slice/gov.notification-router — _router.ts
  *
  * FCM Layer 2: Notification Router
  * Routes organization events to the correct target account notification slice
@@ -17,7 +17,7 @@
  */
 
 import { onOrgEvent } from '@/features/account-organization.event-bus';
-import { deliverNotification } from '@/features/account-user.notification';
+import { deliverNotification } from '../user.notification';
 
 export interface RouterRegistration {
   unsubscribe: () => void;
