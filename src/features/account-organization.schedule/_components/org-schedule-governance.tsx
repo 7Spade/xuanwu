@@ -3,25 +3,31 @@
 /**
  * account-organization.schedule — _components/org-schedule-governance.tsx
  *
- * Org HR governance panel for reviewing and acting on pending OrgScheduleProposals.
+ * Org HR governance panel for reviewing and acting on schedule items.
  *
- * Per logic-overview.v3.md:
- *   ORGANIZATION_SCHEDULE — org governance reads pending proposals and assigns members.
- *   Invariant #14: skill validation via projection.org-eligible-member-view happens inside
- *     approveOrgScheduleProposal (not in this component).
- *   Invariant A5: ScheduleAssignRejected is published by approveOrgScheduleProposal when
- *     skill validation fails.
+ * Single source of truth: accounts/{orgId}/schedule_items.
+ * Reads the same collection as the Calendar tab — all three schedule tabs
+ * (Calendar, DemandBoard, HR Governance) are always consistent.
+ *
+ * Status mapping:
+ *   PROPOSAL   → 待核准 (pending assignment / amber)
+ *   OFFICIAL   → 已確認 (assigned, can be marked complete / green)
+ *   COMPLETED  → hidden (completed)
+ *   REJECTED   → hidden (cancelled/rejected)
  *
  * FR-S6: Confirmed proposals section — HR marks confirmed assignments as completed.
- * FR-W2: Skill match indicators — show per-member skill match against proposal requirements.
+ * FR-W2: Skill match indicators — show per-member skill match against item requirements.
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
-import { usePendingScheduleProposals, useConfirmedScheduleProposals } from '../_hooks/use-org-schedule';
-import { manualAssignScheduleMember, cancelScheduleProposalAction, completeOrgScheduleAction } from '../_actions';
+import { useAccount } from '@/features/workspace-core';
+import {
+  approveScheduleItemWithMember,
+  updateScheduleItemStatus,
+} from '@/features/workspace-business.schedule';
 import { toast } from '@/shared/utility-hooks/use-toast';
-import type { OrgScheduleProposal } from '../_schedule';
+import type { ScheduleItem } from '@/shared/types';
 import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
 import { getOrgEligibleMembersWithTier } from '@/features/projection.org-eligible-member-view';
 import type { OrgEligibleMemberView } from '@/features/projection.org-eligible-member-view';
@@ -37,51 +43,52 @@ import {
   SelectValue,
 } from '@/shared/shadcn-ui/select';
 import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
+import type { Timestamp } from 'firebase/firestore';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function formatTimestamp(ts: Timestamp | string | undefined): string {
+  if (!ts) return '';
+  if (typeof ts === 'string') return ts;
+  if (typeof (ts as Timestamp).toDate === 'function') {
+    return (ts as Timestamp).toDate().toLocaleDateString('zh-TW');
+  }
+  return String(ts);
+}
 
 // ---------------------------------------------------------------------------
 // FR-W2 — Skill match helper
 // ---------------------------------------------------------------------------
 
-/**
- * Computes how many of the proposal's skill requirements the given member satisfies.
- * Returns [matched, total].
- */
 function computeSkillMatch(
   member: OrgEligibleMemberView,
   skillRequirements?: SkillRequirement[]
 ): [number, number] {
   if (!skillRequirements || skillRequirements.length === 0) return [0, 0];
+  const tierOrder = ['F', 'E', 'D', 'C', 'B', 'A', 'S'];
   const matched = skillRequirements.filter((req) => {
     const skill = member.skills.find((s) => s.skillId === req.tagSlug);
     if (!skill) return false;
-    // Compare tier levels: tier values are strings like 'F' 'E' 'D' 'C' 'B' 'A' 'S'
-    const tierOrder = ['F', 'E', 'D', 'C', 'B', 'A', 'S'];
     return tierOrder.indexOf(skill.tier) >= tierOrder.indexOf(req.minimumTier);
   }).length;
   return [matched, skillRequirements.length];
 }
 
 // ---------------------------------------------------------------------------
-// Proposal row (pending → assign/cancel)
+// Pending proposal row (PROPOSAL → assign or reject)
 // ---------------------------------------------------------------------------
 
 interface ProposalRowProps {
-  proposal: OrgScheduleProposal;
+  item: ScheduleItem;
   orgMembers: Array<{ id: string; name: string }>;
   eligibleMembers: OrgEligibleMemberView[];
+  orgId: string;
   approvedBy: string;
-  onApproved: () => void;
-  onCancelled: () => void;
 }
 
-function ProposalRow({
-  proposal,
-  orgMembers,
-  eligibleMembers,
-  approvedBy,
-  onApproved,
-  onCancelled,
-}: ProposalRowProps) {
+function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }: ProposalRowProps) {
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -89,80 +96,63 @@ function ProposalRow({
     if (!selectedMemberId) return;
     setLoading(true);
     try {
-      const result = await manualAssignScheduleMember(
-        proposal.scheduleItemId,
-        selectedMemberId,
-        approvedBy,
-        {
-          workspaceId: proposal.workspaceId,
-          orgId: proposal.orgId,
-          title: proposal.title,
-          startDate: proposal.startDate,
-          endDate: proposal.endDate,
-        },
-        proposal.skillRequirements
-      );
+      const result = await approveScheduleItemWithMember(orgId, item.id, selectedMemberId);
       if (result.success) {
-        toast({ title: '排程已指派', description: `「${proposal.title}」成員指派成功。` });
-        onApproved();
+        toast({ title: '排程已指派', description: `「${item.title}」成員指派成功。` });
       } else {
-        toast({
-          variant: 'destructive',
-          title: '指派失敗',
-          description: result.error.message,
-        });
+        toast({ variant: 'destructive', title: '指派失敗', description: result.error.message });
       }
     } catch {
       toast({ variant: 'destructive', title: '操作失敗', description: '請稍後再試。' });
     } finally {
       setLoading(false);
     }
-  }, [selectedMemberId, proposal, approvedBy, onApproved]);
+  }, [selectedMemberId, orgId, item.id, item.title]);
 
   const handleCancel = useCallback(async () => {
     setLoading(true);
     try {
-      await cancelScheduleProposalAction(
-        proposal.scheduleItemId,
-        proposal.orgId,
-        proposal.workspaceId,
-        approvedBy
-      );
-      toast({ title: '提案已取消', description: `「${proposal.title}」已由 HR 撤回。` });
-      onCancelled();
+      const result = await updateScheduleItemStatus(orgId, item.id, 'REJECTED');
+      if (result.success) {
+        toast({ title: '提案已取消', description: `「${item.title}」已由 HR 撤回。` });
+      } else {
+        toast({ variant: 'destructive', title: '取消失敗', description: result.error.message });
+      }
     } catch {
       toast({ variant: 'destructive', title: '操作失敗', description: '請稍後再試。' });
     } finally {
       setLoading(false);
     }
-  }, [proposal.scheduleItemId, proposal.orgId, proposal.workspaceId, proposal.title, approvedBy, onCancelled]);
+  }, [orgId, item.id, item.title]);
 
   // FR-W2: compute skill match for the selected member
   const selectedMemberMatch = useMemo(() => {
-    if (!selectedMemberId || !proposal.skillRequirements?.length) return null;
+    if (!selectedMemberId || !item.requiredSkills?.length) return null;
     const view = eligibleMembers.find((m) => m.accountId === selectedMemberId);
     if (!view) return null;
-    return computeSkillMatch(view, proposal.skillRequirements);
-  }, [selectedMemberId, eligibleMembers, proposal.skillRequirements]);
+    return computeSkillMatch(view, item.requiredSkills);
+  }, [selectedMemberId, eligibleMembers, item.requiredSkills]);
 
   return (
     <div className="space-y-3 rounded-lg border bg-background p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">{proposal.title}</p>
+          <p className="text-sm font-semibold">{item.title}</p>
           <p className="text-xs text-muted-foreground">
-            {proposal.startDate} – {proposal.endDate}
+            {formatTimestamp(item.startDate as unknown as Timestamp)} – {formatTimestamp(item.endDate as unknown as Timestamp)}
           </p>
-          <p className="text-xs text-muted-foreground">提案人：{proposal.proposedBy}</p>
+          {item.proposedBy && (
+            <p className="text-xs text-muted-foreground">提案人：{item.proposedBy}</p>
+          )}
         </div>
         <Badge variant="outline" className="shrink-0 text-[9px] uppercase tracking-widest">
           待指派
         </Badge>
       </div>
 
-      {proposal.skillRequirements && proposal.skillRequirements.length > 0 && (
+      {item.requiredSkills && item.requiredSkills.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {proposal.skillRequirements.map((req: SkillRequirement) => (
+          {item.requiredSkills.map((req: SkillRequirement) => (
             <Badge key={req.tagSlug} variant="secondary" className="text-[10px]">
               {req.tagSlug} ≥ {req.minimumTier} × {req.quantity}
             </Badge>
@@ -177,23 +167,19 @@ function ProposalRow({
             <SelectValue placeholder="選擇指派成員" />
           </SelectTrigger>
           <SelectContent>
-            {orgMembers.map((m: { id: string; name: string }) => {
+            {orgMembers.map((m) => {
               const view = eligibleMembers.find((e) => e.accountId === m.id);
               const [matched, total] = view
-                ? computeSkillMatch(view, proposal.skillRequirements)
+                ? computeSkillMatch(view, item.requiredSkills)
                 : [0, 0];
               const isEligible = view?.eligible ?? false;
               return (
                 <SelectItem key={m.id} value={m.id} className="text-xs">
                   <span className="flex items-center gap-1.5">
-                    <span
-                      className={`size-1.5 rounded-full ${isEligible ? 'bg-green-500' : 'bg-muted'}`}
-                    />
+                    <span className={`size-1.5 rounded-full ${isEligible ? 'bg-green-500' : 'bg-muted'}`} />
                     {m.name}
                     {total > 0 && (
-                      <span
-                        className={`ml-1 text-[9px] font-bold ${matched === total ? 'text-green-600' : 'text-amber-500'}`}
-                      >
+                      <span className={`ml-1 text-[9px] font-bold ${matched === total ? 'text-green-600' : 'text-amber-500'}`}>
                         {matched}/{total}
                       </span>
                     )}
@@ -204,7 +190,6 @@ function ProposalRow({
           </SelectContent>
         </Select>
 
-        {/* FR-W2 skill match badge for selected member */}
         {selectedMemberMatch && (
           <Badge
             variant="outline"
@@ -240,31 +225,31 @@ function ProposalRow({
 }
 
 // ---------------------------------------------------------------------------
-// FR-S6 — Confirmed schedule row (confirmed → complete)
+// FR-S6 — Confirmed schedule row (OFFICIAL → COMPLETED)
 // ---------------------------------------------------------------------------
 
 interface ConfirmedRowProps {
-  proposal: OrgScheduleProposal;
-  completedBy: string;
-  onCompleted: () => void;
+  item: ScheduleItem;
+  orgId: string;
+  orgMembers: Array<{ id: string; name: string }>;
 }
 
-function ConfirmedRow({ proposal, completedBy, onCompleted }: ConfirmedRowProps) {
+function ConfirmedRow({ item, orgId, orgMembers }: ConfirmedRowProps) {
   const [loading, setLoading] = useState(false);
+
+  const assignedNames = useMemo(() => {
+    if (!item.assigneeIds?.length) return null;
+    return item.assigneeIds
+      .map((id) => orgMembers.find((m) => m.id === id)?.name ?? id)
+      .join('、');
+  }, [item.assigneeIds, orgMembers]);
 
   const handleComplete = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await completeOrgScheduleAction(
-        proposal.scheduleItemId,
-        proposal.orgId,
-        proposal.workspaceId,
-        proposal.targetAccountId ?? '',
-        completedBy
-      );
+      const result = await updateScheduleItemStatus(orgId, item.id, 'COMPLETED');
       if (result.success) {
-        toast({ title: '排程已完成', description: `「${proposal.title}」標記完成成功。` });
-        onCompleted();
+        toast({ title: '排程已完成', description: `「${item.title}」標記完成成功。` });
       } else {
         toast({ variant: 'destructive', title: '操作失敗', description: result.error.message });
       }
@@ -273,20 +258,18 @@ function ConfirmedRow({ proposal, completedBy, onCompleted }: ConfirmedRowProps)
     } finally {
       setLoading(false);
     }
-  }, [proposal, completedBy, onCompleted]);
+  }, [orgId, item.id, item.title]);
 
   return (
     <div className="space-y-2 rounded-lg border border-green-500/20 bg-green-50/10 p-4 dark:bg-green-950/10">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">{proposal.title}</p>
+          <p className="text-sm font-semibold">{item.title}</p>
           <p className="text-xs text-muted-foreground">
-            {proposal.startDate} – {proposal.endDate}
+            {formatTimestamp(item.startDate as unknown as Timestamp)} – {formatTimestamp(item.endDate as unknown as Timestamp)}
           </p>
-          {proposal.targetAccountId && (
-            <p className="text-xs text-muted-foreground">
-              指派成員：{proposal.targetAccountId}
-            </p>
+          {assignedNames && (
+            <p className="text-xs text-muted-foreground">指派成員：{assignedNames}</p>
           )}
         </div>
         <Badge variant="outline" className="shrink-0 border-green-500/40 text-[9px] uppercase tracking-widest text-green-600">
@@ -315,17 +298,35 @@ function ConfirmedRow({ proposal, completedBy, onCompleted }: ConfirmedRowProps)
 
 /**
  * Org HR governance panel.
- * Reads pending OrgScheduleProposals and allows HR to assign members or cancel proposals.
- * Also shows confirmed assignments and allows marking them as completed (FR-S6).
- * Only visible/useful when the active account is an organization.
+ *
+ * Reads accounts/{orgId}/schedule_items via useAccount() — same collection as
+ * Calendar and DemandBoard — so all three tabs are always in sync.
+ *
+ * Shows:
+ *   PROPOSAL items  → assign or cancel (待核准)
+ *   OFFICIAL items  → mark complete (已確認, FR-S6)
+ *   REJECTED/COMPLETED → hidden
  */
 export function OrgScheduleGovernance() {
   const { state: appState } = useApp();
   const { activeAccount, accounts } = appState;
+  const { state: accountState } = useAccount();
 
   const orgId = activeAccount?.accountType === 'organization' ? activeAccount.id : null;
-  const { proposals: pending, loading: pendingLoading } = usePendingScheduleProposals(orgId);
-  const { proposals: confirmed, loading: confirmedLoading } = useConfirmedScheduleProposals(orgId);
+
+  const allItems = useMemo(
+    () => Object.values(accountState.schedule_items),
+    [accountState.schedule_items]
+  );
+
+  const pending = useMemo(
+    () => allItems.filter((i) => i.status === 'PROPOSAL'),
+    [allItems]
+  );
+  const confirmed = useMemo(
+    () => allItems.filter((i) => i.status === 'OFFICIAL'),
+    [allItems]
+  );
 
   const orgMembers = useMemo(() => {
     if (!orgId) return [];
@@ -333,7 +334,6 @@ export function OrgScheduleGovernance() {
     return (org?.members ?? []).map((m: { id: string; name: string }) => ({ id: m.id, name: m.name }));
   }, [orgId, accounts]);
 
-  // FR-W2: load eligible members with tier for skill match display
   const [eligibleMembers, setEligibleMembers] = useState<OrgEligibleMemberView[]>([]);
   useEffect(() => {
     if (!orgId) return;
@@ -343,10 +343,6 @@ export function OrgScheduleGovernance() {
   }, [orgId]);
 
   const actorId = activeAccount?.id ?? 'system';
-
-  const handleChange = useCallback(() => {
-    // No-op: real-time subscriptions auto-update lists after Firestore writes.
-  }, []);
 
   if (!orgId) {
     return (
@@ -366,47 +362,37 @@ export function OrgScheduleGovernance() {
       <CardContent className="flex-1 overflow-hidden p-0">
         <ScrollArea className="h-full">
           <div className="space-y-3 p-4">
-            {/* Pending proposals — assign or cancel */}
-            {(pendingLoading) && (
-              <p className="py-4 text-center text-xs italic text-muted-foreground">載入中…</p>
-            )}
-            {!pendingLoading && pending.length === 0 && confirmed.length === 0 && (
+            {pending.length === 0 && confirmed.length === 0 && (
               <p className="py-8 text-center text-xs italic text-muted-foreground">
                 目前無待核准或確認中的提案。
               </p>
             )}
-            {pending.map((proposal: OrgScheduleProposal) => (
+            {pending.map((item: ScheduleItem) => (
               <ProposalRow
-                key={proposal.scheduleItemId}
-                proposal={proposal}
+                key={item.id}
+                item={item}
                 orgMembers={orgMembers}
                 eligibleMembers={eligibleMembers}
+                orgId={orgId}
                 approvedBy={actorId}
-                onApproved={handleChange}
-                onCancelled={handleChange}
               />
             ))}
 
-            {/* FR-S6 — Confirmed proposals section */}
+            {/* FR-S6 — Confirmed section */}
             {confirmed.length > 0 && (
-              <>
-                <div className="border-t pt-3">
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    已確認排程 — 可標記完成
-                  </p>
-                  {confirmedLoading && (
-                    <p className="py-2 text-center text-xs italic text-muted-foreground">載入中…</p>
-                  )}
-                  {confirmed.map((proposal: OrgScheduleProposal) => (
-                    <ConfirmedRow
-                      key={proposal.scheduleItemId}
-                      proposal={proposal}
-                      completedBy={actorId}
-                      onCompleted={handleChange}
-                    />
-                  ))}
-                </div>
-              </>
+              <div className="border-t pt-3">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  已確認排程 — 可標記完成
+                </p>
+                {confirmed.map((item: ScheduleItem) => (
+                  <ConfirmedRow
+                    key={item.id}
+                    item={item}
+                    orgId={orgId}
+                    orgMembers={orgMembers}
+                  />
+                ))}
+              </div>
             )}
           </div>
         </ScrollArea>

@@ -13,6 +13,7 @@ import {
   unassignMemberFromScheduleItem,
   createScheduleItem as createScheduleItemFacade,
   updateScheduleItemStatus as updateScheduleItemStatusFacade,
+  assignMemberAndApprove as assignMemberAndApproveFacade,
 } from "@/shared/infra/firestore/firestore.facade";
 import type { ScheduleItem } from "@/shared/types";
 import {
@@ -87,12 +88,12 @@ export async function createScheduleItem(
  * Updates the approval status of a schedule item.
  * @param organizationId The ID of the organization that owns the schedule item.
  * @param itemId The ID of the schedule item.
- * @param newStatus The new status to set ('OFFICIAL' or 'REJECTED').
+ * @param newStatus The new status to set.
  */
 export async function updateScheduleItemStatus(
   organizationId: string,
   itemId: string,
-  newStatus: "OFFICIAL" | "REJECTED"
+  newStatus: "OFFICIAL" | "REJECTED" | "COMPLETED"
 ): Promise<CommandResult> {
   try {
     await updateScheduleItemStatusFacade(organizationId, itemId, newStatus);
@@ -101,6 +102,31 @@ export async function updateScheduleItemStatus(
     return commandFailureFrom(
       "UPDATE_SCHEDULE_ITEM_STATUS_FAILED",
       err instanceof Error ? err.message : "Failed to update schedule item status"
+    );
+  }
+}
+
+/**
+ * Assigns a member to a schedule item and marks it OFFICIAL in one write.
+ * Single source of truth: accounts/{orgId}/schedule_items — keeps Calendar,
+ * DemandBoard, and HR Governance all consistent via the same document.
+ *
+ * @param organizationId The owning org account ID.
+ * @param itemId The schedule item ID.
+ * @param memberId The member to assign.
+ */
+export async function approveScheduleItemWithMember(
+  organizationId: string,
+  itemId: string,
+  memberId: string
+): Promise<CommandResult> {
+  try {
+    await assignMemberAndApproveFacade(organizationId, itemId, memberId);
+    return commandSuccess(itemId, Date.now());
+  } catch (err) {
+    return commandFailureFrom(
+      "APPROVE_SCHEDULE_ITEM_FAILED",
+      err instanceof Error ? err.message : "Failed to approve schedule item"
     );
   }
 }

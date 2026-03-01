@@ -2,7 +2,7 @@ import type { Location } from './workspace.types'
 import type { SkillRequirement } from './skill.types'
 import type { Timestamp } from 'firebase/firestore'
 
-export type ScheduleStatus = 'PROPOSAL' | 'OFFICIAL' | 'REJECTED';
+export type ScheduleStatus = 'PROPOSAL' | 'OFFICIAL' | 'REJECTED' | 'COMPLETED';
 
 export interface ScheduleItem {
   id: string;
@@ -24,6 +24,8 @@ export interface ScheduleItem {
   locationId?: string;
   /** Skill & staffing requirements proposed by the workspace. */
   requiredSkills?: SkillRequirement[];
+  /** Who submitted this schedule proposal (workspace actor or automation). */
+  proposedBy?: string;
 }
 
 /**

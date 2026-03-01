@@ -5,25 +5,25 @@
  *
  * Demand Board UI — org HR real-time view of open and assigned demands.
  *
- * Per docs/prd-schedule-workforce-skills.md FR-W0:
- *   - Open + assigned demands are visible to org HR.
- *   - Closed demands are hidden from the default board view.
+ * Single source of truth: accounts/{orgId}/schedule_items.
+ * All three schedule tabs (Calendar, DemandBoard, HR Governance) read from this
+ * same collection — no separate projection collection required.
  *
- * Per GEMINI.md §2.3 D3/D5:
- *   Data mutations use Server Actions from account-organization.schedule/_actions.ts.
- *   This component reads from projection.demand-board (read model) — it does NOT
- *   call any aggregate directly.
+ * Status mapping (FR-W0):
+ *   PROPOSAL  → "待指派需求" (open / amber)
+ *   OFFICIAL  → "已指派需求" (assigned / green)
+ *   REJECTED / COMPLETED → hidden from board
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { subscribeToDemandBoard } from '../_queries';
+import { useState, useCallback, useMemo } from 'react';
+import { useAccount } from '@/features/workspace-core';
 import {
-  manualAssignScheduleMember,
-  cancelScheduleProposalAction,
-} from '@/features/account-organization.schedule';
+  approveScheduleItemWithMember,
+  updateScheduleItemStatus,
+} from '@/features/workspace-business.schedule';
 import { useApp } from '@/shared/app-providers/app-context';
 import { toast } from '@/shared/utility-hooks/use-toast';
-import type { ScheduleDemand } from '@/shared/types';
+import type { ScheduleItem } from '@/shared/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import { Button } from '@/shared/shadcn-ui/button';
@@ -36,92 +36,87 @@ import {
   SelectValue,
 } from '@/shared/shadcn-ui/select';
 import { UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
+import type { Timestamp } from 'firebase/firestore';
 
 // ---------------------------------------------------------------------------
-// Named types (avoid inline type repetition)
+// Helpers
 // ---------------------------------------------------------------------------
 
-/** Lightweight member descriptor used within the Demand Board. */
+function formatTimestamp(ts: Timestamp | string | undefined): string {
+  if (!ts) return '';
+  if (typeof ts === 'string') return ts;
+  if (typeof (ts as Timestamp).toDate === 'function') {
+    return (ts as Timestamp).toDate().toLocaleDateString('zh-TW');
+  }
+  return String(ts);
+}
+
+// ---------------------------------------------------------------------------
+// Named types
+// ---------------------------------------------------------------------------
+
 interface OrgMember {
   id: string;
   name: string;
 }
 
 // ---------------------------------------------------------------------------
-// Demand row
+// Demand row — driven by ScheduleItem (single source of truth)
 // ---------------------------------------------------------------------------
 
 interface DemandRowProps {
-  demand: ScheduleDemand;
+  item: ScheduleItem;
   orgMembers: OrgMember[];
-  assignedBy: string;
+  orgId: string;
 }
 
-function DemandRow({ demand, orgMembers, assignedBy }: DemandRowProps) {
+function DemandRow({ item, orgMembers, orgId }: DemandRowProps) {
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const statusBadge =
-    demand.status === 'open' ? (
-      <Badge variant="outline" className="shrink-0 border-amber-500 text-[9px] text-amber-600 uppercase tracking-widest">
-        <Clock className="mr-1 size-2.5" /> 待指派
-      </Badge>
-    ) : (
-      <Badge variant="outline" className="shrink-0 border-emerald-500 text-[9px] text-emerald-600 uppercase tracking-widest">
-        <CheckCircle2 className="mr-1 size-2.5" /> 已指派
-      </Badge>
-    );
+  const isOpen = item.status === 'PROPOSAL';
 
-  // Resolve assignedMemberId to a display name from the orgMembers projection.
-  const assignedMemberName = useMemo(() => {
-    if (!demand.assignedMemberId) return null;
-    return orgMembers.find((m) => m.id === demand.assignedMemberId)?.name ?? demand.assignedMemberId;
-  }, [demand.assignedMemberId, orgMembers]);
+  const statusBadge = isOpen ? (
+    <Badge variant="outline" className="shrink-0 border-amber-500 text-[9px] text-amber-600 uppercase tracking-widest">
+      <Clock className="mr-1 size-2.5" /> 待指派
+    </Badge>
+  ) : (
+    <Badge variant="outline" className="shrink-0 border-emerald-500 text-[9px] text-emerald-600 uppercase tracking-widest">
+      <CheckCircle2 className="mr-1 size-2.5" /> 已指派
+    </Badge>
+  );
+
+  const assignedMemberNames = useMemo(() => {
+    if (!item.assigneeIds?.length) return null;
+    return item.assigneeIds
+      .map((id) => orgMembers.find((m) => m.id === id)?.name ?? id)
+      .join('、');
+  }, [item.assigneeIds, orgMembers]);
 
   const handleAssign = useCallback(async () => {
     if (!selectedMemberId) return;
     setLoading(true);
     try {
-      const result = await manualAssignScheduleMember(
-        demand.scheduleItemId,
-        selectedMemberId,
-        assignedBy,
-        {
-          workspaceId: demand.workspaceId,
-          orgId: demand.orgId,
-          title: demand.title,
-          startDate: demand.startDate,
-          endDate: demand.endDate,
-        }
-      );
+      const result = await approveScheduleItemWithMember(orgId, item.id, selectedMemberId);
       if (result.success) {
-        toast({ title: '排程已指派', description: `「${demand.title}」成員指派成功。` });
+        toast({ title: '排程已指派', description: `「${item.title}」成員指派成功。` });
         setSelectedMemberId('');
       } else {
-        toast({
-          variant: 'destructive',
-          title: '指派失敗',
-          description: result.error.message,
-        });
+        toast({ variant: 'destructive', title: '指派失敗', description: result.error.message });
       }
     } catch {
       toast({ variant: 'destructive', title: '操作失敗', description: '請稍後再試。' });
     } finally {
       setLoading(false);
     }
-  }, [selectedMemberId, demand, assignedBy]);
+  }, [selectedMemberId, orgId, item.id, item.title]);
 
   const handleCancel = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await cancelScheduleProposalAction(
-        demand.scheduleItemId,
-        demand.orgId,
-        demand.workspaceId,
-        assignedBy
-      );
+      const result = await updateScheduleItemStatus(orgId, item.id, 'REJECTED');
       if (result.success) {
-        toast({ title: '需求已取消', description: `「${demand.title}」已由 HR 撤回。` });
+        toast({ title: '需求已取消', description: `「${item.title}」已由 HR 撤回。` });
       } else {
         toast({ variant: 'destructive', title: '取消失敗', description: result.error.message });
       }
@@ -130,25 +125,24 @@ function DemandRow({ demand, orgMembers, assignedBy }: DemandRowProps) {
     } finally {
       setLoading(false);
     }
-  }, [demand.scheduleItemId, demand.orgId, demand.workspaceId, demand.title, assignedBy]);
+  }, [orgId, item.id, item.title]);
 
   return (
     <div className="space-y-3 rounded-lg border bg-background p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">{demand.title}</p>
+          <p className="text-sm font-semibold">{item.title}</p>
           <p className="text-xs text-muted-foreground">
-            {demand.startDate} – {demand.endDate}
+            {formatTimestamp(item.startDate as unknown as Timestamp)} – {formatTimestamp(item.endDate as unknown as Timestamp)}
           </p>
-          {assignedMemberName && (
-            <p className="text-xs text-emerald-600">指派給：{assignedMemberName}</p>
+          {assignedMemberNames && (
+            <p className="text-xs text-emerald-600">指派給：{assignedMemberNames}</p>
           )}
         </div>
         {statusBadge}
       </div>
 
-      {/* Only show assign controls for open demands */}
-      {demand.status === 'open' && (
+      {isOpen && (
         <div className="flex items-center gap-2">
           <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
             <SelectTrigger className="h-8 flex-1 text-xs">
@@ -195,46 +189,37 @@ function DemandRow({ demand, orgMembers, assignedBy }: DemandRowProps) {
 /**
  * DemandBoard — real-time org demand board (FR-W0 + FR-W6).
  *
- * Shows open (amber) and assigned (green) demands for the active org account.
- * HR can manually assign a member to an open demand (FR-W6) or cancel the demand.
- * Closed demands are not shown (FR-W0).
+ * Reads directly from accounts/{orgId}/schedule_items via useAccount() —
+ * the same collection used by the Calendar tab — so all three schedule
+ * tabs always show consistent data with zero extra subscriptions.
  */
 export function DemandBoard() {
   const { state: appState } = useApp();
   const { activeAccount, accounts } = appState;
+  const { state: accountState } = useAccount();
 
   const orgId =
     activeAccount?.accountType === 'organization' ? activeAccount.id : null;
 
-  const [demands, setDemands] = useState<ScheduleDemand[]>([]);
-  const [loading, setLoading] = useState(true);
+  const allItems = useMemo(
+    () => Object.values(accountState.schedule_items),
+    [accountState.schedule_items]
+  );
 
-  useEffect(() => {
-    if (!orgId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const unsub = subscribeToDemandBoard(orgId, (d) => {
-      setDemands(d);
-      setLoading(false);
-    });
-    return unsub;
-  }, [orgId]);
+  const openItems = useMemo(
+    () => allItems.filter((i) => i.status === 'PROPOSAL'),
+    [allItems]
+  );
+  const assignedItems = useMemo(
+    () => allItems.filter((i) => i.status === 'OFFICIAL'),
+    [allItems]
+  );
 
   const orgMembers = useMemo<OrgMember[]>(() => {
     if (!orgId) return [];
     const org = accounts[orgId];
-    return (org?.members ?? []).map((m: OrgMember) => ({
-      id: m.id,
-      name: m.name,
-    }));
+    return (org?.members ?? []).map((m: OrgMember) => ({ id: m.id, name: m.name }));
   }, [orgId, accounts]);
-
-  const assignedBy = activeAccount?.id ?? 'system';
-
-  const openDemands = demands.filter((d) => d.status === 'open');
-  const assignedDemands = demands.filter((d) => d.status === 'assigned');
 
   if (!orgId) {
     return (
@@ -250,26 +235,23 @@ export function DemandBoard() {
       <Card>
         <CardHeader className="border-b py-3">
           <CardTitle className="text-sm font-bold uppercase tracking-widest text-amber-600">
-            待指派需求 ({openDemands.length})
+            待指派需求 ({openItems.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="max-h-96">
             <div className="space-y-3 p-4">
-              {loading && (
-                <p className="py-6 text-center text-xs italic text-muted-foreground">載入中…</p>
-              )}
-              {!loading && openDemands.length === 0 && (
+              {openItems.length === 0 && (
                 <p className="py-6 text-center text-xs italic text-muted-foreground">
                   目前無待指派需求。
                 </p>
               )}
-              {openDemands.map((d) => (
+              {openItems.map((item) => (
                 <DemandRow
-                  key={d.scheduleItemId}
-                  demand={d}
+                  key={item.id}
+                  item={item}
                   orgMembers={orgMembers}
-                  assignedBy={assignedBy}
+                  orgId={orgId}
                 />
               ))}
             </div>
@@ -281,23 +263,23 @@ export function DemandBoard() {
       <Card>
         <CardHeader className="border-b py-3">
           <CardTitle className="text-sm font-bold uppercase tracking-widest text-emerald-600">
-            已指派需求 ({assignedDemands.length})
+            已指派需求 ({assignedItems.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="max-h-64">
             <div className="space-y-3 p-4">
-              {!loading && assignedDemands.length === 0 && (
+              {assignedItems.length === 0 && (
                 <p className="py-6 text-center text-xs italic text-muted-foreground">
                   目前無已指派需求。
                 </p>
               )}
-              {assignedDemands.map((d) => (
+              {assignedItems.map((item) => (
                 <DemandRow
-                  key={d.scheduleItemId}
-                  demand={d}
+                  key={item.id}
+                  item={item}
                   orgMembers={orgMembers}
-                  assignedBy={assignedBy}
+                  orgId={orgId}
                 />
               ))}
             </div>
