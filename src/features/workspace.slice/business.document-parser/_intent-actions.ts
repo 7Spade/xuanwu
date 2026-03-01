@@ -10,7 +10,7 @@ import {
   updateParsingIntentStatus as updateParsingIntentStatusFacade,
 } from '@/shared/infra/firestore/firestore.facade'
 import type { ParsedLineItem, IntentID, SourcePointer } from '@/shared/types'
-import type { SkillRequirement } from '@/features/shared.kernel.skill-tier'
+import type { SkillRequirement } from '@/features/shared-kernel/skill-tier'
 
 export async function saveParsingIntent(
   workspaceId: string,

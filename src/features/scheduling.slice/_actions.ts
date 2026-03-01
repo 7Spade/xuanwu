@@ -29,9 +29,9 @@ import {
   type CommandResult,
   commandSuccess,
   commandFailureFrom,
-} from '@/features/shared.kernel.contract-interfaces';
+} from '@/features/shared-kernel/command-result-contract';
 import type { ScheduleItem } from '@/shared/types';
-import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
+import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
 
 // =================================================================
 // A. Workspace-level mutations

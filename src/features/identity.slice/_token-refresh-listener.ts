@@ -20,7 +20,7 @@ import { useEffect } from 'react';
 import { onSnapshot, doc } from 'firebase/firestore';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { auth } from '@/shared/infra/auth/auth.client';
-import type { ImplementsTokenRefreshContract } from '@/features/shared.kernel.token-refresh-contract';
+import type { ImplementsTokenRefreshContract } from '@/features/shared-kernel/token-refresh-contract';
 
 // Marker — confirms this module fulfils Party 3 of the SK_TOKEN_REFRESH_CONTRACT [S6]
 const _contractConformance: ImplementsTokenRefreshContract = {

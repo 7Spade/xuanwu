@@ -10,9 +10,9 @@
  *   if (!allowFirestoreWrite(envelope.aggregateVersion, lastVersion)) return; // stale event [S2]
  */
 
-import { applyVersionGuard, versionGuardAllows } from '@/features/shared.kernel.version-guard';
+import { applyVersionGuard, versionGuardAllows } from '@/features/shared-kernel/version-guard';
 
-export type { VersionGuardResult } from '@/features/shared.kernel.version-guard';
+export type { VersionGuardResult } from '@/features/shared-kernel/version-guard';
 
 /**
  * Check whether an incoming event's version is newer than the currently stored version.

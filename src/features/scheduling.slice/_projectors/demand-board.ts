@@ -23,9 +23,9 @@
 import { updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { arrayUnion } from 'firebase/firestore';
-import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
+import { versionGuardAllows } from '@/features/shared-kernel/version-guard';
 import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
-import type { WorkspaceScheduleProposedPayload } from '@/features/shared.kernel.skill-tier';
+import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel/skill-tier';
 import type {
   ScheduleAssignedPayload,
   ScheduleCompletedPayload,

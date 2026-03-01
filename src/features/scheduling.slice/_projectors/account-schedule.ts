@@ -17,7 +17,7 @@ import { serverTimestamp, arrayUnion, arrayRemove, doc, updateDoc } from 'fireba
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
+import { versionGuardAllows } from '@/features/shared-kernel/version-guard';
 
 export interface AccountScheduleProjection {
   accountId: string;

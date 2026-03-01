@@ -48,7 +48,7 @@ import {
   applyDemandProposalCancelled,
   applyDemandAssignRejected,
 } from '@/features/scheduling.slice';
-import { onTagEvent } from '@/features/centralized-tag';
+import { onTagEvent } from '@/features/shared-kernel/centralized-tag';
 import {
   applyTagCreated,
   applyTagUpdated,

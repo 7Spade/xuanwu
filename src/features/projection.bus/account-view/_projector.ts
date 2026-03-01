@@ -15,8 +15,8 @@
 import { serverTimestamp } from 'firebase/firestore';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
-import type { AuthoritySnapshot } from '@/features/shared.kernel.authority-snapshot';
+import { versionGuardAllows } from '@/features/shared-kernel/version-guard';
+import type { AuthoritySnapshot } from '@/features/shared-kernel/authority-snapshot';
 import type { Account } from '@/shared/types';
 
 export interface AccountViewRecord {

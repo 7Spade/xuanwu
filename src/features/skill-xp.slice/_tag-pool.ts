@@ -26,7 +26,7 @@ import {
   deleteDocument,
 } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { TagUpdatedPayload, TagDeprecatedPayload, TagDeletedPayload } from '@/features/centralized-tag';
+import type { TagUpdatedPayload, TagDeprecatedPayload, TagDeletedPayload } from '@/features/shared-kernel/centralized-tag';
 
 // ---------------------------------------------------------------------------
 // Types

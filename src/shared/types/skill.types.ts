@@ -6,7 +6,7 @@
  *                       (see shared/constants/skills.ts — no Firestore, no org dependency)
  *   - SkillGrant      = assignment of a skill + tier to an individual user (the "who has it")
  *                       Stored permanently on accounts/{userId} — survives org deletion.
- *   - SkillRequirement = cross-BC staffing contract — see @/features/shared.kernel.skill-tier
+ *   - SkillRequirement = cross-BC staffing contract — see @/features/shared-kernel/skill-tier
  *
  * Key decisions:
  *   - The skill library is static code, not a Firestore collection.
@@ -20,7 +20,7 @@ import type { Timestamp } from 'firebase/firestore'
 
 // ---------------------------------------------------------------------------
 // Skill tier & requirement — canonical type definitions
-// (runtime functions live in @/features/shared.kernel.skill-tier)
+// (runtime functions live in @/features/shared-kernel/skill-tier)
 // ---------------------------------------------------------------------------
 
 /**
@@ -116,12 +116,12 @@ export interface SkillGrant {
   tagId?: string;
   /**
    * Proficiency tier — set manually by an admin or derived from `xp` via
-   * resolveSkillTier() in @/features/shared.kernel.skill-tier.
+   * resolveSkillTier() in @/features/shared-kernel/skill-tier.
    */
   tier: SkillTier;
   /**
    * Accumulated XP (0–525).
-   * Drives tier progression; use resolveSkillTier(xp) from @/features/shared.kernel.skill-tier.
+   * Drives tier progression; use resolveSkillTier(xp) from @/features/shared-kernel/skill-tier.
    */
   xp: number;
   /** The organisation in which this XP was earned (audit trail). */

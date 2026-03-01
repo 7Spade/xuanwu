@@ -16,9 +16,9 @@
  *   Q7  — Three-layer guard: rate-limit → circuit-breaker → bulkhead (stub hooks provided).
  */
 
-import type { AuthoritySnapshot } from '@/features/shared.kernel.authority-snapshot';
-import type { CommandResult } from '@/features/shared.kernel.contract-interfaces';
-import { commandFailureFrom } from '@/features/shared.kernel.contract-interfaces';
+import type { AuthoritySnapshot } from '@/features/shared-kernel/authority-snapshot';
+import type { CommandResult } from '@/features/shared-kernel/command-result-contract';
+import { commandFailureFrom } from '@/features/shared-kernel/command-result-contract';
 
 // ---------------------------------------------------------------------------
 // Command descriptor

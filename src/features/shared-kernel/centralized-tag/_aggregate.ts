@@ -20,7 +20,7 @@ import {
   deleteDocument,
 } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { buildIdempotencyKey, type DlqTier } from '@/features/shared.kernel.outbox-contract';
+import { buildIdempotencyKey, type DlqTier } from '../outbox-contract';
 import { publishTagEvent } from './_bus';
 
 // ---------------------------------------------------------------------------

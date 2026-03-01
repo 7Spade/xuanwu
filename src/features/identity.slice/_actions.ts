@@ -11,7 +11,7 @@ import {
   type CommandResult,
   commandSuccess,
   commandFailureFrom,
-} from '@/features/shared.kernel.contract-interfaces'
+} from '@/features/shared-kernel/command-result-contract'
 
 /**
  * Signs in an existing user with email and password.
