@@ -1,7 +1,8 @@
 # Schema Definition
 
-> **Source of truth**: `docs/logic-overview.md`
-> All TypeScript interfaces are strict-mode compatible (`no-any`). This file is the canonical type reference for the entire system.
+> **SSOT**: This file is the canonical TypeScript type reference for the entire system.
+> Architecture rules → `docs/logic-overview.md` · Persistence layout → `docs/persistence-model-overview.md`
+> All interfaces: strict-mode (`no-any`). Constraints in JSDoc are invariants — treat as rules, not suggestions.
 
 ---
 
@@ -345,12 +346,6 @@ interface WorkflowAggregate {
 ### IER Lane
 
 ```typescript
-/**
- * Integration Event Router priority lanes.
- * CRITICAL_LANE: deliver ASAP (role/auth changes)
- * STANDARD_LANE: SLA < 2s
- * BACKGROUND_LANE: SLA < 30s
- */
 type IerLane = 'CRITICAL_LANE' | 'STANDARD_LANE' | 'BACKGROUND_LANE';
 ```
 
@@ -533,10 +528,8 @@ interface AccountSkillViewDocument {
   tagSlug: string;
   xp: number;
   /**
-   * Derived value — NOT stored in Firestore (#12).
-   * Computed on every read via `getTier(xp)` from `shared.kernel.skill-tier`.
-   * Present in API response shapes but absent from persisted documents.
-   * @readonly — MUST NOT be written to Firestore; use `xp` as the only persistence anchor.
+   * Derived — NEVER persisted to Firestore (#12).
+   * Computed on read via `getTier(xp)` from `shared.kernel.skill-tier`. MUST NOT be written to DB.
    */
   readonly tier: SkillTier;
   lastProcessedVersion: number;

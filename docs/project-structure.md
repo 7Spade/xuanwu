@@ -1,7 +1,7 @@
 # Project Structure
 
-> **Source of truth**: `docs/logic-overview.md`
-> This document describes the canonical directory layout. Naming conventions and dependency rules are enforced by D1–D23 (see `docs/logic-overview.md` for the full rule set).
+> **SSOT**: `docs/logic-overview.md` (rules D1–D23) · `docs/domain-glossary.md` (domain terms)
+> Canonical directory layout. Dependency rules enforced by D1–D23.
 
 ---
 

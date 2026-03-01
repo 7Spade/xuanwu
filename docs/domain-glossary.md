@@ -1,7 +1,7 @@
 # Domain Glossary
 
-> **Source of truth**: `docs/logic-overview.md`
-> This glossary defines all domain concepts, invariants, contracts, and rules used throughout the xuanwu system.
+> **SSOT ownership**: `docs/logic-overview.md` (architecture) · `docs/domain-glossary.md` (vocabulary) · `docs/schema-definition.md` (TypeScript contracts)
+> Canonical vocabulary for all domain entities, events, projections, and invariants. No synonyms — use identifiers exactly as listed.
 
 ---
 
@@ -69,45 +69,45 @@
 
 ## #1–#19 Consistency Invariants
 
-| # | Invariant | Description |
-|---|-----------|-------------|
-| **#1** | BC self-modification | Each Bounded Context can only modify its own Aggregates. No BC may mutate another BC's aggregate directly. |
-| **#2** | Cross-BC communication | Cross-BC interaction is ONLY permitted via: Domain Event, Projection read, or ACL anti-corruption layer. |
-| **#3** | Application layer coordination | The Application Layer coordinates only; it MUST NOT carry domain rules. Domain logic lives in Aggregates. |
-| **#4** | Event production | Domain Events are only produced by Aggregates. The TX Runner only delivers to the Outbox — it MUST NOT create events. |
-| **#5** | Custom Claims as snapshot | Custom Claims are a snapshot only — NOT the authoritative permission source. They expire with the Firebase token. |
-| **#6** | Notification read-only | Notification Router reads only Projection data. It MUST NOT query Aggregates directly. |
-| **#7** | Scope Guard isolation | Scope Guard reads only its own Context Read Model. It MUST NOT cross slice boundaries for authorization. |
-| **#8** | Shared Kernel explicit labelling | Shared Kernel dependencies MUST be explicitly labelled. Unlabelled cross-BC sharing is treated as an architectural violation. |
-| **#9** | Projection rebuildability | Every Projection MUST be fully reconstructible from its event stream. No projection state may exist without a corresponding event. |
-| **#10** | Context locality | If any module requires another module's internal context state, this indicates a boundary design error. |
-| **#11** | XP ownership | XP belongs to Account BC. Organization BC only declares thresholds (minXpRequired). Organization MUST NOT own XP. |
-| **#12** | Tier is derived | `SkillTier` is ALWAYS a derived/computed value. It is NEVER persisted to the database. |
-| **#13** | XP ledger write | Every XP mutation MUST write a corresponding `SkillXpLedgerEntry` with `sourceId`. |
-| **#14** | Schedule reads eligible view | `account-organization.schedule` MUST only read `ORG_ELIGIBLE_MEMBER_VIEW` when assigning members. Direct aggregate queries are forbidden. |
-| **#15** | Eligible lifecycle | `eligible` field lifecycle: `MemberJoined` → `true`; `ScheduleAssigned` → `false`; `ScheduleCompleted / ScheduleCancelled` → `true`. |
-| **#16** | Talent Repository composition | Talent Repository = Member + Partner + Team. All three must be included in `ORG_ELIGIBLE_MEMBER_VIEW`. |
-| **#17** | Tag singular authority | `centralized-tag.aggregate` is the SOLE authority for `tagSlug` semantics. No other aggregate may define or redefine tag semantics. |
-| **#18** | Workspace governance inheritance | `workspace-governance.role` inherits `org-governance.policy` hard constraints. Workspace roles cannot override org-level policy. |
-| **#19** | Projection version monotonicity | **ALL** Projection updates MUST satisfy `event.aggregateVersion > view.lastProcessedVersion`. Stale events MUST be discarded. (v10 generalization of v9's R7 which was limited to eligible-view only.) |
+| # | Constraint |
+|---|------------|
+| **#1** | Each BC modifies ONLY its own Aggregates. |
+| **#2** | Cross-BC: ONLY via Domain Event, Projection read, or ACL. |
+| **#3** | Application Layer coordinates only — domain logic lives in Aggregates. |
+| **#4** | Domain Events produced by Aggregates only. TX Runner delivers to Outbox — MUST NOT create events. |
+| **#5** | Custom Claims = snapshot. NOT authoritative permission source. |
+| **#6** | Notification Router reads ONLY Projection data — MUST NOT query Aggregates. |
+| **#7** | Scope Guard reads ONLY its own Context Read Model. |
+| **#8** | Shared Kernel dependencies MUST be explicitly labelled. |
+| **#9** | Every Projection MUST be fully rebuildable from its event stream. |
+| **#10** | Requiring another module's internal context = boundary design error. |
+| **#11** | XP belongs to Account BC. Org BC declares thresholds only — MUST NOT own XP. |
+| **#12** | `SkillTier` is ALWAYS derived by `resolveSkillTier(xp)`. NEVER persisted. |
+| **#13** | Every XP mutation MUST write `SkillXpLedgerEntry` with `sourceId` first. |
+| **#14** | Schedule assignment MUST read only `ORG_ELIGIBLE_MEMBER_VIEW`. Direct aggregate queries forbidden. |
+| **#15** | `eligible` lifecycle: `MemberJoined`→`true`; `ScheduleAssigned`→`false`; `ScheduleCompleted/Cancelled`→`true`. |
+| **#16** | Talent Repository = Member + Partner + Team. All three included in `ORG_ELIGIBLE_MEMBER_VIEW`. |
+| **#17** | `centralized-tag.aggregate` is SOLE authority for `tagSlug`. No other aggregate may define tag semantics. |
+| **#18** | `workspace-governance.role` inherits `org-governance.policy` hard constraints. Workspace CANNOT override org policy. |
+| **#19** | ALL Projection updates MUST satisfy `event.aggregateVersion > view.lastProcessedVersion`. Stale events discarded. |
 
 ---
 
 ## #A1–#A11 Atomicity Audit
 
-| # | Rule | Description |
-|---|------|-------------|
-| **#A1** | Wallet strong consistency | `account-user.wallet` requires STRONG_READ. `account-user.profile` and `notification` are weakly consistent. |
-| **#A2** | Org-account binding ACL | `organization-account.binding` communicates only via ACL / Projection anti-corruption. No direct coupling. |
-| **#A3** | Workflow blocking | `blockWorkflow` inserts `issueId` into `blockedBy` Set. `unblockWorkflow` requires `blockedBy.isEmpty()`. Only `IssueResolved` event triggers `blockedBy.delete(issueId)`. |
-| **#A4** | ParsingIntent proposal only | `ParsingIntent` (Digital Twin) may only emit proposal events (`IntentDeltaProposed`). It MUST NOT directly mutate task/finance state. |
-| **#A5** | Schedule cross-BC saga | Schedule assignment across BC boundaries uses Saga + compensating events (`ScheduleAssignRejected`, `ScheduleProposalCancelled`). |
-| **#A6** | Tag semantic authority | `CENTRALIZED_TAG_AGGREGATE` is the sole semantic authority for tags. No other aggregate may create or redefine a `tagSlug`. |
-| **#A7** | Event Funnel compose-only | `event-funnel` only composes/routes — it MUST NOT apply domain logic or transform event payload content. |
-| **#A8** | 1-command-1-aggregate atomicity | TX Runner commits exactly 1 command to 1 aggregate per transaction. No multi-aggregate TX is permitted. |
-| **#A9** | Scope Guard risk-based routing | Fast path: read `workspace-scope-guard-view`. High-risk operations: re-source from aggregate for authoritative check. |
-| **#A10** | Notification Router stateless | `notification-router` is completely stateless. It routes by `TargetAccountID` matching only — no state accumulation. |
-| **#A11** | Eligible is a snapshot | `eligible` represents "has no conflicting schedule assignment" — it is a dynamic snapshot, NOT a static status flag. |
+| # | Constraint |
+|---|------------|
+| **#A1** | `account-user.wallet` requires STRONG_READ. Profile and notification are weakly consistent. |
+| **#A2** | `organization-account.binding` communicates ONLY via ACL / Projection anti-corruption. |
+| **#A3** | `blockWorkflow` inserts `issueId` into `blockedBy`. `unblockWorkflow` requires `blockedBy.isEmpty()`. Only `IssueResolved` event triggers `blockedBy.delete()`. |
+| **#A4** | `ParsingIntent` may ONLY emit proposal events. MUST NOT directly mutate task/finance state. |
+| **#A5** | Schedule cross-BC assignment uses Saga + compensating events (`ScheduleAssignRejected`, `ScheduleProposalCancelled`). |
+| **#A6** | `CENTRALIZED_TAG_AGGREGATE` is SOLE semantic authority. No other aggregate may create or redefine `tagSlug`. |
+| **#A7** | `event-funnel` composes/routes ONLY. MUST NOT apply domain logic or transform event payload. |
+| **#A8** | TX Runner commits exactly 1 command to 1 aggregate per transaction. Multi-aggregate TX forbidden. |
+| **#A9** | Scope Guard fast path: reads `workspace-scope-guard-view`. High-risk operations: re-source from aggregate. |
+| **#A10** | `notification-router` is stateless. Routes by `TargetAccountID` only — no state accumulation. |
+| **#A11** | `eligible` = "no conflicting schedule assignment" — dynamic snapshot, NOT a static status flag. |
 
 ---
 
@@ -121,39 +121,7 @@
 | **T4** | Scheduling skill requirements = `SK_SKILL_REQ × Tag Authority tagSlug`. The tagSlug in schedule always references Tag Authority. |
 | **T5** | `TAG_SNAPSHOT` consumers are strictly forbidden from writing to this collection. It is a read-only projection. |
 
----
 
-## S1–S6 VS0 Infrastructure Contracts
-
-| Contract | ID | What it Prevents | What it Enables |
-|----------|-----|-----------------|-----------------|
-| SK_OUTBOX_CONTRACT | S1 | Duplicated at-least-once semantics across 6 outbox nodes; scattered DLQ tier definitions | Single authoritative outbox spec; new slices add outbox by referencing this contract |
-| SK_VERSION_GUARD | S2 | Stale events overwriting newer projection state; #19 being enforced only on eligible-view | Universal monotonic version protection for ALL projections via FUNNEL |
-| SK_READ_CONSISTENCY | S3 | STRONG_READ semantics being scattered across WALLET_AGG / QGWAY_WALLET / WALLET_PROJ | Clear decision rule for all read paths; future XP queries reference this directly |
-| SK_STALENESS_CONTRACT | S4 | SLA numbers hardcoded in three separate nodes | Changing SLA requires modifying only VS0; all consumers reference constants |
-| SK_RESILIENCE_CONTRACT | S5 | New entry points (Webhook/Edge Function) lacking protection standards | Auditable compliance: every entry point that reaches CBG_ENTRY must reference this contract |
-| SK_TOKEN_REFRESH_CONTRACT | S6 | Token refresh handshake rules living only in VS1's node text | Three-party (VS1 ↔ IER ↔ Frontend) shared single specification for claims refresh |
-
----
-
-## IER Full Routing Table
-
-| Lane | Event | Target Handler | Reference |
-|------|-------|----------------|-----------|
-| **CRITICAL** | `RoleChanged` | `CLAIMS_HANDLER` [S6][E6] + `TOKEN_REFRESH_SIGNAL` | SK_TOKEN_REFRESH_CONTRACT |
-| **CRITICAL** | `PolicyChanged` | `CLAIMS_HANDLER` [S6][E6] + `TOKEN_REFRESH_SIGNAL` | SK_TOKEN_REFRESH_CONTRACT |
-| **CRITICAL** | `WalletDeducted` | `FUNNEL` → CRITICAL_PROJ_LANE | SK_READ_CONSISTENCY |
-| **CRITICAL** | `WalletCredited` | `FUNNEL` → CRITICAL_PROJ_LANE | SK_READ_CONSISTENCY |
-| **CRITICAL** | `OrgContextProvisioned` | `ORG_CONTEXT_ACL` [E2] | #10 |
-| **STANDARD** | `SkillXpAdded` | `FUNNEL` → CRITICAL_PROJ_LANE [P2] | #11, #12 |
-| **STANDARD** | `SkillXpDeducted` | `FUNNEL` → CRITICAL_PROJ_LANE [P2] | #11, #12 |
-| **STANDARD** | `ScheduleAssigned` | `NOTIF_ROUTER` + `FUNNEL` [E3] | #14, #15 |
-| **STANDARD** | `ScheduleProposed` | `SCHEDULE_SAGA` [A5] | #A5 |
-| **STANDARD** | `MemberJoined` | `FUNNEL` [#16] | #15, #16 |
-| **STANDARD** | `MemberLeft` | `FUNNEL` [#16] | #15, #16 |
-| **STANDARD** | All Domain Events | `FUNNEL` [#9] | #9 |
-| **BACKGROUND** | `TagLifecycleEvent` | `FUNNEL` + `VS4_TAG_SUBSCRIBER` [T1][R3] | T1, T2 |
-| **BACKGROUND** | `AuditEvents` | `AUDIT_COLLECTOR` [Q5] | Q5, R8 |
 
 ---
 

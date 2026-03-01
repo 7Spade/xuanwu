@@ -1,7 +1,7 @@
 # Tech Stack
 
-> Source of truth: `docs/logic-overview.md`
-> For governance rules D1–D23 see [logic-overview.md](./logic-overview.md). For project structure and slice boundaries see [project-structure.md](./project-structure.md).
+> **SSOT**: `docs/logic-overview.md` (rules D1–D23, slice boundaries) · `docs/project-structure.md` (folder ownership)
+> This file: runtime + library versions only. Governance rules → `logic-overview.md`.
 
 ## Runtime & Framework
 
@@ -70,52 +70,7 @@
 - **AI flows**: Genkit flows run server-side; exposed via `@genkit-ai/next` route handlers.
 - **Event delivery**: `Aggregate → EventBus (in-process) → OUTBOX → OUTBOX_RELAY → IER` — no direct bus-to-IER shortcuts (`D1`).
 
----
 
-## VS1–VS9 Slice Boundaries Reference
-
-| Slice | Bounded Context | Key Tech Constraint |
-|-------|----------------|---------------------|
-| VS0 | Shared Kernel + Tag Authority | Pure functions only; no I/O in `shared.kernel.*` (D8) |
-| VS1 | Identity / 身份驗證 | Firebase Auth; Custom Claims TTL = Token validity |
-| VS2 | Account / 帳號主體 | `WALLET_AGG` requires `STRONG_READ` [S3]; `RoleChanged` → SECURITY_BLOCK DLQ |
-| VS3 | Skill XP / 能力成長 | `getTier(xp)` from `shared.kernel.skill-tier`; tier NEVER in DB (#12) |
-| VS4 | Organization / 組織治理 | `VS4_TAG_SUBSCRIBER` subscribes IER BACKGROUND_LANE (T2); [S4] staleness via constants |
-| VS5 | Workspace / 工作區業務 | Dual-track A/B; B→A ONE-WAY via `IssueResolved` (#A3); Genkit document parser |
-| VS6 | Scheduling / 排班協作 | Reads `orgEligibleMemberView` only (#14); scheduling saga compensates [A5] |
-| VS7 | Notification / 通知交付 | Stateless FCM router (#A10); FCM push MUST carry `traceId` [R8] |
-| VS8 | Projection Bus / 事件投影總線 | FUNNEL is sole projection write path (#9, #A7); SK_VERSION_GUARD on all lanes [S2] |
-| VS9 | Observability / 橫切面 | TraceID chain [R8]; `relay_lag` metric from OUTBOX_RELAY [R1] |
-
----
-
-## D1–D23 Development Rules Reference
-
-| Rule | Summary | Contract |
-|------|---------|---------|
-| D1 | Event delivery path: Aggregate → EventBus → OUTBOX → RELAY → IER; no shortcuts | — |
-| D2 | Public API via `index.ts` only; `_` files private | — |
-| D3 | `_actions.ts` sole Server Action entry point | — |
-| D4 | `_queries.ts` sole read entry point | — |
-| D5 | No direct Firestore access from UI components | — |
-| D6 | `"use client"` at leaf nodes only | — |
-| D7 | Cross-slice imports via `{slice}/index.ts` only | — |
-| D8 | `shared.kernel.*` = contracts + pure functions; no I/O | — |
-| D9 | Aggregate mutations via TX Runner (1cmd/1agg #A8) | — |
-| D10 | `EventEnvelope.traceId` immutable after CBG_ENTRY | — |
-| D11 | Projections must be rebuildable from event stream | — |
-| D12 | `SkillTier` computed; never persisted (#12) | — |
-| D13 | New Outbox: declare DLQ tier in SK_OUTBOX_CONTRACT | **[S1]** |
-| D14 | New Projection: use FUNNEL + SK_VERSION_GUARD | **[S2]** |
-| D15 | Read use-case: consult SK_READ_CONSISTENCY first | **[S3]** |
-| D16 | SLA values: reference SK_STALENESS_CONTRACT constants | **[S4]** |
-| D17 | New external entry points: satisfy SK_RESILIENCE_CONTRACT | **[S5]** |
-| D18 | Claims refresh: coordinate via SK_TOKEN_REFRESH_CONTRACT | **[S6]** |
-| D19 | Type ownership: cross-BC contracts in `shared.kernel.*` first; `shared/types` is legacy fallback | — |
-| D20 | Import precedence: `shared.kernel.*` > feature slice `index.ts` > `shared/types` | — |
-| D21 | New tag category: define in CTA `TAG_ENTITIES`; no slice may create own semantic tag category | — |
-| D22 | Cross-slice tag reference: point to TAG_USER_LEVEL/TAG_SKILL/TAG_SKILL_TIER/TAG_TEAM/TAG_ROLE/TAG_PARTNER nodes | — |
-| D23 | Tag annotation: node text `→ tag::{category} [{NODE_NAME}]`; edge `-.->|"{dim} tag 語義"| NODE_NAME` | — |
 
 ---
 

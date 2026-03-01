@@ -1,7 +1,7 @@
 # Persistence Model Overview
 
-> **Source of truth**: `docs/logic-overview.md`
-> This document describes all Firestore collections, their ownership, version semantics, and read consistency routing.
+> **SSOT**: `docs/logic-overview.md` (rules S1–S6, D1–D23) · `docs/schema-definition.md` (TypeScript contracts)
+> Firestore collections: ownership, version semantics, read consistency. Data schema → `docs/schema-definition.md`.
 
 ---
 
@@ -282,32 +282,4 @@ All projections enforce `SK_VERSION_GUARD [S2]`: writes MUST satisfy `event.aggr
 > **T5**: Consumers MUST NOT write to this collection. Read-only projection of Tag Authority.
 > **Staleness**: ≤ `TAG_MAX_STALENESS` (30s) per `SK_STALENESS_CONTRACT [S4]`.
 
----
 
-## SK_VERSION_GUARD [S2] Enforcement
-
-Applied universally to ALL projections via the Event FUNNEL:
-
-```
-event.aggregateVersion > view.lastProcessedVersion
-  → if true:  UPDATE view, SET lastProcessedVersion = event.aggregateVersion
-  → if false: DISCARD (stale event — must not overwrite newer state)
-```
-
-This rule was originally limited to `orgEligibleMemberView` in v9 (R7). v10 generalizes it to ALL projections via `SK_VERSION_GUARD [S2]`.
-
----
-
-## STRONG_READ vs EVENTUAL_READ Routing [S3]
-
-| Scenario | Read Mode | Data Source |
-|----------|-----------|------------|
-| Wallet balance display | `EVENTUAL_READ` | `walletBalance` projection |
-| Financial transaction / deduction check | `STRONG_READ` | `account-wallets` aggregate |
-| Authorization check (fast path) | `EVENTUAL_READ` | `workspaceScopeGuardView` |
-| Authorization check (high-risk, #A9) | `STRONG_READ` | `workspace-core` aggregate |
-| Schedule eligibility check (#14) | `EVENTUAL_READ` | `orgEligibleMemberView` |
-| Any display / statistics / list | `EVENTUAL_READ` | Appropriate projection |
-| Irreversible operations | `STRONG_READ` | Domain aggregate |
-
-> **Decision rule [S3]**: Financial, authorization, or irreversible → `STRONG_READ`. All other display scenarios → `EVENTUAL_READ`.

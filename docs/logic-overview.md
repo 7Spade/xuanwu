@@ -1,7 +1,28 @@
 %% ==========================================================================
-%% LOGIC OVERVIEW v11 (CURRENT SSOT)
-%% This is the single source of truth for all architecture decisions.
-%% To upgrade the spec: edit this file directly.
+%% LOGIC OVERVIEW v11 — ARCHITECTURE SSOT
+%% Purpose: canonical architecture diagram. All rules and constraints are
+%% encoded here. No external document may override this file.
+%% SSOT mapping (R4):
+%%   Architecture rules    → docs/logic-overview.md  ← THIS FILE
+%%   Domain vocabulary     → docs/domain-glossary.md
+%%   Data persistence      → docs/persistence-model-overview.md
+%%   TypeScript contracts  → docs/schema-definition.md
+%%   Runtime stack         → docs/tech-stack.md
+%%   Folder ownership      → docs/project-structure.md
+%%   Product intent        → docs/prd-schedule-workforce-skills.md
+%%   Semantic relations    → docs/knowledge-graph.json
+%% --------------------------------------------------------------------------
+%% KEY INVARIANTS (enforce unconditionally):
+%%   R8:  traceId injected ONCE at CBG_ENTRY; MUST NOT be overwritten
+%%   S2:  ALL projections call applyVersionGuard() before Firestore write
+%%   S4:  SLA values from SK_STALENESS_CONTRACT; no hardcoded numbers
+%%   D7:  cross-slice imports ONLY via {slice}/index.ts public API
+%%   D21: new tag categories ONLY in CTA TAG_ENTITIES subgraph
+%% FORBIDDEN:
+%%   BC X MUST NOT write to BC Y aggregate → use Domain Event via IER
+%%   TX Runner MUST NOT create events → Aggregates only (#4)
+%%   SECURITY_BLOCK DLQ: auto-replay FORBIDDEN; human review required
+%%   B-track MUST NOT call back A-track → communicate via Domain Event
 %% ==========================================================================
 
 flowchart TD
