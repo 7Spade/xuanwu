@@ -19,7 +19,6 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users } from "lucide-react";
-import { toast } from "@/shared/utility-hooks/use-toast";
 import type { ScheduleItem } from "@/shared/types";
 import { UnifiedCalendarGrid } from "./unified-calendar-grid";
 import { ScheduleDataTable } from "./schedule-data-table";
@@ -48,24 +47,7 @@ export function AccountScheduleSection() {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const { allItems, decisionHistory, upcomingEvents, presentEvents, organizationMembers } = useGlobalSchedule();
-  const { assignMember, unassignMember, approveItem, rejectItem } = useScheduleActions();
-
-  const handleAction = useCallback(async (item: ScheduleItem, newStatus: 'OFFICIAL' | 'REJECTED') => {
-    try {
-      if (newStatus === 'OFFICIAL') {
-        await approveItem(item);
-      } else {
-        await rejectItem(item);
-      }
-      const successTitle = newStatus === 'OFFICIAL' ? "提案已核准" : "提案已拒絕";
-      toast({ title: successTitle, description: `「${item.title}」已更新。` });
-    } catch (e: unknown) {
-      toast({ variant: "destructive", title: "操作失敗", description: e instanceof Error ? e.message : "發生未知錯誤。" });
-    }
-  }, [approveItem, rejectItem]);
-
-  const approveProposal = (item: ScheduleItem) => handleAction(item, 'OFFICIAL');
-  const rejectProposal = (item: ScheduleItem) => handleAction(item, 'REJECTED');
+  const { assignMember, unassignMember } = useScheduleActions();
 
   const onItemClick = (item: ScheduleItem) => {
     router.push(`/workspaces/${item.workspaceId}?capability=schedule`);
@@ -150,8 +132,6 @@ export function AccountScheduleSection() {
               currentDate={currentDate}
               onMonthChange={handleMonthChange}
               onItemClick={onItemClick}
-              onApproveProposal={approveProposal}
-              onRejectProposal={rejectProposal}
               renderItemActions={renderItemActions}
             />
           </div>
