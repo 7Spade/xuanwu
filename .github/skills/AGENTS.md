@@ -9,7 +9,6 @@
 - `agent-governance` — 審核代理人治理、政策合規與審計流程。
 - `agentic-eval` — 自動化代理行為與效能評估測試套件。
 - `ai-prompt-engineering-safety-review` — 分析 prompt 的安全性、偏見與改寫建議。
-- `chrome-devtools` — 使用 DevTools/Playwright 做前端診斷、Network/性能追蹤與截圖。
 - `next-best-practices` — Next.js 實作建議、RSC 邊界、路由與部署最佳實務。
 - `next-cache-components` — 管理 Next.js 16 Cache Components 的策略與實作範例。
 - `next-upgrade` — 指引 Next.js 升級步驟、codemod 與相容性檢查。
@@ -17,11 +16,10 @@
 - `refactor` / `refactor-plan` — 外科式重構與多階段重構計畫。
 - `review-and-refactor` — 結合自動審查與安全修正的重構流程。
 - `web-design-reviewer` — 視覺與響應式設計評估與修正建議。
-- `webapp-testing` — 生成 Playwright 測試案例並執行端到端驗證。
 
 如何使用（簡短）：
 
-1. 若需某項專長，呼叫 `runSubagent` 或對應的 prompt（例如 `chrome-devtools`）並提供最小必要上下文。
+1. 若需某項專長，呼叫 `runSubagent` 或對應的 prompt（例如 `gem-browser-tester`）並提供最小必要上下文。
 2. 在自動化流程中，請將 skill 名稱與版本（若有）寫入任務的 metadata 以便追蹤與審計。
 3. 若要新增 skill，新增 `SKILL.md` 到此資料夾，並在本檔新增索引說明。
 
@@ -41,7 +39,6 @@
 - agent-governance/
 - agentic-eval/
 - ai-prompt-engineering-safety-review/
-- chrome-devtools/
 - next-best-practices/
 - next-cache-components/
 - next-upgrade/
@@ -50,6 +47,5 @@
 - refactor-plan/
 - review-and-refactor/
 - web-design-reviewer/
-- webapp-testing/
 
 若要，我可以掃描每個資料夾的 `SKILL.md` 並將其第一段摘要自動匯入本檔，便於 AI 快速檢索。

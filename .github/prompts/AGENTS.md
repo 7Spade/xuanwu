@@ -119,8 +119,6 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 - next-intl-add-language.prompt.md
 - nextjs-parallel-routes-modern-code.prompt.md
 - performance-optimization-auditor
-- playwright-mcp-web-test-and-optimize.prompt.md
-- playwright-testing-guide.md
 - repomix.prompt.md
 - route-audit-diagnostics.prompt.md
 - sequential-thinking.prompt.md

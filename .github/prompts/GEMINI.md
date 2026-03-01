@@ -76,8 +76,6 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 
 ### 5. 測試與藍圖生成 (Testing & Generators)
 
-* `playwright-mcp-web-test-and-optimize.prompt.md`: 自動生成 E2E 測試並優化頁面效能。
-* `playwright-testing-guide.md`: 提供測試撰寫的最佳實踐準則。
 * `technology-stack-blueprint-generator.prompt.md`: 自動產出技術棧對齊報告。
 * `code-exemplars-blueprint-generator.prompt.md`: 生成高品質代碼範例以供開發參考。
 * `documentation-writer.prompt.md`: 自動根據實作產出相關技術文檔。

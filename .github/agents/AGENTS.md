@@ -38,7 +38,7 @@ User 需求
         ├─ implementer         → 代碼實作、shadcn CLI 操作
         ├─ qa-reviewer         → TypeScript 類型、Build 測試
         ├─ firebase-security   → Security Rules、Auth 權限審查
-        ├─ test-engineer       → Playwright E2E 測試
+        ├─ gem-browser-tester  → 瀏覽器自動化與 E2E 測試
         ├─ style-designer      → Tailwind / Shadcn 風格一致性
         ├─ performance-expert  → 快取策略、Firestore 索引
         ├─ infra-master        → CI/CD、環境變數配置
@@ -60,7 +60,7 @@ User 需求
 | **核心開發** | `implementer.agent.md` | Server Actions & Shadcn CLI 實作者 | read, edit, search, execute |
 | **質量與安全** | `qa-reviewer.agent.md` | TypeScript 類型 & Build 校驗員 | read, search, execute |
 | **質量與安全** | `firebase-security.agent.md` | Security Rules & Auth 權限專家 | read, search, edit |
-| **質量與安全** | `test-engineer.agent.md` | Playwright E2E 測試工程師 | read, edit, search, execute |
+| **質量與安全** | `gem-browser-tester.agent.md` | 瀏覽器自動化 & E2E 測試師 | browser tools, read, edit |
 | **性能與運維** | `performance-expert.agent.md` | Firestore 索引 & Next.js 快取優化師 | read, search, edit, execute |
 | **性能與運維** | `infra-master.agent.md` | CI/CD & 環境變數配置運維官 | read, edit, search, execute |
 | **性能與運維** | `reliability-expert.agent.md` | 錯誤邊界 & 日誌系統監控官 | read, search, edit |
@@ -143,7 +143,7 @@ Feature Builder: 「任務完成」
 - `tdd-red.agent.md` — TDD Red 階段（撰寫失敗測試）
 - `tdd-refactor.agent.md` — TDD Refactor 階段（重構）
 - `tech-debt-remediation-plan.agent.md` — 技術債修復計畫
-- `test-engineer.agent.md` — **[艦隊]** E2E 測試工程師
+- `gem-browser-tester.agent.md` — **[艦隊]** 瀏覽器自動化 & E2E 測試師
 
 > **[艦隊]** 標記表示屬於本專案 18 人核心開發艦隊，由 `feature-builder` 統一調度。
 
