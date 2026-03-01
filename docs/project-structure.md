@@ -262,16 +262,42 @@ src/features/
 
 ## VS6 — Scheduling Slice
 
+All VS6 scheduling code is consolidated in `scheduling.slice`. Old slice directories are
+kept as **deprecated shims** that re-export from `@/features/scheduling.slice`.
+
 ```
 src/features/
-├── account-organization.schedule/  # account-organization.schedule aggregate + saga [S1][S4]
-│   ├── _aggregate.ts
-│   ├── _actions.ts
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-└── scheduling-saga/                 # ScheduleAssignRejected, ScheduleProposalCancelled sagas
-    └── index.ts
+└── scheduling.slice/                # UNIFIED VS6 scheduling slice [S1][S4]
+    ├── _aggregate.ts                # OrgScheduleProposal domain aggregate
+    ├── _actions.ts                  # Server Actions (createScheduleItem, approve, complete…)
+    ├── _queries.ts                  # Read-only queries (subscriptions, demand board, account)
+    ├── _saga.ts                     # Cross-org saga coordinator (ScheduleAssignRejected [A5])
+    ├── _hooks/
+    │   ├── use-org-schedule.ts      # Org-scoped subscription hooks
+    │   ├── use-global-schedule.ts   # Global schedule state hook
+    │   ├── use-schedule-commands.ts # Assign/unassign/status update commands
+    │   ├── use-workspace-schedule.ts
+    │   └── use-schedule-event-handler.ts
+    ├── _components/
+    │   ├── schedule.account-view.tsx   # AccountScheduleSection (3 tabs)
+    │   ├── schedule.workspace-view.tsx # WorkspaceSchedule
+    │   ├── org-schedule-governance.tsx # OrgScheduleGovernance (HR tab)
+    │   ├── demand-board.tsx
+    │   ├── unified-calendar-grid.tsx
+    │   └── …
+    ├── _projectors/
+    │   ├── demand-board.ts          # Demand Board projection handlers
+    │   ├── demand-board-queries.ts
+    │   ├── account-schedule.ts      # Account schedule availability projection
+    │   └── account-schedule-queries.ts
+    └── index.ts                     # Public API barrel
+
+# Deprecated shims (re-export from scheduling.slice):
+├── account-organization.schedule/index.ts
+├── workspace-business.schedule/index.ts
+├── projection.demand-board/index.ts
+├── projection.account-schedule/index.ts
+└── scheduling-saga/index.ts
 ```
 
 ---

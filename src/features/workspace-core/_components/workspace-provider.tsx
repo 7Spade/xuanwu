@@ -37,7 +37,7 @@ import {
 } from '@/features/workspace-business.issues'
 import {
   createScheduleItem as createScheduleItemAction,
-} from '@/features/workspace-business.schedule'
+} from '@/features/scheduling.slice'
 import type { CommandResult } from '@/features/shared.kernel.contract-interfaces';
 
 

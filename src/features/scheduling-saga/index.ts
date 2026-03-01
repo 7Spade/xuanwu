@@ -1,21 +1,9 @@
 /**
- * scheduling-saga — Public API
+ * scheduling-saga — DEPRECATED shim
  *
- * [VS6] 跨組織排班協作 Saga 協調器
- *
- * Per logic-overview.md VS6:
- *   workspace-business.schedule   → publishes WorkspaceScheduleProposed
- *   scheduling-saga          → subscribes, checks org eligibility
- *   account-organization.schedule → receives ScheduleAssigned
- *   projection.org-eligible-member-view → [R7] version-checked member list
- *
- * Event flow:
- *   WorkspaceScheduleProposed → OrgEligibilityCheck → ScheduleAssigned
- *   (compensation: ScheduleAssignRejected on partial failure [A5])
- *
- * Usage (OUTBOX_RELAY_WORKER at app startup):
- *   const result = await startSchedulingSaga(event, `saga:${event.scheduleItemId}`);
+ * All VS6 scheduling code has been consolidated into scheduling.slice.
+ * This file re-exports for backward compatibility.
+ * @deprecated Import from '@/features/scheduling.slice' directly.
  */
-
-export { startSchedulingSaga, getSagaState } from './_saga';
-export type { SagaState, SagaStep, SagaStatus } from './_saga';
+export { startSchedulingSaga, getSagaState } from '@/features/scheduling.slice';
+export type { SagaState, SagaStep, SagaStatus } from '@/features/scheduling.slice';

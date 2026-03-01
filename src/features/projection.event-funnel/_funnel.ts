@@ -29,10 +29,10 @@
 import type { WorkspaceEventBus } from '@/features/workspace-core.event-bus';
 import { upsertProjectionVersion } from '@/features/projection.registry';
 import { appendAuditEntry } from '@/features/projection.account-audit';
-import { applyScheduleAssigned, applyScheduleCompleted } from '@/features/projection.account-schedule';
+import { applyScheduleAssigned, applyScheduleCompleted } from '@/features/scheduling.slice';
 import { onOrgEvent } from '@/features/account-organization.event-bus';
 import { applyMemberJoined, applyMemberLeft } from '@/features/projection.organization-view';
-import { handleScheduleProposed } from '@/features/account-organization.schedule';
+import { handleScheduleProposed } from '@/features/scheduling.slice';
 import { applySkillXpAdded, applySkillXpDeducted } from '@/features/projection.account-skill-view';
 import {
   applyOrgMemberSkillXp,
@@ -47,7 +47,7 @@ import {
   applyDemandAssignmentCancelled,
   applyDemandProposalCancelled,
   applyDemandAssignRejected,
-} from '@/features/projection.demand-board';
+} from '@/features/scheduling.slice';
 import { onTagEvent } from '@/features/centralized-tag';
 import {
   applyTagCreated,
