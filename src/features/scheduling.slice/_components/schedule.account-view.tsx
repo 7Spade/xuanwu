@@ -5,20 +5,24 @@
  * all write operations (approve/reject/assign).
  *
  * Tabs:
- *   - 排程日曆 (Calendar): unified calendar + governance sidebar
- *   - 需求看板 (Demand Board): FR-W0/FR-W6 workforce demand board (人力安排)
- *   - HR 治理 (HR Governance): skill-aware proposal assignment (OrgScheduleGovernance)
+ *   - 排程日曆 (Calendar): unified calendar grid + upcoming/present/history tables
+ *   - 人力管理 (Workforce): skill-aware proposal assignment + lifecycle (OrgScheduleGovernance)
+ *
+ * Merge rationale:
+ *   - DemandBoard (old Tab 2) removed: OrgScheduleGovernance covers the same lifecycle
+ *     (PROPOSAL → assign + approve → OFFICIAL → complete) with superior skill-tier matching.
+ *   - GovernanceSidebar removed from Calendar tab: having approve/reject in two places
+ *     (sidebar + HR tab) fragmented the workflow. Calendar is now a clean read-only view.
  */
 "use client";
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, UserPlus, Calendar, ListChecks, History, LayoutGrid, Users } from "lucide-react";
+import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users } from "lucide-react";
 import { toast } from "@/shared/utility-hooks/use-toast";
 import type { ScheduleItem } from "@/shared/types";
 import { UnifiedCalendarGrid } from "./unified-calendar-grid";
 import { ScheduleDataTable } from "./schedule-data-table";
-import { GovernanceSidebar } from "./governance-sidebar";
 import { useGlobalSchedule } from "../_hooks/use-global-schedule";
 import { decisionHistoryColumns } from "./decision-history-columns";
 import { upcomingEventsColumns } from "./upcoming-events-columns";
@@ -35,7 +39,6 @@ import { Button } from "@/shared/shadcn-ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
 import { useScheduleActions } from "../_hooks/use-schedule-commands";
 import { useApp } from "@/shared/app-providers/app-context";
-import { DemandBoard } from "./demand-board";
 import { OrgScheduleGovernance } from "./org-schedule-governance";
 
 export function AccountScheduleSection() {
@@ -44,7 +47,7 @@ export function AccountScheduleSection() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const { allItems, pendingProposals, decisionHistory, upcomingEvents, presentEvents, organizationMembers } = useGlobalSchedule();
+  const { allItems, decisionHistory, upcomingEvents, presentEvents, organizationMembers } = useGlobalSchedule();
   const { assignMember, unassignMember, approveItem, rejectItem } = useScheduleActions();
 
   const handleAction = useCallback(async (item: ScheduleItem, newStatus: 'OFFICIAL' | 'REJECTED') => {
@@ -131,41 +134,26 @@ export function AccountScheduleSection() {
             <Calendar className="size-4" />
             排程日曆
           </TabsTrigger>
-          <TabsTrigger value="demand-board" className="gap-2">
-            <LayoutGrid className="size-4" />
-            需求看板（人力安排）
-          </TabsTrigger>
-          <TabsTrigger value="hr-governance" className="gap-2">
+          <TabsTrigger value="hr-management" className="gap-2">
             <Users className="size-4" />
-            HR 治理
+            人力管理
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Calendar + Governance Sidebar */}
+        {/* Tab 1: Calendar — full-width grid + upcoming/present/history tables */}
         <TabsContent value="calendar" className="flex flex-1 flex-col gap-8">
-          <div className="flex min-h-[60vh] flex-1 flex-col overflow-hidden rounded-xl border bg-card md:flex-row">
-            <div className="flex flex-col md:flex-[2] xl:flex-[3]">
-              <div className="relative flex-1 overflow-hidden">
-                <UnifiedCalendarGrid
-                  items={allItems}
-                  members={organizationMembers}
-                  viewMode="organization"
-                  currentDate={currentDate}
-                  onMonthChange={handleMonthChange}
-                  onItemClick={onItemClick}
-                  onApproveProposal={approveProposal}
-                  onRejectProposal={rejectProposal}
-                  renderItemActions={renderItemActions}
-                />
-              </div>
-            </div>
-            <div className="flex min-w-[300px] flex-col border-t md:flex-[1] md:border-l md:border-t-0">
-              <GovernanceSidebar
-                proposals={pendingProposals}
-                onApprove={approveProposal}
-                onReject={rejectProposal}
-              />
-            </div>
+          <div className="min-h-[60vh] overflow-hidden rounded-xl border bg-card">
+            <UnifiedCalendarGrid
+              items={allItems}
+              members={organizationMembers}
+              viewMode="organization"
+              currentDate={currentDate}
+              onMonthChange={handleMonthChange}
+              onItemClick={onItemClick}
+              onApproveProposal={approveProposal}
+              onRejectProposal={rejectProposal}
+              renderItemActions={renderItemActions}
+            />
           </div>
 
           <div className="space-y-8">
@@ -193,13 +181,11 @@ export function AccountScheduleSection() {
           </div>
         </TabsContent>
 
-        {/* Tab 2: Workforce Demand Board (人力安排) — FR-W0 / FR-W6 */}
-        <TabsContent value="demand-board">
-          <DemandBoard />
-        </TabsContent>
-
-        {/* Tab 3: HR Governance — skill-aware proposal assignment */}
-        <TabsContent value="hr-governance">
+        {/* Tab 2: 人力管理 — unified workforce management
+            Covers: PROPOSAL (skill-aware assign + approve/cancel) + OFFICIAL (mark complete).
+            Supersedes the old DemandBoard tab (simple assign) and the GovernanceSidebar
+            (approve-only, no assignment) that previously lived in the Calendar tab. */}
+        <TabsContent value="hr-management">
           <OrgScheduleGovernance />
         </TabsContent>
       </Tabs>
