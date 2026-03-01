@@ -1,65 +1,55 @@
 ---
 applyTo: '**/*.tsx, **/*.ts, **/*.jsx, **/*.js'
-description: 'Playwright MCP testing workflow for this project: page verification, issue diagnosis, bottleneck analysis, and safe optimization loops.'
+description: 'Playwright MCP (playwright-browser_* tools) for browser-based E2E testing. next-devtools MCP (nextjs_index/nextjs_call) for RSC/route server diagnostics. Do NOT call browser_eval with action:evaluate during a Playwright snapshot flow — it locks the browser.'
 ---
 
-# Playwright MCP Testing & Optimization Instructions
+# Playwright MCP Testing
 
-## Goal
+Use the `playwright-browser_*` MCP tools for all browser-based testing.
 
-Use Playwright MCP as the default browser-validation path for this project to:
+> ⚠️ Do **NOT** use `next-devtools-browser_eval` with `action: "evaluate"` during a Playwright MCP flow — it locks the browser and makes `playwright-browser_snapshot` unavailable.
+>
+> `next-devtools-nextjs_index` / `next-devtools-nextjs_call` query the **Next.js dev server** (not the browser) and are **safe to use alongside Playwright**.
 
-1. verify real page behavior (not only HTTP status),
-2. detect UI/runtime errors,
-3. identify bottlenecks,
-4. apply root-cause fixes without changing intended behavior.
+## Tool Reference
 
-## Test Account (Project Test Environment Only)
+| Task | Tool |
+|------|------|
+| Open a URL | `playwright-browser_navigate { url }` |
+| Get element refs (accessibility tree) | `playwright-browser_snapshot` |
+| Click an element | `playwright-browser_click { element, ref }` |
+| Type into a field | `playwright-browser_type { element, ref, text }` |
+| Fill multiple fields | `playwright-browser_fill_form { fields: [{name, type, ref, value}] }` |
+| Take a screenshot | `playwright-browser_take_screenshot { fullPage }` |
+| Read console messages | `playwright-browser_console_messages` |
+| Wait for text | `playwright-browser_wait_for { text }` |
+| Press a key | `playwright-browser_press_key { key }` |
 
-- Email: `test@demo.com`
-- Password: `123456`
+## How `ref` Values Work
 
-Use this account only for local/dev validation in this repository.
-Do not reuse this credential in staging/production or any public-facing environment.
-If testing in any shared environment, replace this password immediately and provide credentials via secure env/secret storage.
+`playwright-browser_navigate` and `playwright-browser_snapshot` return a YAML accessibility tree:
+
+```yaml
+- textbox "Email" [ref=e49]
+- textbox "Password" [ref=e51]
+- button "Sign In" [ref=e52]
+```
+
+Use those refs in `click`, `type`, and `fill_form` calls. **Re-snapshot after every navigation** to get fresh refs.
 
 ## Standard Workflow
 
-### 1) Start and navigate
+1. `playwright-browser_navigate` → get initial snapshot with element refs
+2. `playwright-browser_fill_form` → fill credentials using refs from snapshot
+3. `playwright-browser_click` → click submit using its ref
+4. `playwright-browser_wait_for` → confirm page loaded
+5. `playwright-browser_snapshot` → get fresh refs for new page
+6. `playwright-browser_console_messages` → check for errors
+7. `playwright-browser_take_screenshot` → capture visual evidence
 
-- Start browser session
-- Open target route (e.g. `/login`, `/dashboard`, `/dashboard/workspaces`)
-- Wait for page to stabilize before assertions
+## Test Credentials (Dev/Test only)
 
-### 2) Authentication flow
-
-- If route requires auth, use the test account above to sign in.
-- Confirm redirect target and key UI shell are rendered.
-
-### 3) Collect diagnostics
-
-Always capture:
-
-- page snapshot (a11y tree or structured snapshot),
-- browser console messages,
-- network request anomalies (failed requests, long requests),
-- full-page screenshot for the current state.
-
-### 4) Analyze bottlenecks
-
-Prioritize bottlenecks in this order:
-
-1. runtime errors/hydration failures,
-2. repeated network failures or retries,
-3. slow first render / blocking UI states,
-4. obvious re-render hotspots from interactions.
-
-### 5) Fix from root cause first
-
-- Identify and document the root cause before patching symptoms.
-- Implement the smallest change that fully resolves the root cause (not just visible symptoms).
-- Preserve behavior and existing contracts unless requirement explicitly changes them.
-- Re-run the same Playwright scenario to verify no regressions.
+- Login: `test@demo.com` / `123456`
 
 ## Required Route Coverage (minimum)
 
@@ -67,20 +57,4 @@ Prioritize bottlenecks in this order:
 - `/dashboard`
 - `/dashboard/account/settings`
 - `/dashboard/workspaces`
-- one dynamic workspace route: `/dashboard/workspaces/[id]` (use available id from UI navigation)
-
-## Expected Validation Artifacts
-
-For every meaningful fix, keep evidence:
-
-- before/after screenshot,
-- before/after console error summary,
-- short note of root cause and exact fix.
-
-## Optimization Heuristics for This Project
-
-- Prefer SSR-safe fixes over client-only workarounds.
-- Avoid creating new abstractions unless a repeated issue demands it.
-- If changing component internals, preserve props/API and visual output.
-- If touching data flows, keep existing layer boundaries:
-  `app -> components -> context -> hooks -> infra -> lib -> types`.
+- One `/dashboard/workspaces/[id]` reached via UI navigation

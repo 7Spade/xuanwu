@@ -28,6 +28,7 @@ export default tseslint.config(
       "build/**",
       "next-env.d.ts",
       "functions/**",
+      "firebase/**",
       // shadcn-ui scaffolded primitives — do not lint (flat config does not read .eslintignore)
       "src/shared/shadcn-ui/**",
     ],
@@ -153,7 +154,7 @@ export default tseslint.config(
   },
 
   // ── VSA one-way dependency rules (D1–D12, D19–D20) ──────────────────────
-  // Reference: docs/logic-overview.md §D1–D20, docs/project-structure.md §D1–D12
+  // Reference: docs/logic-overview.md §D1–D25
   //
   // Enforced dependency direction:
   //
@@ -193,10 +194,11 @@ export default tseslint.config(
   // Firestore calls, no side effects (D8). Shared kernel slices are the canonical
   // cross-BC contract boundary (D19, D20).
   // All current shared kernel slices follow the `shared.kernel.<name>` folder
-  // naming convention (see docs/project-structure.md §VS0), so the glob
+  // naming convention (see docs/logic-overview.md §VS0 / Shared Kernel), so the glob
   // `shared.kernel.*/**` captures exactly the right set.
   {
-    files: ["src/features/shared.kernel.*/**/*.{ts,tsx}"],
+    files: ["src/features/shared-kernel/**/*.{ts,tsx}"],
+    ignores: ["src/features/shared-kernel/centralized-tag/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -205,12 +207,12 @@ export default tseslint.config(
             {
               group: ["@/shared/infra", "@/shared/infra/**"],
               message:
-                "shared.kernel.* must be pure — no infrastructure imports allowed (D8)",
+                "shared-kernel must be pure — no infrastructure imports allowed (D8)",
             },
             {
               group: ["firebase/**", "firebase-admin/**", "firebase-functions/**"],
               message:
-                "shared.kernel.* must be pure — no Firebase SDK imports allowed (D8)",
+                "shared-kernel must be pure — no Firebase SDK imports allowed (D8)",
             },
           ],
         },
@@ -275,6 +277,30 @@ export default tseslint.config(
               ],
               message:
                 "Domain slices must not import infra.event-router directly — use infra.outbox-relay for event delivery (D1)",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ── D24: Firebase isolation — feature slices (warn, migration in progress) ──
+  // Feature slices must not import Firebase SDK directly; all Firebase access
+  // must go through FIREBASE_ACL adapters via SK_PORTS (D24).
+  // Severity: warn (existing violations tracked; new code must not add more).
+  // infra.* slices are exempt — they ARE the ACL adapters.
+  {
+    files: ["src/features/**/*.{ts,tsx}"],
+    ignores: ["src/features/infra.*/**"],
+    rules: {
+      "no-restricted-imports": [
+        "warn",
+        {
+          patterns: [
+            {
+              group: ["firebase/**", "firebase-admin/**", "firebase-functions/**"],
+              message:
+                "Feature slices must not import Firebase SDK directly — use SK_PORTS via @/shared/ports instead (D24). All Firebase calls must go through FIREBASE_ACL adapters (src/shared/infra/).",
             },
           ],
         },

@@ -1,82 +1,77 @@
 ---
 agent: 'agent'
-tools: ['edit/editFiles', 'playwright-browser_*', 'bash']
-description: 'Run Playwright MCP end-to-end checks on project pages, diagnose UI/runtime/performance bottlenecks, and apply root-cause-safe fixes.'
+tools: ['edit/editFiles', 'playwright-browser_*', 'next-devtools', 'bash']
+description: 'Integrated testing prompt: run Playwright MCP for UI/E2E validation and next-devtools MCP for RSC/route diagnostics. Diagnose bottlenecks and apply root-cause-safe fixes.'
 ---
 
-# Playwright MCP Web Test, Diagnose, Fix & Optimize
+# Integrated Test, Diagnose, Fix & Optimize
 
-Use this prompt when you need full browser-based validation and optimization for this project.
+Use this prompt for full browser-based validation (Playwright MCP) combined with Next.js runtime diagnostics (next-devtools MCP).
 
 ## Test Credentials (Dev/Test only)
 
-- Email: `test@demo.com`
-- Password: `123456`
+- Email: `test@demo.com` / Password: `123456`
+- Registration: `demo{n}` / `test{n}@demo.com` / `123456`
 
-This credential is for local/dev testing only. Never reuse it for staging/production/public environments.
-For shared test environments, rotate this password and load credentials from secure secret storage.
+Never reuse for staging/production. Load credentials from secure secret storage in shared environments.
 
-## Execution Contract
+## Tool Strategy
 
-1. Use Playwright MCP to run real browser flows (no shortcut via only curl/log inspection).
-2. Test target pages, collect errors/bottlenecks, identify root cause, then patch with the smallest change that fully resolves the root cause.
-3. Re-test the same flows to prove the issue is fixed and no new regressions are introduced.
+| Phase | Tool |
+|-------|------|
+| Login, forms, UI interactions | Playwright MCP |
+| Console errors, screenshots, network | Playwright MCP |
+| RSC boundary / Server-Client split | next-devtools MCP |
+| Parallel Route `@slot` validation | next-devtools MCP |
+| Suspense/Streaming analysis | next-devtools MCP |
+| Build/compilation errors | next-devtools MCP |
+| Hydration mismatch root cause | Playwright (symptoms) + next-devtools (root cause) |
 
 ## Mandatory Steps
 
-### A. Baseline check
+### A. Baseline Check (Playwright)
 
 - Navigate to `/login`
-- Authenticate with test account
-- Validate post-login route
-- Capture:
-  - console errors/warnings,
-  - failed network requests,
-  - screenshot
+- Authenticate with test credentials
+- Capture: console errors/warnings, failed network requests, screenshot
 
-### B. Route sweep
+### B. Route Sweep (Playwright)
 
-Validate at least:
+For each of `/dashboard`, `/dashboard/account/settings`, `/dashboard/workspaces`, one `/dashboard/workspaces/[id]`:
 
-- `/dashboard`
-- `/dashboard/account/settings`
-- `/dashboard/workspaces`
-- one `/dashboard/workspaces/[id]` route reached via UI interaction
+- Wait for stable render
+- Detect loading deadlocks, hydration errors, broken interactions
+- Capture a11y snapshot and screenshot
 
-For each route:
+### C. RSC & Route Diagnostics (next-devtools)
 
-- wait for stable render,
-- detect loading deadlocks, hydration/runtime errors, broken interactions,
-- capture snapshot and screenshot.
+- Check RSC boundary placement (look for unnecessary `'use client'` at layout level)
+- Validate `@slot` Parallel Routes render correctly
+- Verify Suspense boundaries maximize streaming
 
-### C. Bottleneck diagnosis
+### D. Bottleneck Analysis
 
 Summarize issues by priority:
 
-1. functional breakage,
-2. runtime exceptions,
-3. repeated failed requests,
-4. slow interactions/long loading states.
+1. Functional breakage
+2. Runtime exceptions / hydration failures
+3. Repeated failed requests (4xx/5xx)
+4. Slow interactions / blocking loading states
 
-### D. Fix and optimize
+### E. Fix and Optimize
 
-- Apply root-cause, behavior-preserving fixes.
-- Prefer existing project patterns/components.
-- Keep architecture boundaries and SRP intact.
+- Apply root-cause, behavior-preserving fixes
+- Prefer existing project patterns and components
+- Keep architecture boundaries intact: `app → components → context → hooks → infra → lib → types`
 
-### E. Verification loop
+### F. Verification Loop
 
-- Re-run baseline + route sweep on changed areas.
-- Confirm:
-  - issue resolved,
-  - no new console errors introduced,
-  - no broken critical user path.
+- Re-run baseline + route sweep on changed areas
+- Confirm: issue resolved, no new console errors, no broken critical path
 
 ## Output Format
 
-Provide:
-
-1. **Issue List**: route + symptom + root cause
+1. **Issue List**: route + symptom + root cause + tool used
 2. **Patch Summary**: exact files changed and why
-3. **Verification Evidence**: before/after screenshots + console delta
+3. **Verification Evidence**: before/after screenshots + console error delta
 4. **Residual Risk**: known limits or follow-up recommendations

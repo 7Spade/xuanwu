@@ -37,7 +37,6 @@
  *   After migration, this handler becomes the sole claims dispatcher as the invariant states.
  */
 
-import { registerSubscriber } from '@/features/infra.event-router';
 import { logDomainError } from '@/features/observability';
 import type { EventEnvelope } from '@/features/shared-kernel/event-envelope';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -113,6 +112,25 @@ async function handleClaimsRefreshTrigger(envelope: EventEnvelope): Promise<void
 // ---------------------------------------------------------------------------
 // Public — registration
 // ---------------------------------------------------------------------------
+// Public — IER lane type (mirrored from infra.event-router to avoid direct import [D1])
+// ---------------------------------------------------------------------------
+
+/** IER delivery lane — mirrors infra.event-router IerLane [D1 compliance].
+ *  Keep in sync with `IerLane` in @/features/infra.event-router/_router.ts. */
+type IerLane = 'CRITICAL_LANE' | 'STANDARD_LANE' | 'BACKGROUND_LANE';
+
+/**
+ * Subscriber registrar function — injected by the caller so that identity.slice
+ * does not import infra.event-router directly [D1].
+ *
+ * Callers (e.g., app bootstrap or infra.* coordinator) should pass
+ * `registerSubscriber` from `@/features/infra.event-router`.
+ */
+export type ClaimsSubscriberRegistrar = (
+  eventType: string,
+  handler: (envelope: EventEnvelope) => Promise<void>,
+  lane: IerLane
+) => () => void;
 
 /**
  * Registers the CLAIMS_HANDLER on IER CRITICAL_LANE for all Claims refresh triggers.
@@ -120,18 +138,26 @@ async function handleClaimsRefreshTrigger(envelope: EventEnvelope): Promise<void
  * Must be called ONCE at app startup (e.g., in app-provider or root layout server init).
  * Returns an unsubscribe function for cleanup.
  *
+ * The `registerFn` parameter is the IER `registerSubscriber` function, injected by the
+ * caller to avoid a direct infra.event-router import from this domain slice [D1].
+ *
+ * Example:
+ *   import { registerSubscriber } from '@/features/infra.event-router';
+ *   import { registerClaimsHandler } from '@/features/identity.slice';
+ *   const unsub = registerClaimsHandler(registerSubscriber);
+ *
  * Covered trigger event types [SK_TOKEN_REFRESH_CONTRACT]:
  *   - `account:role:changed`   → RoleChanged trigger
  *   - `account:policy:changed` → PolicyChanged trigger
  */
-export function registerClaimsHandler(): () => void {
-  const unsubRoleChanged = registerSubscriber(
+export function registerClaimsHandler(registerFn: ClaimsSubscriberRegistrar): () => void {
+  const unsubRoleChanged = registerFn(
     'account:role:changed',
     handleClaimsRefreshTrigger,
     'CRITICAL_LANE'
   );
 
-  const unsubPolicyChanged = registerSubscriber(
+  const unsubPolicyChanged = registerFn(
     'account:policy:changed',
     handleClaimsRefreshTrigger,
     'CRITICAL_LANE'

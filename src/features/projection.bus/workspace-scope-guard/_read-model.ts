@@ -8,7 +8,7 @@
  * Invariant #8: Implements shared-kernel.authority-snapshot contract.
  */
 
-import type { Timestamp } from 'firebase/firestore';
+import type { Timestamp } from '@/shared/ports';
 import type { AuthoritySnapshot } from '@/features/shared-kernel/authority-snapshot';
 
 export interface WorkspaceScopeGuardView {

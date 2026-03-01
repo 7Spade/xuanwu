@@ -1,6 +1,6 @@
 import type { Location } from './workspace.types'
 import type { SkillRequirement } from './skill.types'
-import type { Timestamp } from 'firebase/firestore'
+import type { Timestamp } from '@/shared/ports'
 
 export type ScheduleStatus = 'PROPOSAL' | 'OFFICIAL' | 'REJECTED' | 'COMPLETED';
 

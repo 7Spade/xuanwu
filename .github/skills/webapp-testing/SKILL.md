@@ -1,116 +1,78 @@
 ---
 name: webapp-testing
-description: Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.
+description: Toolkit for interacting with and testing local web applications using Playwright MCP tools. Use when asked to verify frontend functionality, debug UI behavior, capture browser screenshots, check for visual regressions, or view browser console logs. Supports Chrome, Firefox, and WebKit browsers.
 ---
 
 # Web Application Testing
 
-This skill enables comprehensive testing and debugging of local web applications using Playwright automation.
+This skill enables browser automation and E2E testing using the **Playwright MCP tools** (`playwright-browser_*`).
+
+## ⚠️ Use `playwright-browser_*` MCP tools directly
+
+Do **NOT** use `next-devtools-browser_eval` or `browser_eval` with `action: "evaluate"` for testing:
+- They lock the browser, making `playwright-browser_snapshot` unavailable
+- Code runs inside browser context where the `page` object does not exist
+
+## Playwright MCP Tool Reference
+
+| Task | Tool |
+|------|------|
+| Open a URL | `playwright-browser_navigate { url }` |
+| Get element refs (accessibility tree) | `playwright-browser_snapshot` |
+| Click an element | `playwright-browser_click { element, ref }` |
+| Type into a field | `playwright-browser_type { element, ref, text }` |
+| Fill multiple fields | `playwright-browser_fill_form { fields: [{name, type, ref, value}] }` |
+| Take a screenshot | `playwright-browser_take_screenshot { fullPage }` |
+| Read console messages | `playwright-browser_console_messages` |
+| Wait for text | `playwright-browser_wait_for { text }` |
+| Press a key | `playwright-browser_press_key { key }` |
+
+## How `ref` Values Work
+
+`playwright-browser_navigate` and `playwright-browser_snapshot` return a YAML accessibility tree with `ref` values:
+
+```yaml
+- textbox "Email" [ref=e49]
+- textbox "Password" [ref=e51]
+- button "Sign In" [ref=e52]
+```
+
+Use those refs in `click`, `type`, and `fill_form`. After any navigation, call `playwright-browser_snapshot` to get fresh refs.
+
+## Standard Workflow
+
+```
+1. playwright-browser_navigate { url: "http://localhost:9002/login" }
+   → snapshot in response shows element refs
+
+2. playwright-browser_fill_form {
+     fields: [
+       { name: "email", type: "textbox", ref: "e49", value: "test@demo.com" },
+       { name: "password", type: "textbox", ref: "e51", value: "123456" }
+     ]
+   }
+
+3. playwright-browser_click { element: "Sign In button", ref: "e52" }
+
+4. playwright-browser_wait_for { text: "Dashboard" }
+
+5. playwright-browser_snapshot   ← get fresh refs after navigation
+
+6. playwright-browser_console_messages   ← check for errors
+
+7. playwright-browser_take_screenshot { fullPage: true }
+```
+
+## Test Credentials (Dev/Test only)
+
+- Login: `test@demo.com` / `123456`
+- Registration: `demo{n}` / `test{n}@demo.com` / `123456`
 
 ## When to Use This Skill
 
-Use this skill when you need to:
-- Test frontend functionality in a real browser
-- Verify UI behavior and interactions
-- Debug web application issues
-- Capture screenshots for documentation or debugging
-- Inspect browser console logs
-- Validate form submissions and user flows
-- Check responsive design across viewports
-
-## Prerequisites
-
-- Node.js installed on the system
-- A locally running web application (or accessible URL)
-- Playwright will be installed automatically if not present
-
-## Core Capabilities
-
-### 1. Browser Automation
-- Navigate to URLs
-- Click buttons and links
-- Fill form fields
-- Select dropdowns
-- Handle dialogs and alerts
-
-### 2. Verification
-- Assert element presence
-- Verify text content
-- Check element visibility
-- Validate URLs
-- Test responsive behavior
-
-### 3. Debugging
-- Capture screenshots
-- View console logs
-- Inspect network requests
-- Debug failed tests
-
-## Usage Examples
-
-### Example 1: Basic Navigation Test
-```javascript
-// Navigate to a page and verify title
-await page.goto('http://localhost:3000');
-const title = await page.title();
-console.log('Page title:', title);
-```
-
-### Example 2: Form Interaction
-```javascript
-// Fill out and submit a form
-await page.fill('#username', 'testuser');
-await page.fill('#password', 'password123');
-await page.click('button[type="submit"]');
-await page.waitForURL('**/dashboard');
-```
-
-### Example 3: Screenshot Capture
-```javascript
-// Capture a screenshot for debugging
-await page.screenshot({ path: 'debug.png', fullPage: true });
-```
-
-## Guidelines
-
-1. **Always verify the app is running** - Check that the local server is accessible before running tests
-2. **Use explicit waits** - Wait for elements or navigation to complete before interacting
-3. **Capture screenshots on failure** - Take screenshots to help debug issues
-4. **Clean up resources** - Always close the browser when done
-5. **Handle timeouts gracefully** - Set reasonable timeouts for slow operations
-6. **Test incrementally** - Start with simple interactions before complex flows
-7. **Use selectors wisely** - Prefer data-testid or role-based selectors over CSS classes
-
-## Common Patterns
-
-### Pattern: Wait for Element
-```javascript
-await page.waitForSelector('#element-id', { state: 'visible' });
-```
-
-### Pattern: Check if Element Exists
-```javascript
-const exists = await page.locator('#element-id').count() > 0;
-```
-
-### Pattern: Get Console Logs
-```javascript
-page.on('console', msg => console.log('Browser log:', msg.text()));
-```
-
-### Pattern: Handle Errors
-```javascript
-try {
-  await page.click('#button');
-} catch (error) {
-  await page.screenshot({ path: 'error.png' });
-  throw error;
-}
-```
-
-## Limitations
-
-- Requires Node.js environment
-- Cannot test native mobile apps (use React Native Testing Library instead)
-- May have issues with complex authentication flows
-- Some modern frameworks may require specific configuration
+- Login, registration, and authentication flows
+- Form submission and validation
+- Navigation and routing verification
+- Console error detection
+- Visual screenshot capture
+- UI interaction testing

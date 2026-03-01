@@ -1,4 +1,4 @@
-import type { Timestamp } from 'firebase/firestore'
+import type { Timestamp } from '@/shared/ports'
 
 export interface AuditLog {
   id: string;

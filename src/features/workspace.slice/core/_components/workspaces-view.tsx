@@ -1,8 +1,8 @@
-import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces";
-// [職責] Workspaces list view — contains all state and rendering logic
 "use client";
+// [職責] Workspaces list view — contains all state and rendering logic
 
 import { useState, useEffect } from "react";
+import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces";
 import { Terminal } from "lucide-react";
 import { useApp } from "../_hooks/use-app";
 import { useI18n } from "@/shared/app-providers/i18n-provider";

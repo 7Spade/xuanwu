@@ -2,8 +2,8 @@
  * shared.kernel — VS0 Shared Kernel Public API
  *
  * The global contract centre. Every cross-BC contract is defined here.
- * Feature slices import from '@/features/shared.kernel' — never from the
- * individual flat 'shared.kernel.*' directories directly.
+ * Feature slices import from '@/features/shared-kernel' — never from the
+ * individual sub-directories directly.
  *
  * Sub-module layout:
  *
@@ -22,8 +22,9 @@
  * │  token-refresh-contract SK_TOKEN_REFRESH [S6] Claims refresh handshake     │
  * ├─ 🏷️ Tag Authority Center ───────────────────────────────────────────────────┤
  * │  tag-authority         [#A6][#17][D21]        Tag contract types (RO only)  │
- * └─ 🔌 Infrastructure Ports ───────────────────────────────────────────────────┤
- *    infrastructure-ports  SK_PORTS [D24]         Dependency-inversion ports   │
+ * ├─ 🔌 Infrastructure Ports ───────────────────────────────────────────────────┤
+ * │  infrastructure-ports  SK_PORTS [D24]         Dependency-inversion ports   │
+ * │                        Timestamp               D24-compliant Timestamp type │
  * └────────────────────────────────────────────────────────────────────────────┘
  *
  * Dependency rule: zero infrastructure imports in any sub-module.
@@ -135,6 +136,6 @@ export type {
 // ─── 🔌 Infrastructure Ports [D24] ───────────────────────────────────────────
 
 export type { IAuthService, AuthUser } from './infrastructure-ports';
-export type { IFirestoreRepo, FirestoreDoc, WriteOptions } from './infrastructure-ports';
+export type { IFirestoreRepo, FirestoreDoc, Timestamp, WriteOptions } from './infrastructure-ports';
 export type { IMessaging, PushNotificationPayload } from './infrastructure-ports';
 export type { IFileStore, UploadOptions } from './infrastructure-ports';
