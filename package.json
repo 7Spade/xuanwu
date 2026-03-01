@@ -13,11 +13,8 @@
   "homepage": "https://Ac-Xuanwu.com",
   "license": "MIT",
   "private": true,
-  "workspaces": [
-    "firebase/functions"
-  ],
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "scripts": {
     "dev": "next dev --turbopack -p 9002",
