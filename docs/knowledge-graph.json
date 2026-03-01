@@ -1,11 +1,11 @@
 {
   "meta": {
-    "version": "3.0.0",
+    "version": "4.0.0",
     "initializedAt": "2026-02-26",
-    "updatedAt": "2026-02-26",
+    "updatedAt": "2026-03-01",
     "source": "docs/logic-overview.md (SSOT) + docs/*.md (supplementary) + src/features/ (code state)",
     "ssot": "docs/logic-overview.md",
-    "note": "v3: deep analysis from logic-overview.md. All invariants, contracts, slice definitions, code paths, and IER routing fully captured."
+    "note": "v4.1: VS3→skill-xp.slice, VS5→workspace.slice (unified), VS6 deprecated shims removed, VS7→notification.slice, VS8→projection.bus (8 sub-dirs). All D9/D11/D22/TE references updated. Single entry points enforced."
   },
   "entities": [
     {
@@ -17,8 +17,8 @@
         "Defines VS0-VS9 vertical slices, 3-Gateway CQRS architecture (Command Bus / IER / Query Gateway)",
         "Contains 6 VS0 shared kernel infrastructure contracts: S1 (SK_OUTBOX_CONTRACT), S2 (SK_VERSION_GUARD), S3 (SK_READ_CONSISTENCY), S4 (SK_STALENESS_CONTRACT), S5 (SK_RESILIENCE_CONTRACT), S6 (SK_TOKEN_REFRESH_CONTRACT)",
         "Contains 5 VS0 foundation data contracts: SK_ENV, SK_AUTH_SNAP, SK_SKILL_TIER, SK_SKILL_REQ, SK_CMD_RESULT",
-        "Contains 19 Consistency Invariants (#1-#19), 11 Atomicity Rules (#A1-#A11), 18 Development Rules (D1-D18), 5 Tag Authority rules (T1-T5)",
-        "v10 key changes: S1-S6 six cross-slice patterns formalized as explicit contracts in VS0; D13-D18 development rules added"
+        "Contains 19 Consistency Invariants (#1-#19), 11 Atomicity Rules (#A1-#A11), 23 Development Rules (D1-D23), 5 Tag Authority rules (T1-T5)",
+        "v11 key changes: TE1-TE6 AI-ready semantic tag entity nodes added to TAG_ENTITIES (CTA); D21-D23 tag governance rules; VS6 unified to accounts/{orgId}/schedule_items as SSOT"
       ]
     },
     {
@@ -37,11 +37,11 @@
       "entityType": "Framework_Feature",
       "observations": [
         "Source file: .github/prompts/technology-stack-blueprint-generator.prompt.md + docs/tech-stack.md",
-        "Core frameworks: Next.js App Router (targeting Next.js 16 App Router patterns), Firebase Auth + Firestore, React 19",
+        "Core frameworks: Next.js App Router ^15.5.12, Firebase Auth + Firestore, React ^19.2.1",
         "State management: Server Actions for mutations, React Server Components first, 'use client' only at leaf nodes",
         "Infrastructure: Firebase Firestore as event store + projection store, Firebase Cloud Messaging (FCM) for push notifications",
         "AI layer: Genkit AI Flow for AI-driven business logic operations",
-        "Styling: Tailwind CSS v4, shadcn/ui components exclusively"
+        "Styling: Tailwind CSS ^3.4.17, shadcn/ui components exclusively"
       ]
     },
     {
@@ -93,10 +93,10 @@
       ]
     },
     {
-      "name": "Next_JS_16",
+      "name": "Next_JS_Framework",
       "entityType": "Framework_Feature",
       "observations": [
-        "Next.js 16 with App Router is the primary frontend framework (targeting v16 patterns even if current package is ^15.5.12)",
+        "Next.js App Router ^15.5.12 is the primary frontend framework",
         "Parallel Routes (@slot segments) for independent UI regions (e.g., @sidebar, @modal, @header, @plugintab)",
         "Intercepting routes for overlays/modals: (.)/(..) syntax",
         "Async request APIs: cookies(), headers(), params/searchParams may be Promises in Server Components — always await",
@@ -148,7 +148,7 @@
         "Genkit AI Flow is the AI business logic layer — handles AI-driven operations such as document parsing",
         "Genkit flows must respect VS5 document-parser boundary — ParsingIntent digital twin (#A4)",
         "AI-generated outputs are treated as proposals only — must enter Workspace via Command Handler",
-        "ParsingIntent: Digital Twin contract at src/features/workspace-business.parsing-intent/_contract.ts",
+        "ParsingIntent: Digital Twin contract at src/features/workspace.slice/business.parsing-intent/_contract.ts",
         "ParsingIntent allowed to propose: task drafts, finance commands, parsing exceptions (B-track issues)"
       ]
     },
@@ -242,7 +242,7 @@
       "observations": [
         "Contract ID: S6 — VS0 shared kernel infrastructure contract",
         "File: src/features/shared.kernel.token-refresh-contract/index.ts",
-        "Three-party handshake: VS1 (identity-account.auth CLAIMS_HANDLER) ↔ IER (CRITICAL_LANE) ↔ Frontend (token listener)",
+        "Three-party handshake: VS1 (identity.slice CLAIMS_HANDLER) ↔ IER (CRITICAL_LANE) ↔ Frontend (token listener)",
         "Trigger: RoleChanged | PolicyChanged → IER CRITICAL_LANE → CLAIMS_HANDLER → custom-claims set → TOKEN_REFRESH_SIGNAL",
         "Client obligation: receive TOKEN_REFRESH_SIGNAL → force re-fetch Firebase Token → next request carries new Claims",
         "Failure path: ClaimsRefresh failure → DLQ SECURITY_BLOCK → DOMAIN_ERRORS security alert",
@@ -267,12 +267,12 @@
         "#10: If module needs another module's internal Context state → boundary design error → redesign",
         "#11: XP belongs to Account BC; Organization only sets thresholds (minXpRequired)",
         "#12: Tier is always derived (getTier(xp)→Tier pure function) — never stored in DB",
-        "#13: XP mutations must write to XP ledger (account-skill-xp-ledger)",
+        "#13: XP mutations must write to XP ledger (skill-xp-ledger entries collection)",
         "#14: Schedule only reads ORG_ELIGIBLE_MEMBER_VIEW — never queries Aggregates for eligibility",
         "#15: eligible lifecycle: joined→true, assigned→false, completed/cancelled→true",
         "#16: Talent Repository = member + partner + team → ORG_ELIGIBLE_MEMBER_VIEW",
         "#17: centralized-tag.aggregate is sole authority for tagSlug semantics",
-        "#18: workspace-governance role inherits org-governance.policy hard constraints",
+        "#18: workspace.slice/gov.role inherits org-governance.policy hard constraints",
         "#19: All Projection updates must use aggregateVersion monotonic-increase as precondition [S2 generalized]"
       ]
     },
@@ -298,7 +298,7 @@
       "name": "Development_Rules",
       "entityType": "Project_Convention",
       "observations": [
-        "Source: docs/logic-overview.md — D1-D20 development rules (D1-D12 base constraints, D13-D18 v10 infra contracts, D19-D20 type ownership rules)",
+        "Source: docs/logic-overview.md — D1-D23 development rules (D1-D12 base constraints, D13-D20 v10 infra+type contracts, D21-D23 v11 tag governance)",
         "D1: Event delivery only via infra.outbox-relay; domain slice 禁止直接 import infra.event-router",
         "D2: Cross-slice import: from '@/features/{slice}/index' only; _*.ts files are private",
         "D3: All mutations: src/features/{slice}/_actions.ts only",
@@ -307,9 +307,9 @@
         "D6: 'use client' only in _components/ leaf nodes; layout/page server components 禁用",
         "D7: Cross-slice: import from '@/features/{other-slice}/index'; 禁止 _private 引用",
         "D8: shared.kernel.* 禁止 async functions, Firestore calls, side effects",
-        "D9: workspace-application/ TX Runner coordinates mutations; slices 不得互相 mutate",
+        "D9: workspace.slice/application/ TX Runner coordinates mutations; slices 不得互相 mutate",
         "D10: EventEnvelope.traceId only set at infra.gateway-command/CBG_ENTRY; 其他地方唯讀",
-        "D11: workspace-core.event-store supports projection rebuild; 必須持續同步",
+        "D11: workspace.slice/core.event-store supports projection rebuild; 必須持續同步",
         "D12: getTier() must import from shared.kernel.skill-tier; Firestore writes 禁帶 tier 欄位",
         "D13 (v10 new): New OUTBOX must declare DLQ tier in SK_OUTBOX_CONTRACT — must NOT redefine at-least-once locally [S1]",
         "D14 (v10 new): New Projection must reference SK_VERSION_GUARD in FUNNEL — must NOT skip aggregateVersion comparison [S2]",
@@ -318,7 +318,10 @@
         "D17 (v10 new): New external entry points (non-_actions.ts) must satisfy SK_RESILIENCE_CONTRACT before go-live [S5]",
         "D18 (v10 new): Claims refresh changes: SK_TOKEN_REFRESH_CONTRACT is sole spec; all three parties (VS1/IER/Frontend) must update simultaneously [S6]",
         "D19 (v10 new): Type ownership: cross-BC contracts must live in shared.kernel.* first; shared/types is legacy/common DTO fallback only",
-        "D20 (v10 new): Import precedence: shared.kernel.* > feature slice index.ts > shared/types; if concept exists in both, shared.kernel is authoritative"
+        "D20 (v10 new): Import precedence: shared.kernel.* > feature slice index.ts > shared/types; if concept exists in both, shared.kernel is authoritative",
+        "D21 (v11 new): New tag category must be defined in CTA TAG_ENTITIES; no slice may create its own semantic tag category [TE1-TE6]",
+        "D22 (v11 new): Cross-slice tag reference must point to TAG_USER_LEVEL/TAG_SKILL/TAG_SKILL_TIER/TAG_TEAM/TAG_ROLE/TAG_PARTNER; implicit tagSlug strings forbidden",
+        "D23 (v11 new): Tag annotation format — node text: '→ tag::{category} [{NODE_NAME}]'; semantic edge: '-.->|\"{dim} tag 語義\"| NODE_NAME'"
       ]
     },
     {
@@ -328,7 +331,7 @@
         "Source: docs/logic-overview.md — IER full routing table (v10 final)",
         "IER = integration-event-router — central event hub; ONLY Projection write path (#9); preserves envelope.traceId [R8]",
         "CRITICAL_LANE (high-priority eventual consistency): RoleChanged/PolicyChanged → CLAIMS_HANDLER [S6][E6] + TOKEN_REFRESH_SIGNAL; WalletDeducted/WalletCredited → FUNNEL CRITICAL_PROJ; OrgContextProvisioned → ORG_CONTEXT_ACL [E2]",
-        "STANDARD_LANE (async eventual SLA < 2s): SkillXpAdded/SkillXpDeducted → FUNNEL CRITICAL_PROJ [P2]; ScheduleAssigned → NOTIF_ROUTER + FUNNEL [E3]; ScheduleProposed → SCHEDULE_SAGA [A5] (scheduling-saga receives from IER, coordinates with account-organization.schedule); MemberJoined/Left → FUNNEL [#16]; All Domain Events → FUNNEL [#9]",
+        "STANDARD_LANE (async eventual SLA < 2s): SkillXpAdded/SkillXpDeducted → FUNNEL CRITICAL_PROJ [P2]; ScheduleAssigned → NOTIF_ROUTER + FUNNEL [E3]; ScheduleProposed → scheduling.slice/_saga [A5] (coordinates with scheduling.slice for HR approval); MemberJoined/Left → FUNNEL [#16]; All Domain Events → FUNNEL [#9]",
         "BACKGROUND_LANE (low-freq SLA < 30s): TagLifecycleEvent → FUNNEL + VS4_TAG_SUBSCRIBER [T1][R3]; AuditEvents → AUDIT_COLLECTOR [Q5]",
         "DLQ: 3 tiers: SAFE_AUTO (auto-replay with idempotency-key), REVIEW_REQUIRED (manual confirm), SECURITY_BLOCK (alert+freeze, manual only, NO auto-replay)",
         "infra.event-router: src/features/infra.event-router/ — IER implementation"
@@ -355,15 +358,27 @@
       "observations": [
         "Source: docs/logic-overview.md — VS0-VS9 subgraph definitions, docs/project-structure.md, src/features/ directory (code state)",
         "VS0 Shared Kernel (12 slices): shared.kernel.authority-snapshot, shared.kernel.constants, shared.kernel.contract-interfaces (SK_CMD_RESULT), shared.kernel.event-envelope, shared.kernel.outbox-contract, shared.kernel.read-consistency, shared.kernel.resilience-contract, shared.kernel.skill-tier, shared.kernel.staleness-contract, shared.kernel.tag-authority, shared.kernel.token-refresh-contract, shared.kernel.version-guard",
-        "VS1 Identity: identity-account.auth (CLAIMS_HANDLER, TOKEN_REFRESH_SIGNAL, completeRegistration→CommandResult)",
-        "VS2 Account: account-governance.role, account-governance.policy, account-governance.notification-router, account-organization.member, account-organization.partner, account-organization.policy, account-user.wallet (STRONG_READ #A1), account-user.profile, account-user.notification",
-        "VS3 Skill XP: account-skill (aggregate+XP ledger, _actions.ts AddXp/DeductXp → CommandResult, _queries.ts)",
-        "VS4 Organization: account-organization.core, account-organization.event-bus, account-organization.member, account-organization.partner, account-organization.team, account-organization.policy, organization-skill-recognition (SKILL_TAG_POOL + TAG_SUBSCRIBER), centralized-tag (TAG_AUTHORITY)",
-        "VS5 Workspace: workspace-core, workspace-core.event-bus, workspace-core.event-store, workspace-application (cmd-handler/scope-guard/policy-engine/tx-runner), workspace-governance.role (#18), workspace-governance.audit, workspace-governance.audit-convergence, workspace-governance.members, workspace-governance.partners, workspace-governance.schedule, workspace-governance.teams, workspace-business.files, workspace-business.document-parser, workspace-business.parsing-intent, workspace-business.tasks, workspace-business.daily, workspace-business.quality-assurance, workspace-business.acceptance, workspace-business.finance, workspace-business.issues, workspace-business.schedule, workspace-business.workflow (state machine R6)",
-        "VS6 Scheduling: scheduling-saga (IER STANDARD_LANE receives ScheduleProposed [A5], eligibility check #14, compensating: ScheduleAssignRejected/ScheduleProposalCancelled) + account-organization.schedule (HR Scheduling aggregate, approves/rejects proposals, emits ScheduleAssigned to sched-outbox)",
-        "VS7 Notification: account-governance.notification-router, account-user.notification (FCM push with traceId [R8])",
-        "VS8 Projections: projection.event-funnel (ONLY write path #9, SK_VERSION_GUARD S2), projection.registry, projection.workspace-scope-guard (CRITICAL ≤500ms #A9), projection.org-eligible-member-view (CRITICAL ≤500ms #14 #15 #16), projection.account-schedule, projection.account-skill-view (#12 getTier), projection.account-view (FCM Token #6), projection.organization-view, projection.global-audit-view (traceId R8), projection.account-audit (traceId R8), projection.tag-snapshot (BACKGROUND ≤30s T5), projection.workspace-view",
-        "VS9 Observability: infra.observability (trace-identifier, domain-metrics, domain-error-log); infra.dlq-manager, infra.event-router, infra.gateway-command, infra.gateway-query, infra.outbox-relay"
+        "VS1 Identity: identity.slice (CLAIMS_HANDLER, TOKEN_REFRESH_SIGNAL, completeRegistration→CommandResult)",
+        "VS2 Account: account.slice — sub-domains: gov.role, gov.policy, user.wallet (STRONG_READ #A1), user.profile. Unified public API: @/features/account.slice",
+        "VS3 Skill XP: skill-xp.slice (aggregate+XP ledger, _actions.ts AddXp/DeductXp → CommandResult, _queries.ts, _ledger.ts, _org-recognition.ts, _tag-pool.ts SKILL_TAG_POOL+VS3_TAG_SUBSCRIBER [T1,T2]). Canonical import: @/features/skill-xp.slice",
+        "VS4 Organization: organization.slice (unified) — sub-dirs: core, core.event-bus, gov.teams, gov.members (#A2), gov.partners, gov.policy [S6]. Also: centralized-tag (TAG_AUTHORITY VS0). Canonical import: @/features/organization.slice",
+        "VS5 Workspace: workspace.slice (unified) — sub-dirs: core, core.event-bus, core.event-store (D11), application (D9: cmd-handler/scope-guard/policy-engine/tx-runner), gov.role (#18), gov.audit, gov.audit-convergence, gov.members, gov.partners, gov.schedule, gov.teams, business.files, business.document-parser (#A4), business.parsing-intent, business.tasks, business.daily, business.quality-assurance, business.acceptance, business.finance, business.issues (B-track #A3), business.workflow (state machine [R6]). Canonical import: @/features/workspace.slice",
+        "VS6 Scheduling: scheduling.slice (unified — no deprecated shims). SSOT collection: accounts/{orgId}/schedule_items. Tabs: AccountScheduleSection (calendar + demand board + HR governance). Sub-modules: _aggregate, _actions, _queries, _saga (#A5), _projectors/demand-board, _projectors/account-schedule, _hooks, _components",
+        "VS7 Notification: notification.slice — sub-dirs: user.notification (FCM Layer 3, push with traceId [R8]), gov.notification-router (FCM Layer 2, stateless [#A10]). Canonical import: @/features/notification.slice",
+        "VS8 Projections: projection.bus (unified — EVENT_FUNNEL_INPUT, PROJECTION_VERSION, READ_MODEL_REGISTRY). All 8 sub-dirs inside projection.bus: workspace-scope-guard (CRITICAL ≤500ms #A9), org-eligible-member-view (CRITICAL ≤500ms #14–#16), workspace-view, account-view (FCM Token #6), organization-view, global-audit-view (traceId R8), account-audit (traceId R8), tag-snapshot (BACKGROUND ≤30s T5). Canonical import: @/features/projection.bus",
+        "VS9 Observability: observability (trace-identifier, domain-metrics, domain-error-log [R8]); infra.dlq-manager, infra.event-router, infra.gateway-command, infra.gateway-query, infra.outbox-relay"
+      ]
+    },
+    {
+      "name": "Tag_Semantic_Entities",
+      "entityType": "Architecture_Decision",
+      "observations": [
+        "Source: docs/logic-overview.md v11 — TAG_ENTITIES subgraph in CTA (centralized-tag aggregate)",
+        "Six AI-ready semantic entity nodes: TE1 TAG_USER_LEVEL (user_level), TE2 TAG_SKILL (skill), TE3 TAG_SKILL_TIER (skill_tier), TE4 TAG_TEAM (team), TE5 TAG_ROLE (role), TE6 TAG_PARTNER (partner)",
+        "tagSlug formats: user-level:{slug}, skill:{slug}, skill-tier:{tier}, team:{slug}, role:{slug}, partner:{slug}",
+        "D21: new tag category must be defined in CTA; slices must not create own semantic tag categories",
+        "D22: cross-slice tag reference must point to these entity nodes; implicit tagSlug strings are forbidden",
+        "D23: node annotation '→ tag::{category} [{NODE_NAME}]'; edge annotation '-.->|\"{dim} tag 語義\"| NODE_NAME'"
       ]
     }
   ],
@@ -454,7 +469,7 @@
       "relationType": "DEPENDS_ON"
     },
     {
-      "from": "Next_JS_16",
+      "from": "Next_JS_Framework",
       "to": "Architecture_Governance_Principles",
       "relationType": "FOLLOWS"
     },
@@ -595,7 +610,7 @@
     },
     {
       "from": "Vertical_Slice_Architecture",
-      "to": "Next_JS_16",
+      "to": "Next_JS_Framework",
       "relationType": "DEPENDS_ON"
     },
     {
@@ -647,6 +662,21 @@
       "from": "Compliance_Audit_Standard",
       "to": "Server_Actions_Convention",
       "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Tag_Semantic_Entities",
+      "to": "Logic_Overview_SSOT",
+      "relationType": "DEPENDS_ON"
+    },
+    {
+      "from": "Tag_Semantic_Entities",
+      "to": "Tag_Authority",
+      "relationType": "IMPLEMENTS"
+    },
+    {
+      "from": "Development_Rules",
+      "to": "Tag_Semantic_Entities",
+      "relationType": "CONSTRAINS"
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { AccountScheduleSection } from "@/features/workspace-business.schedule";
+import { AccountScheduleSection } from "@/features/scheduling.slice";
 
 export default function AccountSchedulePage() {
   return <AccountScheduleSection />;

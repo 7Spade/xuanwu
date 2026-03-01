@@ -1,1 +1,1 @@
-export { default } from '@/features/workspace-governance.audit';
+export { default } from '@/features/workspace.slice/gov.audit';

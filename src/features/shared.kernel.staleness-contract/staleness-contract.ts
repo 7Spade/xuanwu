@@ -41,7 +41,7 @@ export const StalenessMs = {
   /**
    * Maximum allowed staleness for the Demand Board projection.
    * Per docs/prd-schedule-workforce-skills.md NFR PROJ_STALE_DEMAND_BOARD.
-   * Applies to: projection.demand-board (orgDemandBoard view).
+   * Applies to: scheduling.slice Demand Board (accounts/{orgId}/schedule_items).
    * [SK_STALENESS_CONTRACT: PROJ_STALE_DEMAND_BOARD ≤ 5s]
    */
   PROJ_STALE_DEMAND_BOARD: 5_000,

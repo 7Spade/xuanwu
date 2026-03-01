@@ -8,12 +8,12 @@
  *   WORKSPACE_EVENT_BUS -.→|事件契約遵循| SK_EVENT_ENVELOPE
  *
  * This payload crosses the Workspace BC → Organization BC boundary.
- * Placing it in shared-kernel removes the dependency of account-organization.schedule
+ * Placing it in shared-kernel removes the dependency of scheduling.slice
  * on workspace-core.event-bus (a Workspace BC implementation file).
  *
  * Used by:
  *   - workspace-core.event-bus (produces the event)
- *   - account-organization.schedule (consumes the event — Org BC)
+ *   - scheduling.slice (consumes the event — Org BC)
  *
  * No Firebase deps — pure domain contract.
  */

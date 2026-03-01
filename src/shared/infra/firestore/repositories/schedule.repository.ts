@@ -57,10 +57,28 @@ export const createScheduleItem = async (
 export const updateScheduleItemStatus = async (
   organizationId: string,
   itemId: string,
-  newStatus: 'OFFICIAL' | 'REJECTED'
+  newStatus: 'OFFICIAL' | 'REJECTED' | 'COMPLETED'
 ): Promise<void> => {
   const itemRef = doc(db, `accounts/${organizationId}/schedule_items`, itemId)
   return updateDoc(itemRef, { status: newStatus, updatedAt: serverTimestamp() })
+}
+
+/**
+ * Assigns a member to a schedule item and marks it OFFICIAL in a single write.
+ * Used by DemandBoard and HR Governance to keep all three tabs in sync via
+ * the single source of truth: accounts/{orgId}/schedule_items.
+ */
+export const assignMemberAndApprove = async (
+  organizationId: string,
+  itemId: string,
+  memberId: string
+): Promise<void> => {
+  const itemRef = doc(db, `accounts/${organizationId}/schedule_items`, itemId)
+  return updateDoc(itemRef, {
+    assigneeIds: arrayUnion(memberId),
+    status: 'OFFICIAL',
+    updatedAt: serverTimestamp(),
+  })
 }
 
 export const assignMemberToScheduleItem = async (

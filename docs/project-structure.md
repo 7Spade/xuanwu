@@ -1,7 +1,7 @@
 # Project Structure
 
-> **Source of truth**: `docs/logic-overview.md`
-> This document describes the canonical directory layout. Naming conventions and dependency rules are enforced by D1–D20 (see `docs/logic-overview.md` for the full rule set).
+> **SSOT**: `docs/logic-overview.md` (rules D1–D26) · `docs/domain-glossary.md` (domain terms)
+> Canonical directory layout. Dependency rules enforced by D1–D26.
 
 ---
 
@@ -13,7 +13,7 @@
 │   ├── app/                     # Next.js App Router composition only
 │   ├── features/                # Vertical slice business domain code
 │   └── shared/                  # Cross-cutting infrastructure utilities
-├── functions/                   # Firebase Functions (outbox-relay, dlq-manager)
+├── firebase/                    # Firebase config + Functions (all firebase-related)
 ├── docs/                        # Architecture documentation
 ├── public/                      # Static assets
 ├── firestore.rules              # Firestore security rules
@@ -83,15 +83,15 @@ src/features/
 
 ```
 src/features/
-├── identity-account.auth/
-│   ├── _aggregate.ts            # authenticated-identity, account-identity-link
+├── identity.slice/
 │   ├── _actions.ts              # login, logout, register Server Actions
-│   ├── _queries.ts              # identity link queries
+│   ├── _claims-handler.ts       # CLAIMS_HANDLER [S6]
+│   ├── _token-refresh-listener.ts # Frontend Party 3 [S6]
 │   ├── _components/             # Login/Register UI components ("use client")
 │   └── index.ts                 # Public API
 ```
 
-Context lifecycle is managed inside `identity-account.auth` via the `_claims-handler.ts` module. Claims refresh [S6] is triggered by the `TOKEN_REFRESH_SIGNAL` emitted from `_actions.ts`.
+Context lifecycle is managed inside `identity.slice` via the `_claims-handler.ts` module. Claims refresh [S6] is triggered by the `TOKEN_REFRESH_SIGNAL` emitted from `_actions.ts`.
 
 ---
 
@@ -99,39 +99,46 @@ Context lifecycle is managed inside `identity-account.auth` via the `_claims-han
 
 ```
 src/features/
-├── account-user.profile/
-│   ├── _aggregate.ts            # user-account aggregate + FCM token (weakly consistent)
-│   ├── _actions.ts
-│   ├── _queries.ts
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── account-user.notification/
-│   ├── _actions.ts              # FCM token registration
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── account-organization.member/
-│   ├── _aggregate.ts            # organization-account + binding (ACL #A2)
-│   ├── _actions.ts
-│   ├── _queries.ts
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── account-organization.partner/
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── account-organization.policy/
-│   ├── _aggregate.ts            # account-governance.policy
-│   ├── _hooks/
-│   └── index.ts
-├── account-governance.notification-router/
-│   └── index.ts                 # Stateless notification router (#A10)
-└── account-user.wallet/         # Strong-consistency financial ledger [SK_READ_CONSISTENCY: STRONG_READ] (#A1)
-    ├── _actions.ts
-    ├── _queries.ts
-    └── index.ts
+└── account.slice/
+    ├── user.profile/            # user-account profile + FCM token (weakly consistent)
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── user.wallet/             # Strong-consistency financial ledger [SK_READ_CONSISTENCY: STRONG_READ] (#A1)
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   └── index.ts
+    ├── gov.role/                # Account-level role management → CUSTOM_CLAIMS refresh [S6]
+    │   ├── _actions.ts
+    │   └── index.ts
+    ├── gov.policy/              # Account-level policy management → CUSTOM_CLAIMS refresh [S6]
+    │   ├── _actions.ts
+    │   └── index.ts
+    └── index.ts                 # Unified VS2 Public API
+```
+    ├── org.policy/              # Organization-level policy management
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   └── index.ts
+    ├── gov.notification-router/ # Stateless notification router (#A10)
+    │   ├── _router.ts
+    │   └── index.ts
+    ├── gov.role/                # Account-level role management → CUSTOM_CLAIMS refresh [S6]
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── gov.policy/              # Account-level policy management → CUSTOM_CLAIMS refresh [S6]
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   └── index.ts
+    └── index.ts                 # Unified VS2 Public API
 ```
 
 ---
@@ -140,10 +147,16 @@ src/features/
 
 ```
 src/features/
-└── account-skill/               # account-skill aggregate + xp-ledger
-    ├── _aggregate.ts            # accountId / skillId(→tagSlug) / xp / version
-    ├── _actions.ts              # AddXp, DeductXp Server Actions
+└── skill-xp.slice/               # skill-xp aggregate + xp-ledger + tag-pool
+    ├── _aggregate.ts             # accountId / tagSlug / xp / version
+    ├── _actions.ts               # AddXp, DeductXp Server Actions
     ├── _queries.ts
+    ├── _ledger.ts                # skill-xp-ledger persistence
+    ├── _org-recognition.ts       # org skill recognition handler [T1, T2]
+    ├── _projector.ts             # skill projection handlers [S2]
+    ├── _tag-lifecycle.ts         # tag lifecycle subscriber
+    ├── _tag-pool.ts              # SKILL_TAG_POOL + VS3_TAG_SUBSCRIBER [T1, T2]
+    ├── _components/
     └── index.ts
 ```
 
@@ -153,24 +166,32 @@ src/features/
 
 ```
 src/features/
-├── account-organization.core/   # organization-core aggregate + event-bus
-│   ├── _aggregate.ts
-│   ├── _actions.ts
-│   ├── _queries.ts
-│   └── index.ts
-├── account-organization.event-bus/  # Org in-process event bus [E5]
-│   └── index.ts
-├── account-organization.member/  # (see VS2 — shared membership model)
-├── account-organization.partner/ # (see VS2)
-├── account-organization.team/
-│   └── index.ts
-├── account-organization.policy/  # (see VS2)
-├── organization-skill-recognition/
-│   └── index.ts                 # SKILL_TAG_POOL + VS4_TAG_SUBSCRIBER [T1, T2]
-└── account-organization.schedule/ # HR scheduling (VS6 coordination)
-    ├── _hooks/
-    ├── _components/
-    └── index.ts
+└── organization.slice/
+    ├── core/                    # organization aggregate + lifecycle
+    │   ├── _aggregate.ts
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   └── index.ts
+    ├── core.event-bus/          # Org in-process event bus [R8]
+    │   └── index.ts
+    ├── gov.teams/               # Org team management
+    │   └── index.ts
+    ├── gov.members/             # Org member binding (ACL #A2)
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── gov.partners/            # Partner team management
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── gov.policy/              # Org-level policy management → CUSTOM_CLAIMS refresh [S6]
+    │   ├── _actions.ts
+    │   └── index.ts
+    └── index.ts                 # Unified VS4 Public API
 ```
 
 ---
@@ -179,99 +200,115 @@ src/features/
 
 ```
 src/features/
-├── workspace-core/
-│   ├── _aggregate.ts            # workspace-core.aggregate
-│   ├── _actions.ts
-│   ├── _queries.ts
-│   ├── _hooks/
-│   ├── _components/
-│   ├── _shell/                  # Shell layout components
-│   └── index.ts
-├── workspace-core.event-bus/    # in-process event bus [E5]
-│   └── index.ts
-├── workspace-core.event-store/  # replay/audit only (#9)
-│   └── index.ts
-├── workspace-application/       # Application coordinator: cmd-handler, scope-guard, policy-engine, tx-runner
-│   └── index.ts
-├── workspace-governance.role/
-│   ├── _hooks/
-│   └── index.ts
-├── workspace-governance.audit/
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── workspace-governance.audit-convergence/  # Audit bridge: query adapter for projection.account-audit
-│   └── index.ts
-├── workspace-governance.members/  # Workspace member grants + member panel UI
-│   ├── _components/
-│   ├── _queries.ts
-│   └── index.ts
-├── workspace-governance.partners/  # Stub — views migrated to account-organization.partner
-│   └── index.ts
-├── workspace-governance.schedule/
-│   └── index.ts
-├── workspace-governance.teams/
-│   └── index.ts
-├── workspace-business.files/
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── workspace-business.document-parser/ # Document parsing [A4] → ParsingIntent digital twin
-│   ├── _actions.ts
-│   ├── _form-actions.ts
-│   └── index.ts
-├── workspace-business.parsing-intent/  # ParsingIntent digital twin contract (#A4)
-│   ├── _contract.ts
-│   └── index.ts
-├── workspace-business.tasks/
-│   ├── _actions.ts
-│   ├── _components/
-│   ├── _queries.ts
-│   └── index.ts
-├── workspace-business.daily/           # 施工日誌 (A-track daily log)
-│   ├── _actions.ts
-│   ├── _components/
-│   ├── _hooks/
-│   ├── _queries.ts
-│   └── index.ts
-├── workspace-business.schedule/
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── workspace-business.issues/          # B-track: issues + IssueResolved → unblock workflow (#A3)
-│   ├── _actions.ts
-│   ├── _components/
-│   └── index.ts
-├── workspace-business.workflow/        # workflow.aggregate + state machine [R6]
-│   ├── _aggregate.ts
-│   ├── _issue-handler.ts
-│   ├── _persistence.ts
-│   └── index.ts
-├── workspace-business.finance/
-│   ├── _components/
-│   └── index.ts
-├── workspace-business.acceptance/
-│   ├── _components/
-│   └── index.ts
-└── workspace-business.quality-assurance/
-    ├── _components/
-    └── index.ts
+└── workspace.slice/
+    ├── core/                            # workspace aggregate + shell
+    │   ├── _aggregate.ts
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   ├── _shell/
+    │   └── index.ts
+    ├── core.event-bus/                  # in-process event bus [R8]
+    │   └── index.ts
+    ├── core.event-store/                # replay/audit only [D11]
+    │   └── index.ts
+    ├── application/                     # Application coordinator: cmd-handler, scope-guard, policy-engine, tx-runner [D9]
+    │   └── index.ts
+    ├── gov.role/
+    │   ├── _hooks/
+    │   └── index.ts
+    ├── gov.audit/
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── gov.audit-convergence/           # Audit bridge: query adapter for projection.account-audit
+    │   └── index.ts
+    ├── gov.members/                     # Workspace member grants + member panel UI
+    │   ├── _components/
+    │   ├── _queries.ts
+    │   └── index.ts
+    ├── gov.partners/                    # Stub — views delegated to organization.slice/gov.partners
+    │   └── index.ts
+    ├── gov.schedule/
+    │   └── index.ts
+    ├── gov.teams/
+    │   └── index.ts
+    ├── business.files/
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── business.document-parser/        # Document parsing [A4] → ParsingIntent digital twin
+    │   ├── _actions.ts
+    │   ├── _form-actions.ts
+    │   └── index.ts
+    ├── business.parsing-intent/         # ParsingIntent digital twin contract (#A4)
+    │   ├── _contract.ts
+    │   └── index.ts
+    ├── business.tasks/
+    │   ├── _actions.ts
+    │   ├── _components/
+    │   ├── _queries.ts
+    │   └── index.ts
+    ├── business.daily/                  # 施工日誌 (A-track daily log)
+    │   ├── _actions.ts
+    │   ├── _components/
+    │   ├── _hooks/
+    │   ├── _queries.ts
+    │   └── index.ts
+    ├── business.issues/                 # B-track: issues + IssueResolved → unblock workflow (#A3)
+    │   ├── _actions.ts
+    │   ├── _components/
+    │   └── index.ts
+    ├── business.workflow/               # workflow.aggregate + state machine [R6]
+    │   ├── _aggregate.ts
+    │   ├── _issue-handler.ts
+    │   ├── _persistence.ts
+    │   └── index.ts
+    ├── business.finance/
+    │   ├── _components/
+    │   └── index.ts
+    ├── business.acceptance/
+    │   ├── _components/
+    │   └── index.ts
+    ├── business.quality-assurance/
+    │   ├── _components/
+    │   └── index.ts
+    └── index.ts                         # Unified VS5 Public API
 ```
 
 ---
 
 ## VS6 — Scheduling Slice
 
+All VS6 scheduling code is consolidated in `scheduling.slice`. No backward-compatibility shim directories exist.
+
 ```
 src/features/
-├── account-organization.schedule/  # account-organization.schedule aggregate + saga [S1][S4]
-│   ├── _aggregate.ts
-│   ├── _actions.ts
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-└── scheduling-saga/                 # ScheduleAssignRejected, ScheduleProposalCancelled sagas
-    └── index.ts
+└── scheduling.slice/                # UNIFIED VS6 scheduling slice [S1][S4]
+    ├── _aggregate.ts                # OrgScheduleProposal domain aggregate
+    ├── _actions.ts                  # Server Actions (createScheduleItem, approve, complete…)
+    ├── _queries.ts                  # Read-only queries (subscriptions, demand board, account)
+    ├── _saga.ts                     # Cross-org saga coordinator (ScheduleAssignRejected [A5])
+    ├── _hooks/
+    │   ├── use-org-schedule.ts      # Org-scoped subscription hooks
+    │   ├── use-global-schedule.ts   # Global schedule state hook
+    │   ├── use-schedule-commands.ts # Assign/unassign/status update commands
+    │   ├── use-workspace-schedule.ts
+    │   └── use-schedule-event-handler.ts
+    ├── _components/
+    │   ├── schedule.account-view.tsx   # AccountScheduleSection (3 tabs)
+    │   ├── schedule.workspace-view.tsx # WorkspaceSchedule
+    │   ├── org-schedule-governance.tsx # OrgScheduleGovernance (HR tab)
+    │   ├── demand-board.tsx
+    │   ├── unified-calendar-grid.tsx
+    │   └── …
+    ├── _projectors/
+    │   ├── demand-board.ts          # Demand Board projection handlers
+    │   ├── demand-board-queries.ts
+    │   ├── account-schedule.ts      # Account schedule availability projection
+    │   └── account-schedule-queries.ts
+    └── index.ts                     # Public API barrel
 ```
 
 ---
@@ -280,11 +317,16 @@ src/features/
 
 ```
 src/features/
-├── account-user.notification/       # FCM delivery + device token management
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-└── account-governance.notification-router/  # Stateless router (#A10)
+└── notification.slice/
+    ├── user.notification/       # FCM delivery + device token management
+    │   ├── _delivery.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── gov.notification-router/ # Stateless notification router (#A10)
+    │   ├── _router.ts
+    │   └── index.ts
     └── index.ts
 ```
 
@@ -292,37 +334,28 @@ src/features/
 
 ## VS8 — Projection Bus
 
-All projection slices are prefixed `projection.*`:
+The `projection.bus` slice is the unified Projection Bus entry point (event funnel +
+version registry + query registration), and **home to all 8 projection view sub-slices**.
+All external consumers import exclusively from `@/features/projection.bus`.
 
 ```
 src/features/
-├── projection.registry/             # read-model-registry + version mapping
-│   └── index.ts
-├── projection.event-funnel/         # event-funnel: sole projection write path (#9, #A7, S2)
-│   └── index.ts
-├── projection.workspace-scope-guard/ # CRITICAL SLA ≤500ms; writes workspace-scope-guard-view #A9
-│   └── index.ts
-├── projection.org-eligible-member-view/    # CRITICAL SLA ≤500ms, #14–#16, T3, #19
-│   └── index.ts
-├── projection.workspace-view/        # STANDARD ≤10s
-│   └── index.ts
-├── projection.account-schedule/      # STANDARD ≤10s
-│   └── index.ts
-├── projection.account-view/          # STANDARD ≤10s, exposes FCM token (#6)
-│   └── index.ts
-├── projection.organization-view/     # STANDARD ≤10s
-│   └── index.ts
-├── projection.account-skill-view/    # STANDARD ≤10s, tier derived not stored (#12)
-│   └── index.ts
-├── projection.account-audit/         # STANDARD ≤10s, per-account audit entries [R8]
-│   └── index.ts
-├── projection.global-audit-view/     # STANDARD ≤10s, every record has traceId [R8]
-│   └── index.ts
-└── projection.tag-snapshot/          # BACKGROUND ≤30s, read-only T5, [S4]
-    └── index.ts
+└── projection.bus/                  # VS8 Projection Bus — sole import path for all projection reads
+    ├── account-audit/               # STANDARD ≤10s — per-account audit entries [R8]
+    ├── account-view/                # STANDARD ≤10s — FCM token, authority snapshot (#6)(#8)
+    ├── global-audit-view/           # STANDARD ≤10s — every record carries traceId [R8]
+    ├── org-eligible-member-view/    # CRITICAL ≤500ms — tier derived at query time [#12][#14–#16][R7][#19]
+    ├── organization-view/           # STANDARD ≤10s
+    ├── tag-snapshot/                # BACKGROUND ≤30s — read-only T5, [S4]
+    ├── workspace-scope-guard/       # CRITICAL ≤500ms — workspace-scope-guard-view [#A9]
+    ├── workspace-view/              # STANDARD ≤10s
+    ├── _funnel.ts                   # EVENT_FUNNEL_INPUT — routes all bus events to projectors
+    ├── _registry.ts                 # PROJECTION_VERSION — event stream offset
+    ├── _query-registration.ts       # READ_MODEL_REGISTRY — GW_QUERY handler registration
+    └── index.ts                     # Public API — re-exports from all sub-slices
 ```
 
-> **Note**: The `wallet-balance` is a logical read model (used for display) served by `account-user.wallet/_queries.ts`. Precise financial transactions use STRONG_READ directly against the wallet aggregate [S3].
+> **Note**: The `wallet-balance` is a logical read model (used for display) served by `account.slice/user.wallet/_queries.ts`. Precise financial transactions use STRONG_READ directly against the wallet aggregate [S3].
 
 ---
 
@@ -340,7 +373,7 @@ src/features/
 │   └── index.ts
 ├── infra.dlq-manager/         # DLQ three-tier handler: SAFE_AUTO/REVIEW_REQUIRED/SECURITY_BLOCK [R5]
 │   └── index.ts
-└── infra.observability/       # VS9: trace-identifier, domain-metrics, domain-error-log [R8]
+└── observability/             # VS9: trace-identifier, domain-metrics, domain-error-log [R8]
     ├── _trace.ts
     ├── _metrics.ts
     ├── _error-log.ts
@@ -382,7 +415,7 @@ The App Router is for **composition only** — no business logic in layouts or p
 src/app/
 ├── (auth)/
 │   └── login/
-│       └── page.tsx           # Login/register page (uses identity-account.auth)
+│       └── page.tsx           # Login/register page (uses identity.slice)
 │
 └── (shell)/
     └── (account)/
@@ -444,7 +477,7 @@ src/app/
 
 ---
 
-## D1–D20 Path Constraints
+## D1–D26 Path Constraints
 
 | Rule | Path Constraint |
 |------|----------------|
@@ -456,9 +489,9 @@ src/app/
 | D6 | `"use client"` in `_components/` leaf nodes only; never in layout or page server components |
 | D7 | `import ... from '@/features/{other-slice}/index'`; NEVER `import ... from '@/features/{other-slice}/_private'` |
 | D8 | `src/features/shared.kernel.*` files contain no async functions, no Firestore calls, no side effects |
-| D9 | `workspace-application/` TX Runner coordinates mutations; slices do not mutate each other |
+| D9 | `workspace.slice/application/` TX Runner coordinates mutations; slices do not mutate each other |
 | D10 | `EventEnvelope.traceId` set only in `infra.gateway-command/CBG_ENTRY`; read-only everywhere else |
-| D11 | `workspace-core.event-store` enables projection rebuild; must be kept current |
+| D11 | `workspace.slice/core.event-store` enables projection rebuild; must be kept current |
 | D12 | `getTier()` import always from `shared.kernel.skill-tier`; tier field never in Firestore writes |
 | D13 | New OUTBOX: must declare DLQ tier in `SK_OUTBOX_CONTRACT`; do not re-define at-least-once semantics locally [S1] |
 | D14 | New Projection: must apply `SK_VERSION_GUARD` before writing; do not skip `aggregateVersion` check [S2] |
@@ -468,3 +501,9 @@ src/app/
 | D18 | Claims refresh logic changes: `SK_TOKEN_REFRESH_CONTRACT` is the sole spec; all three parties (VS1, IER, frontend) must be updated together [S6] |
 | D19 | Type ownership: cross-BC contracts must live in `shared.kernel.*` first; `shared/types` is legacy/common DTO fallback only |
 | D20 | Import precedence: `shared.kernel.*` > feature slice `index.ts` > `shared/types`; when the same concept exists in both `shared.kernel` and `shared/types`, `shared.kernel` is authoritative |
+| D21 | New tag category: must define in CTA `TAG_ENTITIES`; slices must not create their own semantic tag categories |
+| D22 | Cross-slice tag reference: must point to TAG_USER_LEVEL / TAG_SKILL / TAG_SKILL_TIER / TAG_TEAM / TAG_ROLE / TAG_PARTNER; implicit tagSlug strings forbidden |
+| D23 | Tag annotation format: node text `→ tag::{category} [{NODE_NAME}]`; semantic edge `-.->|"{dim} tag 語義"| NODE_NAME` |
+| D24 | `src/features/*` and `src/app/*` must never import `firebase/*` directly; only `src/shared/infra/*` adapters may call Firebase SDK [FIREBASE_ACL] |
+| D25 | New Firebase service (auth/firestore/messaging/storage) must have an Adapter in `src/shared/infra/` and a Port interface in `src/shared/ports/` before feature slices may use it |
+| D26 | External triggers (`_actions.ts`) must use `createExternalTriggerGuard` from `infra.external-triggers` for rate-limit/circuit-break/bulkhead compliance [S5 R1-R3] |

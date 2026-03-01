@@ -1,4 +1,4 @@
-import { PartnerDetailView } from "@/features/account-organization.partner"
+import { PartnerDetailView } from "@/features/account.slice"
 
 /**
  * PartnerTeamDetailPage - Manages recruitment and identity governance within a specific partner team.

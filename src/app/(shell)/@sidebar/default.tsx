@@ -1,4 +1,4 @@
-import { DashboardSidebar } from "@/features/workspace-core";
+import { DashboardSidebar } from "@/features/workspace.slice";
 
 export default function SidebarSlot() {
   return <DashboardSidebar />;

@@ -18,7 +18,7 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 * **`sequential-thinking`**: 用於複雜邏輯的多步推演。
 * **`software-planning`**: 用於生成實作藍圖與任務清單。
 * **`repomix`**: 用於提取全域程式碼上下文。
-* **`context7`**: 用於獲取最新技術文檔（Next.js 16, Genkit）。
+* **`context7`**: 用於獲取最新技術文檔（Next.js 15, Genkit）。
 * **`shadcn`**: 用於管理與安裝 UI 組件。
 * **`next-devtools`**: 用於診斷 App Router 與渲染行為。
 
@@ -53,7 +53,7 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 | `iterative-alignment-refactor.prompt.md` | **迭代重構**：多次循環掃描並強制修正程式碼以對齊文檔。 | 需要將舊程式碼自動修正至合規時。 |
 | `genkit-flow-design.prompt.md` | **AI 邏輯設計**：設計 Genkit Flow 與其輸入輸出 Schema。 | 建立或修改 AI 業務邏輯時。 |
 | `next-intl-add-language.prompt.md` | **多國語言擴充**：自動處理 i18n 翻譯與路由配置。 | 需要增加新的語言支援時。 |
-| `nextjs-parallel-routes-modern-code.prompt.md` | **現代路由實作**：針對 Next.js 16 路由特性的專門實作指導。 | 實作複雜模態視窗或平行頁面時。 |
+| `nextjs-parallel-routes-modern-code.prompt.md` | **現代路由實作**：針對 Next.js 15 路由特性的專門實作指導。 | 實作複雜模態視窗或平行頁面時。 |
 
 ### 4. 工具原子封裝 (Atomic Tool Wrappers)
 

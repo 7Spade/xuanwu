@@ -1,4 +1,4 @@
-import { WorkspaceSchedule } from "@/features/workspace-business.schedule"
+import { WorkspaceSchedule } from "@/features/scheduling.slice"
 
 export default function ScheduleCapabilityPage() {
   return <WorkspaceSchedule />

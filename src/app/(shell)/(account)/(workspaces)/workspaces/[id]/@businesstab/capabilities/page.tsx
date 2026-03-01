@@ -1,4 +1,4 @@
-import { WorkspaceCapabilities } from "@/features/workspace-core"
+import { WorkspaceCapabilities } from "@/features/workspace.slice"
 
 export default function CapabilitiesPage() {
   return <WorkspaceCapabilities />

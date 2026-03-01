@@ -1,6 +1,6 @@
 // [職責] Personal Skill Profile — XP accumulation and tier visualization (FR-K1).
 // Per docs/prd-schedule-workforce-skills.md FR-K1.
-import { PersonalSkillPanel } from '@/features/account-skill';
+import { PersonalSkillPanel } from '@/features/skill-xp.slice';
 
 export default function AccountSkillsPage() {
   return (

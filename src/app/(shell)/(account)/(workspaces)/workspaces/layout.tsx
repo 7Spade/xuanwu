@@ -16,7 +16,7 @@
 import type { ReactNode } from "react";
 
 import { SidebarInset } from "@/shared/shadcn-ui/sidebar";
-import { ThemeAdapter } from "@/features/workspace-core";
+import { ThemeAdapter } from "@/features/workspace.slice";
 
 type WorkspacesLayoutProps = {
   children: ReactNode;

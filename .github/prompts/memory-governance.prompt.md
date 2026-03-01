@@ -13,7 +13,7 @@
 ## 初始化與同步指令
 當使用者要求「初始化」或「同步規範」時，請掃描 `.github/prompts/` 目錄下的所有檔案，並將其中的關鍵治理邏輯寫入 Memory。
 
-## 強制執行標準 (Next.js 16 & shadcn)
+## 強制執行標準 (Next.js 15 & shadcn)
 - 記錄所有 Server Components 與 Client Components 的使用邊界。
 - 記錄 shadcn 組件的自定義路徑與樣式規範。
-- 記錄任何與 Next.js 16 Breaking Changes 相關的解決方案。
+- 記錄任何與 Next.js 15 Breaking Changes 相關的解決方案。
