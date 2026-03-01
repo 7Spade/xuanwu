@@ -63,17 +63,27 @@ src/features/
 │  └─ B-track/                                    (異常流程)
 │     └─ issues
 ├─ workspace-business.daily                       (VS5 Workspace Slice / Business)
-├─ workspace-business.schedule                    (VS5 Workspace Slice / Business)
+├─ workspace-business.schedule                    (VS5 Workspace Slice / Business — @deprecated shim → scheduling.slice)
 │
-├─ account-organization.schedule                  (VS6 Scheduling Slice)
-├─ scheduling-saga                                (VS6 Scheduling Slice)
+├─ scheduling.slice                               (VS6 Scheduling Slice — canonical unified implementation)
+│  ├─ _aggregate                                  (HR schedule aggregate + state machine)
+│  ├─ _actions                                    (unified server actions: workspace + HR domain)
+│  ├─ _queries                                    (unified read queries)
+│  ├─ _saga                                       (cross-org saga coordinator [A5])
+│  ├─ _projectors/demand-board                    (demand board projector [S2])
+│  ├─ _projectors/account-schedule                (account availability projector [S2])
+│  ├─ _hooks/                                     (use-org-schedule, use-global-schedule, use-schedule-commands …)
+│  └─ _components/                                (AccountScheduleSection, DemandBoard, OrgScheduleGovernance …)
+├─ account-organization.schedule                  (VS6 — @deprecated shim → scheduling.slice)
+├─ scheduling-saga                                (VS6 — @deprecated shim → scheduling.slice)
+├─ projection.demand-board                        (VS6 — @deprecated shim → scheduling.slice)
+├─ projection.account-schedule                    (VS6 — @deprecated shim → scheduling.slice)
 │
 ├─ notification-router                            (VS7 Notification Slice)
 ├─ account-user.notification                      (VS7 Notification Slice)
 │
 ├─ projection-bus                                 (VS8 Projection Bus)
 │  ├─ projection.workspace-view
-│  ├─ projection.account-schedule
 │  ├─ projection.account-view
 │  ├─ projection.organization-view
 │  ├─ projection.account-skill-view
