@@ -7,8 +7,8 @@ import { use } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/shared/shadcn-ui/button"
-import { DailyLogDialog } from "@/features/workspace-business.daily"
-import { useAccount } from "@/features/workspace-core"
+import { DailyLogDialog } from "@/features/workspace.slice"
+import { useAccount } from "@/features/workspace.slice"
 import { useAuth } from "@/shared/app-providers/auth-provider"
 
 interface PageProps {

@@ -83,15 +83,15 @@ src/features/
 
 ```
 src/features/
-├── identity-account.auth/
-│   ├── _aggregate.ts            # authenticated-identity, account-identity-link
+├── identity.slice/
 │   ├── _actions.ts              # login, logout, register Server Actions
-│   ├── _queries.ts              # identity link queries
+│   ├── _claims-handler.ts       # CLAIMS_HANDLER [S6]
+│   ├── _token-refresh-listener.ts # Frontend Party 3 [S6]
 │   ├── _components/             # Login/Register UI components ("use client")
 │   └── index.ts                 # Public API
 ```
 
-Context lifecycle is managed inside `identity-account.auth` via the `_claims-handler.ts` module. Claims refresh [S6] is triggered by the `TOKEN_REFRESH_SIGNAL` emitted from `_actions.ts`.
+Context lifecycle is managed inside `identity.slice` via the `_claims-handler.ts` module. Claims refresh [S6] is triggered by the `TOKEN_REFRESH_SIGNAL` emitted from `_actions.ts`.
 
 ---
 
@@ -99,39 +99,56 @@ Context lifecycle is managed inside `identity-account.auth` via the `_claims-han
 
 ```
 src/features/
-├── account-user.profile/
-│   ├── _aggregate.ts            # user-account aggregate + FCM token (weakly consistent)
-│   ├── _actions.ts
-│   ├── _queries.ts
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── account-user.notification/
-│   ├── _actions.ts              # FCM token registration
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── account-organization.member/
-│   ├── _aggregate.ts            # organization-account + binding (ACL #A2)
-│   ├── _actions.ts
-│   ├── _queries.ts
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── account-organization.partner/
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── account-organization.policy/
-│   ├── _aggregate.ts            # account-governance.policy
-│   ├── _hooks/
-│   └── index.ts
-├── account-governance.notification-router/
-│   └── index.ts                 # Stateless notification router (#A10)
-└── account-user.wallet/         # Strong-consistency financial ledger [SK_READ_CONSISTENCY: STRONG_READ] (#A1)
-    ├── _actions.ts
-    ├── _queries.ts
-    └── index.ts
+└── account.slice/
+    ├── user.profile/            # user-account profile + FCM token (weakly consistent)
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── user.notification/       # FCM delivery + device token management
+    │   ├── _delivery.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── user.wallet/             # Strong-consistency financial ledger [SK_READ_CONSISTENCY: STRONG_READ] (#A1)
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   └── index.ts
+    ├── org.member/              # organization-account + binding (ACL #A2)
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── org.partner/             # Partner team management
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── org.policy/              # Organization-level policy management
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   └── index.ts
+    ├── gov.notification-router/ # Stateless notification router (#A10)
+    │   ├── _router.ts
+    │   └── index.ts
+    ├── gov.role/                # Account-level role management → CUSTOM_CLAIMS refresh [S6]
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── gov.policy/              # Account-level policy management → CUSTOM_CLAIMS refresh [S6]
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   └── index.ts
+    └── index.ts                 # Unified VS2 Public API
 ```
 
 ---
@@ -160,11 +177,11 @@ src/features/
 │   └── index.ts
 ├── account-organization.event-bus/  # Org in-process event bus [E5]
 │   └── index.ts
-├── account-organization.member/  # (see VS2 — shared membership model)
-├── account-organization.partner/ # (see VS2)
+├── account-organization.member/  # (see VS2 — account.slice/org.member)
+├── account-organization.partner/ # (see VS2 — account.slice/org.partner)
 ├── account-organization.team/
 │   └── index.ts
-├── account-organization.policy/  # (see VS2)
+├── account-organization.policy/  # (see VS2 — account.slice/org.policy)
 ├── organization-skill-recognition/
 │   └── index.ts                 # SKILL_TAG_POOL + VS4_TAG_SUBSCRIBER [T1, T2]
 └── account-organization.schedule/ # HR scheduling (VS6 coordination)
@@ -206,7 +223,7 @@ src/features/
 │   ├── _components/
 │   ├── _queries.ts
 │   └── index.ts
-├── workspace-governance.partners/  # Stub — views migrated to account-organization.partner
+├── workspace-governance.partners/  # Stub — views migrated to account.slice/org.partner
 │   └── index.ts
 ├── workspace-governance.schedule/
 │   └── index.ts
@@ -306,12 +323,13 @@ src/features/
 
 ```
 src/features/
-├── account-user.notification/       # FCM delivery + device token management
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-└── account-governance.notification-router/  # Stateless router (#A10)
-    └── index.ts
+└── account.slice/
+    ├── user.notification/       # FCM delivery + device token management (see VS2)
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    └── gov.notification-router/ # Stateless router (#A10) (see VS2)
+        └── index.ts
 ```
 
 ---
@@ -348,7 +366,7 @@ src/features/
     └── index.ts
 ```
 
-> **Note**: The `wallet-balance` is a logical read model (used for display) served by `account-user.wallet/_queries.ts`. Precise financial transactions use STRONG_READ directly against the wallet aggregate [S3].
+> **Note**: The `wallet-balance` is a logical read model (used for display) served by `account.slice/user.wallet/_queries.ts`. Precise financial transactions use STRONG_READ directly against the wallet aggregate [S3].
 
 ---
 
@@ -408,7 +426,7 @@ The App Router is for **composition only** — no business logic in layouts or p
 src/app/
 ├── (auth)/
 │   └── login/
-│       └── page.tsx           # Login/register page (uses identity-account.auth)
+│       └── page.tsx           # Login/register page (uses identity.slice)
 │
 └── (shell)/
     └── (account)/

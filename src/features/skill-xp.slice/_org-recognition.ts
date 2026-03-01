@@ -32,7 +32,7 @@ import {
   updateDocument,
 } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { publishOrgEvent } from '@/features/account-organization.event-bus';
+import { publishOrgEvent } from '@/features/organization.slice';
 import { findSkill } from '@/shared/constants/skills';
 
 // ---------------------------------------------------------------------------

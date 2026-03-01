@@ -26,11 +26,11 @@
  * `registerTagFunnel()` once at app startup.
  */
 
-import type { WorkspaceEventBus } from '@/features/workspace-core.event-bus';
+import type { WorkspaceEventBus } from '@/features/workspace.slice';
 import { upsertProjectionVersion } from '@/features/projection.registry';
 import { appendAuditEntry } from '@/features/projection.account-audit';
 import { applyScheduleAssigned, applyScheduleCompleted } from '@/features/scheduling.slice';
-import { onOrgEvent } from '@/features/account-organization.event-bus';
+import { onOrgEvent } from '@/features/organization.slice';
 import { applyMemberJoined, applyMemberLeft } from '@/features/projection.organization-view';
 import { handleScheduleProposed } from '@/features/scheduling.slice';
 import { applySkillXpAdded, applySkillXpDeducted } from '@/features/skill-xp.slice';

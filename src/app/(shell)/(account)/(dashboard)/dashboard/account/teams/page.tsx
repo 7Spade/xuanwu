@@ -1,4 +1,4 @@
-import { TeamsView } from "@/features/account-organization.team"
+import { TeamsView } from "@/features/organization.slice"
 
 /**
  * AccountTeamsPage - Manages the logical groupings of INTERNAL members within the dimension.

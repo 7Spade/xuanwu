@@ -4,7 +4,7 @@
  * [D24] Feature slices depend on this interface, NOT on firebase/auth directly.
  * [D25] New auth features must implement this Port in auth.adapter.ts.
  *
- * VS1 identity-account.auth is the primary consumer.
+ * VS1 identity.slice is the primary consumer.
  */
 
 export interface AuthUser {

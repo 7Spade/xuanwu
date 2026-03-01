@@ -4,8 +4,8 @@
 
 import { use } from "react"
 import { useRouter } from "next/navigation"
-import { DailyLogDialog } from "@/features/workspace-business.daily"
-import { useAccount } from "@/features/workspace-core"
+import { DailyLogDialog } from "@/features/workspace.slice"
+import { useAccount } from "@/features/workspace.slice"
 import { useAuth } from "@/shared/app-providers/auth-provider"
 
 interface PageProps {

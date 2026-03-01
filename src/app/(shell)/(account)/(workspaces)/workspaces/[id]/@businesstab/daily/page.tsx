@@ -1,4 +1,4 @@
-import { WorkspaceDaily } from "@/features/workspace-business.daily"
+import { WorkspaceDaily } from "@/features/workspace.slice"
 
 export default function DailyCapabilityPage() {
   return <WorkspaceDaily />

@@ -1,4 +1,4 @@
-import { WorkspaceIssues } from "@/features/workspace-business.issues"
+import { WorkspaceIssues } from "@/features/workspace.slice"
 
 export default function IssuesCapabilityPage() {
   return <WorkspaceIssues />

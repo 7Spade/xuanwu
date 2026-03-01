@@ -242,7 +242,7 @@
       "observations": [
         "Contract ID: S6 — VS0 shared kernel infrastructure contract",
         "File: src/features/shared.kernel.token-refresh-contract/index.ts",
-        "Three-party handshake: VS1 (identity-account.auth CLAIMS_HANDLER) ↔ IER (CRITICAL_LANE) ↔ Frontend (token listener)",
+        "Three-party handshake: VS1 (identity.slice CLAIMS_HANDLER) ↔ IER (CRITICAL_LANE) ↔ Frontend (token listener)",
         "Trigger: RoleChanged | PolicyChanged → IER CRITICAL_LANE → CLAIMS_HANDLER → custom-claims set → TOKEN_REFRESH_SIGNAL",
         "Client obligation: receive TOKEN_REFRESH_SIGNAL → force re-fetch Firebase Token → next request carries new Claims",
         "Failure path: ClaimsRefresh failure → DLQ SECURITY_BLOCK → DOMAIN_ERRORS security alert",
@@ -358,13 +358,13 @@
       "observations": [
         "Source: docs/logic-overview.md — VS0-VS9 subgraph definitions, docs/project-structure.md, src/features/ directory (code state)",
         "VS0 Shared Kernel (12 slices): shared.kernel.authority-snapshot, shared.kernel.constants, shared.kernel.contract-interfaces (SK_CMD_RESULT), shared.kernel.event-envelope, shared.kernel.outbox-contract, shared.kernel.read-consistency, shared.kernel.resilience-contract, shared.kernel.skill-tier, shared.kernel.staleness-contract, shared.kernel.tag-authority, shared.kernel.token-refresh-contract, shared.kernel.version-guard",
-        "VS1 Identity: identity-account.auth (CLAIMS_HANDLER, TOKEN_REFRESH_SIGNAL, completeRegistration→CommandResult)",
-        "VS2 Account: account-governance.role, account-governance.policy, account-governance.notification-router, account-organization.member, account-organization.partner, account-organization.policy, account-user.wallet (STRONG_READ #A1), account-user.profile, account-user.notification",
+        "VS1 Identity: identity.slice (CLAIMS_HANDLER, TOKEN_REFRESH_SIGNAL, completeRegistration→CommandResult)",
+        "VS2 Account: account.slice — sub-domains: gov.role, gov.policy, gov.notification-router, org.member, org.partner, org.policy, user.wallet (STRONG_READ #A1), user.profile, user.notification. Unified public API: @/features/account.slice",
         "VS3 Skill XP: account-skill (aggregate+XP ledger, _actions.ts AddXp/DeductXp → CommandResult, _queries.ts)",
         "VS4 Organization: account-organization.core, account-organization.event-bus, account-organization.member, account-organization.partner, account-organization.team, account-organization.policy, organization-skill-recognition (SKILL_TAG_POOL + TAG_SUBSCRIBER), centralized-tag (TAG_AUTHORITY)",
         "VS5 Workspace: workspace-core, workspace-core.event-bus, workspace-core.event-store, workspace-application (cmd-handler/scope-guard/policy-engine/tx-runner), workspace-governance.role (#18), workspace-governance.audit, workspace-governance.audit-convergence, workspace-governance.members, workspace-governance.partners, workspace-governance.schedule, workspace-governance.teams, workspace-business.files, workspace-business.document-parser, workspace-business.parsing-intent, workspace-business.tasks, workspace-business.daily, workspace-business.quality-assurance, workspace-business.acceptance, workspace-business.finance, workspace-business.issues, workspace-business.schedule, workspace-business.workflow (state machine R6)",
         "VS6 Scheduling: scheduling-saga (IER STANDARD_LANE receives ScheduleProposed [A5], eligibility check #14, compensating: ScheduleAssignRejected/ScheduleProposalCancelled) + account-organization.schedule (HR Scheduling aggregate, approves/rejects proposals, emits ScheduleAssigned to sched-outbox)",
-        "VS7 Notification: account-governance.notification-router, account-user.notification (FCM push with traceId [R8])",
+        "VS7 Notification: account.slice/gov.notification-router, account.slice/user.notification (FCM push with traceId [R8]) — both consolidated in VS2 account.slice",
         "VS8 Projections: projection.event-funnel (ONLY write path #9, SK_VERSION_GUARD S2), projection.registry, projection.workspace-scope-guard (CRITICAL ≤500ms #A9), projection.org-eligible-member-view (CRITICAL ≤500ms #14 #15 #16), projection.account-schedule, projection.account-skill-view (#12 getTier), projection.account-view (FCM Token #6), projection.organization-view, projection.global-audit-view (traceId R8), projection.account-audit (traceId R8), projection.tag-snapshot (BACKGROUND ≤30s T5), projection.workspace-view",
         "VS9 Observability: infra.observability (trace-identifier, domain-metrics, domain-error-log); infra.dlq-manager, infra.event-router, infra.gateway-command, infra.gateway-query, infra.outbox-relay"
       ]

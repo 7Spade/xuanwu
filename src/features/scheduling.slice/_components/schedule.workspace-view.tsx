@@ -6,7 +6,7 @@ import { Shield } from "lucide-react";
 import { Button } from "@/shared/shadcn-ui/button";
 import { UnifiedCalendarGrid } from "./unified-calendar-grid";
 import { useWorkspaceSchedule } from "../_hooks/use-workspace-schedule";
-import { useWorkspace } from "@/features/workspace-core";
+import { useWorkspace } from "@/features/workspace.slice";
 
 export function WorkspaceSchedule() {
   const router = useRouter();

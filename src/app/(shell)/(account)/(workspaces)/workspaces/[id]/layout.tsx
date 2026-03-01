@@ -6,7 +6,7 @@ import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { Button } from "@/shared/shadcn-ui/button";
 import { ArrowLeft, Settings, Trash2, ChevronRight, MapPin } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, use } from "react";
-import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useWorkspaceCommands, useApp } from "@/features/workspace-core"
+import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useWorkspaceCommands, useApp } from "@/features/workspace.slice"
 import { ROUTES } from "@/shared/constants/routes";
 import {
   Dialog,

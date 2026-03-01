@@ -16,7 +16,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
-import { useWorkspace } from "@/features/workspace-core";
+import { useWorkspace } from "@/features/workspace.slice";
 import { useApp } from "@/shared/app-providers/app-context";
 import { useFirebase } from "@/shared/app-providers/firebase-provider";
 import { useRouter } from "next/navigation";

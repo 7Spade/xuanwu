@@ -1,4 +1,4 @@
-import { MembersView } from "@/features/account-organization.member"
+import { MembersView } from "@/features/organization.slice"
 
 export default function AccountMembersPage() {
   return <MembersView />
