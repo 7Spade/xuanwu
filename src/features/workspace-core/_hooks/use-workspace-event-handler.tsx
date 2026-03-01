@@ -10,6 +10,7 @@ import type { DocumentParserItemsExtractedPayload } from '@/features/workspace-c
 import { createIssue } from "@/features/workspace-business.issues";
 import { batchImportTasks } from "@/features/workspace-business.tasks";
 import { markParsingIntentImported } from "@/features/workspace-business.document-parser";
+import { handleScheduleProposed } from "@/features/scheduling.slice";
 import { Timestamp } from "firebase/firestore";
 
 // [S4] Named constant — disambiguates from PROJ_STALE_STANDARD (10s).
@@ -317,6 +318,21 @@ export function useWorkspaceEventHandler() {
       }
     );
 
+    // VS6 scheduling saga — enrich the proposal with org-domain fields
+    // (proposedBy, version, traceId, requiredSkills) as soon as it is published.
+    // The event is fired by createScheduleItem in workspace-provider after the
+    // Firestore document has been created with status=PROPOSAL.
+    const unsubScheduleProposed = eventBus.subscribe(
+      "workspace:schedule:proposed",
+      async (payload) => {
+        try {
+          await handleScheduleProposed(payload);
+        } catch (err) {
+          console.error("[W_B_SCHEDULE] handleScheduleProposed failed:", err);
+        }
+      }
+    );
+
     return () => {
       unsubQAApproved();
       unsubAcceptancePassed();
@@ -330,6 +346,7 @@ export function useWorkspaceEventHandler() {
       unsubIssueResolved();
       unsubFinanceFailed();
       unsubTaskBlocked();
+      unsubScheduleProposed();
     };
   }, [eventBus, dispatch, workspace.id, workspace.dimensionId, workspace.name, logAuditEvent, updateTask]);
 }
