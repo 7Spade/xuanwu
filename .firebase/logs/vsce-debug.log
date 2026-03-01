@@ -364,3 +364,4 @@ E0226 05:58:20.315164   19552 watch.go:40] Failed to load config from "d:\\7s\\x
  {"metadata":{"emulator":{"name":"dataconnect"},"message":"E0226 05:58:50.315026   19552 watch.go:40] Failed to load config from \"d:\\\\7s\\\\xuanwu\\\\dataconnect\": could not find dataconnect.yaml in `d:\\7s\\xuanwu\\dataconnect`\n"}}
 [info] [Firebase Plugin] Stopping Data Connect toolkit
 [warn] !  Data Connect Emulator has exited upon receiving signal: SIGINT 
+[debug] [2026-03-01T07:19:34.618Z] [Firebase Plugin] Activating Firebase extension.
