@@ -33,7 +33,7 @@ import { applyScheduleAssigned, applyScheduleCompleted } from '@/features/schedu
 import { onOrgEvent } from '@/features/account-organization.event-bus';
 import { applyMemberJoined, applyMemberLeft } from '@/features/projection.organization-view';
 import { handleScheduleProposed } from '@/features/scheduling.slice';
-import { applySkillXpAdded, applySkillXpDeducted } from '@/features/projection.account-skill-view';
+import { applySkillXpAdded, applySkillXpDeducted } from '@/features/skill-xp.slice';
 import {
   applyOrgMemberSkillXp,
   initOrgMemberEntry,
@@ -59,7 +59,7 @@ import {
   handleTagUpdatedForPool,
   handleTagDeprecatedForPool,
   handleTagDeletedForPool,
-} from '@/features/organization-skill-recognition';
+} from '@/features/skill-xp.slice';
 
 /**
  * Registers workspace event handlers on the bus to keep projections in sync.

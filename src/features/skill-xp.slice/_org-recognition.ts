@@ -1,5 +1,5 @@
 /**
- * organization-skill-recognition — _org-skill-recognition.ts
+ * skill-xp.slice — _org-recognition.ts
  *
  * Organization Skill Recognition Aggregate.
  *
@@ -98,10 +98,13 @@ export async function grantSkillRecognition(
   if (!skillDefinition) {
     throw new Error(
       `Cannot grant recognition for unknown skill "${skillId}". ` +
-        `Only skills from the global skill library can be recognised.`
+        `Register the skill in shared/constants/skills first.`
     );
   }
+
   const path = `orgSkillRecognition/${organizationId}/members/${accountId}/skills/${skillId}`;
+  const existing = await getDocument<OrgSkillRecognitionRecord>(path);
+
   const record: OrgSkillRecognitionRecord = {
     organizationId,
     accountId,
@@ -125,7 +128,6 @@ export async function grantSkillRecognition(
 
 /**
  * Revokes a previously granted skill recognition.
- *
  * Publishes `organization:skill:recognitionRevoked` event.
  */
 export async function revokeSkillRecognition(
@@ -136,10 +138,11 @@ export async function revokeSkillRecognition(
 ): Promise<void> {
   const path = `orgSkillRecognition/${organizationId}/members/${accountId}/skills/${skillId}`;
   const existing = await getDocument<OrgSkillRecognitionRecord>(path);
-  if (!existing || existing.status === 'revoked') return; // idempotent
+
+  if (!existing || existing.status === 'revoked') return; // already revoked or absent
 
   await updateDocument(path, {
-    status: 'revoked' satisfies SkillRecognitionStatus,
+    status: 'revoked',
     revokedAt: new Date().toISOString(),
   });
 
@@ -150,5 +153,3 @@ export async function revokeSkillRecognition(
     revokedBy,
   });
 }
-
-

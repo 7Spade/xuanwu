@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * account-skill — _components/personal-skill-panel.tsx
+ * skill-xp.slice — _components/personal-skill-panel.tsx
  *
  * FR-K1: Personal skill profile page — XP bar and tier badge for each skill.
  *
@@ -10,8 +10,8 @@
 
 import { useEffect, useState } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
-import { getAccountSkillView } from '@/features/projection.account-skill-view';
-import type { AccountSkillEntry } from '@/features/projection.account-skill-view';
+import { getAccountSkillView } from '../_queries';
+import type { AccountSkillEntry } from '../_projector';
 import { resolveSkillTier, TIER_DEFINITIONS } from '@/features/shared.kernel.skill-tier';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
 import { Badge } from '@/shared/shadcn-ui/badge';

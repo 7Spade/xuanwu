@@ -1,5 +1,5 @@
 /**
- * projection.account-skill-view — _projector.ts
+ * skill-xp.slice — _projector.ts
  *
  * Account skill read model: tracks accountId → skillId → xp.
  *

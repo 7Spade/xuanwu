@@ -1,5 +1,5 @@
 /**
- * organization-skill-recognition — _tag-lifecycle-subscriber.ts
+ * skill-xp.slice — _tag-lifecycle.ts
  *
  * VS4_TAG_SUBSCRIBER [R3] — keeps SKILL_TAG_POOL up to date when TagLifecycleEvents arrive.
  *
@@ -7,8 +7,8 @@
  *   IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
  *
  * This subscriber is the explicit named handler the Event Funnel delegates to.
- * It stays within the organization-skill-recognition slice boundary (切片內部消費,
- * 不穿透邊界) and MUST NOT import from other feature slices.
+ * It stays within the skill-xp.slice boundary (切片內部消費, 不穿透邊界) and
+ * MUST NOT import from other feature slices.
  *
  * Cross-org fan-out strategy:
  *   Firestore collectionGroup query on `tags` sub-collections lets us find every
@@ -36,8 +36,8 @@ import {
   syncTagUpdateToPool,
   syncTagDeprecationToPool,
   syncTagDeletionToPool,
-} from './_skill-tag-pool';
-import type { OrgSkillTagEntry } from './_skill-tag-pool';
+} from './_tag-pool';
+import type { OrgSkillTagEntry } from './_tag-pool';
 
 // ---------------------------------------------------------------------------
 // Internal helper — find all orgs that have activated a given tagSlug
@@ -78,7 +78,7 @@ export async function handleTagUpdatedForPool(
   );
   results.forEach((result, i) => {
     if (result.status === 'rejected') {
-      console.error(`[tag-lifecycle-subscriber] handleTagUpdatedForPool failed for org "${orgIds[i]}":`, result.reason);
+      console.error(`[tag-lifecycle] handleTagUpdatedForPool failed for org "${orgIds[i]}":`, result.reason);
     }
   });
 }
@@ -98,7 +98,7 @@ export async function handleTagDeprecatedForPool(
   );
   results.forEach((result, i) => {
     if (result.status === 'rejected') {
-      console.error(`[tag-lifecycle-subscriber] handleTagDeprecatedForPool failed for org "${orgIds[i]}":`, result.reason);
+      console.error(`[tag-lifecycle] handleTagDeprecatedForPool failed for org "${orgIds[i]}":`, result.reason);
     }
   });
 }
@@ -119,7 +119,7 @@ export async function handleTagDeletedForPool(
   );
   results.forEach((result, i) => {
     if (result.status === 'rejected') {
-      console.error(`[tag-lifecycle-subscriber] handleTagDeletedForPool failed for org "${orgIds[i]}":`, result.reason);
+      console.error(`[tag-lifecycle] handleTagDeletedForPool failed for org "${orgIds[i]}":`, result.reason);
     }
   });
 }

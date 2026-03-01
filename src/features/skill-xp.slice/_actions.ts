@@ -1,5 +1,5 @@
 /**
- * account-skill — _actions.ts
+ * skill-xp.slice — _actions.ts
  *
  * Server-side action wrappers for the AccountSkill aggregate.
  *

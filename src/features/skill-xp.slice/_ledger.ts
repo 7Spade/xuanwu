@@ -1,5 +1,5 @@
 /**
- * account-skill — _ledger.ts
+ * skill-xp.slice — _ledger.ts
  *
  * XP Ledger: immutable audit trail for every XP change.
  *

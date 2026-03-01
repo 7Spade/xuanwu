@@ -1,22 +1,56 @@
 /**
- * organization-skill-recognition — _queries.ts
+ * skill-xp.slice — _queries.ts
  *
- * Read queries for the Skill Tag Pool and Org Skill Recognition aggregates.
+ * Read queries for:
+ *   1. Account skill XP read model (accountSkillView)
+ *   2. Skill Tag Pool (orgSkillTagPool)
+ *   3. Org Skill Recognition (orgSkillRecognition)
  *
  * Per logic-overview.md:
+ *   W_B_SCHEDULE -.→ ACCOUNT_SKILL_VIEW (読み取り only — via ORG_ELIGIBLE_MEMBER_VIEW)
  *   SKILL_TAG_POOL_AGGREGATE → SKILL_TAG_POOL (read model)
  *   ORG_SKILL_RECOGNITION["...organizationId / accountId / skillId / minXpRequired / status"]
  *
  * Boundary constraint:
- *   These queries read ONLY this BC's own Firestore collections.
- *   They do NOT read Account XP data — use projection.org-eligible-member-view for that.
+ *   These queries read ONLY this slice's own Firestore collections.
+ *   They do NOT read Account aggregate data directly — use projection views for that.
  */
 
 import { getDocs, collection, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { OrgSkillTagEntry } from './_skill-tag-pool';
-import type { OrgSkillRecognitionRecord } from './_org-skill-recognition';
+import type { AccountSkillEntry } from './_projector';
+import type { OrgSkillTagEntry } from './_tag-pool';
+import type { OrgSkillRecognitionRecord } from './_org-recognition';
+
+// ---------------------------------------------------------------------------
+// Account skill view queries
+// ---------------------------------------------------------------------------
+
+/**
+ * Retrieves the skill XP entry for a specific account + skill combination.
+ */
+export async function getAccountSkillEntry(
+  accountId: string,
+  skillId: string
+): Promise<AccountSkillEntry | null> {
+  return getDocument<AccountSkillEntry>(
+    `accountSkillView/${accountId}/skills/${skillId}`
+  );
+}
+
+/**
+ * Returns all skill entries for a given account.
+ * Callers derive tier via resolveSkillTier(entry.xp).
+ */
+export async function getAccountSkillView(
+  accountId: string
+): Promise<AccountSkillEntry[]> {
+  const snap = await getDocs(
+    collection(db, `accountSkillView/${accountId}/skills`)
+  );
+  return snap.docs.map((d: QueryDocumentSnapshot) => d.data() as AccountSkillEntry);
+}
 
 // ---------------------------------------------------------------------------
 // Skill Tag Pool queries
@@ -48,9 +82,6 @@ export async function getOrgSkillTags(orgId: string): Promise<OrgSkillTagEntry[]
 
 /**
  * Returns the current recognition record for a specific member skill, or null.
- *
- * Primary consumer: domain operations that need to check recognition status
- * before granting/revoking, and UI that shows recognition state per skill.
  */
 export async function getSkillRecognition(
   organizationId: string,
@@ -65,8 +96,6 @@ export async function getSkillRecognition(
 /**
  * Returns all skill recognition records for a specific member within an org.
  * Includes both active and revoked records for full audit visibility.
- *
- * Used by member profile UI to display org-recognised skill credentials.
  */
 export async function getMemberSkillRecognitions(
   organizationId: string,
