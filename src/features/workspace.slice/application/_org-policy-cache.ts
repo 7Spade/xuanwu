@@ -15,8 +15,8 @@
  * when policy changes affect workspace-level permissions.
  */
 
-import type { OrgPolicyChangedPayload } from '@/features/account-organization.event-bus';
-import { onOrgEvent } from '@/features/account-organization.event-bus';
+import type { OrgPolicyChangedPayload } from '@/features/organization.slice';
+import { onOrgEvent } from '@/features/organization.slice';
 import { upsertProjectionVersion } from '@/features/projection.registry';
 
 export interface OrgPolicyEntry {

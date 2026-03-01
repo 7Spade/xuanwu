@@ -1,5 +1,5 @@
 /**
- * account-organization.event-bus — Public API
+ * organization.slice/core.event-bus — Public API
  *
  * Organization event bus — mirrors workspace-core.event-bus pattern.
  *

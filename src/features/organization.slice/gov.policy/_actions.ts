@@ -16,7 +16,7 @@
  */
 
 import { addDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import { publishOrgEvent } from '@/features/account-organization.event-bus';
+import { publishOrgEvent } from '../core.event-bus';
 import {
   type CommandResult,
   commandSuccess,

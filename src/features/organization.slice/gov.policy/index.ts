@@ -1,5 +1,5 @@
 /**
- * account-organization.policy — Public API
+ * organization.slice/gov.policy — Public API
  *
  * Organization-level policy management.
  * Policy changes publish via org event bus → workspace org-policy-cache updates downstream.

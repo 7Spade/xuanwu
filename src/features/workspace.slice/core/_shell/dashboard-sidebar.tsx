@@ -40,7 +40,7 @@ import { useI18n } from "@/shared/app-providers/i18n-provider";
 import { useApp } from "../_hooks/use-app";
 import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces";
 import { useUser } from "@/features/account.slice";
-import { useOrganizationManagement } from "@/features/account-organization.core";
+import { useOrganizationManagement } from "@/features/organization.slice";
 
 // ============================================================================
 // Sidebar Sub-components

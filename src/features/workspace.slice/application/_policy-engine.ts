@@ -9,7 +9,7 @@
  *
  * Current: simple role-based capability model.
  * Future: extended with org-policy-cache (WORKSPACE_ORG_POLICY_CACHE) when
- * account-organization.event-bus delivers policy change events.
+ * organization.slice (core.event-bus) delivers policy change events.
  */
 
 export type WorkspaceRole = 'Manager' | 'Contributor' | 'Viewer';

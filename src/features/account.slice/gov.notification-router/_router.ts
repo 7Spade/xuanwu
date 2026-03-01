@@ -16,7 +16,7 @@
  * Does NOT generate content — only routes from event source to delivery slice.
  */
 
-import { onOrgEvent } from '@/features/account-organization.event-bus';
+import { onOrgEvent } from '@/features/organization.slice';
 import { deliverNotification } from '../user.notification';
 
 export interface RouterRegistration {

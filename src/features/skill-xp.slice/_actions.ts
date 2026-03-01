@@ -16,7 +16,7 @@
 'use server';
 
 import { addXp, deductXp } from './_aggregate';
-import { publishOrgEvent } from '@/features/account-organization.event-bus';
+import { publishOrgEvent } from '@/features/organization.slice';
 import {
   type CommandResult,
   commandSuccess,

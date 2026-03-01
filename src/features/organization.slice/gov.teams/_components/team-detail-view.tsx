@@ -7,7 +7,7 @@ import { ArrowLeft, UserPlus, Trash2, Users } from "lucide-react"
 import { useState, useEffect, useMemo } from "react"
 import { toast } from "@/shared/utility-hooks/use-toast"
 import { useApp } from "@/shared/app-providers/app-context"
-import { useTeamManagement } from "@/features/account-organization.team"
+import { useTeamManagement } from "@/features/organization.slice"
 import type { MemberReference, Team } from "@/shared/types"
 import { PageHeader } from "@/shared/ui/page-header"
 

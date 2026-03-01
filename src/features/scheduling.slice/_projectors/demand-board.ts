@@ -32,7 +32,7 @@ import type {
   ScheduleAssignmentCancelledPayload,
   ScheduleProposalCancelledPayload,
   ScheduleAssignRejectedPayload,
-} from '@/features/account-organization.event-bus';
+} from '@/features/organization.slice';
 
 /** Firestore path for a schedule item (single source of truth). */
 function scheduleItemPath(orgId: string, scheduleItemId: string): string {

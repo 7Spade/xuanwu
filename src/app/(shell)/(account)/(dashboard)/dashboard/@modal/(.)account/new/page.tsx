@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/shared/shadcn-ui/dialog"
 import { useI18n } from "@/shared/app-providers/i18n-provider"
-import { AccountNewForm } from "@/features/account-organization.core"
+import { AccountNewForm } from "@/features/organization.slice"
 
 export default function AccountNewModalPage() {
   const router = useRouter()

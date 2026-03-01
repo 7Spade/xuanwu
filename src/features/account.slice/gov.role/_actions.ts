@@ -22,7 +22,7 @@
  */
 
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import { publishOrgEvent } from '@/features/account-organization.event-bus';
+import { publishOrgEvent } from '@/features/organization.slice';
 import {
   type CommandResult,
   commandSuccess,
