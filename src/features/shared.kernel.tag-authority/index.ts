@@ -14,7 +14,7 @@
 export {
   TAG_CATEGORIES,
   tagSlugRef,
-} from '@/features/shared.kernel/tag-authority';
+} from '@/features/shared-kernel/tag-authority';
 export type {
   TagCategory,
   TagDeleteRule,
@@ -27,4 +27,4 @@ export type {
   TagDeletedPayload,
   ITagReadPort,
   ImplementsTagStaleGuard,
-} from '@/features/shared.kernel/tag-authority';
+} from '@/features/shared-kernel/tag-authority';
