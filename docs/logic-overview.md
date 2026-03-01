@@ -1,3 +1,10 @@
+%% ==========================================================================
+%% LOGIC OVERVIEW v10 (CURRENT SSOT)
+%% This is the single source of truth for all architecture decisions.
+%% Historical versions (docs/overview/v3, v5, v6, v7, v8, v9, v10) have been
+%% removed to avoid confusion. To upgrade the spec: edit this file directly.
+%% ==========================================================================
+
 flowchart TD
 
 %% ==========================================================================

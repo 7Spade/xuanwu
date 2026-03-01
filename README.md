@@ -1,6 +1,6 @@
 # Xuanwu — Production-Ready DDD × Next.js 16 System
 
-> **System status**: v9 Production-Ready — Outbox Relay, DLQ 3-tier classification, TraceID penetration, and Token Refresh Handshake all implemented.
+> **System status**: v10 — VS0 contract consolidation: SK_OUTBOX_CONTRACT, SK_VERSION_GUARD, SK_READ_CONSISTENCY, SK_STALENESS_CONTRACT, SK_RESILIENCE_CONTRACT, SK_TOKEN_REFRESH_CONTRACT all down-shifted to Shared Kernel.
 > **Architecture spec**: [`docs/logic-overview.md`](./docs/logic-overview.md) (sole source of truth — replace this file to upgrade the spec)
 
 ---
