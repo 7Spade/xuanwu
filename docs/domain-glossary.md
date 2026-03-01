@@ -148,9 +148,26 @@
 | **STANDARD** | `SkillXpAdded` | `FUNNEL` → CRITICAL_PROJ_LANE [P2] | #11, #12 |
 | **STANDARD** | `SkillXpDeducted` | `FUNNEL` → CRITICAL_PROJ_LANE [P2] | #11, #12 |
 | **STANDARD** | `ScheduleAssigned` | `NOTIF_ROUTER` + `FUNNEL` [E3] | #14, #15 |
-| **STANDARD** | `ScheduleProposed` | `ORG_SCHEDULE` Saga [A5] | #A5 |
+| **STANDARD** | `ScheduleProposed` | `SCHEDULE_SAGA` [A5] | #A5 |
 | **STANDARD** | `MemberJoined` | `FUNNEL` [#16] | #15, #16 |
 | **STANDARD** | `MemberLeft` | `FUNNEL` [#16] | #15, #16 |
 | **STANDARD** | All Domain Events | `FUNNEL` [#9] | #9 |
 | **BACKGROUND** | `TagLifecycleEvent` | `FUNNEL` + `VS4_TAG_SUBSCRIBER` [T1][R3] | T1, T2 |
 | **BACKGROUND** | `AuditEvents` | `AUDIT_COLLECTOR` [Q5] | Q5, R8 |
+
+---
+
+## v11 Semantic Tag Entities (TE1–TE6)
+
+Six AI-ready semantic tag entity nodes defined in `TAG_ENTITIES` (CTA). All cross-slice tag references **must** point to these nodes (D22). Slices must not create their own semantic tag categories (D21).
+
+| Entity | Tag Category | `tagSlug` Format | Referenced By |
+|--------|-------------|-----------------|---------------|
+| `TAG_USER_LEVEL` (TE1) | `user_level` | `user-level:{slug}` | account-organization.member |
+| `TAG_SKILL` (TE2) | `skill` | `skill:{slug}` | account-skill, org-eligible-member-view |
+| `TAG_SKILL_TIER` (TE3) | `skill_tier` | `skill-tier:{tier}` | account-skill, org-eligible-member-view |
+| `TAG_TEAM` (TE4) | `team` | `team:{slug}` | account-organization.team |
+| `TAG_ROLE` (TE5) | `role` | `role:{slug}` | account-governance.role, workspace-governance.role, account-organization.member |
+| `TAG_PARTNER` (TE6) | `partner` | `partner:{slug}` | account-organization.partner |
+
+> **D23 annotation format**: node text `→ tag::{category} [{NODE_NAME}]`; semantic edge `-.->|"{dim} tag 語義"| NODE_NAME`.

@@ -1,7 +1,7 @@
 # Tech Stack
 
 > Source of truth: `docs/logic-overview.md`
-> For governance rules D1–D20 see [logic-overview.md](./logic-overview.md). For project structure and slice boundaries see [project-structure.md](./project-structure.md).
+> For governance rules D1–D23 see [logic-overview.md](./logic-overview.md). For project structure and slice boundaries see [project-structure.md](./project-structure.md).
 
 ## Runtime & Framework
 
@@ -89,7 +89,7 @@
 
 ---
 
-## D1–D18 Development Rules Reference
+## D1–D23 Development Rules Reference
 
 | Rule | Summary | Contract |
 |------|---------|---------|
@@ -111,6 +111,11 @@
 | D16 | SLA values: reference SK_STALENESS_CONTRACT constants | **[S4]** |
 | D17 | New external entry points: satisfy SK_RESILIENCE_CONTRACT | **[S5]** |
 | D18 | Claims refresh: coordinate via SK_TOKEN_REFRESH_CONTRACT | **[S6]** |
+| D19 | Type ownership: cross-BC contracts in `shared.kernel.*` first; `shared/types` is legacy fallback | — |
+| D20 | Import precedence: `shared.kernel.*` > feature slice `index.ts` > `shared/types` | — |
+| D21 | New tag category: define in CTA `TAG_ENTITIES`; no slice may create own semantic tag category | — |
+| D22 | Cross-slice tag reference: point to TAG_USER_LEVEL/TAG_SKILL/TAG_SKILL_TIER/TAG_TEAM/TAG_ROLE/TAG_PARTNER nodes | — |
+| D23 | Tag annotation: node text `→ tag::{category} [{NODE_NAME}]`; edge `-.->|"{dim} tag 語義"| NODE_NAME` | — |
 
 ---
 

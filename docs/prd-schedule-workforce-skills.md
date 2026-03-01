@@ -660,7 +660,7 @@ interface OrgEligibleMemberEntry {
 
 | 集合 | 用途 | 寫入路徑 |
 |------|------|---------|
-| `orgScheduleProposals/{orgId}/proposals/{scheduleItemId}` | 排班聚合 | `_schedule.ts` aggregate |
+| `accounts/{orgId}/schedule_items/{scheduleId}` | 排班聚合（VS6 SSOT） | `_schedule.ts` aggregate |
 | `orgEligibleMemberView/{orgId}/members/{accountId}` | 人力 Read Model | `projection.org-eligible-member-view` |
 | `accountSkills/{accountId}/skills/{skillId}` | 技能聚合 | `account-user.skill/_aggregate.ts` |
 | `sagaStates/{sagaId}` | Saga 狀態持久化 | `scheduling-core.saga/_saga.ts` |
@@ -699,7 +699,7 @@ interface OrgEligibleMemberEntry {
 | Firebase / Firestore | 基礎設施 | ✅ 已部署 | 主要資料庫 |
 | Firebase Cloud Messaging | 基礎設施 | ✅ 已設定 | 推播通知 |
 | Firebase Auth | 基礎設施 | ✅ 已部署 | 身份驗證 |
-| Next.js 16 Server Actions | 框架 | ✅ 已使用 | 服務端入口 |
+| Next.js ^15.5.12 Server Actions | 框架 | ✅ 已使用 | 服務端入口 |
 
 ### 內部相依（需先實作或已完成）
 

@@ -89,17 +89,19 @@
 
 ---
 
-### `schedules/{scheduleId}`
+### `accounts/{orgId}/schedule_items/{scheduleId}`
+
+> **VS6 SSOT** — unified collection replacing legacy `schedules/` (removed). All VS6 scheduling writes and reads use this path.
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `scheduleId` | `string` | |
-| `orgId` | `string` | |
+| `orgId` | `string` | Partition key |
 | `workspaceId` | `string` | |
 | `assignedAccountId` | `string` | |
 | `tagSlug` | `string` | Skill requirement reference (T4) |
 | `minXpRequired` | `number` | From SK_SKILL_REQ |
-| `status` | `string` | `pending\|active\|completed\|cancelled` |
+| `status` | `ScheduleStatus` | `PENDING\|OFFICIAL\|COMPLETED\|CANCELLED\|REJECTED` |
 | `aggregateVersion` | `number` | Carried in envelope [R7] |
 
 ---

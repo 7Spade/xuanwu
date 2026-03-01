@@ -1,7 +1,7 @@
 # Project Structure
 
 > **Source of truth**: `docs/logic-overview.md`
-> This document describes the canonical directory layout. Naming conventions and dependency rules are enforced by D1–D20 (see `docs/logic-overview.md` for the full rule set).
+> This document describes the canonical directory layout. Naming conventions and dependency rules are enforced by D1–D23 (see `docs/logic-overview.md` for the full rule set).
 
 ---
 
@@ -470,7 +470,7 @@ src/app/
 
 ---
 
-## D1–D20 Path Constraints
+## D1–D23 Path Constraints
 
 | Rule | Path Constraint |
 |------|----------------|
@@ -494,3 +494,6 @@ src/app/
 | D18 | Claims refresh logic changes: `SK_TOKEN_REFRESH_CONTRACT` is the sole spec; all three parties (VS1, IER, frontend) must be updated together [S6] |
 | D19 | Type ownership: cross-BC contracts must live in `shared.kernel.*` first; `shared/types` is legacy/common DTO fallback only |
 | D20 | Import precedence: `shared.kernel.*` > feature slice `index.ts` > `shared/types`; when the same concept exists in both `shared.kernel` and `shared/types`, `shared.kernel` is authoritative |
+| D21 | New tag category: must define in CTA `TAG_ENTITIES`; slices must not create their own semantic tag categories |
+| D22 | Cross-slice tag reference: must point to TAG_USER_LEVEL / TAG_SKILL / TAG_SKILL_TIER / TAG_TEAM / TAG_ROLE / TAG_PARTNER; implicit tagSlug strings forbidden |
+| D23 | Tag annotation format: node text `→ tag::{category} [{NODE_NAME}]`; semantic edge `-.->|"{dim} tag 語義"| NODE_NAME` |

@@ -4,7 +4,7 @@
 
 ## 什麼是知識圖譜？
 
-`docs/knowledge-graph.json` 是本專案的**持久化架構治理知識圖譜**，記錄從 `.github/prompts/` 所有 32 個檔案萃取的核心架構約束與設計決策。
+`docs/knowledge-graph.json` 是本專案的**持久化架構治理知識圖譜**，記錄從 `docs/logic-overview.md`（SSOT）萃取的核心架構約束與設計決策。
 
 它解決了一個根本問題：**AI Agent 的記憶（Memory MCP）在不同 session、不同環境之間無法保證持久**。
 
@@ -24,33 +24,46 @@
 ```json
 {
   "meta": {
-    "version": "1.0.0",
+    "version": "4.0.0",
     "initialized": "2026-02-26",
-    "source": ".github/prompts/ (32 files)",
+    "source": "docs/logic-overview.md (SSOT)",
     "ssot": "docs/logic-overview.md",
     "description": "..."
   }
 }
 ```
 
-### 實體（Entities）— 13 個
+### 實體（Entities）— 27 個
 
 | 名稱 | 類型 | 說明 |
 |------|------|------|
 | `Logic_Overview_SSOT` | `Data_Schema` | **最高權威**：`docs/logic-overview.md`，所有衝突以此為準 |
 | `Architecture_Governance_Principles` | `Architecture_Decision` | 整體架構治理原則與硬性約束 |
-| `Technology_Stack` | `Framework_Feature` | Next.js 16、Firebase、shadcn/ui、Genkit AI 技術棧 |
+| `Technology_Stack` | `Framework_Feature` | Next.js ^15.5.12、Firebase、shadcn/ui、Genkit AI 技術棧 |
 | `UI_Component_Standard` | `Component_Standard` | 僅允許 shadcn/ui，禁止 Material-UI / Chakra 等 |
 | `DDD_Boundaries` | `Architecture_Decision` | DDD 邊界規則，禁止跨 BC 直接寫入 |
 | `DDD_Aggregate_Protection` | `Architecture_Decision` | 任何繞過 Command Handler 的 Firestore 寫入是嚴重違規 |
 | `Vertical_Slice_Architecture` | `Project_Convention` | VSA 目錄結構與切片隔離規則 |
-| `Next_JS_16` | `Framework_Feature` | App Router、Parallel Routes、Server Components 規範 |
+| `Next_JS_Framework` | `Framework_Feature` | App Router、Parallel Routes、Server Components 規範 |
 | `Server_Actions_Convention` | `Project_Convention` | 所有 `_actions.ts` 必須返回 `CommandResult` |
 | `Command_Event_Flow` | `Project_Convention` | CBG_ENTRY → Command → Aggregate → Event → Outbox → IER → Projection |
 | `Knowledge_Graph_Governance` | `Architecture_Decision` | 知識圖譜本身的使用與更新規則 |
 | `Genkit_AI_Flow` | `Framework_Feature` | Genkit AI Flow 設計規範 |
 | `Compliance_Audit_Standard` | `Architecture_Decision` | 合規審計工作流程，PR 前必須執行 |
 | `MCP_Tool_Registry` | `Project_Convention` | MCP 工具清單與標準自動化工作流程 |
+| `SK_Outbox_Contract` | `Architecture_Decision` | S1 — Outbox at-least-once + DLQ tier 分級 |
+| `SK_Version_Guard` | `Architecture_Decision` | S2 — Projection aggregateVersion 版本守衛 |
+| `SK_Read_Consistency` | `Architecture_Decision` | S3 — STRONG_READ vs EVENTUAL_READ 決策規則 |
+| `SK_Staleness_Contract` | `Architecture_Decision` | S4 — SLA staleness 常數（TAG_MAX_STALENESS/PROJ_STALE_*） |
+| `SK_Resilience_Contract` | `Architecture_Decision` | S5 — 速率限制、熔斷、隔艙 |
+| `SK_Token_Refresh_Contract` | `Architecture_Decision` | S6 — Claims 三方同步刷新合約 |
+| `Consistency_Invariants` | `Architecture_Decision` | #1-#19 一致性不變量 |
+| `Atomicity_Rules` | `Architecture_Decision` | #A1-#A11 原子性規則 |
+| `Development_Rules` | `Project_Convention` | D1-D23 開發守則 |
+| `IER_Lane_Routing` | `Project_Convention` | IER CRITICAL/STANDARD/BACKGROUND lane 路由表 |
+| `Tag_Authority` | `Architecture_Decision` | CTA tagSlug 語義唯一權威，T1-T5 規則 |
+| `Vertical_Slice_Definitions` | `Architecture_Decision` | VS0-VS9 切片完整定義 |
+| `Tag_Semantic_Entities` | `Architecture_Decision` | v11 TE1-TE6：六個 AI-ready 語義 tag 實體節點（D21-D23） |
 
 ### 關係類型（Relation Types）— 5 種
 
@@ -70,10 +83,10 @@ Logic_Overview_SSOT  ← [DEPENDS_ON] ─ Architecture_Governance_Principles
        │              [DEPENDS_ON] ──────────────┤
        ├── DDD_Boundaries ←──────────── Vertical_Slice_Architecture
        ├── Compliance_Audit_Standard              │
-       └── Knowledge_Graph_Governance             └── Next_JS_16
+       └── Knowledge_Graph_Governance             └── Next_JS_Framework
 
 Architecture_Governance_Principles
-  ← [FOLLOWS] ── Next_JS_16
+  ← [FOLLOWS] ── Next_JS_Framework
   ← [FOLLOWS] ── Technology_Stack
   ← [FOLLOWS] ── Server_Actions_Convention
   ← [FOLLOWS] ── Command_Event_Flow
@@ -97,7 +110,7 @@ Architecture_Governance_Principles
 呼叫：memory.read_graph
 ```
 
-**Step 2a：若 Memory MCP 有資料（13 個 entities）**
+**Step 2a：若 Memory MCP 有資料（27 個 entities）**
 
 直接使用 Memory MCP 中的資料，不需重新載入。
 
@@ -247,10 +260,10 @@ memory.search_nodes("Command_Event_Flow SECURITY_BLOCK")
 | 步驟 | 結果 |
 |------|------|
 | Memory MCP 初始狀態 | ✅ 空（0 entities，0 relations）|
-| 讀取 `docs/knowledge-graph.json` | ✅ 成功（13 entities，29 relations）|
-| 呼叫 `memory.create_entities()` | ✅ 成功（所有 13 個 entities 載入）|
-| 呼叫 `memory.create_relations()` | ✅ 成功（所有 29 個 relations 載入）|
-| 呼叫 `memory.read_graph()` 驗證 | ✅ 圖譜完整（13 entities，29 relations）|
+| 讀取 `docs/knowledge-graph.json` | ✅ 成功（27 entities，59 relations）|
+| 呼叫 `memory.create_entities()` | ✅ 成功（所有 27 個 entities 載入）|
+| 呼叫 `memory.create_relations()` | ✅ 成功（所有 59 個 relations 載入）|
+| 呼叫 `memory.read_graph()` 驗證 | ✅ 圖譜完整（27 entities，59 relations）|
 | `memory.search_nodes()` 查詢 | ⚠️ 注意：需使用 `read_graph` 替代（search 在部分環境下返回空結果）|
 
 ---
