@@ -7,7 +7,6 @@
 主要代理人（範例）：
 
 - Accessibility Expert: WCAG、無障礙測試與修正建議。
-- Agent Governance Reviewer: 審查代理治理、政策、稽核與安全邊界。
 - API Architect: API 設計、契約、版本與演進策略。
 - Context7-Expert: 檢索並引用外部權威文件（如 Next.js、框架文件）。
 - Debug Mode Instructions: 除錯並定位程式錯誤的專用代理。
@@ -16,7 +15,6 @@
 - QA: 測試計畫、邊界案例與回歸測試策略。
 - Refine Requirement or Issue: 將不明需求細化為可執行的接受準則與技術考量。
 - TDD Green/Red/Refactor phases: 支援 TDD 三階段的實作代理（快速讓測試通過、撰寫失敗測試、重構）。
-- Polyglot Test Builder / Fixer: 建構與修復跨語言測試與編譯錯誤。
 - gem-devops / gem-implementer / gem-planner: DevOps、實作與規劃類代理。
 
 如何擴充：若要新增代理，請在 `.github/agents/` 中建立對應的 `NAME.agent.md` 或在中央 `AGENTS.md` 新增條目，並在 `.github/prompts/` 新增對應 prompt 範本。
@@ -101,13 +99,10 @@ Feature Builder: 「任務完成」
 以下為 `.github/agents/` 目錄中全部可用的 agent 檔案（包含通用框架代理）：
 
 - `accessibility.agent.md` — WCAG 無障礙測試與修正
-- `agent-governance-reviewer.agent.md` — 代理治理、政策、稽核審查
 - `api-architect.agent.md` — API 設計、契約、版本策略
 - `architect.agent.md` — **[艦隊]** App Router & 平行路由架構師
 - `asset-manager.agent.md` — **[艦隊]** 圖片最佳化 & 圖示管理員
-- `code-tour.agent.md` — VSCode CodeTour 檔案建立
 - `context7.agent.md` — 外部框架文件檢索（next-intl、Firebase 等）
-- `custom-agent-foundry.agent.md` — 設計與建立新 VS Code 代理
 - `data-analyst.agent.md` — **[艦隊]** 用戶行為追蹤 & Analytics
 - `debug.agent.md` — 錯誤定位與除錯
 - `docs-manager.agent.md` — **[艦隊]** 文件更新維護官
@@ -130,15 +125,11 @@ Feature Builder: 「任務完成」
 - `implementer.agent.md` — **[艦隊]** 代碼實作者
 - `infra-master.agent.md` — **[艦隊]** CI/CD & 部署運維官
 - `janitor.agent.md` — 代碼清理與技術債移除
-- `modernization.agent.md` — 舊系統現代化升級
 - `performance-expert.agent.md` — **[艦隊]** 效能優化師
 - `plan.agent.md` — 策略規劃與架構分析
 - `planner.agent.md` — 實作計畫生成
-- `polyglot-test-builder.agent.md` — 跨語言測試建構
-- `polyglot-test-fixer.agent.md` — 修復編譯錯誤
 - `principal-software-engineer.agent.md` — 主任工程師技術指導
 - `product-strategist.agent.md` — **[艦隊]** 需求精煉 & MVP 商業邏輯師
-- `prompt-engineer.agent.md` — Prompt 優化與分析
 - `qa-reviewer.agent.md` — **[艦隊]** 品質校驗員
 - `qa-subagent.agent.md` — QA 測試規劃與 Bug 追蹤
 - `refactor-scout.agent.md` — **[艦隊]** 技術債 & 重構偵察兵
@@ -146,16 +137,12 @@ Feature Builder: 「任務完成」
 - `reliability-expert.agent.md` — **[艦隊]** 錯誤邊界 & 監控官
 - `research-technical-spike.agent.md` — 技術尖刺研究與驗證
 - `researcher.agent.md` — **[艦隊]** 代碼模式掃描研究員
-- `rug-orchestrator.agent.md` — 純編排代理（子任務分解）
 - `seo-meta.agent.md` — **[艦隊]** SEO & Metadata 策略師
 - `style-designer.agent.md` — **[艦隊]** UI/UX 風格守門員
-- `task-planner.agent.md` — 可執行任務計畫建立
-- `task-researcher.agent.md` — 全面專案分析研究
 - `tdd-green.agent.md` — TDD Green 階段（讓測試通過）
 - `tdd-red.agent.md` — TDD Red 階段（撰寫失敗測試）
 - `tdd-refactor.agent.md` — TDD Refactor 階段（重構）
 - `tech-debt-remediation-plan.agent.md` — 技術債修復計畫
-- `technical-content-evaluator.agent.md` — 技術內容品質評估
 - `test-engineer.agent.md` — **[艦隊]** E2E 測試工程師
 
 > **[艦隊]** 標記表示屬於本專案 18 人核心開發艦隊，由 `feature-builder` 統一調度。

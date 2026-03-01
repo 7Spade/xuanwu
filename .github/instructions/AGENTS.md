@@ -7,7 +7,6 @@
 - 每個代理需定義：名稱、簡短描述、可呼叫的 MCP 工具、輸入/輸出契約、與安全/治理考量。
 - 範例代理（與 `.github/agents/AGENTS.md` 同步）：
   - Accessibility Expert — 用於無障礙檢測與改進建議；常用工具：`playwright-mcp`、`chrome-devtools`。
-  - Agent Governance Reviewer — 用於檢視代理授權、日誌審核與策略驗證；常用工具：`audit-logger`、`policy-evaluator`。
   - Context7-Expert — 用於查詢外部官方文件與範例；常用工具：`mcp_io_github_ups_get-library-docs`。
   - Next.js Expert / Expert React Frontend Engineer — 用於路由、Server Component、效能診斷；常用工具：`next-devtools`、`sequential-thinking`。
 
@@ -28,11 +27,9 @@
 
 下列為 `.github/instructions/` 中可用的指引檔案（AI 可在調度時參考）：
 
-- agent-safety.instructions.md
 - agent-skills.instructions.md
 - agents.instructions.md
 - AGENTS.md
-- ai-prompt-engineering-safety-best-practices.instructions.md
 - context-engineering.instructions.md
 - context7.instructions.md
 - github-actions-ci-cd-best-practices.instructions.md
