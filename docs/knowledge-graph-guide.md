@@ -114,6 +114,6 @@ Write graph changes back to `docs/knowledge-graph.json` for cross-session durabi
 | File | Role |
 |------|------|
 | `docs/knowledge-graph.json` | Persistent graph store (v4.1, 27 entities / 59 relations) |
-| `docs/logic-overview.md` | Architecture SSOT (v11, rules D1–D23 + TE1–TE6) |
+| `docs/logic-overview.md` | Architecture SSOT (v11, rules D1–D25 + TE1–TE6) |
 | `docs/domain-glossary.md` | Domain vocabulary |
 | `.github/copilot-instructions.md` | Agent session protocol |

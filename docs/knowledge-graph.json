@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "4.0.0",
+    "version": "4.1.0",
     "initializedAt": "2026-02-26",
     "updatedAt": "2026-03-01",
     "source": "docs/logic-overview.md (SSOT) + docs/*.md (supplementary) + src/features/ (code state)",
@@ -17,7 +17,7 @@
         "Defines VS0-VS9 vertical slices, 3-Gateway CQRS architecture (Command Bus / IER / Query Gateway)",
         "Contains 6 VS0 shared kernel infrastructure contracts: S1 (SK_OUTBOX_CONTRACT), S2 (SK_VERSION_GUARD), S3 (SK_READ_CONSISTENCY), S4 (SK_STALENESS_CONTRACT), S5 (SK_RESILIENCE_CONTRACT), S6 (SK_TOKEN_REFRESH_CONTRACT)",
         "Contains 5 VS0 foundation data contracts: SK_ENV, SK_AUTH_SNAP, SK_SKILL_TIER, SK_SKILL_REQ, SK_CMD_RESULT",
-        "Contains 19 Consistency Invariants (#1-#19), 11 Atomicity Rules (#A1-#A11), 23 Development Rules (D1-D23), 5 Tag Authority rules (T1-T5)",
+        "Contains 19 Consistency Invariants (#1-#19), 11 Atomicity Rules (#A1-#A11), 25 Development Rules (D1-D25); D24-D25 = Firebase isolation rules (FIREBASE_ACL [D24]: no direct firebase/* imports; [D25]: new Firebase service needs Adapter+Port), 5 Tag Authority rules (T1-T5)",
         "v11 key changes: TE1-TE6 AI-ready semantic tag entity nodes added to TAG_ENTITIES (CTA); D21-D23 tag governance rules; VS6 unified to accounts/{orgId}/schedule_items as SSOT"
       ]
     },
@@ -298,7 +298,7 @@
       "name": "Development_Rules",
       "entityType": "Project_Convention",
       "observations": [
-        "Source: docs/logic-overview.md — D1-D23 development rules (D1-D12 base constraints, D13-D20 v10 infra+type contracts, D21-D23 v11 tag governance)",
+        "Source: docs/logic-overview.md — D1-D25 development rules (D1-D12 base constraints, D13-D20 v10 infra+type contracts, D21-D23 v11 tag governance, D24-D25 v11 Firebase isolation rules)",
         "D1: Event delivery only via infra.outbox-relay; domain slice 禁止直接 import infra.event-router",
         "D2: Cross-slice import: from '@/features/{slice}/index' only; _*.ts files are private",
         "D3: All mutations: src/features/{slice}/_actions.ts only",
@@ -321,7 +321,9 @@
         "D20 (v10 new): Import precedence: shared.kernel.* > feature slice index.ts > shared/types; if concept exists in both, shared.kernel is authoritative",
         "D21 (v11 new): New tag category must be defined in CTA TAG_ENTITIES; no slice may create its own semantic tag category [TE1-TE6]",
         "D22 (v11 new): Cross-slice tag reference must point to TAG_USER_LEVEL/TAG_SKILL/TAG_SKILL_TIER/TAG_TEAM/TAG_ROLE/TAG_PARTNER; implicit tagSlug strings forbidden",
-        "D23 (v11 new): Tag annotation format — node text: '→ tag::{category} [{NODE_NAME}]'; semantic edge: '-.->|\"{dim} tag 語義\"| NODE_NAME'"
+        "D23 (v11 new): Tag annotation format — node text: '→ tag::{category} [{NODE_NAME}]'; semantic edge: '-.->|\"{dim} tag 語義\"| NODE_NAME'",
+        "D24 (v11 Firebase): src/features/* and src/app/* must never import firebase/* directly; only src/shared/infra/* adapters may call Firebase SDK [FIREBASE_ACL]",
+        "D25 (v11 Firebase): New Firebase service must have an Adapter in src/shared/infra/ and a Port in src/shared/ports/ before feature slices may use it"
       ]
     },
     {

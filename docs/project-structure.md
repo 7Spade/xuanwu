@@ -1,7 +1,7 @@
 # Project Structure
 
-> **SSOT**: `docs/logic-overview.md` (rules D1–D26) · `docs/domain-glossary.md` (domain terms)
-> Canonical directory layout. Dependency rules enforced by D1–D26.
+> **SSOT**: `docs/logic-overview.md` (rules D1–D25) · `docs/domain-glossary.md` (domain terms)
+> Canonical directory layout. Dependency rules enforced by D1–D25.
 
 ---
 
@@ -477,7 +477,7 @@ src/app/
 
 ---
 
-## D1–D26 Path Constraints
+## D1–D25 Path Constraints
 
 | Rule | Path Constraint |
 |------|----------------|
@@ -506,4 +506,3 @@ src/app/
 | D23 | Tag annotation format: node text `→ tag::{category} [{NODE_NAME}]`; semantic edge `-.->|"{dim} tag 語義"| NODE_NAME` |
 | D24 | `src/features/*` and `src/app/*` must never import `firebase/*` directly; only `src/shared/infra/*` adapters may call Firebase SDK [FIREBASE_ACL] |
 | D25 | New Firebase service (auth/firestore/messaging/storage) must have an Adapter in `src/shared/infra/` and a Port interface in `src/shared/ports/` before feature slices may use it |
-| D26 | External triggers (`_actions.ts`) must use `createExternalTriggerGuard` from `infra.external-triggers` for rate-limit/circuit-break/bulkhead compliance [S5 R1-R3] |

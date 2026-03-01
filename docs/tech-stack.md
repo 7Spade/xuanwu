@@ -1,6 +1,6 @@
 # Tech Stack
 
-> **SSOT**: `docs/logic-overview.md` (rules D1–D23, slice boundaries) · `docs/project-structure.md` (folder ownership)
+> **SSOT**: `docs/logic-overview.md` (rules D1–D25, slice boundaries) · `docs/project-structure.md` (folder ownership)
 > This file: runtime + library versions only. Governance rules → `logic-overview.md`.
 
 ## Runtime & Framework

@@ -1,6 +1,6 @@
 # Persistence Model Overview
 
-> **SSOT**: `docs/logic-overview.md` (rules S1–S6, D1–D23) · `docs/schema-definition.md` (TypeScript contracts)
+> **SSOT**: `docs/logic-overview.md` (rules S1–S6, D1–D25) · `docs/schema-definition.md` (TypeScript contracts)
 > Firestore collections: ownership, version semantics, read consistency. Data schema → `docs/schema-definition.md`.
 
 ---
