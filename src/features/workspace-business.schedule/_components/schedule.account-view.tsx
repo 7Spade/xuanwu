@@ -6,7 +6,7 @@
  */
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, UserPlus, Calendar, ListChecks, History } from "lucide-react";
 import { toast } from "@/shared/utility-hooks/use-toast";
@@ -33,18 +33,30 @@ import { useApp } from "@/shared/app-providers/app-context";
 export function AccountScheduleSection() {
   const { state, dispatch } = useApp();
   const { activeAccount, accounts } = state;
-  const fallbackOrganizationAccount = useMemo(
-    () => Object.values(accounts).find((account) => account.accountType === "organization") ?? null,
-    [accounts]
-  );
+  const fallbackOrganizationAccount = useMemo(() => {
+    const organizations = Object.values(accounts)
+      .filter((account) => account.accountType === "organization")
+      .sort((a, b) => a.name.localeCompare(b.name));
+    return organizations[0] ?? null;
+  }, [accounts]);
+  const autoSwitchedRef = useRef(false);
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const { allItems, pendingProposals, decisionHistory, upcomingEvents, presentEvents, organizationMembers } = useGlobalSchedule();
   useEffect(() => {
     if (!fallbackOrganizationAccount) return;
-    if (activeAccount?.id === fallbackOrganizationAccount.id) return;
-    if (activeAccount?.accountType === "organization") return;
+    if (activeAccount?.id === fallbackOrganizationAccount.id) {
+      autoSwitchedRef.current = false;
+      return;
+    }
+    if (activeAccount?.accountType === "organization") {
+      autoSwitchedRef.current = false;
+      return;
+    }
+    if (autoSwitchedRef.current) return;
+
+    autoSwitchedRef.current = true;
     dispatch({ type: "SET_ACTIVE_ACCOUNT", payload: fallbackOrganizationAccount });
   }, [activeAccount?.accountType, activeAccount?.id, dispatch, fallbackOrganizationAccount]);
   const { assignMember, unassignMember, approveItem, rejectItem } = useScheduleActions();

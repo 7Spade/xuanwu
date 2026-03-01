@@ -86,31 +86,37 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   const { workspaces, auditLogs } = accountState;
   const { activeAccount, accounts } = appState;
   const workspace = workspaces[workspaceId];
-  const accountRecoveryAttemptRef = useRef<string | null>(null);
+  const resolvedWorkspaceIdRef = useRef<string | null>(null);
 
   const eventBus = useMemo(() => new WorkspaceEventBus(), [workspaceId]);
 
   useEffect(() => {
     if (!db || workspace) return;
-    if (accountRecoveryAttemptRef.current === workspaceId) return;
+    if (resolvedWorkspaceIdRef.current === workspaceId) return;
 
-    accountRecoveryAttemptRef.current = workspaceId;
+    resolvedWorkspaceIdRef.current = workspaceId;
 
     void (async () => {
       try {
         const snapshot = await getDoc(doc(db, 'workspaces', workspaceId));
         if (!snapshot.exists()) return;
 
-        const workspaceData = snapshot.data() as { dimensionId?: string };
-        const dimensionId = workspaceData.dimensionId;
-        if (!dimensionId || activeAccount?.id === dimensionId) return;
+        const workspaceData = snapshot.data();
+        const workspaceOrgId = typeof workspaceData.dimensionId === 'string' ? workspaceData.dimensionId : null;
+        if (!workspaceOrgId || activeAccount?.id === workspaceOrgId) return;
 
-        const targetAccount = accounts[dimensionId];
-        if (targetAccount?.accountType !== 'organization') return;
+        const targetAccount = accounts[workspaceOrgId];
+        if (targetAccount?.accountType !== 'organization') {
+          console.warn('[WorkspaceProvider] Resolved workspace dimension does not map to an organization account', {
+            workspaceId,
+            workspaceOrgId,
+          });
+          return;
+        }
 
         appDispatch({ type: 'SET_ACTIVE_ACCOUNT', payload: targetAccount });
-      } catch {
-        return;
+      } catch (error) {
+        console.warn('[WorkspaceProvider] Unable to resolve workspace dimension for account switch', error);
       }
     })();
   }, [accounts, activeAccount?.id, appDispatch, db, workspace, workspaceId]);
