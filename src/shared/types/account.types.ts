@@ -1,5 +1,5 @@
 import type { SkillGrant } from './skill.types'
-import type { Timestamp } from 'firebase/firestore'
+import type { Timestamp } from '@/shared/ports'
 
 export type AccountType = 'user' | 'organization'
 export type OrganizationRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
@@ -45,7 +45,7 @@ export interface MemberReference {
   role: OrganizationRole;
   presence: 'active' | 'away' | 'offline';
   isExternal?: boolean;
-  expiryDate?: Timestamp; // FirestoreTimestamp
+  expiryDate?: Timestamp;
   /**
    * Display cache of this individual's skill grants.
    * Derived from accounts/{id}.skillGrants at read time — not the source of truth.

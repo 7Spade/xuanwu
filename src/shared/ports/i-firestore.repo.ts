@@ -8,6 +8,24 @@
  * VS8 projection.event-funnel is the primary consumer.
  */
 
+/**
+ * Structural Firestore Timestamp interface — D24 compliant.
+ *
+ * Matches the shape of firebase/firestore Timestamp without importing the SDK.
+ * Use this type throughout domain types and shared-kernel contracts instead of
+ * importing Timestamp directly from firebase/firestore.
+ *
+ * The concrete firebase Timestamp satisfies this interface at runtime; the
+ * FIREBASE_ACL adapters in src/shared/infra/firestore/ hold the only real
+ * firebase/* imports per [D24].
+ */
+export interface Timestamp {
+  readonly seconds: number;
+  readonly nanoseconds: number;
+  toDate(): Date;
+  toMillis(): number;
+}
+
 export interface FirestoreDoc<T = Record<string, unknown>> {
   readonly id: string;
   readonly data: T;

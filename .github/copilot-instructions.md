@@ -172,4 +172,18 @@ Available MCP tools for agents and sub-agents:
 ## Working style for Copilot
 - Prioritize existing patterns in `src/features/*`, `src/app/*`, `src/shared`, and `src/features/shared-kernel/*`.
 - Prefer server-first Next.js patterns and minimal client boundaries (use `"use client"` only at leaf nodes).
+- **Before validating**: always run `npm install` first. If `node_modules/.bin/eslint` does not exist, the lint output is noise — do NOT report "Cannot find module" errors as code defects.
 - Validate with existing commands: `npm run lint`, `npm run typecheck`.
+- Use `npm run check` for a single reliable install+lint+typecheck pass.
+
+## Prompt Orchestration & Compliance Workflow
+
+Agent prompt index and workflow: **`.github/prompts/GEMINI.md`**
+
+Before finalizing any PR:
+1. Run `npm run check` to confirm 0 errors baseline
+2. Invoke `compliance-audit.prompt.md` to verify no new D-rule violations introduced
+3. For architectural refactors, invoke `iterative-alignment-refactor.prompt.md`
+
+The D24 migration backlog (43 files with direct `firebase/firestore` imports) is tracked in `AGENTS.md`.
+Do NOT add new D24 violations. Any new code must use `SK_PORTS` interfaces via `@/shared/ports`.

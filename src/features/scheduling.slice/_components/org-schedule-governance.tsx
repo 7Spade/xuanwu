@@ -43,7 +43,7 @@ import {
   SelectValue,
 } from '@/shared/shadcn-ui/select';
 import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
-import type { Timestamp } from 'firebase/firestore';
+import type { Timestamp } from '@/shared/ports';
 import { tierSatisfies } from '@/features/shared-kernel/skill-tier';
 
 // ---------------------------------------------------------------------------

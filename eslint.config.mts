@@ -197,7 +197,8 @@ export default tseslint.config(
   // naming convention (see docs/logic-overview.md §VS0 / Shared Kernel), so the glob
   // `shared.kernel.*/**` captures exactly the right set.
   {
-    files: ["src/features/shared.kernel.*/**/*.{ts,tsx}"],
+    files: ["src/features/shared-kernel/**/*.{ts,tsx}"],
+    ignores: ["src/features/shared-kernel/centralized-tag/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -206,12 +207,12 @@ export default tseslint.config(
             {
               group: ["@/shared/infra", "@/shared/infra/**"],
               message:
-                "shared.kernel.* must be pure — no infrastructure imports allowed (D8)",
+                "shared-kernel must be pure — no infrastructure imports allowed (D8)",
             },
             {
               group: ["firebase/**", "firebase-admin/**", "firebase-functions/**"],
               message:
-                "shared.kernel.* must be pure — no Firebase SDK imports allowed (D8)",
+                "shared-kernel must be pure — no Firebase SDK imports allowed (D8)",
             },
           ],
         },
@@ -276,6 +277,30 @@ export default tseslint.config(
               ],
               message:
                 "Domain slices must not import infra.event-router directly — use infra.outbox-relay for event delivery (D1)",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ── D24: Firebase isolation — feature slices (warn, migration in progress) ──
+  // Feature slices must not import Firebase SDK directly; all Firebase access
+  // must go through FIREBASE_ACL adapters via SK_PORTS (D24).
+  // Severity: warn (existing violations tracked; new code must not add more).
+  // infra.* slices are exempt — they ARE the ACL adapters.
+  {
+    files: ["src/features/**/*.{ts,tsx}"],
+    ignores: ["src/features/infra.*/**"],
+    rules: {
+      "no-restricted-imports": [
+        "warn",
+        {
+          patterns: [
+            {
+              group: ["firebase/**", "firebase-admin/**", "firebase-functions/**"],
+              message:
+                "Feature slices must not import Firebase SDK directly — use SK_PORTS via @/shared/ports instead (D24). All Firebase calls must go through FIREBASE_ACL adapters (src/shared/infra/).",
             },
           ],
         },

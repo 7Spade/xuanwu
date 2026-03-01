@@ -37,6 +37,7 @@ export type {
 export type {
   IFirestoreRepo,
   FirestoreDoc,
+  Timestamp,
   WriteOptions,
 } from '@/shared/ports';
 
