@@ -21,7 +21,7 @@ import {
   handleScheduleProposed,
   approveOrgScheduleProposal,
 } from './_aggregate';
-import type { WorkspaceScheduleProposedPayload } from '@/features/shared.kernel.skill-tier';
+import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel/skill-tier';
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 
 // ---------------------------------------------------------------------------

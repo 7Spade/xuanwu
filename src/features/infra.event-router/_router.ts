@@ -19,7 +19,7 @@
  *   R8 — All events carry traceId from the originating Command.
  */
 
-import type { EventEnvelope } from '@/features/shared.kernel.event-envelope';
+import type { EventEnvelope } from '@/features/shared-kernel/event-envelope';
 
 // ---------------------------------------------------------------------------
 // Types

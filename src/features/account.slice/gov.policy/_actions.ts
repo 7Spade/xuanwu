@@ -22,7 +22,7 @@ import {
   type CommandResult,
   commandSuccess,
   commandFailureFrom,
-} from '@/features/shared.kernel.contract-interfaces';
+} from '@/features/shared-kernel/command-result-contract';
 
 // ---------------------------------------------------------------------------
 // TOKEN_REFRESH_SIGNAL helper [S6]

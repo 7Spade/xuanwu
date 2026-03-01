@@ -28,7 +28,7 @@ import {
 } from '../_actions';
 import { toast } from '@/shared/utility-hooks/use-toast';
 import type { ScheduleItem } from '@/shared/types';
-import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
+import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 import type { OrgEligibleMemberView } from '@/features/projection.bus';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
@@ -44,7 +44,7 @@ import {
 } from '@/shared/shadcn-ui/select';
 import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
 import type { Timestamp } from 'firebase/firestore';
-import { tierSatisfies } from '@/features/shared.kernel.skill-tier';
+import { tierSatisfies } from '@/features/shared-kernel/skill-tier';
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -4,7 +4,7 @@
  *
  * Type definitions live in @/shared/types/skill.types.
  * Runtime functions (resolveSkillTier, TIER_DEFINITIONS, etc.) live in
- * @/features/shared.kernel.skill-tier — import directly from there.
+ * @/features/shared-kernel/skill-tier — import directly from there.
  */
 
 import type { SkillGrant, SkillTier, SkillRequirement } from '@/shared/types'

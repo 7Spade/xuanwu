@@ -92,7 +92,8 @@ export function tierSatisfies(grantedTier: SkillTier, minimumTier: SkillTier): b
  *
  * Re-exported from @/shared/types/skill.types to keep the dependency direction clean.
  */
-export type { SkillRequirement } from '@/shared/types/skill.types';
+import type { SkillRequirement } from '@/shared/types/skill.types';
+export type { SkillRequirement };
 
 // ─── Cross-BC event payload (Workspace BC → Organization BC) [A5] ────────────
 

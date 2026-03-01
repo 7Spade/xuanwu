@@ -21,7 +21,7 @@ import {
   type CommandResult,
   commandSuccess,
   commandFailureFrom,
-} from '@/features/shared.kernel.contract-interfaces';
+} from '@/features/shared-kernel/command-result-contract';
 
 export interface AddXpInput {
   accountId: string;

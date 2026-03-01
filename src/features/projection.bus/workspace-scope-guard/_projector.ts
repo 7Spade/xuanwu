@@ -10,7 +10,7 @@
 import { serverTimestamp } from 'firebase/firestore';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
+import { versionGuardAllows } from '@/features/shared-kernel/version-guard';
 import type { WorkspaceScopeGuardView } from './_read-model';
 
 /**

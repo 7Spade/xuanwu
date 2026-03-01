@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
 import { getAccountSkillView } from '../_queries';
 import type { AccountSkillEntry } from '../_projector';
-import { resolveSkillTier, TIER_DEFINITIONS } from '@/features/shared.kernel.skill-tier';
+import { resolveSkillTier, TIER_DEFINITIONS } from '@/features/shared-kernel/skill-tier';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Progress } from '@/shared/shadcn-ui/progress';

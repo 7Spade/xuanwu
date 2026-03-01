@@ -17,7 +17,7 @@
 import { serverTimestamp } from 'firebase/firestore';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { versionGuardAllows } from '@/features/shared.kernel.version-guard';
+import { versionGuardAllows } from '@/features/shared-kernel/version-guard';
 
 /**
  * Per-skill entry stored in Firestore.

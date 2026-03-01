@@ -38,7 +38,7 @@ import {
 import {
   createScheduleItem as createScheduleItemAction,
 } from '@/features/scheduling.slice'
-import type { CommandResult } from '@/features/shared.kernel.contract-interfaces';
+import type { CommandResult } from '@/features/shared-kernel/command-result-contract';
 
 
 interface WorkspaceContextType {
