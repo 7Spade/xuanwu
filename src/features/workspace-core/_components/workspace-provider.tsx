@@ -2,12 +2,12 @@
 "use client";
 
 import type React from 'react';
-import { createContext, useContext, useMemo, useCallback, useEffect, useState, useRef } from 'react';
+import { createContext, useContext, useMemo, useCallback, useEffect, useState } from 'react';
 import { type Workspace, type AuditLog, type WorkspaceTask, type WorkspaceRole, type Capability, type WorkspaceLifecycleState, type ScheduleItem } from '@/shared/types';
 import { WorkspaceEventBus , WorkspaceEventContext, registerWorkspaceFunnel, registerOrganizationFunnel, type WorkspaceEventName, type FileSendToParserPayload } from '@/features/workspace-core.event-bus';
 import { registerNotificationRouter } from '@/features/account-governance.notification-router';
 import { registerOrgPolicyCache, runTransaction } from '@/features/workspace-application';
-import { serverTimestamp, type FieldValue, type Firestore, doc, getDoc } from 'firebase/firestore';
+import { serverTimestamp, type FieldValue, type Firestore } from 'firebase/firestore';
 import { useAccount } from '../_hooks/use-account';
 import { useFirebase } from '@/shared/app-providers/firebase-provider';
 import { addDocument } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -81,45 +81,13 @@ const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 
 export function WorkspaceProvider({ workspaceId, children }: { workspaceId: string, children: React.ReactNode }) {
   const { state: accountState } = useAccount();
-  const { state: appState, dispatch: appDispatch } = useApp();
+  const { state: appState } = useApp();
   const { db } = useFirebase();
   const { workspaces, auditLogs } = accountState;
-  const { activeAccount, accounts } = appState;
+  const { activeAccount } = appState;
   const workspace = workspaces[workspaceId];
-  const resolvedWorkspaceIdRef = useRef<string | null>(null);
 
   const eventBus = useMemo(() => new WorkspaceEventBus(), [workspaceId]);
-
-  useEffect(() => {
-    if (!db || workspace) return;
-    if (resolvedWorkspaceIdRef.current === workspaceId) return;
-
-    resolvedWorkspaceIdRef.current = workspaceId;
-
-    void (async () => {
-      try {
-        const snapshot = await getDoc(doc(db, 'workspaces', workspaceId));
-        if (!snapshot.exists()) return;
-
-        const workspaceData = snapshot.data();
-        const workspaceOrgId = typeof workspaceData.dimensionId === 'string' ? workspaceData.dimensionId : null;
-        if (!workspaceOrgId || activeAccount?.id === workspaceOrgId) return;
-
-        const targetAccount = accounts[workspaceOrgId];
-        if (targetAccount?.accountType !== 'organization') {
-          console.warn('[WorkspaceProvider] Resolved workspace dimension does not map to an organization account', {
-            workspaceId,
-            workspaceOrgId,
-          });
-          return;
-        }
-
-        appDispatch({ type: 'SET_ACTIVE_ACCOUNT', payload: targetAccount });
-      } catch (error) {
-        console.warn('[WorkspaceProvider] Unable to resolve workspace dimension for account switch', error);
-      }
-    })();
-  }, [accounts, activeAccount?.id, appDispatch, db, workspace, workspaceId]);
 
   // Pending parse file — bridges the cross-tab gap between files-view (publisher)
   // and document-parser-view (subscriber), which are on separate @businesstab slots.
