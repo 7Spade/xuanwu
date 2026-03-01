@@ -84,6 +84,9 @@ export const orgScheduleProposalSchema = z.object({
   version: z.number().int().min(1).default(1),
   /** [R8] TraceID injected at CBG_ENTRY — persisted for end-to-end audit trail. */
   traceId: z.string().optional(),
+  /** The member assigned to this proposal. Populated when status transitions to 'confirmed'.
+   * Optional for backward compatibility — legacy confirmed proposals may not have this field. */
+  targetAccountId: z.string().optional(),
 });
 
 export type OrgScheduleProposal = z.infer<typeof orgScheduleProposalSchema>;
@@ -208,6 +211,7 @@ export async function approveOrgScheduleProposal(
 
   await updateDocument(`orgScheduleProposals/${scheduleItemId}`, {
     status: 'confirmed' satisfies OrgScheduleStatus,
+    targetAccountId,
     version: nextVersion,
   });
 

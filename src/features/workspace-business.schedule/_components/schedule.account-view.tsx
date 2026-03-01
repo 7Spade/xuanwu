@@ -3,12 +3,17 @@
  * @description Aggregated view of all proposed and official schedule items across all
  * workspaces. Includes an org-only guard and uses the `useScheduleActions` hook for
  * all write operations (approve/reject/assign).
+ *
+ * Tabs:
+ *   - 排程日曆 (Calendar): unified calendar + governance sidebar
+ *   - 需求看板 (Demand Board): FR-W0/FR-W6 workforce demand board (人力安排)
+ *   - HR 治理 (HR Governance): skill-aware proposal assignment (OrgScheduleGovernance)
  */
 "use client";
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, UserPlus, Calendar, ListChecks, History } from "lucide-react";
+import { AlertCircle, UserPlus, Calendar, ListChecks, History, LayoutGrid, Users } from "lucide-react";
 import { toast } from "@/shared/utility-hooks/use-toast";
 import type { ScheduleItem } from "@/shared/types";
 import { UnifiedCalendarGrid } from "./unified-calendar-grid";
@@ -27,8 +32,11 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/shadcn-ui/dropdown-menu";
 import { Button } from "@/shared/shadcn-ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
 import { useScheduleActions } from "../_hooks/use-schedule-commands";
 import { useApp } from "@/shared/app-providers/app-context";
+import { DemandBoard } from "@/features/projection.demand-board";
+import { OrgScheduleGovernance } from "@/features/account-organization.schedule";
 
 export function AccountScheduleSection() {
   const { state } = useApp();
@@ -117,56 +125,84 @@ export function AccountScheduleSection() {
         </div>
       </div>
 
-      <div className="flex h-full flex-col gap-8">
-        <div className="flex min-h-[60vh] flex-1 flex-col overflow-hidden rounded-xl border bg-card md:flex-row">
-          <div className="flex flex-col md:flex-[2] xl:flex-[3]">
-            <div className="relative flex-1 overflow-hidden">
-              <UnifiedCalendarGrid
-                items={allItems}
-                members={organizationMembers}
-                viewMode="organization"
-                currentDate={currentDate}
-                onMonthChange={handleMonthChange}
-                onItemClick={onItemClick}
-                onApproveProposal={approveProposal}
-                onRejectProposal={rejectProposal}
-                renderItemActions={renderItemActions}
+      <Tabs defaultValue="calendar" className="flex h-full flex-col">
+        <TabsList className="mb-6 w-full justify-start">
+          <TabsTrigger value="calendar" className="gap-2">
+            <Calendar className="size-4" />
+            排程日曆
+          </TabsTrigger>
+          <TabsTrigger value="demand-board" className="gap-2">
+            <LayoutGrid className="size-4" />
+            需求看板（人力安排）
+          </TabsTrigger>
+          <TabsTrigger value="hr-governance" className="gap-2">
+            <Users className="size-4" />
+            HR 治理
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab 1: Calendar + Governance Sidebar */}
+        <TabsContent value="calendar" className="flex flex-1 flex-col gap-8">
+          <div className="flex min-h-[60vh] flex-1 flex-col overflow-hidden rounded-xl border bg-card md:flex-row">
+            <div className="flex flex-col md:flex-[2] xl:flex-[3]">
+              <div className="relative flex-1 overflow-hidden">
+                <UnifiedCalendarGrid
+                  items={allItems}
+                  members={organizationMembers}
+                  viewMode="organization"
+                  currentDate={currentDate}
+                  onMonthChange={handleMonthChange}
+                  onItemClick={onItemClick}
+                  onApproveProposal={approveProposal}
+                  onRejectProposal={rejectProposal}
+                  renderItemActions={renderItemActions}
+                />
+              </div>
+            </div>
+            <div className="flex min-w-[300px] flex-col border-t md:flex-[1] md:border-l md:border-t-0">
+              <GovernanceSidebar
+                proposals={pendingProposals}
+                onApprove={approveProposal}
+                onReject={rejectProposal}
               />
             </div>
           </div>
-          <div className="flex min-w-[300px] flex-col border-t md:flex-[1] md:border-l md:border-t-0">
-            <GovernanceSidebar
-              proposals={pendingProposals}
-              onApprove={approveProposal}
-              onReject={rejectProposal}
-            />
-          </div>
-        </div>
 
-        <div className="space-y-8">
-          <div>
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
-              <Calendar className="size-4" />
-              Future Events
-            </h3>
-            <ScheduleDataTable columns={upcomingEventsColumns} data={upcomingEvents} />
+          <div className="space-y-8">
+            <div>
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                <Calendar className="size-4" />
+                Future Events
+              </h3>
+              <ScheduleDataTable columns={upcomingEventsColumns} data={upcomingEvents} />
+            </div>
+            <div>
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                <ListChecks className="size-4" />
+                Present Events
+              </h3>
+              <ScheduleDataTable columns={upcomingEventsColumns} data={presentEvents} />
+            </div>
+            <div>
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                <History className="size-4" />
+                Decision History (Last 7 Days)
+              </h3>
+              <ScheduleDataTable columns={decisionHistoryColumns} data={decisionHistory} />
+            </div>
           </div>
-          <div>
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
-              <ListChecks className="size-4" />
-              Present Events
-            </h3>
-            <ScheduleDataTable columns={upcomingEventsColumns} data={presentEvents} />
-          </div>
-          <div>
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
-              <History className="size-4" />
-              Decision History (Last 7 Days)
-            </h3>
-            <ScheduleDataTable columns={decisionHistoryColumns} data={decisionHistory} />
-          </div>
-        </div>
-      </div>
+        </TabsContent>
+
+        {/* Tab 2: Workforce Demand Board (人力安排) — FR-W0 / FR-W6 */}
+        <TabsContent value="demand-board">
+          <DemandBoard />
+        </TabsContent>
+
+        {/* Tab 3: HR Governance — skill-aware proposal assignment */}
+        <TabsContent value="hr-governance">
+          <OrgScheduleGovernance />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
