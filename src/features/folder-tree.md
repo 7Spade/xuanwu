@@ -107,7 +107,7 @@ infra.gateway-query                               (L6 Query Gateway — read-mod
 infra.event-router                                (L4 IER — in-process fan-out [D1][R8])
 infra.outbox-relay                                (L4 OUTBOX_RELAY — CDC scan → IER [S1])
 infra.dlq-manager                                 (L4 DLQ Manager — SAFE_AUTO / REVIEW_REQUIRED / SECURITY_BLOCK [S1])
-infra.observability                               (VS9 Observability — domain-metrics / domain-errors)
+observability                                     (VS9 Observability — domain-metrics / domain-errors)
 ```
 
 ## How to use this tree (quick rule)

@@ -1,9 +1,7 @@
 /**
- * infra.observability — _trace.ts
+ * observability — _trace.ts
  *
  * TRACE_IDENTIFIER node — correlation/trace ID generation and propagation. [R8]
- *
- * Per tree.md: infra.observability = [R8] 觀測站 (OpenTelemetry, Log Trace)
  *
  * Per logic-overview.md (OBSERVABILITY_LAYER):
  *   WORKSPACE_COMMAND_HANDLER --> TRACE_IDENTIFIER

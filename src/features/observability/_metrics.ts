@@ -1,9 +1,7 @@
 /**
- * infra.observability — _metrics.ts
+ * observability — _metrics.ts
  *
  * DOMAIN_METRICS node — in-process domain event counter. [R8]
- *
- * Per tree.md: infra.observability = [R8] 觀測站 (OpenTelemetry, Log Trace)
  *
  * Per logic-overview.md (OBSERVABILITY_LAYER):
  *   WORKSPACE_EVENT_BUS --> DOMAIN_METRICS

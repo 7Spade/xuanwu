@@ -384,7 +384,7 @@ src/features/
 │   └── index.ts
 ├── infra.dlq-manager/         # DLQ three-tier handler: SAFE_AUTO/REVIEW_REQUIRED/SECURITY_BLOCK [R5]
 │   └── index.ts
-└── infra.observability/       # VS9: trace-identifier, domain-metrics, domain-error-log [R8]
+└── observability/             # VS9: trace-identifier, domain-metrics, domain-error-log [R8]
     ├── _trace.ts
     ├── _metrics.ts
     ├── _error-log.ts
