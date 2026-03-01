@@ -22,6 +22,8 @@ if (getApps().length === 0) {
 
 const MAX_DELIVERY_ATTEMPTS = 3;
 const INITIAL_BACKOFF_MS = 500;
+/** Timeout for DLQ HTTPS processor notification calls [memory: outbox relay DLQ integration]. */
+const DLQ_PROCESSOR_TIMEOUT_MS = 10_000;
 
 interface OutboxRecord extends EventEnvelope {
   deliveryAttempts: number;
@@ -143,7 +145,7 @@ async function moveToDlq(
   const dlqProcessorUrl = getDlqProcessorUrl(record.dlqTier);
   if (dlqProcessorUrl) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000); // 10s timeout [memory: outbox relay DLQ integration]
+    const timeout = setTimeout(() => controller.abort(), DLQ_PROCESSOR_TIMEOUT_MS);
     try {
       await fetch(dlqProcessorUrl, {
         method: "POST",
@@ -165,7 +167,16 @@ async function moveToDlq(
   }
 }
 
-/** Returns the DLQ HTTPS processor URL for the given tier, or null if not configured. */
+/**
+ * Returns the DLQ HTTPS processor URL for the given tier, or null if not configured.
+ * Reads from environment variables:
+ *   - DLQ_SAFE_URL     → dlqSafe Cloud Function URL (SAFE_AUTO tier)
+ *   - DLQ_REVIEW_URL   → dlqReview Cloud Function URL (REVIEW_REQUIRED tier)
+ *   - DLQ_BLOCK_URL    → dlqBlock Cloud Function URL (SECURITY_BLOCK tier)
+ *
+ * @param dlqTier - One of "SAFE_AUTO", "REVIEW_REQUIRED", "SECURITY_BLOCK"
+ * @returns HTTPS URL string, or null if env var is unset
+ */
 function getDlqProcessorUrl(dlqTier: string): string | null {
   switch (dlqTier) {
     case "SAFE_AUTO":
