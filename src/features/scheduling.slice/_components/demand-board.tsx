@@ -37,6 +37,8 @@ import {
 } from '@/shared/shadcn-ui/select';
 import { UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
 import type { Timestamp } from 'firebase/firestore';
+import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
+import { SKILLS } from '@/shared/constants/skills';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -141,6 +143,19 @@ function DemandRow({ item, orgMembers, orgId }: DemandRowProps) {
         </div>
         {statusBadge}
       </div>
+
+      {item.requiredSkills && item.requiredSkills.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {item.requiredSkills.map((req: SkillRequirement) => {
+            const skillName = SKILLS.find((s) => s.slug === req.tagSlug)?.name ?? req.tagSlug;
+            return (
+              <Badge key={req.tagSlug} variant="secondary" className="text-[10px]">
+                {skillName} ≥ {req.minimumTier} × {req.quantity}
+              </Badge>
+            );
+          })}
+        </div>
+      )}
 
       {isOpen && (
         <div className="flex items-center gap-2">

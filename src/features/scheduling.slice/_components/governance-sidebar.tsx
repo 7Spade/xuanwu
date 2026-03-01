@@ -6,6 +6,8 @@ import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Check, X } from "lucide-react";
+import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
+import { SKILLS } from '@/shared/constants/skills';
 
 interface GovernanceSidebarProps {
   proposals: ScheduleItem[];
@@ -36,6 +38,18 @@ export function GovernanceSidebar({ proposals, onApprove, onReject }: Governance
                   <div>
                     <p className="text-xs font-bold">{item.title}</p>
                     <Badge variant="outline" className="mt-1 text-[9px]">{item.workspaceName}</Badge>
+                    {item.requiredSkills && item.requiredSkills.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {item.requiredSkills.map((req: SkillRequirement) => {
+                          const skillName = SKILLS.find((s) => s.slug === req.tagSlug)?.name ?? req.tagSlug;
+                          return (
+                            <Badge key={req.tagSlug} variant="secondary" className="text-[9px]">
+                              {skillName} ≥ {req.minimumTier} × {req.quantity}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-1">
                     <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => onReject(item)}>
