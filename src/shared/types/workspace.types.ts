@@ -1,7 +1,7 @@
 export type WorkspaceRole = 'Manager' | 'Contributor' | 'Viewer';
 export type WorkspaceLifecycleState = 'preparatory' | 'active' | 'stopped';
 
-import type { FirestoreTimestamp as Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared/ports'
 import type { SkillRequirement } from './skill.types'
 
 // =================================================================
@@ -31,7 +31,7 @@ export interface Workspace {
   address?: Address; // The physical address of the entire workspace.
   /** Sub-locations within this workspace (廠區子地點). FR-L1. */
   locations?: WorkspaceLocation[];
-  createdAt: Timestamp; // FirestoreTimestamp
+  createdAt: Timestamp;
 }
 
 export interface WorkspaceGrant {
@@ -107,8 +107,8 @@ export interface WorkspaceTask {
   photoURLs?: string[];
   location?: Location; // The specific place within the workspace address.
   sourceIntentId?: string; // SourcePointer —唯讀引用 ParsingIntent（Digital Twin）
-  createdAt: Timestamp; // FirestoreTimestamp
-  updatedAt?: Timestamp; // FirestoreTimestamp
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
   [key: string]: unknown;
 }
 
@@ -127,7 +127,7 @@ export interface WorkspaceIssue {
   issueState: 'open' | 'closed';
   /** SourcePointer to the A-track task that triggered this B-track issue. */
   sourceTaskId?: string;
-  createdAt: Timestamp; // FirestoreTimestamp
+  createdAt: Timestamp;
   comments?: IssueComment[];
 }
 

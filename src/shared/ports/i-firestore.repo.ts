@@ -19,7 +19,7 @@
  * FIREBASE_ACL adapters in src/shared/infra/firestore/ hold the only real
  * firebase/* imports per [D24].
  */
-export interface FirestoreTimestamp {
+export interface Timestamp {
   readonly seconds: number;
   readonly nanoseconds: number;
   toDate(): Date;

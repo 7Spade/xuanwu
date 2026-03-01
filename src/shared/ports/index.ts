@@ -12,6 +12,6 @@
  */
 
 export type { IAuthService, AuthUser } from './i-auth.service';
-export type { IFirestoreRepo, FirestoreDoc, FirestoreTimestamp, WriteOptions } from './i-firestore.repo';
+export type { IFirestoreRepo, FirestoreDoc, Timestamp, WriteOptions } from './i-firestore.repo';
 export type { IMessaging, PushNotificationPayload } from './i-messaging';
 export type { IFileStore, UploadOptions } from './i-file-store';

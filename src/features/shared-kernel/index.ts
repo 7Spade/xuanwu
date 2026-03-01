@@ -24,7 +24,7 @@
  * │  tag-authority         [#A6][#17][D21]        Tag contract types (RO only)  │
  * ├─ 🔌 Infrastructure Ports ───────────────────────────────────────────────────┤
  * │  infrastructure-ports  SK_PORTS [D24]         Dependency-inversion ports   │
- * │                        FirestoreTimestamp      D24-compliant Timestamp type │
+ * │                        Timestamp               D24-compliant Timestamp type │
  * └────────────────────────────────────────────────────────────────────────────┘
  *
  * Dependency rule: zero infrastructure imports in any sub-module.
@@ -136,6 +136,6 @@ export type {
 // ─── 🔌 Infrastructure Ports [D24] ───────────────────────────────────────────
 
 export type { IAuthService, AuthUser } from './infrastructure-ports';
-export type { IFirestoreRepo, FirestoreDoc, FirestoreTimestamp, WriteOptions } from './infrastructure-ports';
+export type { IFirestoreRepo, FirestoreDoc, Timestamp, WriteOptions } from './infrastructure-ports';
 export type { IMessaging, PushNotificationPayload } from './infrastructure-ports';
 export type { IFileStore, UploadOptions } from './infrastructure-ports';

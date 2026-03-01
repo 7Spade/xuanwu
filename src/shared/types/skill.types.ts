@@ -16,7 +16,7 @@
  * Naming is intentionally industry-semantic to support future AI-agent scheduling.
  */
 
-import type { FirestoreTimestamp as Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared/ports'
 
 // ---------------------------------------------------------------------------
 // Skill tier & requirement — canonical type definitions

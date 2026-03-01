@@ -1,4 +1,4 @@
-import type { FirestoreTimestamp as Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared/ports'
 
 export interface DailyLogComment {
   id: string;
