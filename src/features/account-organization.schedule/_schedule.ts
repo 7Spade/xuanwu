@@ -16,7 +16,8 @@
  * Invariants respected:
  *   #1  — This BC only writes its own aggregate (orgScheduleProposals collection).
  *   #2  — Reads workspace schedule data only via the event payload (not domain model).
- *   #4  — Domain Events produced by ORGANIZATION_SCHEDULE; Transaction Runner collects them.
+ *   #4a — Domain Events produced by ORGANIZATION_SCHEDULE aggregate only.
+ *   #4b — Transaction Runner only delivers to Outbox; does not produce Domain Events.
  *   #12 — Tier is NEVER stored. Only xp is persisted; getTier(xp) is computed at runtime.
  *   #14 — Schedule reads ONLY projection.org-eligible-member-view, never Account aggregate.
  *   A5  — ScheduleAssignRejected is the compensating event when skill validation fails.
