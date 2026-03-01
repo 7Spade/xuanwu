@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from '@/shared/shadcn-ui/select';
 import { UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
-import type { Timestamp } from 'firebase/firestore';
+import type { Timestamp } from '@/shared/ports';
 import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
 import { SKILLS } from '@/shared/constants/skills';
 
