@@ -319,7 +319,7 @@
       "name": "IER_Lane_Routing",
       "entityType": "Project_Convention",
       "observations": [
-        "Source: docs/logic-overview.md — IER full routing table (v10 final), docs/command-event-overview.md",
+        "Source: docs/logic-overview.md — IER full routing table (v10 final)",
         "IER = integration-event-router — central event hub; ONLY Projection write path (#9); preserves envelope.traceId [R8]",
         "CRITICAL_LANE (high-priority eventual consistency): RoleChanged/PolicyChanged → CLAIMS_HANDLER [S6][E6] + TOKEN_REFRESH_SIGNAL; WalletDeducted/WalletCredited → FUNNEL CRITICAL_PROJ; OrgContextProvisioned → ORG_CONTEXT_ACL [E2]",
         "STANDARD_LANE (async eventual SLA < 2s): SkillXpAdded/SkillXpDeducted → FUNNEL CRITICAL_PROJ [P2]; ScheduleAssigned → NOTIF_ROUTER + FUNNEL [E3]; ScheduleProposed → ORG_SCHEDULE Saga [A5]; MemberJoined/Left → FUNNEL [#16]; All Domain Events → FUNNEL [#9]",

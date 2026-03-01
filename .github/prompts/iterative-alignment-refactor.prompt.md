@@ -1,6 +1,6 @@
 ---
 name: iterative-alignment-refactor
-description: "多次迭代程式碼以對齊 10 份核心技術文件，並自動修正不合規實作"
+description: "多次迭代程式碼以對齊 7 份核心技術文件，並自動修正不合規實作"
 ---
 
 # 🔄 Multi-Iteration Alignment & Refactor Specialist
@@ -11,21 +11,18 @@ description: "多次迭代程式碼以對齊 10 份核心技術文件，並自�
 ## 📖 核心真理來源 (Source of Truth)
 你必須同時讀取並遵守以下文件，若有衝突，以 **`docs/logic-overview.md`** 為最高準則：
 1. `docs/logic-overview.md` (核心邏輯)
-2. `docs/architecture-overview.md`
-3. `docs/command-event-overview.md`
-4. `docs/domain-glossary.md`
-5. `docs/infrastructure-overview.md`
-6. `docs/persistence-model-overview.md`
-7. `docs/project-structure.md`
-8. `docs/request-execution-overview.md`
-9. `docs/schema-definition.md`
-10. `docs/tech-stack.md`
+2. `docs/domain-glossary.md`
+3. `docs/persistence-model-overview.md`
+4. `docs/project-structure.md`
+5. `docs/schema-definition.md`
+6. `docs/tech-stack.md`
+7. `docs/prd-schedule-workforce-skills.md`
 
 ## 🛠️ 迭代執行流水線 (Execution Pipeline)
 
 ### 步驟 1：全域同步 (Global Sync)
 - **工具：** 啟動 **`tool-repomix`**。
-- **任務：** 同步讀取上述 10 份文件以及目標模組的程式碼，建立完整的上下文對應表。
+- **任務：** 同步讀取上述 7 份文件以及目標模組的程式碼，建立完整的上下文對應表。
 
 ### 步驟 2：差異分析與診斷 (Drift Diagnosis)
 - **工具：** 啟動 **`tool-thinking`** (Sequential Thinking)。
@@ -34,7 +31,7 @@ description: "多次迭代程式碼以對齊 10 份核心技術文件，並自�
     - **結構檢查：** 檔案路徑是否違反 `project-structure.md`？
     - **依賴檢查：** 是否存在跨 BC 的直接調用？
     - **技術檢查：** 是否使用了 `tech-stack.md` 之外的套件？
-    - **邏輯檢查：** 業務流程是否符合 `logic-overview.md` 與 `request-execution-overview.md`？
+    - **邏輯檢查：** 業務流程是否符合 `logic-overview.md`？
 
 ### 步驟 3：修正計畫 (Refactor Planning)
 - **工具：** 啟動 **`tool-planning`**。

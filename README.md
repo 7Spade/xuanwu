@@ -127,14 +127,11 @@ src/
 
 docs/
 ├── logic-overview.md           # ← SSOT — replace to upgrade spec
-├── architecture-overview.md
-├── domain-glossary.md          # #1–#19 invariants, D1–D18 rules
+├── domain-glossary.md          # #1–#19 invariants, IER routing table
 ├── schema-definition.md        # TypeScript interfaces (strict)
-├── infrastructure-overview.md  # R1 Relay Worker, DLQ system, S6 Claims
 ├── project-structure.md        # Full directory tree + path constraints
-├── command-event-overview.md   # R4 CommandResult, IER routing table
-├── request-execution-overview.md # R8 TraceID sequence, S5 resilience
 ├── persistence-model-overview.md # ORG_ELIGIBLE_VIEW #19, STRONG_READ
+├── prd-schedule-workforce-skills.md # FR-* schedule & skills requirements
 └── tech-stack.md               # Firebase versions, VS1–VS9 tech constraints
 
 functions/
@@ -174,11 +171,11 @@ All outbox delivery failures are automatically classified and processed:
 
 | Doc | Contents |
 |-----|---------|
-| [`docs/architecture-overview.md`](./docs/architecture-overview.md) | VS0–VS9 slice table; 3-Gateway CQRS diagram |
-| [`docs/domain-glossary.md`](./docs/domain-glossary.md) | #1–#19 invariants; #A1–#A11 atomicity; D1–D18 dev rules |
+| [`docs/logic-overview.md`](./docs/logic-overview.md) | SSOT — VS0–VS9 slices, command/event flow, R1–R8, S1–S6, D1–D20 |
+| [`docs/domain-glossary.md`](./docs/domain-glossary.md) | #1–#19 invariants; #A1–#A11 atomicity; IER routing table |
 | [`docs/schema-definition.md`](./docs/schema-definition.md) | All SK contracts as strict TypeScript interfaces |
-| [`docs/infrastructure-overview.md`](./docs/infrastructure-overview.md) | R1 Relay Worker; DLQ 3-tier flow; S6 Claims handshake |
-| [`docs/request-execution-overview.md`](./docs/request-execution-overview.md) | R8 TraceID sequence; S5 resilience diagram |
+| [`docs/persistence-model-overview.md`](./docs/persistence-model-overview.md) | Firestore collections; outbox & projection schemas |
+| [`docs/project-structure.md`](./docs/project-structure.md) | Directory layout; D1–D20 dev rules |
 | [`GEMINI.md`](./GEMINI.md) | AI collaboration constitution (read before modifying code) |
 
 ---

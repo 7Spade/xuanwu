@@ -17,7 +17,7 @@ tools: ["read", "search", "edit"]
 
 ## 核心職責
 
-1. **路由樹更新**：在 `docs/architecture-overview.md` 記錄新的平行路由插槽結構
+1. **路由樹更新**：在 `docs/project-structure.md` 記錄新的平行路由插槽結構
 2. **Firebase Schema 更新**：在 `docs/persistence-model-overview.md` 記錄新的 Firestore Collections 與 Security Rules 變更
 3. **README 維護**：更新 `README.md` 的功能清單與快速開始說明
 4. **knowledge-graph.json 同步**：將新的架構決策寫入 `docs/knowledge-graph.json`，維持 SSOT 一致性
@@ -26,7 +26,7 @@ tools: ["read", "search", "edit"]
 ## 文檔更新協議
 
 ### 路由結構更新
-在 `docs/architecture-overview.md` 中更新 App Router 結構：
+在 `docs/project-structure.md` 中更新 App Router 結構：
 ```markdown
 ### 新增路由：功能名稱
 
@@ -73,7 +73,7 @@ tools: ["read", "search", "edit"]
 - 所有文檔更新必須以 `docs/logic-overview.md` 為最高 SSOT，不得與其矛盾
 - 新增 slice 必須在以下文件中同步：
   1. `docs/project-structure.md` — slice 目錄定義
-  2. `docs/architecture-overview.md` — 功能描述
+  2. `docs/project-structure.md` — 功能描述
   3. `docs/knowledge-graph.json` — 知識圖譜實體
 - Firebase Collection 變更必須同步 `docs/persistence-model-overview.md`
 

@@ -26,4 +26,4 @@ description: "專案架構審計與實作設計專家，專注於邊界檢查與
 ## ⚠️ 審核限制
 - 嚴禁使用 `any` 型別。
 - 禁止修改 UI 共用組件，除非發現 UI 層承載了業務邏輯。
-- 所有修正提案必須符合 `docs/request-execution-overview.md` 定義的生命週期。
+- 所有修正提案必須符合 `docs/logic-overview.md` 定義的生命週期。

@@ -916,9 +916,8 @@ Scenario: FCM 通知攜帶 traceId
 
 ### C. 架構規範參考
 
-- `docs/logic-overview.md` — 唯一架構 SSOT
+- `docs/logic-overview.md` — 唯一架構 SSOT（含命令/事件流規範）
 - `docs/domain-glossary.md` — 領域術語定義
-- `docs/command-event-overview.md` — 命令/事件流規範
 - `docs/persistence-model-overview.md` — 資料模型細節
 
 ### D. 相關切片索引

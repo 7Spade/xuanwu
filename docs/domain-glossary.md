@@ -136,38 +136,6 @@
 
 ---
 
-## D1–D12 Development Rules (v9, retained)
-
-| Rule | Description |
-|------|-------------|
-| **D1** | Event delivery path MUST be `Aggregate → EventBus (in-process) → OUTBOX → OUTBOX_RELAY → IER`. No direct EventBus-to-IER shortcuts. |
-| **D2** | All slice public APIs are exposed only via `index.ts`. Private `_` files MUST NOT be imported across slice boundaries. |
-| **D3** | `_actions.ts` is the ONLY entry point for Server Actions in a slice. |
-| **D4** | `_queries.ts` is the ONLY entry point for read operations in a slice. |
-| **D5** | No direct Firestore access from UI components. All reads via `_queries.ts`, all writes via `_actions.ts`. |
-| **D6** | `"use client"` directive is used ONLY at leaf interaction nodes. Parent components default to Server Components. |
-| **D7** | Cross-slice imports are ONLY via `{slice}/index.ts` public API. Never import `_{file}.ts` private files from another slice. |
-| **D8** | `shared.kernel.*` slices contain contracts and pure functions only. No I/O, no side effects. |
-| **D9** | Aggregate mutations MUST go through TX Runner (1 command / 1 aggregate — #A8). |
-| **D10** | Domain Events MUST include `EventEnvelope` fields. Envelope `version` and `traceId` are immutable after `CBG_ENTRY` injection. |
-| **D11** | Projection rebuilds MUST be possible from the event stream alone (#9). No projection may depend on non-event state. |
-| **D12** | `SkillTier` is computed by `getTier(xp)` — a pure function. NEVER store tier values in the database (#12). |
-
----
-
-## D13–D18 Development Rules (v10 additions)
-
-| Rule | Contract | Description |
-|------|----------|-------------|
-| **D13** | [S1] | When adding a new Outbox, you MUST declare its DLQ tier in `SK_OUTBOX_CONTRACT`. You MUST NOT redefine at-least-once semantics in the Outbox node itself. The three elements (at-least-once, idempotency-key, DLQ tier declaration) are non-negotiable. |
-| **D14** | [S2] | When adding a new Projection, it MUST be registered with the FUNNEL which applies `SK_VERSION_GUARD`. You MUST NOT skip `aggregateVersion` comparison and write directly. Stale events must be discarded. |
-| **D15** | [S3] | For every new read use-case, consult `SK_READ_CONSISTENCY` first. Financial transactions, authorization checks, and irreversible operations → `STRONG_READ` (route to Aggregate). All display/statistics/listing scenarios → `EVENTUAL_READ` (route to Projection). |
-| **D16** | [S4] | SLA numbers are FORBIDDEN in node/component text. All staleness values MUST reference `SK_STALENESS_CONTRACT` constants (`TAG_MAX_STALENESS`, `PROJ_STALE_CRITICAL`, `PROJ_STALE_STANDARD`). |
-| **D17** | [S5] | Any new external trigger entry point (Webhook, Edge Function, scheduled job) that is NOT `_actions.ts` MUST be reviewed against `SK_RESILIENCE_CONTRACT` (rate-limit + circuit-break + bulkhead) before going to production. |
-| **D18** | [S6] | Any change to Claims refresh logic MUST be coordinated using `SK_TOKEN_REFRESH_CONTRACT` as the single specification. All three parties (VS1 claims handler, IER CRITICAL_LANE, Frontend token listener) MUST be updated simultaneously. |
-
----
-
 ## IER Full Routing Table
 
 | Lane | Event | Target Handler | Reference |
