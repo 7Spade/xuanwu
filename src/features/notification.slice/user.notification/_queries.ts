@@ -1,5 +1,5 @@
 /**
- * account-user.notification — _queries.ts
+ * notification.slice/user.notification — _queries.ts
  *
  * Firestore reads for a user's personal notification list.
  * Stored at: accounts/{accountId}/notifications/{notifId}

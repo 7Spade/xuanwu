@@ -8,9 +8,11 @@
  *   - StaleTagWarning [S4]
  *   - TOKEN_REFRESH failures [S6]
  * [R8]  every error record MUST include traceId
+ *
+ * NOTE: domainErrorWatcher kept as onRequest (HTTPS) — Firebase blocks changing
+ *       from HTTPS to background trigger without deleting the function first.
  */
 
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -87,18 +89,29 @@ export const domainErrors = onRequest(
 );
 
 /**
- * domain-error-watcher: reacts to new CRITICAL entries in domain-error-log
- * Triggers alerts for critical errors (SECURITY_BLOCK, TOKEN_REFRESH failures, etc.)
+ * domain-error-watcher: HTTPS endpoint for critical domain error alerts
+ * Accepts CRITICAL error event notifications and triggers alerting logic.
+ * NOTE: Kept as onRequest — Firebase blocks HTTPS→background trigger change.
  */
-export const domainErrorWatcher = onDocumentCreated(
-  { document: "domain-error-log/{docId}", region: "asia-east1" },
-  async (event) => {
-    const snapshot = event.data;
-    if (!snapshot) return;
+export const domainErrorWatcher = onRequest(
+  { region: "asia-east1", maxInstances: 5 },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Method Not Allowed" });
+      return;
+    }
 
-    const entry = snapshot.data() as DomainErrorEvent & { level: ErrorLevel };
+    const entry = req.body as DomainErrorEvent & { level: ErrorLevel };
 
-    if (entry.level !== "CRITICAL") return;
+    if (!entry?.level || !entry.source) {
+      res.status(400).json({ error: "level and source are required" });
+      return;
+    }
+
+    if (entry.level !== "CRITICAL") {
+      res.status(200).json({ ignored: true });
+      return;
+    }
 
     logger.error("DOMAIN_ERRORS_WATCHER: CRITICAL error detected", {
       source: entry.source,
@@ -110,5 +123,7 @@ export const domainErrorWatcher = onDocumentCreated(
 
     // TODO: send alert via PagerDuty / Slack / email for CRITICAL events
     // Especially for: DLQ_SECURITY_BLOCK, TOKEN_REFRESH_FAILURE
+
+    res.status(202).json({ accepted: true });
   }
 );

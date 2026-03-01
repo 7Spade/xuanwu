@@ -38,7 +38,7 @@
  */
 
 import { registerSubscriber } from '@/features/infra.event-router';
-import { logDomainError } from '@/features/infra.observability';
+import { logDomainError } from '@/features/observability';
 import type { EventEnvelope } from '@/features/shared.kernel.event-envelope';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 

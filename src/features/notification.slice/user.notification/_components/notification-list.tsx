@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * account-user.notification — _components/notification-list.tsx
+ * notification.slice/user.notification — _components/notification-list.tsx
  *
  * Dropdown/panel displaying recent notifications.
  * Marks items as read when clicked.

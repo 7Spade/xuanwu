@@ -1,9 +1,7 @@
 /**
- * infra.observability — _error-log.ts
+ * observability — _error-log.ts
  *
  * DOMAIN_ERROR_LOG node — structured domain error logger. [R8]
- *
- * Per tree.md: infra.observability = [R8] 觀測站 (OpenTelemetry, Log Trace)
  *
  * Per logic-overview.md (OBSERVABILITY_LAYER):
  *   WORKSPACE_TRANSACTION_RUNNER --> DOMAIN_ERROR_LOG
