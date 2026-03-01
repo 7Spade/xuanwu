@@ -9,7 +9,7 @@
 
 import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import type { EventEnvelope } from "./ier.fn";
+import type { EventEnvelope } from "../types.js";
 
 /** BACKGROUND_LANE: eventual delivery, SLA < 30s */
 export const backgroundLane = onRequest(

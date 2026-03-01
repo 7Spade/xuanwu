@@ -11,7 +11,7 @@
 
 import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import type { EventEnvelope } from "./ier.fn";
+import type { EventEnvelope } from "../types.js";
 
 /** STANDARD_LANE: async delivery for domain events, SLA < 2s */
 export const standardLane = onRequest(

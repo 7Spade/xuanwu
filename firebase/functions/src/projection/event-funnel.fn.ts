@@ -12,15 +12,17 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { initializeApp, getApps } from "firebase-admin/app";
-import type { EventEnvelope } from "../ier/ier.fn";
+import type { EventEnvelope } from "../types.js";
+import {
+  PROJ_STALE_CRITICAL_MS,
+  PROJ_STALE_STANDARD_MS,
+} from "../staleness-contract.js";
 
 if (getApps().length === 0) {
   initializeApp();
 }
 
-/** [S4] SK_STALENESS_CONTRACT — reference constants, never hardcode */
-const PROJ_STALE_CRITICAL_MS = 500;  // [S4] PROJ_STALE_CRITICAL ≤ 500ms
-const PROJ_STALE_STANDARD_MS = 10_000; // [S4] PROJ_STALE_STANDARD ≤ 10s
+/** [S4] SLA constants from staleness-contract — never hardcoded */
 
 /**
  * [S2] SK_VERSION_GUARD: discard stale events before any Projection write

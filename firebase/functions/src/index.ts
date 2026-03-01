@@ -23,6 +23,15 @@ if (getApps().length === 0) {
 // Global defaults: region + max-instances for cost control
 setGlobalOptions({ region: "asia-east1", maxInstances: 10 });
 
+// ── Shared Types (re-exported for consumers) ─────────────────────────────────
+export type { EventEnvelope, DlqTier } from "./types";
+export { dlqCollectionName } from "./types";
+export {
+  TAG_MAX_STALENESS_MS,
+  PROJ_STALE_CRITICAL_MS,
+  PROJ_STALE_STANDARD_MS,
+} from "./staleness-contract";
+
 // ── L2 Command Gateway ────────────────────────────────────────────────────────
 export { commandGateway } from "./gateway/command-gateway.fn";
 export { webhook }        from "./gateway/webhook.fn";

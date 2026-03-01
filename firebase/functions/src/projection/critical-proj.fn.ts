@@ -11,14 +11,16 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { initializeApp, getApps } from "firebase-admin/app";
-import type { EventEnvelope } from "../ier/ier.fn";
+import type { EventEnvelope } from "../types.js";
+import {
+  PROJ_STALE_CRITICAL_MS,
+} from "../staleness-contract.js";
 
 if (getApps().length === 0) {
   initializeApp();
 }
 
-/** [S4] PROJ_STALE_CRITICAL ≤ 500ms */
-const PROJ_STALE_CRITICAL_MS = 500;
+// [S4] PROJ_STALE_CRITICAL_MS imported from staleness-contract
 
 /**
  * critical-proj: processes CRITICAL_PROJ_LANE events

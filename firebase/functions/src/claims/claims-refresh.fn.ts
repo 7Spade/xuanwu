@@ -13,9 +13,9 @@
 import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { initializeApp, getApps } from "firebase-admin/app";
-import type { EventEnvelope } from "../ier/ier.fn";
+import type { EventEnvelope } from "../types.js";
 
 if (getApps().length === 0) {
   initializeApp();
@@ -95,7 +95,7 @@ export const claimsRefresh = onRequest(
       await db.collection("token-refresh-signals").doc(userId).set({
         userId,
         traceId: envelope.traceId, // [R8]
-        signalledAt: new Date().toISOString(),
+        signalledAt: Timestamp.now(),
         eventType: envelope.eventType,
       });
 
@@ -126,7 +126,7 @@ export const claimsRefresh = onRequest(
         .doc(envelope.eventId)
         .set({
           ...envelope,
-          failedAt: new Date().toISOString(),
+          failedAt: Timestamp.now(),
           failureReason: String(err),
           status: "DLQ",
         });

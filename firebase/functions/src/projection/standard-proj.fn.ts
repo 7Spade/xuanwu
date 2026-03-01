@@ -12,14 +12,16 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { initializeApp, getApps } from "firebase-admin/app";
-import type { EventEnvelope } from "../ier/ier.fn";
+import type { EventEnvelope } from "../types.js";
+import {
+  PROJ_STALE_STANDARD_MS,
+} from "../staleness-contract.js";
 
 if (getApps().length === 0) {
   initializeApp();
 }
 
-/** [S4] PROJ_STALE_STANDARD ≤ 10s */
-const PROJ_STALE_STANDARD_MS = 10_000;
+// [S4] PROJ_STALE_STANDARD_MS imported from staleness-contract
 
 /** Standard projection view → collection name mapping */
 const VIEW_MAP: Record<string, string> = {

@@ -8,22 +8,10 @@
 
 import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import { Timestamp } from "firebase-admin/firestore";
+import type { EventEnvelope } from "../types.js";
 
-/** EventEnvelope per SK_ENV contract */
-export interface EventEnvelope {
-  readonly eventId: string;
-  readonly aggregateId: string;
-  readonly aggregateVersion: number;
-  /** [R8] traceId injected ONCE at CBG_ENTRY — NEVER overwrite here */
-  readonly traceId: string;
-  readonly eventType: string;
-  readonly payload: unknown;
-  readonly idempotencyKey: string;
-  readonly lane: "CRITICAL" | "STANDARD" | "BACKGROUND";
-  readonly dlqTier: "SAFE_AUTO" | "REVIEW_REQUIRED" | "SECURITY_BLOCK";
-  readonly createdAt: Timestamp;
-}
+// Re-export EventEnvelope so existing imports from this file continue to work
+export type { EventEnvelope } from "../types.js";
 
 /** Known event types for each lane */
 const CRITICAL_EVENT_TYPES = new Set([

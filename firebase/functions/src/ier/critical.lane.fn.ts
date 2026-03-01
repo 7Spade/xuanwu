@@ -10,7 +10,7 @@
 
 import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import type { EventEnvelope } from "./ier.fn";
+import type { EventEnvelope } from "../types.js";
 
 /** CRITICAL_LANE: high-priority delivery, invokes downstream handlers synchronously */
 export const criticalLane = onRequest(

@@ -13,6 +13,8 @@ import {
 import * as logger from "firebase-functions/logger";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { initializeApp, getApps } from "firebase-admin/app";
+import type { EventEnvelope } from "../types.js";
+import { dlqCollectionName } from "../types.js";
 
 if (getApps().length === 0) {
   initializeApp();
@@ -22,21 +24,6 @@ if (getApps().length === 0) {
 const OUTBOX_COLLECTION = "outbox";
 const MAX_DELIVERY_ATTEMPTS = 3;
 const INITIAL_BACKOFF_MS = 500;
-
-/** EventEnvelope shape per SK_ENV contract */
-interface EventEnvelope {
-  readonly eventId: string;
-  readonly aggregateId: string;
-  readonly aggregateVersion: number;
-  /** [R8] traceId injected ONCE at CBG_ENTRY — never overwrite */
-  readonly traceId: string;
-  readonly eventType: string;
-  readonly payload: unknown;
-  readonly idempotencyKey: string;
-  readonly lane: "CRITICAL" | "STANDARD" | "BACKGROUND";
-  readonly dlqTier: "SAFE_AUTO" | "REVIEW_REQUIRED" | "SECURITY_BLOCK";
-  readonly createdAt: Timestamp;
-}
 
 interface OutboxRecord extends EventEnvelope {
   deliveryAttempts: number;
@@ -133,8 +120,8 @@ async function moveToDlq(
   record: OutboxRecord,
   error: unknown
 ): Promise<void> {
-  const dlqCollection = `dlq-${record.dlqTier.toLowerCase().replace("_", "-")}`;
-  await db.collection(dlqCollection).doc(record.eventId).set({
+  const collection = dlqCollectionName(record.dlqTier);
+  await db.collection(collection).doc(record.eventId).set({
     ...record,
     failedAt: Timestamp.now(),
     failureReason: String(error),
@@ -143,7 +130,7 @@ async function moveToDlq(
   logger.error("RELAY: moved to DLQ", {
     eventId: record.eventId,
     dlqTier: record.dlqTier,
-    dlqCollection,
+    dlqCollection: collection,
     structuredData: true,
   });
 }
