@@ -1,75 +1,78 @@
 ---
 name: webapp-testing
-description: Toolkit for testing Next.js applications using Playwright MCP (UI/E2E flows) and next-devtools MCP (RSC/route diagnostics). Use when asked to verify frontend functionality, debug UI behavior, capture screenshots, inspect browser logs, or diagnose RSC boundaries and Parallel Route slots.
+description: Toolkit for interacting with and testing local web applications using Playwright MCP tools. Use when asked to verify frontend functionality, debug UI behavior, capture browser screenshots, check for visual regressions, or view browser console logs. Supports Chrome, Firefox, and WebKit browsers.
 ---
 
 # Web Application Testing
 
-This skill enables comprehensive testing and debugging using two complementary MCP tools:
+This skill enables browser automation and E2E testing using the **Playwright MCP tools** (`playwright-browser_*`).
 
-- **Playwright MCP** — browser automation for UI/E2E flows
-- **next-devtools MCP** — Next.js runtime diagnostics for RSC, routes, and builds
+## ⚠️ Use `playwright-browser_*` MCP tools directly
 
-## When to Use This Skill
+Do **NOT** use `next-devtools-browser_eval` or `browser_eval` with `action: "evaluate"` for testing:
+- They lock the browser, making `playwright-browser_snapshot` unavailable
+- Code runs inside browser context where the `page` object does not exist
 
-| Need | Tool |
+## Playwright MCP Tool Reference
+
+| Task | Tool |
 |------|------|
-| Login/registration flows, form interactions | Playwright MCP |
-| Visual verification, screenshots, console logs | Playwright MCP |
-| Network request monitoring | Playwright MCP |
-| RSC boundary analysis (Server/Client splits) | next-devtools MCP |
-| Parallel Route `@slot` validation | next-devtools MCP |
-| Suspense/Streaming behavior | next-devtools MCP |
-| Build/compilation errors | next-devtools MCP |
+| Open a URL | `playwright-browser_navigate { url }` |
+| Get element refs (accessibility tree) | `playwright-browser_snapshot` |
+| Click an element | `playwright-browser_click { element, ref }` |
+| Type into a field | `playwright-browser_type { element, ref, text }` |
+| Fill multiple fields | `playwright-browser_fill_form { fields: [{name, type, ref, value}] }` |
+| Take a screenshot | `playwright-browser_take_screenshot { fullPage }` |
+| Read console messages | `playwright-browser_console_messages` |
+| Wait for text | `playwright-browser_wait_for { text }` |
+| Press a key | `playwright-browser_press_key { key }` |
 
-## Prerequisites
+## How `ref` Values Work
 
-- Dev server running on port 9002 (`npm run dev`)
-- Next.js 16+ (for next-devtools MCP endpoint at `/_next/mcp`)
+`playwright-browser_navigate` and `playwright-browser_snapshot` return a YAML accessibility tree with `ref` values:
+
+```yaml
+- textbox "Email" [ref=e49]
+- textbox "Password" [ref=e51]
+- button "Sign In" [ref=e52]
+```
+
+Use those refs in `click`, `type`, and `fill_form`. After any navigation, call `playwright-browser_snapshot` to get fresh refs.
+
+## Standard Workflow
+
+```
+1. playwright-browser_navigate { url: "http://localhost:9002/login" }
+   → snapshot in response shows element refs
+
+2. playwright-browser_fill_form {
+     fields: [
+       { name: "email", type: "textbox", ref: "e49", value: "test@demo.com" },
+       { name: "password", type: "textbox", ref: "e51", value: "123456" }
+     ]
+   }
+
+3. playwright-browser_click { element: "Sign In button", ref: "e52" }
+
+4. playwright-browser_wait_for { text: "Dashboard" }
+
+5. playwright-browser_snapshot   ← get fresh refs after navigation
+
+6. playwright-browser_console_messages   ← check for errors
+
+7. playwright-browser_take_screenshot { fullPage: true }
+```
 
 ## Test Credentials (Dev/Test only)
 
 - Login: `test@demo.com` / `123456`
 - Registration: `demo{n}` / `test{n}@demo.com` / `123456`
 
-## Standard Workflow
+## When to Use This Skill
 
-Follow the complete workflow in `.github/instructions/testing.instructions.md`:
-
-1. **Playwright baseline** — attach console listeners, navigate to `/login`, authenticate
-2. **Route sweep** — `/dashboard`, `/dashboard/account/settings`, `/dashboard/workspaces`, one workspace detail
-3. **next-devtools diagnostics** — RSC boundaries, `@slot` validation, Suspense analysis
-4. **Fix from root cause** — smallest change that resolves the root cause, re-verify
-
-## Common Patterns (Playwright)
-
-```javascript
-// Console monitoring (attach BEFORE navigation)
-page.on('console', msg => {
-  if (msg.type() === 'error') console.error('Browser Error:', msg.text());
-});
-
-// Wait for element
-await page.waitForSelector('[data-testid="account-switcher"]', { state: 'visible' });
-
-// Screenshot for debugging
-await page.screenshot({ path: '/tmp/debug.png', fullPage: true });
-
-// Check element exists
-const exists = await page.locator('#element-id').count() > 0;
-```
-
-## Guidelines
-
-1. Use `data-testid` selectors over CSS classes or text for stability
-2. Always wait for elements before interacting — never assume instant rendering
-3. Attach console listeners before any navigation step
-4. Take screenshots on failures to document state
-5. Prefer next-devtools for any error that originates server-side
-6. Run Playwright after next-devtools fixes to confirm no regressions
-
-## Limitations
-
-- Playwright MCP requires the dev server running on port 9002
-- next-devtools MCP requires Next.js 16+ with MCP enabled (default in v16)
-- Cannot test native mobile apps
+- Login, registration, and authentication flows
+- Form submission and validation
+- Navigation and routing verification
+- Console error detection
+- Visual screenshot capture
+- UI interaction testing

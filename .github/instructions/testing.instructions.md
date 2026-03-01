@@ -1,145 +1,56 @@
 ---
 applyTo: '**/*.{ts,tsx,js,jsx}'
-description: 'Integrated testing instructions: use Playwright MCP for UI/E2E validation and next-devtools MCP for RSC/route diagnostics. Single source of truth — replaces playwright-e2e-testing and playwright-mcp-testing files.'
+description: 'Use Playwright MCP (playwright-browser_* tools) for browser-based E2E testing. Do not use browser_eval or next-devtools-browser_eval.'
 ---
 
-# Integrated Testing Instructions
+# Testing with Playwright MCP
 
-## Tool Selection Guide
+Use the `playwright-browser_*` MCP tools for all browser-based testing.
 
-| Scenario | Primary Tool |
-|----------|-------------|
-| UI interaction, login/registration flows | Playwright MCP |
-| Console errors, network failures, screenshots | Playwright MCP |
-| Visual verification and full-page E2E flows | Playwright MCP |
-| RSC boundary analysis (Server/Client splits) | next-devtools MCP |
-| Parallel Route `@slot` validation | next-devtools MCP |
-| Suspense/Streaming behavior analysis | next-devtools MCP |
-| Build/compilation errors | next-devtools MCP |
-| Hydration mismatch (symptoms → root cause) | Playwright first, then next-devtools |
+> ⚠️ Do **NOT** use `next-devtools-browser_eval` or `browser_eval` with `action: "evaluate"` — they lock the browser and make `playwright-browser_snapshot` unavailable.
 
-## Test Credentials (Dev/Test Environment Only)
+## Tool Reference
 
-- **Login:** `test@demo.com` / `123456`
-- **Registration:** `demo{n}` / `test{n}@demo.com` / `123456` (e.g. `demo1` / `test1@demo.com`)
+| Task | Tool |
+|------|------|
+| Open a URL | `playwright-browser_navigate { url }` |
+| Get element refs (accessibility tree) | `playwright-browser_snapshot` |
+| Click an element | `playwright-browser_click { element, ref }` |
+| Type into a field | `playwright-browser_type { element, ref, text }` |
+| Fill multiple fields | `playwright-browser_fill_form { fields: [{name, type, ref, value}] }` |
+| Take a screenshot | `playwright-browser_take_screenshot { fullPage }` |
+| Read console messages | `playwright-browser_console_messages` |
+| Wait for text | `playwright-browser_wait_for { text }` |
+| Press a key | `playwright-browser_press_key { key }` |
 
-Use only in local/dev environments. Rotate credentials in any shared or staging environment and load them from secure secret storage.
+## How `ref` Values Work
 
----
+`playwright-browser_navigate` and `playwright-browser_snapshot` return a YAML accessibility tree with `ref` values. Use those refs in `click`, `type`, and `fill_form`. **Re-snapshot after every navigation.**
 
-## Playwright MCP Workflow
-
-### Setup: Console Monitoring First
-
-Always attach console/error listeners **before** any navigation:
-
-```typescript
-const errors: string[] = [];
-const warnings: string[] = [];
-
-page.on('console', msg => {
-  if (msg.type() === 'error') errors.push(msg.text());
-  if (msg.type() === 'warning') warnings.push(msg.text());
-});
-page.on('pageerror', err => errors.push(err.message));
+```yaml
+- textbox "Email" [ref=e49]
+- textbox "Password" [ref=e51]
+- button "Sign In" [ref=e52]
 ```
 
-### Standard Steps
+## Standard Workflow
 
-1. **Navigate** to target route (e.g. `/login`, `/dashboard`, `/dashboard/workspaces`)
-2. **Authenticate** if required using test credentials above
-3. **Collect diagnostics** before interacting:
-   - Page snapshot (a11y tree)
-   - Browser console messages
-   - Failed network requests
-   - Full-page screenshot
-4. **Interact** using explicit waits and stable selectors (`data-testid` preferred)
-5. **Verify** expected outcome (URL pattern, element presence, zero console errors)
-6. **Summarize** issues by priority (see below)
+1. `playwright-browser_navigate { url }` → snapshot returned with element refs
+2. `playwright-browser_fill_form { fields }` → fill using refs
+3. `playwright-browser_click { element, ref }` → submit
+4. `playwright-browser_wait_for { text }` → confirm navigation
+5. `playwright-browser_snapshot` → fresh refs for new page
+6. `playwright-browser_console_messages` → check for errors
+7. `playwright-browser_take_screenshot` → visual evidence
 
-### Required Route Coverage (minimum)
+## Test Credentials (Dev/Test only)
+
+- Login: `test@demo.com` / `123456`
+
+## Required Route Coverage (minimum)
 
 - `/login`
 - `/dashboard`
 - `/dashboard/account/settings`
 - `/dashboard/workspaces`
-- One `/dashboard/workspaces/[id]` reached via UI navigation
-
-### Bottleneck Priority Order
-
-1. Functional breakage / runtime exceptions
-2. Hydration failures
-3. Repeated network failures (4xx/5xx)
-4. Slow render / blocking loading states
-
-### Fix Principles
-
-- Identify and document root cause before patching symptoms
-- Apply the smallest change that fully resolves the root cause
-- Preserve existing behavior and component contracts
-- Re-run the same scenario to verify no regressions
-- Prefer SSR-safe fixes over client-only workarounds
-- Keep architecture boundaries intact: `app → components → context → hooks → infra → lib → types`
-
-### Common Patterns
-
-**Wait for element:**
-```typescript
-await page.waitForSelector('#element-id', { state: 'visible' });
-```
-
-**Check element exists:**
-```typescript
-const exists = await page.locator('#element-id').count() > 0;
-```
-
-**Screenshot for debugging:**
-```typescript
-await page.screenshot({ path: `/tmp/debug-${Date.now()}.png`, fullPage: true });
-```
-
-**Error summary at end of test:**
-```typescript
-console.log(`Errors: ${errors.length}, Warnings: ${warnings.length}`);
-if (errors.length) errors.forEach((e, i) => console.error(`  ${i + 1}. ${e}`));
-```
-
----
-
-## next-devtools MCP Workflow
-
-Use next-devtools when you need to diagnose Next.js internals **without a browser session**, or to trace the root cause of hydration/RSC errors found via Playwright.
-
-### When to Choose next-devtools
-
-- Error originates in server-side rendering or RSC execution
-- A route slot is missing or not rendering in a Parallel Route layout
-- Hydration mismatch needs to be traced to its component boundary
-- You need build/compilation diagnostics or runtime route analysis
-
-### Steps
-
-1. **Check RSC boundaries** — Verify Server/Client Component splits are optimal; look for unnecessary `'use client'` at layout or route level
-2. **Validate `@slot` routes** — Confirm Parallel Route segments render correctly and default slots exist where needed
-3. **Analyze Suspense/Streaming** — Confirm Suspense boundaries are placed to maximize streaming benefits
-4. **Check build errors** — Get compilation errors directly from the dev server MCP endpoint
-
----
-
-## Evidence Requirements
-
-For every meaningful fix retain:
-
-- Before/after screenshot (Playwright)
-- Before/after console error count
-- Root cause note and exact fix applied
-
----
-
-## Related Files
-
-- **Testing Prompt:** `.github/prompts/playwright-mcp-web-test-and-optimize.prompt.md`
-- **next-devtools Atomic Wrapper:** `.github/prompts/next-devtools.prompt.md`
-- **Browser Tester Agent:** `.github/agents/gem-browser-tester.agent.md`
-- **Webapp Testing Skill:** `.github/skills/webapp-testing/SKILL.md`
-- **Route Diagnostics Prompt:** `.github/prompts/route-audit-diagnostics.prompt.md`
+- One `/dashboard/workspaces/[id]` via UI navigation
