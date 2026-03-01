@@ -1,5 +1,5 @@
 import type { SkillGrant } from './skill.types'
-import type { Timestamp } from 'firebase/firestore'
+import type { FirestoreTimestamp as Timestamp } from '@/shared/ports'
 
 export type AccountType = 'user' | 'organization'
 export type OrganizationRole = 'Owner' | 'Admin' | 'Member' | 'Guest';

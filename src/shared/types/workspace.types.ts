@@ -1,7 +1,7 @@
 export type WorkspaceRole = 'Manager' | 'Contributor' | 'Viewer';
 export type WorkspaceLifecycleState = 'preparatory' | 'active' | 'stopped';
 
-import type { Timestamp } from 'firebase/firestore'
+import type { FirestoreTimestamp as Timestamp } from '@/shared/ports'
 import type { SkillRequirement } from './skill.types'
 
 // =================================================================
