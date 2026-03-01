@@ -2,7 +2,7 @@
 ## 🏗️ 架構檢查 (VSA)
 - [ ] **Vertical Slice**: 變更是否限制在特定的 `src/features/{slice}` 內？
 - [ ] **Public API**: 跨 Slice 的引用是否僅透過 `index.ts`？
-- [ ] **Next.js 16**: 是否使用了 Server Actions 代替 API Routes (除非必要)？
+- [ ] **Next.js 15**: 是否使用了 Server Actions 代替 API Routes (除非必要)？
 - [ ] **Client Boundaries**: 是否正確標註 `"use client"` 且僅用於葉子節點？
 
 ## 📸 畫面截圖 / 錄影 (如有 UI 變更)
