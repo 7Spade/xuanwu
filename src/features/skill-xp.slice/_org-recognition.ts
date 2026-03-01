@@ -103,7 +103,6 @@ export async function grantSkillRecognition(
   }
 
   const path = `orgSkillRecognition/${organizationId}/members/${accountId}/skills/${skillId}`;
-  const existing = await getDocument<OrgSkillRecognitionRecord>(path);
 
   const record: OrgSkillRecognitionRecord = {
     organizationId,
