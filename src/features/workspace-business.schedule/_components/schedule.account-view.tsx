@@ -6,7 +6,7 @@
  */
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, UserPlus, Calendar, ListChecks, History } from "lucide-react";
 import { toast } from "@/shared/utility-hooks/use-toast";
@@ -31,12 +31,22 @@ import { useScheduleActions } from "../_hooks/use-schedule-commands";
 import { useApp } from "@/shared/app-providers/app-context";
 
 export function AccountScheduleSection() {
-  const { state } = useApp();
-  const { activeAccount } = state;
+  const { state, dispatch } = useApp();
+  const { activeAccount, accounts } = state;
+  const fallbackOrganizationAccount = useMemo(
+    () => Object.values(accounts).find((account) => account.accountType === "organization") ?? null,
+    [accounts]
+  );
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const { allItems, pendingProposals, decisionHistory, upcomingEvents, presentEvents, organizationMembers } = useGlobalSchedule();
+  useEffect(() => {
+    if (!fallbackOrganizationAccount) return;
+    if (activeAccount?.id === fallbackOrganizationAccount.id) return;
+    if (activeAccount?.accountType === "organization") return;
+    dispatch({ type: "SET_ACTIVE_ACCOUNT", payload: fallbackOrganizationAccount });
+  }, [activeAccount?.accountType, activeAccount?.id, dispatch, fallbackOrganizationAccount]);
   const { assignMember, unassignMember, approveItem, rejectItem } = useScheduleActions();
 
   const handleAction = useCallback(async (item: ScheduleItem, newStatus: 'OFFICIAL' | 'REJECTED') => {
@@ -98,9 +108,13 @@ export function AccountScheduleSection() {
     return (
       <div className="flex flex-col items-center gap-4 p-8 text-center">
         <AlertCircle className="size-10 text-muted-foreground" />
-        <h3 className="font-bold">Schedule Not Available</h3>
+        <h3 className="font-bold">
+          {fallbackOrganizationAccount ? "Switching Organization Context" : "Schedule Not Available"}
+        </h3>
         <p className="text-sm text-muted-foreground">
-          The organization-wide schedule is only available within an organization dimension.
+          {fallbackOrganizationAccount
+            ? `Switching to ${fallbackOrganizationAccount.name} to load organization schedule.`
+            : "The organization-wide schedule is only available within an organization dimension."}
         </p>
       </div>
     );
