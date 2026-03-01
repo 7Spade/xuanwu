@@ -44,6 +44,7 @@ import {
 } from '@/shared/shadcn-ui/select';
 import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
 import type { Timestamp } from 'firebase/firestore';
+import { tierSatisfies } from '@/features/shared.kernel.skill-tier';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -67,11 +68,10 @@ function computeSkillMatch(
   skillRequirements?: SkillRequirement[]
 ): [number, number] {
   if (!skillRequirements || skillRequirements.length === 0) return [0, 0];
-  const tierOrder = ['F', 'E', 'D', 'C', 'B', 'A', 'S'];
   const matched = skillRequirements.filter((req) => {
     const skill = member.skills.find((s) => s.skillId === req.tagSlug);
     if (!skill) return false;
-    return tierOrder.indexOf(skill.tier) >= tierOrder.indexOf(req.minimumTier);
+    return tierSatisfies(skill.tier, req.minimumTier);
   }).length;
   return [matched, skillRequirements.length];
 }
