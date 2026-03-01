@@ -110,15 +110,6 @@ You must actively maintain the project's knowledge graph using the `memory` tool
   - **Error Learning**: After fixing a complex bug, record the "Root Cause" and "Solution" as an observation in memory to prevent regression.
   - **Architecture Decided**: If a new pattern is established (e.g., a specific way to handle Parallel Routes), log it as an `Architecture_Decision` entity.
 
-## Memory MCP & Knowledge Graph (Crucial)
-You must actively maintain the project's knowledge graph using the `memory` tool:
-- **Initialize & Sync**: Upon start or when requested, read `.github/prompts/*.md` to sync governance rules into memory.
-- **Read First**: Before any task, use `read_graph` or `search_nodes` to recall architecture decisions and domain constraints.
-- **Write Ongoing (The Habit)**:
-  - **Feature Completion**: When a new feature or vertical slice is completed, create entities/relations to document its public API and dependencies.
-  - **Error Learning**: After fixing a complex bug, record the "Root Cause" and "Solution" as an observation in memory to prevent regression.
-  - **Architecture Decided**: If a new pattern is established (e.g., a specific way to handle Parallel Routes), log it as an `Architecture_Decision` entity.
-
 ## Architecture rules (must follow)
 - Top-level structure:
   - `src/app`: Next.js App Router composition only.
@@ -135,13 +126,13 @@ You must actively maintain the project's knowledge graph using the `memory` tool
 - Keep layouts thin: compose slots and shared chrome, do not add feature business logic in layout files.
 - Preserve current route behavior when editing slot routes or intercepting routes.
 
-## Next.js 16 & Data Mutations
+## Next.js 15 & Data Mutations
 - Prefer **Server Actions** placed in `src/features/{slice}/actions.ts` for data mutations.
-- Use React 19 / Next.js 16 hooks like `useActionState` and `useFormStatus` for form handling. Do not use legacy `useFormState`.
+- Use React 19 / Next.js 15 hooks like `useActionState` and `useFormStatus` for form handling. Do not use legacy `useFormState`.
 - Ensure Server Actions return serializable objects: `{ success: boolean, error?: string, data?: any }`.
 
 ## UI & Styling
-- Use Tailwind CSS v4 for styling. Do not write inline CSS or standard CSS modules.
+- Use Tailwind CSS v3 for styling. Do not write inline CSS or standard CSS modules.
 - Use standard components from `src/shared/components/ui/` (shadcn/ui) **exclusively**. Do not add Material-UI, Chakra UI, Ant Design, or any other UI library.
 - If shadcn/ui lacks a needed component, first check if a composition of existing shadcn/ui primitives can satisfy the requirement. Only build a custom component as a last resort, and place it in `src/shared/components/` with a comment explaining why shadcn/ui was insufficient.
 - Use **Lucide React** for all iconography.
@@ -177,11 +168,6 @@ Available MCP tools for agents and sub-agents:
 - **Styling**: Use **Tailwind CSS** for all styling. Follow the existing theme configuration.
 - **Components**: Use standard components from `src/shared/components/ui/` (**shadcn/ui**) before creating custom ones.
 - **Icons**: Use **Lucide React** for all iconography.
-
-## Agent Task Workflow & MCP
-- **Plan first**: Outline the files you will touch and **query Memory MCP** for relevant rules before writing code.
-- **Context gathering**: Utilize `fetch` for latest docs or `postgres` MCP to verify schemas if modifying data-heavy features.
-- **Closing the Loop**: Once the task is done, update the Memory Graph with any new technical debt or patterns discovered.
 
 ## Working style for Copilot
 - Prioritize existing patterns in `src/features/*`, `src/app/*`, `src/shared`, and `src/features/shared-kernel/*`.

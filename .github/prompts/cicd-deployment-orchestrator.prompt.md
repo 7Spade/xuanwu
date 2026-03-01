@@ -10,7 +10,7 @@ description: "自動化 CI/CD 工作流設計與多環境部署管理"
 
 ## 🛠️ 執行流水線
 1. **環境檢查:** 啟動 **`tool-repomix`** 掃描 `.env.example`、`firebase.json` 與現有的 `.github/workflows`。
-2. **策略同步:** 調用 **`tool-context7`** 查詢 Firebase App Hosting 或 Next.js 16 部署的最新官方推薦配置。
+2. **策略同步:** 調用 **`tool-context7`** 查詢 Firebase App Hosting 或 Next.js 15 部署的最新官方推薦配置。
 3. **工作流規劃:** 使用 **`tool-planning`** 設計包含：Linting -> Testing -> Build -> Preview/Prod Deployment 的流水線。
 
 ## 🎯 核心指標
