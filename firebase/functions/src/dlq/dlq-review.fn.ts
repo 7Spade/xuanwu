@@ -4,11 +4,13 @@
  * [R5]  REVIEW_REQUIRED: 金融/排班/角色事件・人工確認後 Replay
  *       包含: WalletDeducted / ScheduleAssigned / RoleChanged / OrgContextProvisioned
  * [S1]  idempotency-key 保留供 Replay 使用
+ *
+ * NOTE: Kept as onRequest (HTTPS) — Firebase blocks changing from HTTPS to
+ *       background trigger without deleting the function first.
+ *       Called by outbox-relay after writing the failed record to Firestore.
  */
 
-import {
-  onDocumentCreated,
-} from "firebase-functions/v2/firestore";
+import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { initializeApp, getApps } from "firebase-admin/app";
@@ -19,18 +21,35 @@ if (getApps().length === 0) {
 
 const DLQ_REVIEW_COLLECTION = "dlq-review-required";
 
+interface DlqReviewRecord {
+  readonly eventId: string;
+  readonly eventType: string;
+  readonly aggregateId: string;
+  readonly traceId: string;
+  readonly idempotencyKey: string; // [S1]
+  readonly [key: string]: unknown;
+}
+
 /**
  * DLQ REVIEW_REQUIRED processor
  * Records the failed event and notifies for manual review.
  * Does NOT auto-replay — awaits explicit human approval.
+ * POST body: DlqReviewRecord — called by outbox-relay after writing to dlq-review-required
  */
-export const dlqReview = onDocumentCreated(
-  { document: `${DLQ_REVIEW_COLLECTION}/{docId}`, region: "asia-east1" },
-  async (event) => {
-    const snapshot = event.data;
-    if (!snapshot) return;
+export const dlqReview = onRequest(
+  { region: "asia-east1", maxInstances: 5 },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Method Not Allowed" });
+      return;
+    }
 
-    const record = snapshot.data();
+    const record = req.body as DlqReviewRecord;
+    if (!record?.eventId || !record.traceId) {
+      res.status(400).json({ error: "Invalid DLQ record: missing eventId or traceId" });
+      return;
+    }
+
     const db = getFirestore();
 
     logger.warn("DLQ_REVIEW: manual review required", {
@@ -42,10 +61,10 @@ export const dlqReview = onDocumentCreated(
     });
 
     // Mark as awaiting review
-    await snapshot.ref.update({
-      status: "AWAITING_REVIEW",
-      receivedAt: Timestamp.now(),
-    });
+    await db.collection(DLQ_REVIEW_COLLECTION).doc(record.eventId).set(
+      { status: "AWAITING_REVIEW", receivedAt: Timestamp.now() },
+      { merge: true }
+    );
 
     // Create review request document for operator dashboard
     await db.collection("review-requests").add({
@@ -54,7 +73,7 @@ export const dlqReview = onDocumentCreated(
       aggregateId: record.aggregateId,
       traceId: record.traceId,
       idempotencyKey: record.idempotencyKey,
-      dlqDocPath: snapshot.ref.path,
+      dlqDocPath: `${DLQ_REVIEW_COLLECTION}/${record.eventId}`,
       status: "PENDING_REVIEW",
       createdAt: Timestamp.now(),
     });
@@ -65,5 +84,7 @@ export const dlqReview = onDocumentCreated(
       dlqTier: "REVIEW_REQUIRED",
       structuredData: true,
     });
+
+    res.status(202).json({ accepted: true, eventId: record.eventId, status: "AWAITING_REVIEW" });
   }
 );

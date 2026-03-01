@@ -4,7 +4,7 @@
  * [R1]  HTTPS endpoint: called by app-layer infra.outbox-relay CDC scanner
  *       POST body: OutboxRecord → delivers to IER → handles failures
  * [S1]  at-least-once delivery with idempotency-key
- *       失敗: retry backoff → 3 次 → DLQ
+ *       失敗: retry backoff → 3 次 → DLQ (+ call DLQ HTTPS processor)
  *       監控: relay_lag → VS9
  * [R8]  traceId 從 envelope 讀取，禁止覆蓋
  */
@@ -13,7 +13,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { initializeApp, getApps } from "firebase-admin/app";
-import type { EventEnvelope } from "../types.js";
+import type { EventEnvelope, DlqTier } from "../types.js";
 import { dlqCollectionName } from "../types.js";
 
 if (getApps().length === 0) {
@@ -115,25 +115,71 @@ async function deliverToIer(record: OutboxRecord): Promise<void> {
   });
 }
 
-/** Move failed event to the appropriate DLQ collection [S1] */
+/** Move failed event to the appropriate DLQ collection [S1] and notify DLQ processor */
 async function moveToDlq(
   db: FirebaseFirestore.Firestore,
   record: OutboxRecord,
   error: unknown
 ): Promise<void> {
   const collection = dlqCollectionName(record.dlqTier);
-  await db.collection(collection).doc(record.eventId).set({
+  const dlqRecord = {
     ...record,
     failedAt: Timestamp.now(),
     failureReason: String(error),
     status: "DLQ",
-  });
+  };
+  await db.collection(collection).doc(record.eventId).set(dlqRecord);
   logger.error("RELAY: moved to DLQ", {
     eventId: record.eventId,
     dlqTier: record.dlqTier,
     dlqCollection: collection,
     structuredData: true,
   });
+
+  // Call the DLQ HTTPS processor so it runs automatically [S1]
+  const processorUrl = getDlqProcessorUrl(record.dlqTier);
+  if (processorUrl) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+    try {
+      const response = await fetch(processorUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dlqRecord),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        logger.warn("RELAY: DLQ processor returned non-2xx", {
+          eventId: record.eventId,
+          dlqTier: record.dlqTier,
+          status: response.status,
+          structuredData: true,
+        });
+      }
+    } catch (callErr) {
+      logger.warn("RELAY: failed to call DLQ processor — will be processed on next manual trigger", {
+        eventId: record.eventId,
+        dlqTier: record.dlqTier,
+        error: String(callErr),
+        structuredData: true,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+}
+
+/**
+ * Resolve DLQ processor URL from environment variables.
+ * Set DLQ_SAFE_URL, DLQ_REVIEW_URL, DLQ_BLOCK_URL in Cloud Functions config.
+ */
+function getDlqProcessorUrl(tier: DlqTier): string | null {
+  const urlMap: Record<DlqTier, string | undefined> = {
+    SAFE_AUTO:       process.env.DLQ_SAFE_URL,
+    REVIEW_REQUIRED: process.env.DLQ_REVIEW_URL,
+    SECURITY_BLOCK:  process.env.DLQ_BLOCK_URL,
+  };
+  return urlMap[tier] ?? null;
 }
 
 function sleep(ms: number): Promise<void> {
