@@ -1,7 +1,7 @@
 # Project Structure
 
-> **SSOT**: `docs/logic-overview.md` (rules D1–D23) · `docs/domain-glossary.md` (domain terms)
-> Canonical directory layout. Dependency rules enforced by D1–D23.
+> **SSOT**: `docs/logic-overview.md` (rules D1–D26) · `docs/domain-glossary.md` (domain terms)
+> Canonical directory layout. Dependency rules enforced by D1–D26.
 
 ---
 
@@ -13,7 +13,7 @@
 │   ├── app/                     # Next.js App Router composition only
 │   ├── features/                # Vertical slice business domain code
 │   └── shared/                  # Cross-cutting infrastructure utilities
-├── functions/                   # Firebase Functions (outbox-relay, dlq-manager)
+├── firebase/                    # Firebase config + Functions (all firebase-related)
 ├── docs/                        # Architecture documentation
 ├── public/                      # Static assets
 ├── firestore.rules              # Firestore security rules
@@ -470,7 +470,7 @@ src/app/
 
 ---
 
-## D1–D23 Path Constraints
+## D1–D26 Path Constraints
 
 | Rule | Path Constraint |
 |------|----------------|
@@ -497,3 +497,6 @@ src/app/
 | D21 | New tag category: must define in CTA `TAG_ENTITIES`; slices must not create their own semantic tag categories |
 | D22 | Cross-slice tag reference: must point to TAG_USER_LEVEL / TAG_SKILL / TAG_SKILL_TIER / TAG_TEAM / TAG_ROLE / TAG_PARTNER; implicit tagSlug strings forbidden |
 | D23 | Tag annotation format: node text `→ tag::{category} [{NODE_NAME}]`; semantic edge `-.->|"{dim} tag 語義"| NODE_NAME` |
+| D24 | `src/features/*` and `src/app/*` must never import `firebase/*` directly; only `src/shared/infra/*` adapters may call Firebase SDK [FIREBASE_ACL] |
+| D25 | New Firebase service (auth/firestore/messaging/storage) must have an Adapter in `src/shared/infra/` and a Port interface in `src/shared/ports/` before feature slices may use it |
+| D26 | External triggers (`_actions.ts`) must use `createExternalTriggerGuard` from `infra.external-triggers` for rate-limit/circuit-break/bulkhead compliance [S5 R1-R3] |

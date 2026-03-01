@@ -96,6 +96,14 @@ src/features/
    ├─ trace-identifier
    ├─ domain-metrics
    └─ domain-error-log
+
+infra.external-triggers                           (L0 External Triggers — ResilienceGuard [S5])
+infra.gateway-command                             (L2 Command Gateway — app-layer dispatch [R4][R8])
+infra.gateway-query                               (L6 Query Gateway — read-model registry [S2][S3])
+infra.event-router                                (L4 IER — in-process fan-out [D1][R8])
+infra.outbox-relay                                (L4 OUTBOX_RELAY — CDC scan → IER [S1])
+infra.dlq-manager                                 (L4 DLQ Manager — SAFE_AUTO / REVIEW_REQUIRED / SECURITY_BLOCK [S1])
+infra.observability                               (VS9 Observability — domain-metrics / domain-errors)
 ```
 
 ## How to use this tree (quick rule)
