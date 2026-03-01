@@ -12,6 +12,7 @@ export type {
 } from './_schedule';
 
 export {
+  getOrgScheduleItem,
   getOrgScheduleProposal,
   subscribeToOrgScheduleProposals,
   subscribeToPendingProposals,

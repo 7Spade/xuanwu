@@ -27,12 +27,15 @@ import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
 /**
  * Fetches a single schedule item by orgId + scheduleItemId.
  */
-export async function getOrgScheduleProposal(
+export async function getOrgScheduleItem(
   orgId: string,
   scheduleItemId: string
 ): Promise<ScheduleItem | null> {
   return getDocument<ScheduleItem>(`accounts/${orgId}/schedule_items/${scheduleItemId}`);
 }
+
+/** @deprecated Use getOrgScheduleItem. Kept for backward compatibility. */
+export const getOrgScheduleProposal = getOrgScheduleItem;
 
 /**
  * Subscribes to schedule items for a given orgId, optionally filtered by status.
@@ -63,10 +66,7 @@ export function subscribeToOrgScheduleProposals(
   const q = query(ref, ...constraints);
 
   return onSnapshot(q, (snap) => {
-    const items = snap.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-    } as ScheduleItem));
+    const items = snap.docs.map((d) => ({ ...d.data(), id: d.id } as ScheduleItem));
     onUpdate(items);
   });
 }

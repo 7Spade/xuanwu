@@ -24,27 +24,27 @@ export function useOrgSchedule(
   orgId: string | null,
   opts?: { status?: ScheduleStatus }
 ) {
-  const [proposals, setProposals] = useState<ScheduleItem[]>([]);
+  const [items, setItems] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const status = opts?.status;
 
   useEffect(() => {
     if (!orgId) {
-      setProposals([]);
+      setItems([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
     const unsub = subscribeToOrgScheduleProposals(orgId, (updated) => {
-      setProposals(updated);
+      setItems(updated);
       setLoading(false);
     }, status ? { status } : undefined);
 
     return unsub;
   }, [orgId, status]);
 
-  return { proposals, loading };
+  return { items, loading };
 }
 
 /**
@@ -52,26 +52,26 @@ export function useOrgSchedule(
  * Used by the approval workflow in the org governance UI.
  */
 export function usePendingScheduleProposals(orgId: string | null) {
-  const [proposals, setProposals] = useState<ScheduleItem[]>([]);
+  const [items, setItems] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!orgId) {
-      setProposals([]);
+      setItems([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
     const unsub = subscribeToPendingProposals(orgId, (updated) => {
-      setProposals(updated);
+      setItems(updated);
       setLoading(false);
     });
 
     return unsub;
   }, [orgId]);
 
-  return { proposals, loading };
+  return { items, loading };
 }
 
 /**
@@ -79,24 +79,24 @@ export function usePendingScheduleProposals(orgId: string | null) {
  * Used by the FR-S6 "Complete Schedule" governance UI.
  */
 export function useConfirmedScheduleProposals(orgId: string | null) {
-  const [proposals, setProposals] = useState<ScheduleItem[]>([]);
+  const [items, setItems] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!orgId) {
-      setProposals([]);
+      setItems([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
     const unsub = subscribeToConfirmedProposals(orgId, (updated) => {
-      setProposals(updated);
+      setItems(updated);
       setLoading(false);
     });
 
     return unsub;
   }, [orgId]);
 
-  return { proposals, loading };
+  return { items, loading };
 }

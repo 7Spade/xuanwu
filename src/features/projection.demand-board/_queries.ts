@@ -37,7 +37,7 @@ export async function getActiveDemands(orgId: string): Promise<ScheduleItem[]> {
   const col = collection(db, `accounts/${orgId}/schedule_items`);
   const q = query(col, where('status', 'in', ['PROPOSAL', 'OFFICIAL']));
   const snap = await getDocs(q);
-  return snap.docs.map((d: QueryDocumentSnapshot) => ({ id: d.id, ...d.data() } as ScheduleItem));
+  return snap.docs.map((d: QueryDocumentSnapshot) => ({ ...d.data(), id: d.id } as ScheduleItem));
 }
 
 /**
@@ -54,7 +54,7 @@ export function subscribeToDemandBoard(
   const q = query(col, where('status', 'in', ['PROPOSAL', 'OFFICIAL']));
   return onSnapshot(q, (snap: QuerySnapshot) => {
     onChange(
-      snap.docs.map((d: QueryDocumentSnapshot) => ({ id: d.id, ...d.data() } as ScheduleItem))
+      snap.docs.map((d: QueryDocumentSnapshot) => ({ ...d.data(), id: d.id } as ScheduleItem))
     );
   });
 }
@@ -65,5 +65,5 @@ export function subscribeToDemandBoard(
 export async function getAllDemands(orgId: string): Promise<ScheduleItem[]> {
   const col = collection(db, `accounts/${orgId}/schedule_items`);
   const snap = await getDocs(col);
-  return snap.docs.map((d: QueryDocumentSnapshot) => ({ id: d.id, ...d.data() } as ScheduleItem));
+  return snap.docs.map((d: QueryDocumentSnapshot) => ({ ...d.data(), id: d.id } as ScheduleItem));
 }
