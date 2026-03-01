@@ -1,7 +1,7 @@
 # Tech Stack
 
 > Source of truth: `docs/logic-overview.md`
-> For slice boundaries see [Architecture Overview](./architecture-overview.md). For development rules D1–D18 see [Domain Glossary](./domain-glossary.md).
+> For governance rules D1–D20 see [logic-overview.md](./logic-overview.md). For project structure and slice boundaries see [project-structure.md](./project-structure.md).
 
 ## Runtime & Framework
 

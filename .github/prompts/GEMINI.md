@@ -6,7 +6,7 @@
 
 1. **工具導向**：所有任務必須優先調用對應的 MCP 工具（見 `mcp.json`）。
 2. **層級調度**：優先啟動「總控型」指令，由總控型指令拆解任務給「專才型」指令。
-3. **文件為本**：任何決策必須對齊 `docs/` 資料夾下的 10 份核心文件，以 `logic-overview.md` 為最高權威。
+3. **文件為本**：任何決策必須對齊 `docs/` 資料夾下的 7 份核心文件，以 `logic-overview.md` 為最高權威。
 
 ---
 
@@ -38,7 +38,7 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 
 | 檔案名稱 | 功能描述 | 觸發場景 |
 | --- | --- | --- |
-| `compliance-audit.prompt.md` | **10 份文件合規性檢查**：自動檢查程式碼是否偏離核心文件。 | 提交 PR 前或進行全域審計時。 |
+| `compliance-audit.prompt.md` | **7 份文件合規性檢查**：自動檢查程式碼是否偏離核心文件。 | 提交 PR 前或進行全域審計時。 |
 | `ddd-boundary-check.prompt.md` | **DDD 邊界審計**：專門檢查跨聚合寫入與邊界污染。 | 檢查 Bounded Context (BC) 隔離性時。 |
 | `boundary-check.prompt.md` | **通用邊界防護**：防止跨模組直接通訊，確保單向依賴。 | 審查 Data Layer 寫入邏輯時。 |
 | `architectural-audit-and-design-specialist.prompt.md` | **設計專家診斷**：深度分析實作缺口並提供重構建議。 | 系統出現架構腐化或複雜 Bug 時。 |
@@ -89,7 +89,7 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 當接收到使用者指令時，AI 應遵循以下連鎖反應：
 
 1. **[感知]** 啟動 `tool-repomix` 讀取專案與 `docs/`。
-2. **[對齊]** 使用 `compliance-audit` 確認目前任務是否符合 10 份文件規範。
+2. **[對齊]** 使用 `compliance-audit` 確認目前任務是否符合 核心文件規範。
 3. **[規劃]** 使用 `software-planning` 產出任務清單，並啟動 `sequential-thinking` 驗證邏輯可行性。
 4. **[執行]** 根據任務類型調用 `create-vertical-slice` 或 `genkit-flow-design`。
 5. **[校驗]** 執行 `ddd-boundary-check` 確保沒破壞邊界。

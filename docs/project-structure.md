@@ -1,7 +1,7 @@
 # Project Structure
 
 > **Source of truth**: `docs/logic-overview.md`
-> This document describes the canonical directory layout. Naming conventions and dependency rules are enforced by D1–D12 and D13–D18.
+> This document describes the canonical directory layout. Naming conventions and dependency rules are enforced by D1–D20 (see `docs/logic-overview.md` for the full rule set).
 
 ---
 
@@ -62,7 +62,7 @@ src/features/
     └── index.ts
 ```
 
-> **Temporary exception (must be treated as legacy compatibility)**: `SK_SKILL_REQ` (`SkillRequirement` cross-slice contract) is currently implemented in `src/shared/types/skill.types.ts` instead of a dedicated `shared.kernel.skill-requirement/` slice. This deviation is accepted only for current compatibility constraints. **Import precedence remains VS0-first**: where shared-kernel export exists, consuming code should import from `@/features/shared.kernel.*` as the authoritative boundary contract.
+> `SkillRequirement` (cross-BC staffing contract) is exported from `shared.kernel.skill-tier` as part of the `SK_SKILL_REQ` contract — feature slices **must** import it from `@/features/shared.kernel.skill-tier`, not from `@/shared/types` (D19, D20).
 
 ### Type Ownership Matrix (Authoritative)
 
@@ -444,7 +444,7 @@ src/app/
 
 ---
 
-## D1–D12 Path Constraints
+## D1–D20 Path Constraints
 
 | Rule | Path Constraint |
 |------|----------------|
@@ -460,3 +460,11 @@ src/app/
 | D10 | `EventEnvelope.traceId` set only in `infra.gateway-command/CBG_ENTRY`; read-only everywhere else |
 | D11 | `workspace-core.event-store` enables projection rebuild; must be kept current |
 | D12 | `getTier()` import always from `shared.kernel.skill-tier`; tier field never in Firestore writes |
+| D13 | New OUTBOX: must declare DLQ tier in `SK_OUTBOX_CONTRACT`; do not re-define at-least-once semantics locally [S1] |
+| D14 | New Projection: must apply `SK_VERSION_GUARD` before writing; do not skip `aggregateVersion` check [S2] |
+| D15 | Read routing: consult `SK_READ_CONSISTENCY` first — financial/auth/irreversible → STRONG_READ; otherwise EVENTUAL_READ [S3] |
+| D16 | SLA values must not be hardcoded in node text; always reference `SK_STALENESS_CONTRACT` constants [S4] |
+| D17 | New external entry point (non-`_actions.ts`): must satisfy `SK_RESILIENCE_CONTRACT` before going to production [S5] |
+| D18 | Claims refresh logic changes: `SK_TOKEN_REFRESH_CONTRACT` is the sole spec; all three parties (VS1, IER, frontend) must be updated together [S6] |
+| D19 | Type ownership: cross-BC contracts must live in `shared.kernel.*` first; `shared/types` is legacy/common DTO fallback only |
+| D20 | Import precedence: `shared.kernel.*` > feature slice `index.ts` > `shared/types`; when the same concept exists in both `shared.kernel` and `shared/types`, `shared.kernel` is authoritative |

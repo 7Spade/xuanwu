@@ -112,13 +112,9 @@ UI 層必須以 **shadcn/ui** 為唯一元件基礎，採用組合式設計（Ra
 
 以下文件僅為輔助驗證層：
 
-- docs/architecture-overview.md
-- docs/command-event-overview.md
 - docs/domain-glossary.md
-- docs/infrastructure-overview.md
 - docs/persistence-model-overview.md
 - docs/project-structure.md
-- docs/request-execution-overview.md
 - docs/schema-definition.md
 - docs/tech-stack.md
 
