@@ -14,7 +14,7 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "functions"
+    "firebase/functions"
   ],
   "engines": {
     "node": "20"
