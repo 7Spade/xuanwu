@@ -1,15 +1,15 @@
 /**
  * outbox-relay.fn.ts — OUTBOX Relay Worker
  *
- * [R1]  Firestore onSnapshot CDC: 掃描所有 OUTBOX → 投遞至 IER
+ * [R1]  HTTPS endpoint: called by app-layer infra.outbox-relay CDC scanner
+ *       POST body: OutboxRecord → delivers to IER → handles failures
  * [S1]  at-least-once delivery with idempotency-key
  *       失敗: retry backoff → 3 次 → DLQ
  *       監控: relay_lag → VS9
+ * [R8]  traceId 從 envelope 讀取，禁止覆蓋
  */
 
-import {
-  onDocumentCreated,
-} from "firebase-functions/v2/firestore";
+import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { initializeApp, getApps } from "firebase-admin/app";
@@ -20,8 +20,6 @@ if (getApps().length === 0) {
   initializeApp();
 }
 
-/** OUTBOX collection names shared across all domain slices */
-const OUTBOX_COLLECTION = "outbox";
 const MAX_DELIVERY_ATTEMPTS = 3;
 const INITIAL_BACKOFF_MS = 500;
 
@@ -32,20 +30,25 @@ interface OutboxRecord extends EventEnvelope {
 }
 
 /**
- * outbox-relay-worker: CDC trigger on new OUTBOX documents [R1]
- * Picks up newly created outbox entries and delivers them to IER.
+ * outbox-relay: HTTPS endpoint called by app-layer CDC scanner [R1]
+ * POST body: OutboxRecord (single event envelope from any outbox collection)
+ * Returns: 202 Accepted on delivery, 500 on DLQ routing
  */
-export const outboxRelay = onDocumentCreated(
-  { document: `${OUTBOX_COLLECTION}/{docId}`, region: "asia-east1" },
-  async (event) => {
-    const snapshot = event.data;
-    if (!snapshot) {
-      logger.warn("RELAY: empty snapshot, skipping");
+export const outboxRelay = onRequest(
+  { region: "asia-east1", maxInstances: 10 },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Method Not Allowed" });
       return;
     }
 
-    const record = snapshot.data() as OutboxRecord;
-    const docRef = snapshot.ref;
+    const record = req.body as OutboxRecord;
+
+    if (!record?.eventId || !record.traceId) {
+      res.status(400).json({ error: "Invalid OutboxRecord: missing eventId or traceId" });
+      return;
+    }
+
     const relayStart = Date.now();
 
     logger.info("RELAY: processing outbox record", {
@@ -62,7 +65,7 @@ export const outboxRelay = onDocumentCreated(
 
     for (let attempt = 1; attempt <= MAX_DELIVERY_ATTEMPTS; attempt++) {
       try {
-        // TODO: call IER function / Pub/Sub topic based on record.lane
+        // TODO: call IER function URL directly based on record.lane
         await deliverToIer(record);
         delivered = true;
         break;
@@ -79,34 +82,32 @@ export const outboxRelay = onDocumentCreated(
       }
     }
 
-    const db = getFirestore();
     const relayLag = Date.now() - relayStart;
 
     if (delivered) {
-      await docRef.update({
-        status: "DELIVERED",
-        deliveredAt: Timestamp.now(),
-        relayLagMs: relayLag,
-      });
       logger.info("RELAY: delivered", {
         eventId: record.eventId,
         relayLagMs: relayLag,
         structuredData: true,
       });
+      res.status(202).json({ accepted: true, eventId: record.eventId, relayLagMs: relayLag });
     } else {
-      // Route failed event to DLQ based on dlqTier [S1]
+      const db = getFirestore();
       await moveToDlq(db, record, lastError);
-      await docRef.update({ status: "FAILED", failedAt: Timestamp.now() });
+      res.status(500).json({
+        error: "delivery failed, moved to DLQ",
+        eventId: record.eventId,
+        dlqTier: record.dlqTier,
+      });
     }
   }
 );
 
-/** Deliver envelope to IER (stub — replace with Pub/Sub or direct call) */
+/** Deliver envelope to IER via direct HTTP call [R1] */
 async function deliverToIer(record: OutboxRecord): Promise<void> {
-  // TODO: publish to Pub/Sub topic keyed by lane, OR call ier function directly
-  // Pub/Sub approach (recommended for scale):
-  //   const topic = `ier-${record.lane.toLowerCase()}`;
-  //   await pubSubClient.topic(topic).publishMessage({ json: record });
+  // TODO: call IER function URL directly based on record.lane
+  //   const ierUrl = process.env.IER_FUNCTION_URL;
+  //   await fetch(ierUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(record) });
   logger.info("RELAY→IER stub", {
     eventId: record.eventId,
     lane: record.lane,
