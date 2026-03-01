@@ -201,7 +201,7 @@ subgraph VS4["🟧 VS4 · Organization Slice（組織治理）"]
 
     subgraph VS4_EVENT["📢 Org Events + Outbox [S1]"]
         ORG_EVENT_BUS["organization-core.event-bus\n【純 Producer-only P2】\nOrgContextProvisioned\nMemberJoined / MemberLeft\nSkillRecognitionGranted/Revoked\nPolicyChanged\n(in-process)"]
-        ORG_OUTBOX["org-outbox\n[SK_OUTBOX_CONTRACT S1]\n─────────────────\nDLQ 分級宣告：\nOrgContextProvisioned\n  → REVIEW_REQUIRED\nMemberJoined/Left\n  → SAFE_AUTO\nSkillRecognitionGranted/Revoked\n  → REVIEW_REQUIRED"]
+        ORG_OUTBOX["org-outbox\n[SK_OUTBOX_CONTRACT S1]\n─────────────────\nDLQ 分級宣告：\nOrgContextProvisioned\n  → REVIEW_REQUIRED\nMemberJoined/Left\n  → SAFE_AUTO\nSkillRecognitionGranted/Revoked\n  → REVIEW_REQUIRED\nPolicyChanged\n  → SECURITY_BLOCK"]
         ORG_EVENT_BUS -->|pending| ORG_OUTBOX
     end
 
@@ -214,7 +214,7 @@ end
 
 ORG_AGG & ORG_MEMBER & ORG_PARTNER -.->|"tagSlug 唯讀引用"| TAG_READONLY
 ORG_EVENT_BUS -.->|"事件契約"| SK_ENV
-ORG_OUTBOX -->|"CRITICAL_LANE: OrgContextProvisioned"| IER
+ORG_OUTBOX -->|"CRITICAL_LANE: OrgContextProvisioned・PolicyChanged"| IER
 ORG_OUTBOX -->|"STANDARD_LANE: MemberJoined/Left・SkillRecog"| IER
 IER -.->|"BACKGROUND_LANE: TagLifecycleEvent"| VS4_TAG_SUBSCRIBER
 
@@ -584,7 +584,7 @@ WS_TX_RUNNER --> DOMAIN_ERRORS
 SCHEDULE_SAGA --> DOMAIN_ERRORS
 DLQ_BLOCK -.->|"安全告警"| DOMAIN_ERRORS
 TAG_STALE_GUARD -.->|"StaleTagWarning"| DOMAIN_ERRORS
-TOKEN_REFRESH_SIGNAL -.->|"刷新失敗告警 [S6]"| DOMAIN_ERRORS
+TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 
 %% ==========================================================================
 %% CONSISTENCY INVARIANTS 完整索引
@@ -592,7 +592,8 @@ TOKEN_REFRESH_SIGNAL -.->|"刷新失敗告警 [S6]"| DOMAIN_ERRORS
 %% #1  每個 BC 只能修改自己的 Aggregate
 %% #2  跨 BC 僅能透過 Event/Projection/ACL 溝通
 %% #3  Application Layer 只協調，不承載領域規則
-%% #4  Domain Event 僅由 Aggregate 產生；TX Runner 只投遞 Outbox
+%% #4a Domain Event 僅由 Aggregate 產生（唯一生成者）
+%% #4b TX Runner 只投遞 Outbox，不產生 Domain Event（分工界定）
 %% #5  Custom Claims 只做快照，非真實權限來源
 %% #6  Notification 只讀 Projection
 %% #7  Scope Guard 僅讀本 Context Read Model

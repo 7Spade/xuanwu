@@ -12,7 +12,7 @@
  * - WORKSPACE_TRANSACTION_RUNNER →|彙整 Aggregate 未提交事件後寫入| WORKSPACE_OUTBOX
  * - WORKSPACE_TRANSACTION_RUNNER --> TRACE_IDENTIFIER (Observability)
  * - WORKSPACE_TRANSACTION_RUNNER --> DOMAIN_ERROR_LOG (Observability)
- * - Invariant #4: Transaction Runner only aggregates already-produced events.
+ * - Invariant #4b: Transaction Runner only delivers to Outbox; does not produce Domain Events.
  */
 
 import { appendDomainEvent } from '@/features/workspace-core.event-store';
