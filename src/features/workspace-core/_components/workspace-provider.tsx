@@ -174,8 +174,8 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   const createScheduleItem = useCallback(async (itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>) => {
     const result = await createScheduleItemAction(itemData);
     // Cross-layer Outbox event: WORKSPACE_OUTBOX →|workspace:schedule:proposed| ORGANIZATION_SCHEDULE
-    // Per logic-overview.v3.md: W_B_SCHEDULE publishes this event so account-organization.schedule
-    // can persist an orgScheduleProposal and start the HR governance approval flow.
+    // Per logic-overview.md: W_B_SCHEDULE publishes this event so scheduling.slice
+    // can persist a schedule_item and start the HR governance approval flow.
     if (result.success) {
       if (workspace?.dimensionId) {
         // [R8] Inject traceId at CBG_ENTRY (this is the top of the scheduling saga chain).

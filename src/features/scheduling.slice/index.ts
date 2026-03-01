@@ -2,14 +2,6 @@
  * scheduling.slice — Public API
  *
  * Unified VS6 Scheduling vertical slice.
- *
- * Consolidates:
- *   - account-organization.schedule  (HR aggregate + governance)
- *   - workspace-business.schedule    (workspace UI + actions)
- *   - projection.demand-board        (demand board projector)
- *   - projection.account-schedule    (account availability projector)
- *   - scheduling-saga                (cross-org saga coordinator)
- *
  * Domain: accounts/{orgId}/schedule_items (single source of truth)
  * Staleness: DEMAND_BOARD ≤ 5s | STANDARD ≤ 10s (SK_STALENESS_CONTRACT)
  *

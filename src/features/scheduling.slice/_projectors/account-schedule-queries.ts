@@ -1,8 +1,8 @@
 /**
- * projection.account-schedule — _queries.ts
+ * scheduling.slice/_projectors — account-schedule-queries.ts
  *
  * Read-side queries for the account schedule projection.
- * Used by workspace-business.schedule to filter available accounts.
+ * Used by scheduling.slice to filter available accounts.
  */
 
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -16,7 +16,7 @@ export async function getAccountScheduleProjection(
 
 /**
  * Returns active assignments for an account.
- * Used by workspace-business.schedule to check availability.
+ * Used by scheduling.slice to check availability.
  */
 export async function getAccountActiveAssignments(
   accountId: string

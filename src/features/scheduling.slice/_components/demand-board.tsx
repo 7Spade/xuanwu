@@ -1,14 +1,9 @@
 'use client';
 
 /**
- * workspace-business.schedule — _components/demand-board.tsx
+ * scheduling.slice — _components/demand-board.tsx
  *
  * Demand Board UI — org HR real-time view of open and assigned demands.
- *
- * Relocated from projection.demand-board/_components/demand-board.tsx to
- * eliminate the circular dependency between projection.demand-board ↔
- * workspace-business.schedule. Projection slices contain only projector
- * functions and read queries; UI lives in the business slice.
  *
  * Single source of truth: accounts/{orgId}/schedule_items.
  * All three schedule tabs (Calendar, DemandBoard, HR Governance) read from this

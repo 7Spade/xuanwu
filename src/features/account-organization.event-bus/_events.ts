@@ -68,7 +68,7 @@ export interface OrgTeamUpdatedPayload {
 
 /**
  * Fired when XP is added to a member's skill (ACCOUNT_SKILL_AGGREGATE).
- * Used by projection.account-skill-view and projection.org-eligible-member-view.
+ * Used by skill-xp.slice (_projector) and projection.org-eligible-member-view.
  * Per invariant #11: XP belongs to Account BC; Organization only receives the event.
  */
 export interface SkillXpAddedPayload {

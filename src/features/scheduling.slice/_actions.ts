@@ -3,8 +3,7 @@
 /**
  * scheduling.slice — _actions.ts
  *
- * Unified Server Actions for the VS6 Scheduling domain.
- * Merges workspace-business.schedule and account-organization.schedule mutations.
+ * Server Actions for the VS6 Scheduling domain.
  *
  * Per GEMINI.md §1.3 SK_CMD_RESULT [R4]:
  *   All exports MUST return CommandResult.

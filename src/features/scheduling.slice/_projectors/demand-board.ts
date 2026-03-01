@@ -1,5 +1,5 @@
 /**
- * projection.demand-board — _projector.ts
+ * scheduling.slice/_projectors — demand-board.ts
  *
  * Maintains the Demand Board read model.
  * Per docs/prd-schedule-workforce-skills.md FR-W0 / FR-W6:

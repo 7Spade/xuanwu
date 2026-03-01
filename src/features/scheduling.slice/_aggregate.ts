@@ -1,5 +1,5 @@
 /**
- * account-organization.schedule — _schedule.ts
+ * scheduling.slice — _aggregate.ts
  *
  * organization.schedule Aggregate Root — manages the Schedule lifecycle:
  *   draft → proposed → confirmed | cancelled

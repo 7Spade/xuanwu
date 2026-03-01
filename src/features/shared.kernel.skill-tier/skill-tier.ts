@@ -8,10 +8,10 @@
  *   "Tier 永遠是推導值（純函式 getTier(xp)），不得存入任何 DB 欄位"
  *
  * Used by all four architectural layers:
- *   - Account BC    : account-skill, account-user.profile
- *   - Organization BC: account-organization.schedule
- *   - Workspace BC  : workspace-business.schedule
- *   - Projection layer: projection.account-skill-view, projection.org-eligible-member-view
+ *   - Account BC    : skill-xp.slice, account-user.profile
+ *   - Organization BC: scheduling.slice
+ *   - Workspace BC  : scheduling.slice
+ *   - Projection layer: skill-xp.slice (_projector), projection.org-eligible-member-view
  *
  * Type definitions live in @/shared/types/skill.types (shared → features direction).
  * This file re-exports types and adds the runtime computation functions.

@@ -14,7 +14,7 @@
  * Use cases that must use STRONG_READ:
  *   - Wallet balance for transaction (account-user.wallet) [D5]
  *   - Authorization/permission check (infra.gateway-command)
- *   - Schedule conflict detection (workspace-business.schedule)
+ *   - Schedule conflict detection (scheduling.slice)
  *
  * Invariant: Zero infrastructure dependencies (no Firebase, no React, no I/O).
  */

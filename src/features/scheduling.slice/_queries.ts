@@ -1,13 +1,7 @@
 /**
  * scheduling.slice — _queries.ts
  *
- * Unified read-only queries for the VS6 Scheduling domain.
- * Merges queries from:
- *   - workspace-business.schedule (workspace-scoped items)
- *   - account-organization.schedule (org-scoped subscriptions)
- *   - projection.demand-board (demand board view)
- *   - projection.account-schedule (account availability)
- *
+ * Read-only queries for the VS6 Scheduling domain.
  * Single source of truth: accounts/{orgId}/schedule_items
  */
 

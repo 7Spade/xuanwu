@@ -1,8 +1,8 @@
 /**
- * projection.account-schedule — _projector.ts
+ * scheduling.slice/_projectors — account-schedule.ts
  *
  * Maintains the account schedule projection.
- * Used by workspace-business.schedule to filter available accounts.
+ * Used by scheduling.slice to filter available accounts.
  *
  * Stored at: scheduleProjection/{accountId}/assignments/{assignmentId}
  *
