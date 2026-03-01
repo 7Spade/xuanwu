@@ -1,116 +1,75 @@
 ---
 name: webapp-testing
-description: Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.
+description: Toolkit for testing Next.js applications using Playwright MCP (UI/E2E flows) and next-devtools MCP (RSC/route diagnostics). Use when asked to verify frontend functionality, debug UI behavior, capture screenshots, inspect browser logs, or diagnose RSC boundaries and Parallel Route slots.
 ---
 
 # Web Application Testing
 
-This skill enables comprehensive testing and debugging of local web applications using Playwright automation.
+This skill enables comprehensive testing and debugging using two complementary MCP tools:
+
+- **Playwright MCP** — browser automation for UI/E2E flows
+- **next-devtools MCP** — Next.js runtime diagnostics for RSC, routes, and builds
 
 ## When to Use This Skill
 
-Use this skill when you need to:
-- Test frontend functionality in a real browser
-- Verify UI behavior and interactions
-- Debug web application issues
-- Capture screenshots for documentation or debugging
-- Inspect browser console logs
-- Validate form submissions and user flows
-- Check responsive design across viewports
+| Need | Tool |
+|------|------|
+| Login/registration flows, form interactions | Playwright MCP |
+| Visual verification, screenshots, console logs | Playwright MCP |
+| Network request monitoring | Playwright MCP |
+| RSC boundary analysis (Server/Client splits) | next-devtools MCP |
+| Parallel Route `@slot` validation | next-devtools MCP |
+| Suspense/Streaming behavior | next-devtools MCP |
+| Build/compilation errors | next-devtools MCP |
 
 ## Prerequisites
 
-- Node.js installed on the system
-- A locally running web application (or accessible URL)
-- Playwright will be installed automatically if not present
+- Dev server running on port 9002 (`npm run dev`)
+- Next.js 16+ (for next-devtools MCP endpoint at `/_next/mcp`)
 
-## Core Capabilities
+## Test Credentials (Dev/Test only)
 
-### 1. Browser Automation
-- Navigate to URLs
-- Click buttons and links
-- Fill form fields
-- Select dropdowns
-- Handle dialogs and alerts
+- Login: `test@demo.com` / `123456`
+- Registration: `demo{n}` / `test{n}@demo.com` / `123456`
 
-### 2. Verification
-- Assert element presence
-- Verify text content
-- Check element visibility
-- Validate URLs
-- Test responsive behavior
+## Standard Workflow
 
-### 3. Debugging
-- Capture screenshots
-- View console logs
-- Inspect network requests
-- Debug failed tests
+Follow the complete workflow in `.github/instructions/testing.instructions.md`:
 
-## Usage Examples
+1. **Playwright baseline** — attach console listeners, navigate to `/login`, authenticate
+2. **Route sweep** — `/dashboard`, `/dashboard/account/settings`, `/dashboard/workspaces`, one workspace detail
+3. **next-devtools diagnostics** — RSC boundaries, `@slot` validation, Suspense analysis
+4. **Fix from root cause** — smallest change that resolves the root cause, re-verify
 
-### Example 1: Basic Navigation Test
+## Common Patterns (Playwright)
+
 ```javascript
-// Navigate to a page and verify title
-await page.goto('http://localhost:3000');
-const title = await page.title();
-console.log('Page title:', title);
-```
+// Console monitoring (attach BEFORE navigation)
+page.on('console', msg => {
+  if (msg.type() === 'error') console.error('Browser Error:', msg.text());
+});
 
-### Example 2: Form Interaction
-```javascript
-// Fill out and submit a form
-await page.fill('#username', 'testuser');
-await page.fill('#password', 'password123');
-await page.click('button[type="submit"]');
-await page.waitForURL('**/dashboard');
-```
+// Wait for element
+await page.waitForSelector('[data-testid="account-switcher"]', { state: 'visible' });
 
-### Example 3: Screenshot Capture
-```javascript
-// Capture a screenshot for debugging
-await page.screenshot({ path: 'debug.png', fullPage: true });
+// Screenshot for debugging
+await page.screenshot({ path: '/tmp/debug.png', fullPage: true });
+
+// Check element exists
+const exists = await page.locator('#element-id').count() > 0;
 ```
 
 ## Guidelines
 
-1. **Always verify the app is running** - Check that the local server is accessible before running tests
-2. **Use explicit waits** - Wait for elements or navigation to complete before interacting
-3. **Capture screenshots on failure** - Take screenshots to help debug issues
-4. **Clean up resources** - Always close the browser when done
-5. **Handle timeouts gracefully** - Set reasonable timeouts for slow operations
-6. **Test incrementally** - Start with simple interactions before complex flows
-7. **Use selectors wisely** - Prefer data-testid or role-based selectors over CSS classes
-
-## Common Patterns
-
-### Pattern: Wait for Element
-```javascript
-await page.waitForSelector('#element-id', { state: 'visible' });
-```
-
-### Pattern: Check if Element Exists
-```javascript
-const exists = await page.locator('#element-id').count() > 0;
-```
-
-### Pattern: Get Console Logs
-```javascript
-page.on('console', msg => console.log('Browser log:', msg.text()));
-```
-
-### Pattern: Handle Errors
-```javascript
-try {
-  await page.click('#button');
-} catch (error) {
-  await page.screenshot({ path: 'error.png' });
-  throw error;
-}
-```
+1. Use `data-testid` selectors over CSS classes or text for stability
+2. Always wait for elements before interacting — never assume instant rendering
+3. Attach console listeners before any navigation step
+4. Take screenshots on failures to document state
+5. Prefer next-devtools for any error that originates server-side
+6. Run Playwright after next-devtools fixes to confirm no regressions
 
 ## Limitations
 
-- Requires Node.js environment
-- Cannot test native mobile apps (use React Native Testing Library instead)
-- May have issues with complex authentication flows
-- Some modern frameworks may require specific configuration
+- Playwright MCP requires the dev server running on port 9002
+- next-devtools MCP requires Next.js 16+ with MCP enabled (default in v16)
+- Cannot test native mobile apps

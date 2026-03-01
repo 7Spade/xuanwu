@@ -37,8 +37,7 @@
 - nextjs-tailwind.instructions.md
 - nextjs.instructions.md
 - performance-optimization.instructions.md
-- playwright-e2e-testing.instructions.md
-- playwright-mcp-testing.instructions.md
+- testing.instructions.md
 - security-and-owasp.instructions.md
 - self-explanatory-code-commenting.instructions.md
 - task-implementation.instructions.md

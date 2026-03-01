@@ -66,7 +66,15 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 * `context7.prompt.md`: 外部技術文檔檢索。
 * `next-devtools.prompt.md`: 渲染邊界偵測。
 
-### 5. 部署、遺留系統與效能 (Deployment, Legacy & Performance)
+### 5. 整合測試 (Integrated Testing)
+
+*使用 Playwright MCP（UI/E2E）與 next-devtools MCP（RSC/路由診斷）彈性組合測試。詳細流程見 `.github/instructions/testing.instructions.md`。*
+
+| 檔案名稱 | 功能描述 | 觸發場景 |
+| --- | --- | --- |
+| `playwright-mcp-web-test-and-optimize.prompt.md` | **整合測試總控**：Playwright MCP（UI 互動、截圖、Console 監控）+ next-devtools MCP（RSC 邊界、Slot 驗證、Streaming）。 | 需要執行端對端驗證、診斷渲染問題或確認修復時。 |
+
+### 6. 部署、遺留系統與效能 (Deployment, Legacy & Performance)
 
 | 檔案名稱 | 功能描述 | 觸發場景 |
 | --- | --- | --- |
@@ -120,7 +128,6 @@ AI 在執行指令前應確認以下 MCP 服務已啟動：
 - nextjs-parallel-routes-modern-code.prompt.md
 - performance-optimization-auditor
 - playwright-mcp-web-test-and-optimize.prompt.md
-- playwright-testing-guide.md
 - repomix.prompt.md
 - route-audit-diagnostics.prompt.md
 - sequential-thinking.prompt.md
