@@ -395,14 +395,16 @@ src/shared/
 ├── types/                     # Shared TypeScript type definitions
 ├── utility-hooks/             # Cross-cutting React hooks (useDebounce, etc.)
 ├── i18n-types/                # Internationalization type definitions
-└── infra/
-    ├── auth/                  # Firebase Auth client wrappers
-    ├── firestore/             # Firestore client + repository base
+├── ports/                     # SK_PORTS: Infrastructure Port interfaces [D24 D25]
+│                              #   IAuthService · IFirestoreRepo · IMessaging · IFileStore
+├── ai/                        # Genkit AI flow wrappers (server-side only)
+└── infra/                     # FIREBASE_ACL Adapters — sole Firebase SDK call-sites [D24]
+    ├── auth/                  # AuthAdapter → IAuthService (firebase/auth)
+    ├── firestore/             # FirestoreFacade → IFirestoreRepo [S2] (firebase/firestore)
     │   └── repositories/      # Low-level Firestore CRUD helpers
     ├── analytics/             # Analytics integrations
-    ├── storage/               # Firebase Storage client
-    ├── messaging/             # FCM client (token management, send)
-    └── ai/                    # Genkit AI flow wrappers
+    ├── storage/               # StorageFacade → IFileStore (firebase/storage)
+    └── messaging/             # MessagingAdapter → IMessaging [R8] (firebase/messaging)
 ```
 
 ---
