@@ -7,18 +7,45 @@
 
 ```text
 src/features/
-├─ shared.kernel.*                                (VS0 Shared Kernel + Tag Authority)
-│  ├─ event-envelope                              (SK_ENV)
-│  ├─ authority-snapshot                          (SK_AUTH_SNAP)
-│  ├─ skill-tier                                  (SK_SKILL_TIER)
-│  ├─ skill-requirement                           (SK_SKILL_REQ)
-│  ├─ command-result-contract                     (SK_CMD_RESULT)
-│  ├─ outbox-contract                             (S1)
-│  ├─ version-guard                               (S2)
-│  ├─ read-consistency                            (S3)
-│  ├─ staleness-contract                          (S4)
-│  ├─ resilience-contract                         (S5)
-│  └─ token-refresh-contract                      (S6)
+├─ shared.kernel/                                 (VS0 Shared Kernel — unified; import: @/features/shared.kernel)
+│  ├─ index.ts                                    (unified public API)
+│  ├─ README.md                                   (structure guide)
+│  ├─ GEMINI.md                                   (AI governance)
+│  │
+│  ├─ 📄 Foundational Data Contracts
+│  ├─ event-envelope/                             (SK_ENV [R8][R7])
+│  ├─ authority-snapshot/                         (SK_AUTH_SNAP)
+│  ├─ skill-tier/                                 (SK_SKILL_TIER + SK_SKILL_REQ + SK_SCHEDULE_PAYLOAD [#12][A5])
+│  ├─ command-result-contract/                    (SK_CMD_RESULT [R4])
+│  ├─ constants/                                  (WorkflowStatus [R6] + ErrorCodes [R4])
+│  │
+│  ├─ ⚙️ Infrastructure Behaviour Contracts
+│  ├─ outbox-contract/                            (SK_OUTBOX [S1])
+│  ├─ version-guard/                              (SK_VERSION_GUARD [S2])
+│  ├─ read-consistency/                           (SK_READ_CONSISTENCY [S3])
+│  ├─ staleness-contract/                         (SK_STALENESS [S4])
+│  ├─ resilience-contract/                        (SK_RESILIENCE [S5])
+│  ├─ token-refresh-contract/                     (SK_TOKEN_REFRESH [S6])
+│  │
+│  ├─ 🏷️ Tag Authority Center
+│  ├─ tag-authority/                              ([#A6][#17][D21] contract types ONLY — RO rules T1–T5)
+│  │
+│  └─ 🔌 Infrastructure Ports
+│     └─ infrastructure-ports/                    (SK_PORTS [D24] — IAuthService, IFirestoreRepo, IMessaging, IFileStore)
+│
+│  ⚠️  Legacy shims (→ will be removed after consumers migrate):
+│  ├─ shared.kernel.event-envelope/               (re-exports from shared.kernel/event-envelope/)
+│  ├─ shared.kernel.authority-snapshot/           (re-exports from shared.kernel/authority-snapshot/)
+│  ├─ shared.kernel.skill-tier/                   (re-exports from shared.kernel/skill-tier/)
+│  ├─ shared.kernel.contract-interfaces/          (re-exports from shared.kernel/command-result-contract/)
+│  ├─ shared.kernel.constants/                    (re-exports from shared.kernel/constants/)
+│  ├─ shared.kernel.outbox-contract/              (re-exports from shared.kernel/outbox-contract/)
+│  ├─ shared.kernel.version-guard/                (re-exports from shared.kernel/version-guard/)
+│  ├─ shared.kernel.read-consistency/             (re-exports from shared.kernel/read-consistency/)
+│  ├─ shared.kernel.staleness-contract/           (re-exports from shared.kernel/staleness-contract/)
+│  ├─ shared.kernel.resilience-contract/          (re-exports from shared.kernel/resilience-contract/)
+│  ├─ shared.kernel.token-refresh-contract/       (re-exports from shared.kernel/token-refresh-contract/)
+│  └─ shared.kernel.tag-authority/               (NOTE: currently re-exports CRUD from centralized-tag — needs update)
 │
 ├─ identity.slice                                 (VS1 Identity Slice)
 │
