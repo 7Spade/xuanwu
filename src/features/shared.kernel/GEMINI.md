@@ -124,7 +124,9 @@ if (ageMs > 30000) { ... }  // hardcoded literal
 
 ## 5. Flat `shared.kernel.*` Directories (Legacy Shims)
 
-The flat directories (`src/features/shared.kernel.event-envelope/`, etc.) are **thin re-export shims** pointing to the sub-directories in this unified module. They exist for backward compatibility.
+The flat directories (`src/features/shared.kernel.event-envelope/`, etc.) are **thin re-export shims** pointing to the sub-directories in this unified module. They exist for backward compatibility during the migration window.
+
+**Migration target**: all consumer imports migrated to `@/features/shared.kernel` by the end of the current sprint cycle. Shims will be removed in the following release after migration is verified (zero consumers remain).
 
 **Rule**: New code MUST import from `@/features/shared.kernel` or a specific sub-path.  
 The flat dirs will be removed after all consumers are migrated.

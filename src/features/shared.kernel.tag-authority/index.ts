@@ -1,33 +1,30 @@
 /**
- * shared.kernel.tag-authority — Public API
+ * shared.kernel.tag-authority — Legacy shim (→ @/features/shared.kernel/tag-authority)
  *
- * [VS0] 全域標籤權力中心定義
+ * ⚠️  This flat directory is a BACKWARD-COMPATIBILITY shim.
+ *     New code MUST import from `@/features/shared.kernel` or
+ *     `@/features/shared.kernel/tag-authority` directly.
+ *     This shim will be removed after all consumers are migrated.
  *
- * Per tree.md: shared.kernel.tag-authority = sole global authority for tagSlug semantics.
- *   — All other slices hold READ-ONLY tagSlug references.
- *   — TagLifecycleEvents (TagCreated/Updated/Deprecated/Deleted) broadcast
- *     semantic changes to all interested slices via Integration Event Router.
- *
- * Implementation lives in features/centralized-tag.
- * This boundary stub re-exports the canonical contract for consumers that
- * import by tree.md slice name.
+ * IMPORTANT: This shim re-exports CONTRACT TYPES ONLY.
+ *   CRUD operations (createTag, updateTag, deprecateTag, deleteTag) live in
+ *   `src/features/centralized-tag/` and MUST NOT be imported via shared.kernel.
+ *   Architectural rule: shared.kernel contains contracts, not implementations.
  */
 export {
-  createTag,
-  updateTag,
-  deprecateTag,
-  deleteTag,
-  getTag,
-  onTagEvent,
-  publishTagEvent,
-} from '@/features/centralized-tag';
+  TAG_CATEGORIES,
+  tagSlugRef,
+} from '@/features/shared.kernel/tag-authority';
 export type {
-  CentralizedTagEntry,
+  TagCategory,
   TagDeleteRule,
+  TagSlugRef,
   TagLifecycleEventPayloadMap,
   TagLifecycleEventKey,
   TagCreatedPayload,
   TagUpdatedPayload,
   TagDeprecatedPayload,
   TagDeletedPayload,
-} from '@/features/centralized-tag';
+  ITagReadPort,
+  ImplementsTagStaleGuard,
+} from '@/features/shared.kernel/tag-authority';

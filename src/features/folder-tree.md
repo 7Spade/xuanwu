@@ -45,7 +45,7 @@ src/features/
 │  ├─ shared.kernel.staleness-contract/           (re-exports from shared.kernel/staleness-contract/)
 │  ├─ shared.kernel.resilience-contract/          (re-exports from shared.kernel/resilience-contract/)
 │  ├─ shared.kernel.token-refresh-contract/       (re-exports from shared.kernel/token-refresh-contract/)
-│  └─ shared.kernel.tag-authority/               (NOTE: currently re-exports CRUD from centralized-tag — needs update)
+│  └─ shared.kernel.tag-authority/               (re-exports contract types only from shared.kernel/tag-authority/ ← CRUD stays in centralized-tag)
 │
 ├─ identity.slice                                 (VS1 Identity Slice)
 │

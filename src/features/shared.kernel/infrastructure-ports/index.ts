@@ -22,8 +22,8 @@
  *
  * These interfaces are re-exported from @/shared/ports to maintain a single
  * canonical definition while making them accessible via the shared.kernel import path.
- *
- * Dependency rule: types only — ZERO runtime infrastructure imports.
+ * Dependency flows: shared → features (one-way); shared.kernel acts as the re-export
+ * façade so feature slices never need to import from @/shared/ports directly.
  */
 
 // Re-export all Port interfaces from the canonical @/shared/ports location.

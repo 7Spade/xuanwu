@@ -21,8 +21,8 @@
  * Type definitions from @/shared/types/skill.types are acceptable (shared→features direction).
  */
 
-export type { SkillTier, TierDefinition } from '@/shared/types/skill.types';
 import type { SkillTier, TierDefinition } from '@/shared/types/skill.types';
+export type { SkillTier, TierDefinition };
 
 // ─── Canonical tier table ─────────────────────────────────────────────────────
 
