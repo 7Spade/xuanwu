@@ -9,12 +9,6 @@
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  SSOT Mapping:
 %%    Architecture rules   → docs/logic-overview.md  ← THIS FILE
-%%    Domain vocabulary    → docs/domain-glossary.md
-%%    Data persistence     → docs/persistence-model-overview.md
-%%    TypeScript contracts → docs/schema-definition.md
-%%    Runtime stack        → docs/tech-stack.md
-%%    Folder ownership     → docs/project-structure.md
-%%    Product intent       → docs/prd-schedule-workforce-skills.md
 %%    Semantic relations   → docs/knowledge-graph.json
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  KEY INVARIANTS（絕對遵守）:

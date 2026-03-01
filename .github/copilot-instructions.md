@@ -27,7 +27,7 @@ memory.open_nodes({ names: ["Logic_Overview_SSOT", "Development_Rules"] })
 3. 呼叫 `memory.create_relations(relations)` 載入所有關係
 4. 驗證：再次呼叫 `memory.read_graph()` 確認載入成功
 
-詳細步驟參見 `docs/knowledge-graph-guide.md`。
+詳細步驟參見 `docs/knowledge-graph.json`（知識圖譜資料）與 `docs/logic-overview.md`（架構規則 SSOT）。
 
 ### Step 2 — During Session: Write Ongoing（邊做邊記）
 
