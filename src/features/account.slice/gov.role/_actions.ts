@@ -27,7 +27,7 @@ import {
   type CommandResult,
   commandSuccess,
   commandFailureFrom,
-} from '@/features/shared-kernel/command-result-contract';
+} from '@/features/shared-kernel';
 import type { OrganizationRole } from '@/shared/types';
 
 export interface AccountRoleRecord {

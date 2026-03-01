@@ -28,11 +28,11 @@ import type {
   CircuitBreakerConfig,
   BulkheadConfig,
   ResilienceContract,
-} from '@/features/shared-kernel/resilience-contract';
+} from '@/features/shared-kernel';
 import {
   DEFAULT_RATE_LIMIT,
   DEFAULT_CIRCUIT_BREAKER,
-} from '@/features/shared-kernel/resilience-contract';
+} from '@/features/shared-kernel';
 
 // ---------------------------------------------------------------------------
 // Types

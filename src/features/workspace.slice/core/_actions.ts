@@ -33,7 +33,7 @@ import {
   type CommandResult,
   commandSuccess,
   commandFailureFrom,
-} from '@/features/shared-kernel/command-result-contract';
+} from '@/features/shared-kernel';
 import type { Account, Capability, WorkspaceRole, WorkspaceLifecycleState, WorkspaceLocation } from "@/shared/types"
 
 export async function createWorkspace(

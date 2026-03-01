@@ -22,7 +22,7 @@ import {
   type CommandResult,
   commandSuccess,
   commandFailureFrom,
-} from '@/features/shared-kernel/command-result-contract';
+} from '@/features/shared-kernel';
 
 export interface WalletTransaction {
   id?: string;

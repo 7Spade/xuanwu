@@ -1,12 +1,10 @@
 // [職責] 事件名稱與 Payload 的 TypeScript 類型定義 (Contract)
 import type { WorkspaceTask, DailyLog } from "@/shared/types"
-import type { SkillRequirement } from "@/features/shared-kernel/skill-tier"
+import type { SkillRequirement, WorkspaceScheduleProposedPayload } from "@/features/shared-kernel"
 
 // WorkspaceScheduleProposedPayload is a cross-BC contract — defined in shared-kernel.
-// Imported for local use (WorkspaceEventPayloadMap) and re-exported for consumers
-// that import from workspace-core.event-bus.
-import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel/skill-tier';
-export type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel/skill-tier';
+// Re-exported for consumers that import from workspace-core.event-bus.
+export type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
 
 // =================================================================
 // == Payload Interfaces

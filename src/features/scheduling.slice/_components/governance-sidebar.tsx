@@ -6,7 +6,7 @@ import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Check, X } from "lucide-react";
-import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
+import type { SkillRequirement } from '@/features/shared-kernel';
 import { SKILLS } from '@/shared/constants/skills';
 
 interface GovernanceSidebarProps {

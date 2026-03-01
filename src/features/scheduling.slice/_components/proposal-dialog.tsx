@@ -23,9 +23,9 @@ import { format } from "date-fns";
 import { cn } from "@/shared/lib";
 import { toast } from "@/shared/utility-hooks/use-toast";
 import { type Location, type SkillTier } from "@/shared/types";
-import type { SkillRequirement } from "@/features/shared-kernel/skill-tier";
+import type { SkillRequirement } from "@/features/shared-kernel";
 import { SKILLS } from "@/shared/constants/skills";
-import { TIER_DEFINITIONS } from "@/features/shared-kernel/skill-tier";
+import { TIER_DEFINITIONS } from "@/features/shared-kernel";
 import { getOrgSkillTags } from "@/features/skill-xp.slice";
 
 const MAX_SKILL_REQUIREMENT_QUANTITY = 99;
