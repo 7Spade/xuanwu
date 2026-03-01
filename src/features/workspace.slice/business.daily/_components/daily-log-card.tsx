@@ -14,7 +14,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/shared/shadcn-ui/card";
 import { type DailyLog, type Account } from "@/shared/types";
-import type { Timestamp } from "firebase/firestore";
+import type { Timestamp } from "@/shared/ports";
 import { ImageCarousel } from "./image-carousel";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 

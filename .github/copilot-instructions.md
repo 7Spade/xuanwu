@@ -172,4 +172,6 @@ Available MCP tools for agents and sub-agents:
 ## Working style for Copilot
 - Prioritize existing patterns in `src/features/*`, `src/app/*`, `src/shared`, and `src/features/shared-kernel/*`.
 - Prefer server-first Next.js patterns and minimal client boundaries (use `"use client"` only at leaf nodes).
+- **Before validating**: always run `npm install` first. If `node_modules/.bin/eslint` does not exist, the lint output is noise — do NOT report "Cannot find module" errors as code defects.
 - Validate with existing commands: `npm run lint`, `npm run typecheck`.
+- Use `npm run check` for a single reliable install+lint+typecheck pass.

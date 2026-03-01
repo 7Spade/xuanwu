@@ -15,7 +15,7 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/shadcn-ui/dialog";
 import { type DailyLog, type DailyLogComment, type Account } from "@/shared/types";
-import type { Timestamp } from "firebase/firestore";
+import type { Timestamp } from "@/shared/ports";
 import { ImageCarousel } from "./image-carousel";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
