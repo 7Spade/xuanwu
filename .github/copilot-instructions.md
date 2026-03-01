@@ -185,5 +185,5 @@ Before finalizing any PR:
 2. Invoke `compliance-audit.prompt.md` to verify no new D-rule violations introduced
 3. For architectural refactors, invoke `iterative-alignment-refactor.prompt.md`
 
-The D24 migration backlog (43 files with direct `firebase/firestore` imports) is tracked in `AGENTS.md`.
+The D24 migration backlog (45 files with direct `firebase/firestore` imports) is tracked in `AGENTS.md`.
 Do NOT add new D24 violations. Any new code must use `SK_PORTS` interfaces via `@/shared/ports`.

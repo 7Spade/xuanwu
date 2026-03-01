@@ -49,18 +49,18 @@ npm run dev   # starts on http://localhost:9002
 
 ## Known D24 Architectural Debt (Tracked Warnings)
 
-The `~1390 lint warnings` include **43 D24 warnings** — direct `firebase/firestore` imports in feature slices.
+The `~1390 lint warnings` include **45 D24 warnings** — direct `firebase/firestore` imports in feature slices.
 These are **tracked migration targets**, not regressions. Per `docs/logic-overview.md` [D24]:
 
 > Feature slices must not import `firebase/*` directly. All SDK calls must go through `FIREBASE_ACL`
 > adapters at `src/shared/infra/{auth,firestore,messaging,storage}/`, accessed via `SK_PORTS` interfaces.
 
-Current D24 violation files (43 total):
+Current D24 violation files (45 total):
 - `src/features/account.slice/` — gov.policy, gov.role, user.profile, user.wallet (4 files)
 - `src/features/identity.slice/` — `_token-refresh-listener.ts` (1 file)
 - `src/features/notification.slice/` — user.notification delivery + queries (2 files)
 - `src/features/organization.slice/` — core, gov.members, gov.partners, gov.policy, gov.teams (5 files)
-- `src/features/projection.bus/` — account-audit, account-view, org-eligible-member-view, organization-view, tag-snapshot, workspace-scope-guard, workspace-view (9 files)
+- `src/features/projection.bus/` — account-audit, account-view, global-audit-view, org-eligible-member-view, organization-view, tag-snapshot, workspace-scope-guard, workspace-view (11 files: _projector and/or _queries per sub-projection)
 - `src/features/scheduling.slice/` — aggregate, components, hooks, projectors, queries (9 files)
 - `src/features/skill-xp.slice/` — projector, queries, tag-lifecycle (3 files)
 - `src/features/workspace.slice/` — business.daily, business.document-parser, business.files, business.workflow, core, gov.audit (10 files)

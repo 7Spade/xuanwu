@@ -2,6 +2,8 @@
 // GLOBAL_AUDIT_VIEW — cross-slice governance audit projection
 // Feed path: AUDIT_COLLECTOR → IER BACKGROUND_LANE → FUNNEL → STANDARD_PROJ_LANE → here
 
+import { serverTimestamp } from 'firebase/firestore';
+import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import type { EventEnvelope } from '@/features/shared-kernel/event-envelope';
 
 export interface GlobalAuditRecord {
@@ -36,8 +38,6 @@ export async function applyAuditEvent(
   payload: Record<string, unknown>,
   context: { accountId: string; workspaceId?: string }
 ): Promise<void> {
-  const { getFirestore, setDoc, doc, serverTimestamp } = await import('firebase/firestore');
-  const db = getFirestore();
   const record: Omit<GlobalAuditRecord, 'timestamp'> & { timestamp: ReturnType<typeof serverTimestamp> } = {
     auditEventId: envelope.eventId,
     traceId: envelope.traceId ?? envelope.eventId,
@@ -47,5 +47,6 @@ export async function applyAuditEvent(
     payload,
     timestamp: serverTimestamp(),
   };
-  await setDoc(doc(db, 'globalAuditView', envelope.eventId), record);
+  // [S2] Use eventId as document key for idempotent writes on event-store replay.
+  await setDocument(`globalAuditView/${envelope.eventId}`, record);
 }
