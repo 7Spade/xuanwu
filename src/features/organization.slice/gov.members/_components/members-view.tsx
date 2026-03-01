@@ -11,8 +11,8 @@ import { useApp } from "@/shared/app-providers/app-context"
 import { useMemberManagement } from '../_hooks/use-member-management'
 import { useI18n } from "@/shared/app-providers/i18n-provider"
 import { PageHeader } from "@/shared/ui/page-header"
-import { getAllOrgMembersView } from "@/features/projection.org-eligible-member-view"
-import type { OrgEligibleMemberView } from "@/features/projection.org-eligible-member-view"
+import { getAllOrgMembersView } from "@/features/projection.bus"
+import type { OrgEligibleMemberView } from "@/features/projection.bus"
 
 export function MembersView() {
   const [mounted, setMounted] = useState(false)

@@ -21,7 +21,7 @@ import { tierSatisfies } from "@/features/shared.kernel.skill-tier";
 import { toast } from "@/shared/utility-hooks/use-toast";
 import type { ScheduleItem } from "@/shared/types";
 import { getAccountActiveAssignments } from "../_queries";
-import { getOrgMemberEligibilityWithTier } from "@/features/projection.org-eligible-member-view";
+import { getOrgMemberEligibilityWithTier } from "@/features/projection.bus";
 
 export function useScheduleActions() {
   const { state: appState } = useApp();

@@ -83,12 +83,14 @@ src/features/
 ├─ account-user.notification                      (VS7 Notification Slice — notification.slice/user.notification)
 │
 ├─ projection.bus                                 (VS8 Projection Bus — EVENT_FUNNEL_INPUT + PROJECTION_VERSION + READ_MODEL_REGISTRY)
-│  ├─ projection.workspace-view
-│  ├─ projection.account-view
-│  ├─ projection.organization-view
-│  ├─ projection.account-skill-view
-│  ├─ projection.global-audit-view
-│  ├─ projection.tag-snapshot
+│  ├─ account-audit/                              (ACCOUNT_PROJECTION_AUDIT)
+│  ├─ account-view/                               (ACCOUNT_PROJECTION_VIEW — FCM token, authority snapshot [#6][#8])
+│  ├─ global-audit-view/                          (GLOBAL_AUDIT_VIEW — cross-slice audit [R8])
+│  ├─ org-eligible-member-view/                   (ORG_ELIGIBLE_MEMBER_VIEW — tier derived at query time [#12][#14–#16][R7])
+│  ├─ organization-view/                          (ORGANIZATION_PROJECTION_VIEW)
+│  ├─ tag-snapshot/                               (TAG_SNAPSHOT [T5][S4])
+│  ├─ workspace-scope-guard/                      (WORKSPACE_SCOPE_READ_MODEL [#A9] CRITICAL ≤500ms)
+│  ├─ workspace-view/                             (WORKSPACE_PROJECTION_VIEW)
 │  ├─ _funnel.ts
 │  ├─ _registry.ts
 │  └─ _query-registration.ts

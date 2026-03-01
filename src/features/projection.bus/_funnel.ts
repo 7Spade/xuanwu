@@ -28,10 +28,10 @@
 
 import type { WorkspaceEventBus } from '@/features/workspace.slice';
 import { upsertProjectionVersion } from './_registry';
-import { appendAuditEntry } from '@/features/projection.account-audit';
+import { appendAuditEntry } from './account-audit';
 import { applyScheduleAssigned, applyScheduleCompleted } from '@/features/scheduling.slice';
 import { onOrgEvent } from '@/features/organization.slice';
-import { applyMemberJoined, applyMemberLeft } from '@/features/projection.organization-view';
+import { applyMemberJoined, applyMemberLeft } from './organization-view';
 import { handleScheduleProposed } from '@/features/scheduling.slice';
 import { applySkillXpAdded, applySkillXpDeducted } from '@/features/skill-xp.slice';
 import {
@@ -39,7 +39,7 @@ import {
   initOrgMemberEntry,
   removeOrgMemberEntry,
   updateOrgMemberEligibility,
-} from '@/features/projection.org-eligible-member-view';
+} from './org-eligible-member-view';
 import {
   applyDemandProposed,
   applyDemandAssigned,
@@ -54,7 +54,7 @@ import {
   applyTagUpdated,
   applyTagDeprecated,
   applyTagDeleted,
-} from '@/features/projection.tag-snapshot';
+} from './tag-snapshot';
 import {
   handleTagUpdatedForPool,
   handleTagDeprecatedForPool,

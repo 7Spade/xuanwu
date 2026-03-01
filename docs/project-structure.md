@@ -341,35 +341,24 @@ src/features/
 ## VS8 — Projection Bus
 
 The `projection.bus` slice is the unified Projection Bus entry point (event funnel +
-version registry + query registration). All projection view slices are prefixed `projection.*`:
+version registry + query registration), and **home to all 8 projection view sub-slices**.
+All external consumers import exclusively from `@/features/projection.bus`.
 
 ```
 src/features/
-├── projection.bus/                  # VS8 Projection Bus: EVENT_FUNNEL_INPUT + PROJECTION_VERSION + READ_MODEL_REGISTRY
-│   ├── _funnel.ts
-│   ├── _registry.ts
-│   ├── _query-registration.ts
-│   └── index.ts
-├── projection.workspace-scope-guard/ # CRITICAL SLA ≤500ms; writes workspace-scope-guard-view #A9
-│   └── index.ts
-├── projection.org-eligible-member-view/    # CRITICAL SLA ≤500ms, #14–#16, T3, #19
-│   └── index.ts
-├── projection.workspace-view/        # STANDARD ≤10s
-│   └── index.ts
-├── projection.account-schedule/      # STANDARD ≤10s
-│   └── index.ts
-├── projection.account-view/          # STANDARD ≤10s, exposes FCM token (#6)
-│   └── index.ts
-├── projection.organization-view/     # STANDARD ≤10s
-│   └── index.ts
-├── projection.account-skill-view/    # STANDARD ≤10s, tier derived not stored (#12)
-│   └── index.ts
-├── projection.account-audit/         # STANDARD ≤10s, per-account audit entries [R8]
-│   └── index.ts
-├── projection.global-audit-view/     # STANDARD ≤10s, every record has traceId [R8]
-│   └── index.ts
-└── projection.tag-snapshot/          # BACKGROUND ≤30s, read-only T5, [S4]
-    └── index.ts
+└── projection.bus/                  # VS8 Projection Bus — sole import path for all projection reads
+    ├── account-audit/               # STANDARD ≤10s — per-account audit entries [R8]
+    ├── account-view/                # STANDARD ≤10s — FCM token, authority snapshot (#6)(#8)
+    ├── global-audit-view/           # STANDARD ≤10s — every record carries traceId [R8]
+    ├── org-eligible-member-view/    # CRITICAL ≤500ms — tier derived at query time [#12][#14–#16][R7][#19]
+    ├── organization-view/           # STANDARD ≤10s
+    ├── tag-snapshot/                # BACKGROUND ≤30s — read-only T5, [S4]
+    ├── workspace-scope-guard/       # CRITICAL ≤500ms — workspace-scope-guard-view [#A9]
+    ├── workspace-view/              # STANDARD ≤10s
+    ├── _funnel.ts                   # EVENT_FUNNEL_INPUT — routes all bus events to projectors
+    ├── _registry.ts                 # PROJECTION_VERSION — event stream offset
+    ├── _query-registration.ts       # READ_MODEL_REGISTRY — GW_QUERY handler registration
+    └── index.ts                     # Public API — re-exports from all sub-slices
 ```
 
 > **Note**: The `wallet-balance` is a logical read model (used for display) served by `account.slice/user.wallet/_queries.ts`. Precise financial transactions use STRONG_READ directly against the wallet aggregate [S3].

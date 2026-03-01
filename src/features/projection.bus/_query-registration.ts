@@ -14,9 +14,9 @@
  */
 
 import { registerQuery, QUERY_ROUTES } from '@/features/infra.gateway-query';
-import { getOrgEligibleMembersWithTier } from '@/features/projection.org-eligible-member-view';
-import { getAccountView } from '@/features/projection.account-view';
-import { queryWorkspaceAccess } from '@/features/projection.workspace-scope-guard';
+import { getOrgEligibleMembersWithTier } from './org-eligible-member-view';
+import { getAccountView } from './account-view';
+import { queryWorkspaceAccess } from './workspace-scope-guard';
 import { getWalletBalance } from '@/features/account.slice';
 
 /**

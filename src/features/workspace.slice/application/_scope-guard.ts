@@ -10,7 +10,7 @@
  * Prohibition #7 forbids reading any other slice's state (including the raw workspaces/ collection).
  */
 
-import { queryWorkspaceAccess } from '@/features/projection.workspace-scope-guard';
+import { queryWorkspaceAccess } from '@/features/projection.bus';
 
 export interface ScopeGuardResult {
   allowed: boolean;

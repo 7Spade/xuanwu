@@ -22,7 +22,7 @@ import {
   approveOrgScheduleProposal,
 } from './_aggregate';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared.kernel.skill-tier';
-import { getOrgEligibleMembersWithTier } from '@/features/projection.org-eligible-member-view';
+import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 
 // ---------------------------------------------------------------------------
 // Types

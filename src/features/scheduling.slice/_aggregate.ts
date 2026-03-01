@@ -31,7 +31,7 @@ import { arrayUnion } from 'firebase/firestore';
 import { updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { publishOrgEvent } from '@/features/organization.slice';
-import { getOrgMemberEligibility } from '@/features/projection.org-eligible-member-view';
+import { getOrgMemberEligibility } from '@/features/projection.bus';
 import { resolveSkillTier, tierSatisfies } from '@/features/shared.kernel.skill-tier';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared.kernel.skill-tier';
 import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';

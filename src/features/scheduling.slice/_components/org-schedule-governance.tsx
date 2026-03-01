@@ -29,8 +29,8 @@ import {
 import { toast } from '@/shared/utility-hooks/use-toast';
 import type { ScheduleItem } from '@/shared/types';
 import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
-import { getOrgEligibleMembersWithTier } from '@/features/projection.org-eligible-member-view';
-import type { OrgEligibleMemberView } from '@/features/projection.org-eligible-member-view';
+import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
+import type { OrgEligibleMemberView } from '@/features/projection.bus';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import { Button } from '@/shared/shadcn-ui/button';
