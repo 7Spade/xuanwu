@@ -5,7 +5,7 @@
     "updatedAt": "2026-03-01",
     "source": "docs/logic-overview.md (SSOT) + docs/*.md (supplementary) + src/features/ (code state)",
     "ssot": "docs/logic-overview.md",
-    "note": "v4: sync with logic-overview.md v11. TE1-TE6 semantic tag entities added; D21-D23 rules; VS6 uses accounts/{orgId}/schedule_items as SSOT; tech stack corrected to Next.js ^15.5.12 + Tailwind ^3.4.17."
+    "note": "v4.1: VS3→skill-xp.slice, VS5→workspace.slice (unified), VS6 deprecated shims removed, VS7→notification.slice, VS8→projection.bus (8 sub-dirs). All D9/D11/D22/TE references updated. Single entry points enforced."
   },
   "entities": [
     {
@@ -148,7 +148,7 @@
         "Genkit AI Flow is the AI business logic layer — handles AI-driven operations such as document parsing",
         "Genkit flows must respect VS5 document-parser boundary — ParsingIntent digital twin (#A4)",
         "AI-generated outputs are treated as proposals only — must enter Workspace via Command Handler",
-        "ParsingIntent: Digital Twin contract at src/features/workspace-business.parsing-intent/_contract.ts",
+        "ParsingIntent: Digital Twin contract at src/features/workspace.slice/business.parsing-intent/_contract.ts",
         "ParsingIntent allowed to propose: task drafts, finance commands, parsing exceptions (B-track issues)"
       ]
     },
@@ -267,12 +267,12 @@
         "#10: If module needs another module's internal Context state → boundary design error → redesign",
         "#11: XP belongs to Account BC; Organization only sets thresholds (minXpRequired)",
         "#12: Tier is always derived (getTier(xp)→Tier pure function) — never stored in DB",
-        "#13: XP mutations must write to XP ledger (account-skill-xp-ledger)",
+        "#13: XP mutations must write to XP ledger (skill-xp-ledger entries collection)",
         "#14: Schedule only reads ORG_ELIGIBLE_MEMBER_VIEW — never queries Aggregates for eligibility",
         "#15: eligible lifecycle: joined→true, assigned→false, completed/cancelled→true",
         "#16: Talent Repository = member + partner + team → ORG_ELIGIBLE_MEMBER_VIEW",
         "#17: centralized-tag.aggregate is sole authority for tagSlug semantics",
-        "#18: workspace-governance role inherits org-governance.policy hard constraints",
+        "#18: workspace.slice/gov.role inherits org-governance.policy hard constraints",
         "#19: All Projection updates must use aggregateVersion monotonic-increase as precondition [S2 generalized]"
       ]
     },
@@ -307,9 +307,9 @@
         "D6: 'use client' only in _components/ leaf nodes; layout/page server components 禁用",
         "D7: Cross-slice: import from '@/features/{other-slice}/index'; 禁止 _private 引用",
         "D8: shared.kernel.* 禁止 async functions, Firestore calls, side effects",
-        "D9: workspace-application/ TX Runner coordinates mutations; slices 不得互相 mutate",
+        "D9: workspace.slice/application/ TX Runner coordinates mutations; slices 不得互相 mutate",
         "D10: EventEnvelope.traceId only set at infra.gateway-command/CBG_ENTRY; 其他地方唯讀",
-        "D11: workspace-core.event-store supports projection rebuild; 必須持續同步",
+        "D11: workspace.slice/core.event-store supports projection rebuild; 必須持續同步",
         "D12: getTier() must import from shared.kernel.skill-tier; Firestore writes 禁帶 tier 欄位",
         "D13 (v10 new): New OUTBOX must declare DLQ tier in SK_OUTBOX_CONTRACT — must NOT redefine at-least-once locally [S1]",
         "D14 (v10 new): New Projection must reference SK_VERSION_GUARD in FUNNEL — must NOT skip aggregateVersion comparison [S2]",
@@ -331,7 +331,7 @@
         "Source: docs/logic-overview.md — IER full routing table (v10 final)",
         "IER = integration-event-router — central event hub; ONLY Projection write path (#9); preserves envelope.traceId [R8]",
         "CRITICAL_LANE (high-priority eventual consistency): RoleChanged/PolicyChanged → CLAIMS_HANDLER [S6][E6] + TOKEN_REFRESH_SIGNAL; WalletDeducted/WalletCredited → FUNNEL CRITICAL_PROJ; OrgContextProvisioned → ORG_CONTEXT_ACL [E2]",
-        "STANDARD_LANE (async eventual SLA < 2s): SkillXpAdded/SkillXpDeducted → FUNNEL CRITICAL_PROJ [P2]; ScheduleAssigned → NOTIF_ROUTER + FUNNEL [E3]; ScheduleProposed → SCHEDULE_SAGA [A5] (scheduling-saga receives from IER, coordinates with account-organization.schedule); MemberJoined/Left → FUNNEL [#16]; All Domain Events → FUNNEL [#9]",
+        "STANDARD_LANE (async eventual SLA < 2s): SkillXpAdded/SkillXpDeducted → FUNNEL CRITICAL_PROJ [P2]; ScheduleAssigned → NOTIF_ROUTER + FUNNEL [E3]; ScheduleProposed → scheduling.slice/_saga [A5] (coordinates with scheduling.slice for HR approval); MemberJoined/Left → FUNNEL [#16]; All Domain Events → FUNNEL [#9]",
         "BACKGROUND_LANE (low-freq SLA < 30s): TagLifecycleEvent → FUNNEL + VS4_TAG_SUBSCRIBER [T1][R3]; AuditEvents → AUDIT_COLLECTOR [Q5]",
         "DLQ: 3 tiers: SAFE_AUTO (auto-replay with idempotency-key), REVIEW_REQUIRED (manual confirm), SECURITY_BLOCK (alert+freeze, manual only, NO auto-replay)",
         "infra.event-router: src/features/infra.event-router/ — IER implementation"
@@ -360,12 +360,12 @@
         "VS0 Shared Kernel (12 slices): shared.kernel.authority-snapshot, shared.kernel.constants, shared.kernel.contract-interfaces (SK_CMD_RESULT), shared.kernel.event-envelope, shared.kernel.outbox-contract, shared.kernel.read-consistency, shared.kernel.resilience-contract, shared.kernel.skill-tier, shared.kernel.staleness-contract, shared.kernel.tag-authority, shared.kernel.token-refresh-contract, shared.kernel.version-guard",
         "VS1 Identity: identity.slice (CLAIMS_HANDLER, TOKEN_REFRESH_SIGNAL, completeRegistration→CommandResult)",
         "VS2 Account: account.slice — sub-domains: gov.role, gov.policy, user.wallet (STRONG_READ #A1), user.profile. Unified public API: @/features/account.slice",
-        "VS3 Skill XP: account-skill (aggregate+XP ledger, _actions.ts AddXp/DeductXp → CommandResult, _queries.ts)",
-        "VS4 Organization: account-organization.core, account-organization.event-bus, account-organization.member, account-organization.partner, account-organization.team, account-organization.policy, organization-skill-recognition (SKILL_TAG_POOL + TAG_SUBSCRIBER), centralized-tag (TAG_AUTHORITY)",
-        "VS5 Workspace: workspace-core, workspace-core.event-bus, workspace-core.event-store, workspace-application (cmd-handler/scope-guard/policy-engine/tx-runner), workspace-governance.role (#18), workspace-governance.audit, workspace-governance.audit-convergence, workspace-governance.members, workspace-governance.partners, workspace-governance.schedule, workspace-governance.teams, workspace-business.files, workspace-business.document-parser, workspace-business.parsing-intent, workspace-business.tasks, workspace-business.daily, workspace-business.quality-assurance, workspace-business.acceptance, workspace-business.finance, workspace-business.issues, workspace-business.schedule, workspace-business.workflow (state machine R6)",
-        "VS6 Scheduling: scheduling-saga (IER STANDARD_LANE receives ScheduleProposed [A5], eligibility check #14, compensating: ScheduleAssignRejected/ScheduleProposalCancelled) + account-organization.schedule (HR Scheduling aggregate, approves/rejects proposals, emits ScheduleAssigned to sched-outbox)",
-        "VS7 Notification: notification.slice — sub-domains: user.notification (FCM Layer 3, push with traceId [R8]), gov.notification-router (FCM Layer 2, stateless [#A10]). Unified public API: @/features/notification.slice",
-        "VS8 Projections: projection.bus (EVENT_FUNNEL_INPUT ONLY write path #9, PROJECTION_VERSION registry, READ_MODEL_REGISTRY query registration; merged from projection.event-funnel + projection.registry), projection.workspace-scope-guard (CRITICAL ≤500ms #A9), projection.org-eligible-member-view (CRITICAL ≤500ms #14 #15 #16), projection.account-schedule, projection.account-skill-view (#12 getTier), projection.account-view (FCM Token #6), projection.organization-view, projection.global-audit-view (traceId R8), projection.account-audit (traceId R8), projection.tag-snapshot (BACKGROUND ≤30s T5), projection.workspace-view",
+        "VS3 Skill XP: skill-xp.slice (aggregate+XP ledger, _actions.ts AddXp/DeductXp → CommandResult, _queries.ts, _ledger.ts, _org-recognition.ts, _tag-pool.ts SKILL_TAG_POOL+VS3_TAG_SUBSCRIBER [T1,T2]). Canonical import: @/features/skill-xp.slice",
+        "VS4 Organization: organization.slice (unified) — sub-dirs: core, core.event-bus, gov.teams, gov.members (#A2), gov.partners, gov.policy [S6]. Also: centralized-tag (TAG_AUTHORITY VS0). Canonical import: @/features/organization.slice",
+        "VS5 Workspace: workspace.slice (unified) — sub-dirs: core, core.event-bus, core.event-store (D11), application (D9: cmd-handler/scope-guard/policy-engine/tx-runner), gov.role (#18), gov.audit, gov.audit-convergence, gov.members, gov.partners, gov.schedule, gov.teams, business.files, business.document-parser (#A4), business.parsing-intent, business.tasks, business.daily, business.quality-assurance, business.acceptance, business.finance, business.issues (B-track #A3), business.workflow (state machine [R6]). Canonical import: @/features/workspace.slice",
+        "VS6 Scheduling: scheduling.slice (unified — no deprecated shims). SSOT collection: accounts/{orgId}/schedule_items. Tabs: AccountScheduleSection (calendar + demand board + HR governance). Sub-modules: _aggregate, _actions, _queries, _saga (#A5), _projectors/demand-board, _projectors/account-schedule, _hooks, _components",
+        "VS7 Notification: notification.slice — sub-dirs: user.notification (FCM Layer 3, push with traceId [R8]), gov.notification-router (FCM Layer 2, stateless [#A10]). Canonical import: @/features/notification.slice",
+        "VS8 Projections: projection.bus (unified — EVENT_FUNNEL_INPUT, PROJECTION_VERSION, READ_MODEL_REGISTRY). All 8 sub-dirs inside projection.bus: workspace-scope-guard (CRITICAL ≤500ms #A9), org-eligible-member-view (CRITICAL ≤500ms #14–#16), workspace-view, account-view (FCM Token #6), organization-view, global-audit-view (traceId R8), account-audit (traceId R8), tag-snapshot (BACKGROUND ≤30s T5). Canonical import: @/features/projection.bus",
         "VS9 Observability: observability (trace-identifier, domain-metrics, domain-error-log [R8]); infra.dlq-manager, infra.event-router, infra.gateway-command, infra.gateway-query, infra.outbox-relay"
       ]
     },

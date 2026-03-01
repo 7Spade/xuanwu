@@ -1,6 +1,6 @@
 # Knowledge Graph Guide
 
-> **SSOT**: `docs/knowledge-graph.json` (v4 · 27 entities · 59 relations) — SSOT for semantic knowledge relations only.
+> **SSOT**: `docs/knowledge-graph.json` (v4.1 · 27 entities · 59 relations) — SSOT for semantic knowledge relations only.
 > Architecture rules → `docs/logic-overview.md` · Domain vocabulary → `docs/domain-glossary.md`
 > **Protocol**: `memory.read_graph()` is MANDATORY before code generation; `store_memory` + graph update MANDATORY after task completion.
 > Two mandatory session workflows: **Start** (load graph) · **End** (persist facts).
@@ -113,7 +113,7 @@ Write graph changes back to `docs/knowledge-graph.json` for cross-session durabi
 
 | File | Role |
 |------|------|
-| `docs/knowledge-graph.json` | Persistent graph store (v4, 27 entities / 59 relations) |
+| `docs/knowledge-graph.json` | Persistent graph store (v4.1, 27 entities / 59 relations) |
 | `docs/logic-overview.md` | Architecture SSOT (v11, rules D1–D23 + TE1–TE6) |
 | `docs/domain-glossary.md` | Domain vocabulary |
 | `.github/copilot-instructions.md` | Agent session protocol |

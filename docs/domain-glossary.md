@@ -13,11 +13,11 @@
 | `user-account` | VS2 | Personal account aggregate. Root of identity + wallet. |
 | `account-user.wallet` | VS2 | Strong-consistency financial ledger. Balance invariant holder (#A1). STRONG_READ enforced [S3]. |
 | `organization-core` | VS4 | Organization root aggregate. Owns member/partner/team relationships. |
-| `organization-skill-recognition` | VS4 | Declares `minXpRequired` thresholds for org-level skill gates (#11). |
-| `workspace-core` | VS5 | Workspace root aggregate. Owns workflow state machine [R6]. |
-| `workflow` | VS5 | State machine: Draft → InProgress → QA → Acceptance → Finance → Completed. `blockedBy` Set manages B-track blocking (#A3). |
-| `account-skill` | VS3 | Per-account skill XP tracker. All mutations write to XP ledger (#13). |
-| `account-organization.schedule` | VS6 | HR scheduling aggregate. Reads only `ORG_ELIGIBLE_MEMBER_VIEW` (#14). Validates tag freshness before assignment [S4]. |
+| `organization-skill-recognition` (→ `skill-xp.slice/_org-recognition`) | VS4 | Declares `minXpRequired` thresholds for org-level skill gates (#11). |
+| `workspace-core` (→ `workspace.slice/core`) | VS5 | Workspace root aggregate. Owns workflow state machine [R6]. |
+| `workflow` (→ `workspace.slice/business.workflow`) | VS5 | State machine: Draft → InProgress → QA → Acceptance → Finance → Completed. `blockedBy` Set manages B-track blocking (#A3). |
+| `account-skill` (→ `skill-xp.slice`) | VS3 | Per-account skill XP tracker. All mutations write to XP ledger (#13). |
+| `account-organization.schedule` (→ `scheduling.slice`) | VS6 | HR scheduling aggregate. Reads only `ORG_ELIGIBLE_MEMBER_VIEW` (#14). Validates tag freshness before assignment [S4]. |
 | `centralized-tag` | VS0 | **Global semantic dictionary master data** — the sole authority for `tagSlug` semantics (#17, #A6). |
 | `authenticated-identity` | VS1 | Verified identity principal. Bridge between Firebase Auth and internal account. |
 | `account-identity-link` | VS1 | 1:1 mapping `firebaseUserId ↔ accountId`. |
@@ -89,7 +89,7 @@
 | **#15** | `eligible` lifecycle: `MemberJoined`→`true`; `ScheduleAssigned`→`false`; `ScheduleCompleted/Cancelled`→`true`. |
 | **#16** | Talent Repository = Member + Partner + Team. All three included in `ORG_ELIGIBLE_MEMBER_VIEW`. |
 | **#17** | `centralized-tag.aggregate` is SOLE authority for `tagSlug`. No other aggregate may define tag semantics. |
-| **#18** | `workspace-governance.role` inherits `org-governance.policy` hard constraints. Workspace CANNOT override org policy. |
+| **#18** | `workspace.slice/gov.role` inherits `organization.slice/gov.policy` hard constraints. Workspace CANNOT override org policy. |
 | **#19** | ALL Projection updates MUST satisfy `event.aggregateVersion > view.lastProcessedVersion`. Stale events discarded. |
 
 ---
@@ -107,7 +107,7 @@
 | **#A7** | `event-funnel` composes/routes ONLY. MUST NOT apply domain logic or transform event payload. |
 | **#A8** | TX Runner commits exactly 1 command to 1 aggregate per transaction. Multi-aggregate TX forbidden. |
 | **#A9** | Scope Guard fast path: reads `workspace-scope-guard-view`. High-risk operations: re-source from aggregate. |
-| **#A10** | `notification-router` is stateless. Routes by `TargetAccountID` only — no state accumulation. |
+| **#A10** | `notification.slice/gov.notification-router` is stateless. Routes by `TargetAccountID` only — no state accumulation. |
 | **#A11** | `eligible` = "no conflicting schedule assignment" — dynamic snapshot, NOT a static status flag. |
 
 ---
@@ -132,11 +132,11 @@ Six AI-ready semantic tag entity nodes defined in `TAG_ENTITIES` (CTA). All cros
 
 | Entity | Tag Category | `tagSlug` Format | Referenced By |
 |--------|-------------|-----------------|---------------|
-| `TAG_USER_LEVEL` (TE1) | `user_level` | `user-level:{slug}` | account-organization.member |
-| `TAG_SKILL` (TE2) | `skill` | `skill:{slug}` | account-skill, org-eligible-member-view |
-| `TAG_SKILL_TIER` (TE3) | `skill_tier` | `skill-tier:{tier}` | account-skill, org-eligible-member-view |
-| `TAG_TEAM` (TE4) | `team` | `team:{slug}` | account-organization.team |
-| `TAG_ROLE` (TE5) | `role` | `role:{slug}` | account-governance.role, workspace-governance.role, account-organization.member |
-| `TAG_PARTNER` (TE6) | `partner` | `partner:{slug}` | account-organization.partner |
+| `TAG_USER_LEVEL` (TE1) | `user_level` | `user-level:{slug}` | `organization.slice/gov.members` |
+| `TAG_SKILL` (TE2) | `skill` | `skill:{slug}` | `skill-xp.slice`, `projection.bus/org-eligible-member-view` |
+| `TAG_SKILL_TIER` (TE3) | `skill_tier` | `skill-tier:{tier}` | `skill-xp.slice`, `projection.bus/org-eligible-member-view` |
+| `TAG_TEAM` (TE4) | `team` | `team:{slug}` | `organization.slice/gov.teams` |
+| `TAG_ROLE` (TE5) | `role` | `role:{slug}` | `account.slice/gov.role`, `workspace.slice/gov.role`, `organization.slice/gov.members` |
+| `TAG_PARTNER` (TE6) | `partner` | `partner:{slug}` | `organization.slice/gov.partners` |
 
 > **D23 annotation format**: node text `→ tag::{category} [{NODE_NAME}]`; semantic edge `-.->|"{dim} tag 語義"| NODE_NAME`.

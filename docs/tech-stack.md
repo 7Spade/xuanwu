@@ -20,7 +20,7 @@
 | Auth | Firebase Authentication | `firebase ^11.9.1` | Custom Claims (`E6`), Token Refresh Handshake (`R2`) |
 | Functions | Firebase Functions | workspace `functions/` | Outbox Relay Worker (`R1`), DLQ Manager (`R5`) |
 | AI Runtime | Genkit | `genkit ^1.20.0` | `@genkit-ai/google-genai ^1.20.0`, `@genkit-ai/next ^1.20.0` |
-| AI Provider | Google Gemini | via Genkit | Used in `workspace-business.document-parser` |
+| AI Provider | Google Gemini | via Genkit | Used in `workspace.slice/business.document-parser` |
 
 ## UI & Styling
 

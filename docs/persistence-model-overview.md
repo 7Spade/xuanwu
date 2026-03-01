@@ -249,6 +249,23 @@ All projections enforce `SK_VERSION_GUARD [S2]`: writes MUST satisfy `event.aggr
 
 ---
 
+#### `accountAuditView/{accountId}/entries/{auditId}` (#8)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `auditId` | `string` | |
+| `accountId` | `string` | |
+| `traceId` | `string` | **MANDATORY** — every record must have traceId [R8] |
+| `eventType` | `string` | |
+| `aggregateId` | `string` | |
+| `orgId` | `string?` | |
+| `workspaceId` | `string?` | |
+| `payload` | `Record<string, unknown>` | Event data |
+| `timestamp` | `number` | |
+| `lastProcessedVersion` | `number` | [S2] |
+
+---
+
 #### `globalAuditView/{auditId}` [R8]
 
 | Field | Type | Description |

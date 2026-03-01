@@ -106,29 +106,19 @@ src/features/
     │   ├── _hooks/
     │   ├── _components/
     │   └── index.ts
-    ├── user.notification/       # FCM delivery + device token management
-    │   ├── _delivery.ts
-    │   ├── _queries.ts
-    │   ├── _hooks/
-    │   ├── _components/
-    │   └── index.ts
     ├── user.wallet/             # Strong-consistency financial ledger [SK_READ_CONSISTENCY: STRONG_READ] (#A1)
     │   ├── _actions.ts
     │   ├── _queries.ts
     │   ├── _hooks/
     │   └── index.ts
-    ├── org.member/              # organization-account + binding (ACL #A2)
+    ├── gov.role/                # Account-level role management → CUSTOM_CLAIMS refresh [S6]
     │   ├── _actions.ts
-    │   ├── _queries.ts
-    │   ├── _hooks/
-    │   ├── _components/
     │   └── index.ts
-    ├── org.partner/             # Partner team management
+    ├── gov.policy/              # Account-level policy management → CUSTOM_CLAIMS refresh [S6]
     │   ├── _actions.ts
-    │   ├── _queries.ts
-    │   ├── _hooks/
-    │   ├── _components/
     │   └── index.ts
+    └── index.ts                 # Unified VS2 Public API
+```
     ├── org.policy/              # Organization-level policy management
     │   ├── _actions.ts
     │   ├── _queries.ts
@@ -157,10 +147,16 @@ src/features/
 
 ```
 src/features/
-└── account-skill/               # account-skill aggregate + xp-ledger
-    ├── _aggregate.ts            # accountId / skillId(→tagSlug) / xp / version
-    ├── _actions.ts              # AddXp, DeductXp Server Actions
+└── skill-xp.slice/               # skill-xp aggregate + xp-ledger + tag-pool
+    ├── _aggregate.ts             # accountId / tagSlug / xp / version
+    ├── _actions.ts               # AddXp, DeductXp Server Actions
     ├── _queries.ts
+    ├── _ledger.ts                # skill-xp-ledger persistence
+    ├── _org-recognition.ts       # org skill recognition handler [T1, T2]
+    ├── _projector.ts             # skill projection handlers [S2]
+    ├── _tag-lifecycle.ts         # tag lifecycle subscriber
+    ├── _tag-pool.ts              # SKILL_TAG_POOL + VS3_TAG_SUBSCRIBER [T1, T2]
+    ├── _components/
     └── index.ts
 ```
 
@@ -170,24 +166,32 @@ src/features/
 
 ```
 src/features/
-├── account-organization.core/   # organization-core aggregate + event-bus
-│   ├── _aggregate.ts
-│   ├── _actions.ts
-│   ├── _queries.ts
-│   └── index.ts
-├── account-organization.event-bus/  # Org in-process event bus [E5]
-│   └── index.ts
-├── account-organization.member/  # (see VS2 — account.slice/org.member)
-├── account-organization.partner/ # (see VS2 — account.slice/org.partner)
-├── account-organization.team/
-│   └── index.ts
-├── account-organization.policy/  # (see VS2 — account.slice/org.policy)
-├── organization-skill-recognition/
-│   └── index.ts                 # SKILL_TAG_POOL + VS4_TAG_SUBSCRIBER [T1, T2]
-└── account-organization.schedule/ # HR scheduling (VS6 coordination)
-    ├── _hooks/
-    ├── _components/
-    └── index.ts
+└── organization.slice/
+    ├── core/                    # organization aggregate + lifecycle
+    │   ├── _aggregate.ts
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   └── index.ts
+    ├── core.event-bus/          # Org in-process event bus [R8]
+    │   └── index.ts
+    ├── gov.teams/               # Org team management
+    │   └── index.ts
+    ├── gov.members/             # Org member binding (ACL #A2)
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── gov.partners/            # Partner team management
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── gov.policy/              # Org-level policy management → CUSTOM_CLAIMS refresh [S6]
+    │   ├── _actions.ts
+    │   └── index.ts
+    └── index.ts                 # Unified VS4 Public API
 ```
 
 ---
@@ -196,91 +200,88 @@ src/features/
 
 ```
 src/features/
-├── workspace-core/
-│   ├── _aggregate.ts            # workspace-core.aggregate
-│   ├── _actions.ts
-│   ├── _queries.ts
-│   ├── _hooks/
-│   ├── _components/
-│   ├── _shell/                  # Shell layout components
-│   └── index.ts
-├── workspace-core.event-bus/    # in-process event bus [E5]
-│   └── index.ts
-├── workspace-core.event-store/  # replay/audit only (#9)
-│   └── index.ts
-├── workspace-application/       # Application coordinator: cmd-handler, scope-guard, policy-engine, tx-runner
-│   └── index.ts
-├── workspace-governance.role/
-│   ├── _hooks/
-│   └── index.ts
-├── workspace-governance.audit/
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── workspace-governance.audit-convergence/  # Audit bridge: query adapter for projection.account-audit
-│   └── index.ts
-├── workspace-governance.members/  # Workspace member grants + member panel UI
-│   ├── _components/
-│   ├── _queries.ts
-│   └── index.ts
-├── workspace-governance.partners/  # Stub — views migrated to account.slice/org.partner
-│   └── index.ts
-├── workspace-governance.schedule/
-│   └── index.ts
-├── workspace-governance.teams/
-│   └── index.ts
-├── workspace-business.files/
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── workspace-business.document-parser/ # Document parsing [A4] → ParsingIntent digital twin
-│   ├── _actions.ts
-│   ├── _form-actions.ts
-│   └── index.ts
-├── workspace-business.parsing-intent/  # ParsingIntent digital twin contract (#A4)
-│   ├── _contract.ts
-│   └── index.ts
-├── workspace-business.tasks/
-│   ├── _actions.ts
-│   ├── _components/
-│   ├── _queries.ts
-│   └── index.ts
-├── workspace-business.daily/           # 施工日誌 (A-track daily log)
-│   ├── _actions.ts
-│   ├── _components/
-│   ├── _hooks/
-│   ├── _queries.ts
-│   └── index.ts
-├── workspace-business.schedule/
-│   ├── _hooks/
-│   ├── _components/
-│   └── index.ts
-├── workspace-business.issues/          # B-track: issues + IssueResolved → unblock workflow (#A3)
-│   ├── _actions.ts
-│   ├── _components/
-│   └── index.ts
-├── workspace-business.workflow/        # workflow.aggregate + state machine [R6]
-│   ├── _aggregate.ts
-│   ├── _issue-handler.ts
-│   ├── _persistence.ts
-│   └── index.ts
-├── workspace-business.finance/
-│   ├── _components/
-│   └── index.ts
-├── workspace-business.acceptance/
-│   ├── _components/
-│   └── index.ts
-└── workspace-business.quality-assurance/
-    ├── _components/
-    └── index.ts
+└── workspace.slice/
+    ├── core/                            # workspace aggregate + shell
+    │   ├── _aggregate.ts
+    │   ├── _actions.ts
+    │   ├── _queries.ts
+    │   ├── _hooks/
+    │   ├── _components/
+    │   ├── _shell/
+    │   └── index.ts
+    ├── core.event-bus/                  # in-process event bus [R8]
+    │   └── index.ts
+    ├── core.event-store/                # replay/audit only [D11]
+    │   └── index.ts
+    ├── application/                     # Application coordinator: cmd-handler, scope-guard, policy-engine, tx-runner [D9]
+    │   └── index.ts
+    ├── gov.role/
+    │   ├── _hooks/
+    │   └── index.ts
+    ├── gov.audit/
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── gov.audit-convergence/           # Audit bridge: query adapter for projection.account-audit
+    │   └── index.ts
+    ├── gov.members/                     # Workspace member grants + member panel UI
+    │   ├── _components/
+    │   ├── _queries.ts
+    │   └── index.ts
+    ├── gov.partners/                    # Stub — views delegated to organization.slice/gov.partners
+    │   └── index.ts
+    ├── gov.schedule/
+    │   └── index.ts
+    ├── gov.teams/
+    │   └── index.ts
+    ├── business.files/
+    │   ├── _hooks/
+    │   ├── _components/
+    │   └── index.ts
+    ├── business.document-parser/        # Document parsing [A4] → ParsingIntent digital twin
+    │   ├── _actions.ts
+    │   ├── _form-actions.ts
+    │   └── index.ts
+    ├── business.parsing-intent/         # ParsingIntent digital twin contract (#A4)
+    │   ├── _contract.ts
+    │   └── index.ts
+    ├── business.tasks/
+    │   ├── _actions.ts
+    │   ├── _components/
+    │   ├── _queries.ts
+    │   └── index.ts
+    ├── business.daily/                  # 施工日誌 (A-track daily log)
+    │   ├── _actions.ts
+    │   ├── _components/
+    │   ├── _hooks/
+    │   ├── _queries.ts
+    │   └── index.ts
+    ├── business.issues/                 # B-track: issues + IssueResolved → unblock workflow (#A3)
+    │   ├── _actions.ts
+    │   ├── _components/
+    │   └── index.ts
+    ├── business.workflow/               # workflow.aggregate + state machine [R6]
+    │   ├── _aggregate.ts
+    │   ├── _issue-handler.ts
+    │   ├── _persistence.ts
+    │   └── index.ts
+    ├── business.finance/
+    │   ├── _components/
+    │   └── index.ts
+    ├── business.acceptance/
+    │   ├── _components/
+    │   └── index.ts
+    ├── business.quality-assurance/
+    │   ├── _components/
+    │   └── index.ts
+    └── index.ts                         # Unified VS5 Public API
 ```
 
 ---
 
 ## VS6 — Scheduling Slice
 
-All VS6 scheduling code is consolidated in `scheduling.slice`. Old slice directories are
-kept as **deprecated shims** that re-export from `@/features/scheduling.slice`.
+All VS6 scheduling code is consolidated in `scheduling.slice`. No backward-compatibility shim directories exist.
 
 ```
 src/features/
@@ -308,13 +309,6 @@ src/features/
     │   ├── account-schedule.ts      # Account schedule availability projection
     │   └── account-schedule-queries.ts
     └── index.ts                     # Public API barrel
-
-# Deprecated shims (re-export from scheduling.slice):
-├── account-organization.schedule/index.ts
-├── workspace-business.schedule/index.ts
-├── projection.demand-board/index.ts
-├── projection.account-schedule/index.ts
-└── scheduling-saga/index.ts
 ```
 
 ---
@@ -495,9 +489,9 @@ src/app/
 | D6 | `"use client"` in `_components/` leaf nodes only; never in layout or page server components |
 | D7 | `import ... from '@/features/{other-slice}/index'`; NEVER `import ... from '@/features/{other-slice}/_private'` |
 | D8 | `src/features/shared.kernel.*` files contain no async functions, no Firestore calls, no side effects |
-| D9 | `workspace-application/` TX Runner coordinates mutations; slices do not mutate each other |
+| D9 | `workspace.slice/application/` TX Runner coordinates mutations; slices do not mutate each other |
 | D10 | `EventEnvelope.traceId` set only in `infra.gateway-command/CBG_ENTRY`; read-only everywhere else |
-| D11 | `workspace-core.event-store` enables projection rebuild; must be kept current |
+| D11 | `workspace.slice/core.event-store` enables projection rebuild; must be kept current |
 | D12 | `getTier()` import always from `shared.kernel.skill-tier`; tier field never in Firestore writes |
 | D13 | New OUTBOX: must declare DLQ tier in `SK_OUTBOX_CONTRACT`; do not re-define at-least-once semantics locally [S1] |
 | D14 | New Projection: must apply `SK_VERSION_GUARD` before writing; do not skip `aggregateVersion` check [S2] |

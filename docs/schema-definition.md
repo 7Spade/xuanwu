@@ -503,6 +503,25 @@ interface GlobalAuditViewDocument {
 }
 ```
 
+### Projection: `accountAuditView/{accountId}/entries/{auditId}`
+
+```typescript
+/** Every record MUST contain traceId [R8]. Written by projection.bus/account-audit. */
+interface AccountAuditViewDocument {
+  auditId: string;
+  accountId: string;
+  /** MANDATORY — every record must carry traceId [R8] */
+  traceId: string;
+  eventType: string;
+  aggregateId: string;
+  orgId?: string;
+  workspaceId?: string;
+  payload: Record<string, unknown>;
+  timestamp: number;
+  lastProcessedVersion: number;
+}
+```
+
 ### Projection: `tagSnapshot/{tagSlug}`
 
 ```typescript

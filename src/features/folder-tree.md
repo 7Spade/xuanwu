@@ -28,7 +28,7 @@ src/features/
 │  ├─ gov.role                                    (account-level role → CUSTOM_CLAIMS [S6])
 │  └─ gov.policy                                  (account-level policy → CUSTOM_CLAIMS [S6])
 │
-├─ account-skill                                  (VS3 Skill XP Slice)
+├─ skill-xp.slice                                 (VS3 Skill XP Slice)
 │
 ├─ organization.slice                             (VS4 Organization Slice — unified)
 │  ├─ core                                        (org aggregate + lifecycle)
@@ -38,32 +38,27 @@ src/features/
 │  ├─ gov.partners                                (partner team management)
 │  └─ gov.policy                                  (org-level policy management)
 │
-├─ org-context.acl                                (VS5 Workspace Slice / ACL)
-├─ workspace-application                          (VS5 Workspace Slice / Application Coordinator)
-│  ├─ command-handler
-│  ├─ scope-guard
-│  ├─ policy-engine
-│  ├─ transaction-runner
-│  └─ ws-outbox
-├─ workspace-core                                 (VS5 Workspace Slice / Core)
-│  ├─ workspace-core.aggregate
-│  ├─ workspace-core.event-bus
-│  ├─ workspace-core.event-store
-│  └─ workspace-core.settings
-├─ workspace-governance.role                      (VS5 Workspace Slice / Governance)
-├─ workspace-governance.audit                     (VS5 Workspace Slice / Governance)
-├─ workspace-business.files                       (VS5 Workspace Slice / Business)
-├─ workspace-business.document-parser             (VS5 Workspace Slice / Business / Parsing)
-├─ workspace-business.workflow                    (VS5 Workspace Slice / State Machine)
-│  ├─ A-track/                                    (主流程)
-│  │  ├─ tasks
-│  │  ├─ quality-assurance
-│  │  ├─ acceptance
-│  │  └─ finance
-│  └─ B-track/                                    (異常流程)
-│     └─ issues
-├─ workspace-business.daily                       (VS5 Workspace Slice / Business)
-├─ workspace-business.schedule                    (VS5 Workspace Slice / Business — @deprecated shim → scheduling.slice)
+├─ workspace.slice                                (VS5 Workspace Slice — unified)
+│  ├─ core/                                       (workspace aggregate + lifecycle)
+│  ├─ core.event-bus/                             (workspace event bus [R8])
+│  ├─ core.event-store/                           (event store; enables projection rebuild [D11])
+│  ├─ application/                                (Application Coordinator — CBG_AUTH, scope-guard, policy-engine, tx-runner, ws-outbox)
+│  ├─ gov.role/                                   (workspace-level role management)
+│  ├─ gov.audit/                                  (workspace audit governance)
+│  ├─ gov.audit-convergence/                      (audit convergence bridge)
+│  ├─ gov.members/                                (workspace member management)
+│  ├─ gov.partners/                               (workspace partner management)
+│  ├─ gov.teams/                                  (workspace team management)
+│  ├─ business.files/                             (workspace file management [S3])
+│  ├─ business.document-parser/                   (document → parsing intent AI flow)
+│  ├─ business.parsing-intent/                    (parsing intent digital twin [#A4])
+│  ├─ business.workflow/                          (workflow state machine [R6])
+│  ├─ business.tasks/                             (A-track: task execution)
+│  ├─ business.quality-assurance/                 (A-track: QA gate)
+│  ├─ business.acceptance/                        (A-track: client acceptance)
+│  ├─ business.finance/                           (A-track: finance settlement)
+│  ├─ business.daily/                             (workspace daily log)
+│  └─ business.issues/                            (B-track: issue resolution [#A3])
 │
 ├─ scheduling.slice                               (VS6 Scheduling Slice — canonical unified implementation)
 │  ├─ _aggregate                                  (HR schedule aggregate + state machine)
@@ -74,13 +69,11 @@ src/features/
 │  ├─ _projectors/account-schedule                (account availability projector [S2])
 │  ├─ _hooks/                                     (use-org-schedule, use-global-schedule, use-schedule-commands …)
 │  └─ _components/                                (AccountScheduleSection, DemandBoard, OrgScheduleGovernance …)
-├─ account-organization.schedule                  (VS6 — @deprecated shim → scheduling.slice)
-├─ scheduling-saga                                (VS6 — @deprecated shim → scheduling.slice)
-├─ projection.demand-board                        (VS6 — @deprecated shim → scheduling.slice)
-├─ projection.account-schedule                    (VS6 — @deprecated shim → scheduling.slice)
+
 │
-├─ notification-router                            (VS7 Notification Slice — notification.slice/gov.notification-router)
-├─ account-user.notification                      (VS7 Notification Slice — notification.slice/user.notification)
+├─ notification.slice                             (VS7 Notification Slice — unified)
+│  ├─ user.notification/                          (FCM delivery + device token management [#A10])
+│  └─ gov.notification-router/                    (stateless notification router — reads Projection only [#6][#A10])
 │
 ├─ projection.bus                                 (VS8 Projection Bus — EVENT_FUNNEL_INPUT + PROJECTION_VERSION + READ_MODEL_REGISTRY)
 │  ├─ account-audit/                              (ACCOUNT_PROJECTION_AUDIT)
@@ -106,7 +99,6 @@ infra.gateway-query                               (L6 Query Gateway — read-mod
 infra.event-router                                (L4 IER — in-process fan-out [D1][R8])
 infra.outbox-relay                                (L4 OUTBOX_RELAY — CDC scan → IER [S1])
 infra.dlq-manager                                 (L4 DLQ Manager — SAFE_AUTO / REVIEW_REQUIRED / SECURITY_BLOCK [S1])
-infra.observability                               (VS9 Observability → renamed to observability)
 ```
 
 ## How to use this tree (quick rule)
@@ -115,4 +107,4 @@ infra.observability                               (VS9 Observability → renamed
 2. 在對應切片內擴充，不跨切片偷放。
 3. 跨切片契約先放 VS0 `shared.kernel.*`，不要先丟到其他共享桶。
 4. `issues` 是 B-track（異常軌）節點，只能透過事件回到 A-track（見 `logic-overview.md` A/B 軌規則）。
-5. VS5 的 `A-track/tasks|quality-assurance|acceptance|finance`、`B-track/issues`、`workspace-business.daily`、`workspace-business.schedule` 都是 **Workspace Slice 內部業務節點**，不是新的獨立切片。
+5. VS5 的所有業務節點（tasks、quality-assurance、acceptance、finance、daily、issues 等）均位於 `workspace.slice/` 下各自的 `business.*` 子目錄中，不是獨立切片。
