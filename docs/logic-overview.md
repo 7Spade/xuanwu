@@ -1,8 +1,7 @@
 %% ==========================================================================
-%% LOGIC OVERVIEW v10 (CURRENT SSOT)
+%% LOGIC OVERVIEW v11 (CURRENT SSOT)
 %% This is the single source of truth for all architecture decisions.
-%% Historical versions (docs/overview/v3, v5, v6, v7, v8, v9, v10) have been
-%% removed to avoid confusion. To upgrade the spec: edit this file directly.
+%% To upgrade the spec: edit this file directly.
 %% ==========================================================================
 
 flowchart TD
@@ -16,7 +15,7 @@ flowchart TD
 subgraph SK["🔷 VS0 · Shared Kernel + Tag Authority Center"]
     direction TB
 
-    subgraph SK_FOUNDATION["📄 基礎資料契約 #8（沿用 v9）"]
+    subgraph SK_FOUNDATION["📄 基礎資料契約 #8"]
         direction LR
         SK_ENV["event-envelope\nversion · traceId · timestamp\nidempotency-key\n= eventId+aggId+version\n所有 DomainEvent 必須遵循\n[R8] traceId 整鏈共享不覆蓋"]
         SK_AUTH_SNAP["authority-snapshot\nclaims / roles / scopes\nTTL = Token 有效期"]
@@ -45,13 +44,25 @@ subgraph SK["🔷 VS0 · Shared Kernel + Tag Authority Center"]
     end
 
     subgraph SK_TAG_AUTH["🏷 Tag Authority Center · 唯一權威 #A6 #17"]
-        direction LR
+        direction TB
         CTA["centralized-tag.aggregate\n【全域語義字典主數據】\ntagSlug / label / category\ndeprecatedAt / deleteRule"]
+
+        subgraph TAG_ENTITIES["🏷 AI-ready Semantic Tag Entities [v11]"]
+            direction LR
+            TAG_USER_LEVEL["tag::user-level\ncategory: user_level\n用戶等級語義實體\ntagSlug: user-level:{slug}"]
+            TAG_SKILL["tag::skill\ncategory: skill\n技能語義實體\ntagSlug: skill:{slug}"]
+            TAG_SKILL_TIER["tag::skill-tier\ncategory: skill_tier\n技能等級語義實體\ntagSlug: skill-tier:{tier}"]
+            TAG_TEAM["tag::team\ncategory: team\n團隊語義實體\ntagSlug: team:{slug}"]
+            TAG_ROLE["tag::role\ncategory: role\n角色語義實體\ntagSlug: role:{slug}"]
+            TAG_PARTNER["tag::partner\ncategory: partner\n夥伴語義實體\ntagSlug: partner:{slug}"]
+        end
+
         TAG_EVENTS["TagLifecycleEvent\n(in-process)"]
         TAG_OUTBOX["tag-outbox\n[SK_OUTBOX_CONTRACT: SAFE_AUTO]"]
         TAG_READONLY["🔒 唯讀引用規則\nT1：新切片訂閱事件即可擴展"]
         TAG_STALE_GUARD["⚠ TAG_STALE_GUARD\n[SK_STALENESS_CONTRACT]\nTAG_MAX_STALENESS ≤ 30s\nDeprecated → StaleTagWarning"]
 
+        CTA -->|"實體化產生"| TAG_ENTITIES
         CTA -->|"標籤異動廣播"| TAG_EVENTS
         TAG_EVENTS -->|pending| TAG_OUTBOX
         CTA -.->|"唯讀引用契約"| TAG_READONLY
@@ -124,7 +135,7 @@ subgraph VS2["🟩 VS2 · Account Slice（帳號主體）"]
     end
 
     subgraph VS2_GOV["🛡 帳號治理域"]
-        ACC_ROLE["account-governance.role"]
+        ACC_ROLE["account-governance.role\n→ tag::role [TAG_ROLE]"]
         ACC_POLICY["account-governance.policy"]
     end
 
@@ -146,6 +157,7 @@ end
 IDENTITY_LINK --> USER_AGG & ORG_ACC
 ORG_ACC_BINDING -.->|"ACL #A2"| ORG_AGG
 ACC_EVENT_BUS -.->|"事件契約"| SK_ENV
+ACC_ROLE -.->|"role 語義引用"| TAG_ROLE
 ACC_OUTBOX -->|"CRITICAL_LANE: Role/Policy/Wallet"| IER
 ACC_OUTBOX -->|"STANDARD_LANE: AccountCreated"| IER
 
@@ -159,7 +171,7 @@ subgraph VS3["🟩 VS3 · Skill XP Slice（能力成長）"]
     direction TB
 
     subgraph VS3_DOMAIN["⚙ Skill Domain"]
-        SKILL_AGG["account-skill.aggregate\naccountId / skillId(→tagSlug)\nxp / version"]
+        SKILL_AGG["account-skill.aggregate\naccountId / skillId(→tagSlug)\nxp / version\n→ tag::skill [TAG_SKILL]\n→ tag::skill-tier [TAG_SKILL_TIER]"]
         XP_LEDGER[("account-skill-xp-ledger\nentryId / delta / reason\nsourceId / timestamp #13")]
     end
 
@@ -174,6 +186,8 @@ subgraph VS3["🟩 VS3 · Skill XP Slice（能力成長）"]
 end
 
 SKILL_AGG -.->|"tagSlug 唯讀引用"| TAG_READONLY
+SKILL_AGG -.->|"skill 語義實體"| TAG_SKILL
+SKILL_AGG -.->|"skill-tier 語義實體"| TAG_SKILL_TIER
 SKILL_EVENTS -.->|"事件契約"| SK_ENV
 SKILL_EVENTS -.->|"tier 推導契約"| SK_SKILL_TIER
 SKILL_OUTBOX -->|"STANDARD_LANE"| IER
@@ -192,9 +206,9 @@ subgraph VS4["🟧 VS4 · Organization Slice（組織治理）"]
     end
 
     subgraph VS4_GOV["🛡 組織治理域"]
-        ORG_MEMBER["account-organization.member\n(tagSlug 唯讀)"]
-        ORG_PARTNER["account-organization.partner\n(tagSlug 唯讀)"]
-        ORG_TEAM["account-organization.team"]
+        ORG_MEMBER["account-organization.member\n(tagSlug 唯讀)\n→ tag::role [TAG_ROLE]\n→ tag::user-level [TAG_USER_LEVEL]"]
+        ORG_PARTNER["account-organization.partner\n(tagSlug 唯讀)\n→ tag::partner [TAG_PARTNER]"]
+        ORG_TEAM["account-organization.team\n→ tag::team [TAG_TEAM]"]
         ORG_POLICY["account-organization.policy"]
         ORG_SKILL_RECOG["organization-skill-recognition.aggregate\nminXpRequired / status #11"]
     end
@@ -220,6 +234,10 @@ subgraph VS4["🟧 VS4 · Organization Slice（組織治理）"]
 end
 
 ORG_AGG & ORG_MEMBER & ORG_PARTNER -.->|"tagSlug 唯讀引用"| TAG_READONLY
+ORG_MEMBER -.->|"role tag 語義"| TAG_ROLE
+ORG_MEMBER -.->|"user-level tag 語義"| TAG_USER_LEVEL
+ORG_PARTNER -.->|"partner tag 語義"| TAG_PARTNER
+ORG_TEAM -.->|"team tag 語義"| TAG_TEAM
 ORG_EVENT_BUS -.->|"事件契約"| SK_ENV
 ORG_OUTBOX -->|"CRITICAL_LANE: OrgContextProvisioned・PolicyChanged"| IER
 ORG_OUTBOX -->|"STANDARD_LANE: MemberJoined/Left・SkillRecog"| IER
@@ -228,7 +246,7 @@ IER -.->|"BACKGROUND_LANE: TagLifecycleEvent"| VS4_TAG_SUBSCRIBER
 %% ==========================================================================
 %% VS5) WORKSPACE SLICE — 工作區業務切片
 %% [S1] WS_OUTBOX 精簡：引用 SK_OUTBOX_CONTRACT
-%% E2/E5/P4/Q5/R4/R6 沿用 v9
+%% E2/E5/P4/Q5/R4/R6 沿用
 %% ==========================================================================
 
 subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
@@ -255,7 +273,7 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
     end
 
     subgraph VS5_GOV["🛡 Workspace Governance"]
-        WS_ROLE["workspace-governance.role\n繼承 org-governance.policy #18"]
+        WS_ROLE["workspace-governance.role\n繼承 org-governance.policy #18\n→ tag::role [TAG_ROLE]"]
         WS_POLICY_CHECK["policy-eligible-check [P4]\nvia Query Gateway"]
         WS_AUDIT["workspace-governance.audit"]
         AUDIT_COLLECTOR["audit-event-collector\n訂閱 IER BACKGROUND_LANE\n→ GLOBAL_AUDIT_VIEW"]
@@ -324,12 +342,13 @@ WS_EVENT_BUS -.->|"事件契約"| SK_ENV
 WS_OUTBOX -->|"STANDARD_LANE [E5]"| IER
 WS_POLICY_CHECK -.->|"policy eligible-check [P4]"| QGWAY_SCHED
 WS_CMD_HANDLER -.->|"執行結果"| SK_CMD_RESULT
+WS_ROLE -.->|"role tag 語義"| TAG_ROLE
 
 %% ==========================================================================
 %% VS6) SCHEDULING SLICE — 排班協作切片
 %% [S1] SCHED_OUTBOX 精簡：引用 SK_OUTBOX_CONTRACT，DLQ 分級在此宣告
 %% [S4] TAG_STALE_GUARD 校驗引用 SK_STALENESS_CONTRACT
-%% P3/P7/R7 沿用 v9
+%% P3/P7/R7 沿用
 %% ==========================================================================
 
 subgraph VS6["🟨 VS6 · Scheduling Slice（排班協作）"]
@@ -361,7 +380,7 @@ SCHED_OUTBOX -->|"STANDARD_LANE"| IER
 
 %% ==========================================================================
 %% VS7) NOTIFICATION SLICE — 通知交付切片
-%% [R8] FCM 推播帶 traceId metadata（沿用 v9）
+%% [R8] FCM 推播帶 traceId metadata
 %% ==========================================================================
 
 subgraph VS7["🩷 VS7 · Notification Slice（通知交付）"]
@@ -495,7 +514,7 @@ ACC_OUTBOX & ORG_OUTBOX & SCHED_OUTBOX & SKILL_OUTBOX & TAG_OUTBOX & WS_OUTBOX -
 %%      所有 Projection Lane 寫入皆遵守 aggregateVersion 單調遞增
 %%      ORG_ELIGIBLE_VIEW 節點精簡（規則移至 VS0）
 %% [S4] PROJ SLA 標示引用 SK_STALENESS_CONTRACT
-%% R7/R8/Q3/P5 沿用 v9
+%% R7/R8/Q3/P5 沿用
 %% ==========================================================================
 
 subgraph VS8["🟡 VS8 · Projection Bus（事件投影總線）"]
@@ -516,7 +535,7 @@ subgraph VS8["🟡 VS8 · Projection Bus（事件投影總線）"]
 
     subgraph VS8_CRITICAL_VIEWS["🔴 Critical Projections [S2][S4]"]
         WS_SCOPE_VIEW["projection\n.workspace-scope-guard-view\n授權路徑 #A9\n[SK_VERSION_GUARD S2]"]
-        ORG_ELIGIBLE_VIEW["projection\n.org-eligible-member-view\n[SK_VERSION_GUARD S2]\n※ aggregateVersion 單調遞增規則\n  已移至 VS0，此處引用契約\nskills{tagSlug→xp} / eligible\n#14 #15 #16 T3"]
+        ORG_ELIGIBLE_VIEW["projection\n.org-eligible-member-view\n[SK_VERSION_GUARD S2]\n※ aggregateVersion 單調遞增規則\n  已移至 VS0，此處引用契約\nskills{tagSlug→xp} / eligible\n#14 #15 #16 T3\n→ tag::skill [TAG_SKILL]\n→ tag::skill-tier [TAG_SKILL_TIER]"]
         WALLET_PROJ["projection\n.wallet-balance\n[SK_READ_CONSISTENCY: EVENTUAL_READ]\n顯示用・精確交易回源 AGG"]
         TIER_FN[["getTier(xp) → Tier\n純函式 #12"]]
     end
@@ -565,6 +584,8 @@ WS_SCOPE_VIEW -.->|"快照契約"| SK_AUTH_SNAP
 ACC_PROJ_VIEW_NODE -.->|"快照契約"| SK_AUTH_SNAP
 SKILL_VIEW -.->|"tier 推導"| SK_SKILL_TIER
 ORG_ELIGIBLE_VIEW -.->|"tier 推導"| SK_SKILL_TIER
+ORG_ELIGIBLE_VIEW -.->|"skill tag 語義"| TAG_SKILL
+ORG_ELIGIBLE_VIEW -.->|"skill-tier tag 語義"| TAG_SKILL_TIER
 ORG_ELIGIBLE_VIEW -.-> QGWAY_SCHED
 ACC_PROJ_VIEW_NODE -.-> QGWAY_NOTIF
 WS_SCOPE_VIEW -.-> QGWAY_SCOPE
@@ -617,9 +638,9 @@ TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 %% #17 centralized-tag.aggregate 為 tagSlug 唯一真相
 %% #18 workspace-governance role 繼承 policy 硬約束
 %% #19 所有 Projection 更新必須以 aggregateVersion 單調遞增為前提 [S2 泛化]
-%%     （v9 R7 僅限 eligible-view → v10 S2 擴展為全部 Projection）
+%%     （S2 泛化為全部 Projection）
 %% ==========================================================================
-%% ATOMICITY AUDIT 完整索引（沿用 v9）
+%% ATOMICITY AUDIT 完整索引
 %% ==========================================================================
 %% #A1  wallet 強一致；profile/notification 弱一致
 %% #A2  org-account.binding 只 ACL/projection 防腐對接
@@ -633,14 +654,23 @@ TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 %% #A10 Notification Router 無狀態路由
 %% #A11 eligible = 「無衝突排班」快照，非靜態狀態
 %% ==========================================================================
-%% TAG AUTHORITY 擴展規則（沿用）
+%% TAG AUTHORITY 擴展規則
 %% T1  新切片訂閱 TagLifecycleEvent（BACKGROUND_LANE）即可擴展
 %% T2  SKILL_TAG_POOL = Tag Authority 組織作用域唯讀投影
 %% T3  ORG_ELIGIBLE_MEMBER_VIEW.skills{tagSlug→xp} 交叉快照
 %% T4  排班職能需求 = SK_SKILL_REQ × Tag Authority tagSlug
 %% T5  TAG_SNAPSHOT 消費方禁止寫入
 %% ==========================================================================
-%% v10 VS0 下沉索引（本版本核心）
+%% v11 語義 Tag 實體索引（AI-ready Semantic Graph）
+%% TE1 TAG_USER_LEVEL  tag::user-level    → 用戶等級語義實體（tagSlug: user-level:{slug}）
+%% TE2 TAG_SKILL       tag::skill         → 技能語義實體（tagSlug: skill:{slug}）
+%% TE3 TAG_SKILL_TIER  tag::skill-tier    → 技能等級語義實體（tagSlug: skill-tier:{tier}）
+%% TE4 TAG_TEAM        tag::team          → 團隊語義實體（tagSlug: team:{slug}）
+%% TE5 TAG_ROLE        tag::role          → 角色語義實體（tagSlug: role:{slug}）
+%% TE6 TAG_PARTNER     tag::partner       → 夥伴語義實體（tagSlug: partner:{slug}）
+%% 所有實體統一由 CTA 管轄，禁止各 slice 自行定義 tag 語義類別
+%% ==========================================================================
+%% v10 VS0 下沉索引
 %% S1  SK_OUTBOX_CONTRACT：三要素（at-least-once / idempotency-key / DLQ分級）
 %%     消除：6 個 OUTBOX 節點各自重複宣告 at-least-once
 %%     消除：DLQ 分級標記散落 VS2/VS6 節點文字
@@ -660,8 +690,28 @@ TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 %%     消除：握手規則僅在 VS1 TOKEN_REFRESH_SIGNAL 節點文字
 %%     效益：前端 / IER / VS1 三方共享唯一握手規範
 %% ==========================================================================
+%% v11 語義 Tag 實體化索引（AI-ready Semantic Graph）
+%% TE1 TAG_USER_LEVEL：用戶等級從字串描述升級為實體節點
+%%     消除：ORG_MEMBER 節點用「user level」文字描述散落
+%%     效益：AI Graph 可直接查詢 user-level 維度
+%% TE2 TAG_SKILL：技能從 tagSlug 字串引用升級為實體節點
+%%     消除：SKILL_AGG / ORG_ELIGIBLE_VIEW 只有 tagSlug 字串
+%%     效益：AI Graph 可遍歷 skill → xp → tier 完整語義鏈
+%% TE3 TAG_SKILL_TIER：技能等級從推導值說明升級為實體節點
+%%     消除：tier 語義僅存於 SK_SKILL_TIER 純函式描述
+%%     效益：skill-tier 可作為 Projection/Recommendation 的 tag 軸
+%% TE4 TAG_TEAM：團隊從治理域節點文字升級為實體節點
+%%     消除：ORG_TEAM 只是治理聚合，無語義 tag 身份
+%%     效益：AI 可以 tag::team 維度切分人力 Graph
+%% TE5 TAG_ROLE：角色從 claims/governance 字串升級為實體節點
+%%     消除：ACC_ROLE / WS_ROLE 角色語義重複定義
+%%     效益：所有 role 語義收斂至 TAG_ROLE 唯一真相
+%% TE6 TAG_PARTNER：夥伴從成員類型說明升級為實體節點
+%%     消除：ORG_PARTNER 只描述「partner（tagSlug 唯讀）」
+%%     效益：partner vs member 語義邊界明確，AI Graph 可區分
+%% ==========================================================================
 %% ── v10 統一開發守則（D1~D20 完整守則）──
-%% ── 基礎路徑約束（D1~D12，原 v9 守則，現內聯於此作為唯一真相）──
+%% ── 基礎路徑約束（D1~D12）──
 %% D1  事件傳遞：只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
 %% D2  跨切片引用：import ... from '@/features/{slice}/index' only；_*.ts 為私有
 %% D3  所有 mutation：src/features/{slice}/_actions.ts only
@@ -690,6 +740,12 @@ TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 %%     shared/types 僅可作 legacy/common DTO fallback，不得作為新跨片契約預設落點
 %% D20 匯入優先序：shared.kernel.* > feature slice index.ts > shared/types
 %%     若同一概念同時存在於 shared.kernel 與 shared/types，以 shared.kernel 為唯一權威
+%% ── v11 新增守則（D21~D22）──
+%% D21 新增 tag 語義類別：必須在 CTA 定義 TAG_ENTITIES 節點，
+%%     不得在各 slice 自行創建語義 tag 類別（tagSlug category 統一由 CTA 管轄）
+%% D22 跨切片 tag 語義引用：必須指向 TAG_USER_LEVEL / TAG_SKILL / TAG_SKILL_TIER /
+%%     TAG_TEAM / TAG_ROLE / TAG_PARTNER 實體節點，
+%%     禁止僅以 tagSlug 字串隱式引用（語義邊要顯示在圖中）
 %% ==========================================================================
 
 %% ==========================================================================
@@ -738,6 +794,7 @@ classDef trackA fill:#d1fae5,stroke:#059669,color:#000
 classDef tierFn fill:#fdf4ff,stroke:#9333ea,color:#000
 classDef talent fill:#fff1f2,stroke:#f43f5e,color:#000
 classDef serverAction fill:#fed7aa,stroke:#f97316,color:#000
+classDef tagEntity fill:#ecfdf5,stroke:#059669,color:#000,font-weight:bold,stroke-width:2px
 
 class SK,SK_ENV,SK_AUTH_SNAP,SK_SKILL_TIER,SK_SKILL_REQ,SK_FOUNDATION sk
 class SK_CMD_RESULT cmdResult
@@ -785,3 +842,4 @@ class TAG_SNAPSHOT tagProjSlice
 class TIER_FN tierFn
 class VS9,TRACE_ID,DOMAIN_METRICS,DOMAIN_ERRORS observability
 class SERVER_ACTIONS serverAction
+class TAG_USER_LEVEL,TAG_SKILL,TAG_SKILL_TIER,TAG_TEAM,TAG_ROLE,TAG_PARTNER tagEntity
