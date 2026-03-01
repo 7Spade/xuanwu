@@ -1,5 +1,5 @@
 /**
- * projection.event-funnel — _funnel.ts
+ * projection.bus — _funnel.ts
  *
  * EVENT_FUNNEL_INPUT: unified entry point for the Projection Layer.
  *
@@ -27,7 +27,7 @@
  */
 
 import type { WorkspaceEventBus } from '@/features/workspace.slice';
-import { upsertProjectionVersion } from '@/features/projection.registry';
+import { upsertProjectionVersion } from './_registry';
 import { appendAuditEntry } from '@/features/projection.account-audit';
 import { applyScheduleAssigned, applyScheduleCompleted } from '@/features/scheduling.slice';
 import { onOrgEvent } from '@/features/organization.slice';

@@ -340,13 +340,15 @@ src/features/
 
 ## VS8 — Projection Bus
 
-All projection slices are prefixed `projection.*`:
+The `projection.bus` slice is the unified Projection Bus entry point (event funnel +
+version registry + query registration). All projection view slices are prefixed `projection.*`:
 
 ```
 src/features/
-├── projection.registry/             # read-model-registry + version mapping
-│   └── index.ts
-├── projection.event-funnel/         # event-funnel: sole projection write path (#9, #A7, S2)
+├── projection.bus/                  # VS8 Projection Bus: EVENT_FUNNEL_INPUT + PROJECTION_VERSION + READ_MODEL_REGISTRY
+│   ├── _funnel.ts
+│   ├── _registry.ts
+│   ├── _query-registration.ts
 │   └── index.ts
 ├── projection.workspace-scope-guard/ # CRITICAL SLA ≤500ms; writes workspace-scope-guard-view #A9
 │   └── index.ts

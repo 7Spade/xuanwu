@@ -82,15 +82,16 @@ src/features/
 ├─ notification-router                            (VS7 Notification Slice — notification.slice/gov.notification-router)
 ├─ account-user.notification                      (VS7 Notification Slice — notification.slice/user.notification)
 │
-├─ projection-bus                                 (VS8 Projection Bus)
+├─ projection.bus                                 (VS8 Projection Bus — EVENT_FUNNEL_INPUT + PROJECTION_VERSION + READ_MODEL_REGISTRY)
 │  ├─ projection.workspace-view
 │  ├─ projection.account-view
 │  ├─ projection.organization-view
 │  ├─ projection.account-skill-view
 │  ├─ projection.global-audit-view
 │  ├─ projection.tag-snapshot
-│  ├─ projection.version
-│  └─ read-model-registry
+│  ├─ _funnel.ts
+│  ├─ _registry.ts
+│  └─ _query-registration.ts
 │
 └─ observability                                  (VS9 Cross-cutting)
    ├─ trace-identifier

@@ -17,7 +17,7 @@
 
 import type { OrgPolicyChangedPayload } from '@/features/organization.slice';
 import { onOrgEvent } from '@/features/organization.slice';
-import { upsertProjectionVersion } from '@/features/projection.registry';
+import { upsertProjectionVersion } from '@/features/projection.bus';
 
 export interface OrgPolicyEntry {
   policyId: string;

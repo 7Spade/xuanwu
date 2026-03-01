@@ -1,5 +1,7 @@
 /**
- * projection.registry — Event stream offset + read model version table.
+ * projection.bus — _registry.ts
+ *
+ * Event stream offset + read model version table.
  *
  * Per logic-overview.md:
  * - EVENT_FUNNEL_INPUT →|更新事件串流偏移量| PROJECTION_VERSION

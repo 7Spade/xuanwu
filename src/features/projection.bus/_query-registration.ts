@@ -1,5 +1,5 @@
 /**
- * projection.registry — _query-registration.ts
+ * projection.bus — _query-registration.ts
  *
  * Registers all v9 GW_QUERY routes with infra.gateway-query at startup.
  *
