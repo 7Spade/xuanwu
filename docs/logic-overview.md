@@ -1,5 +1,5 @@
 %% ==========================================================================
-%% LOGIC OVERVIEW v11 — ARCHITECTURE SSOT
+%% LOGIC OVERVIEW v12 — ARCHITECTURE SSOT
 %% Purpose: canonical architecture diagram. All rules and constraints are
 %% encoded here. No external document may override this file.
 %% SSOT mapping (R4):
@@ -18,12 +18,15 @@
 %%   S4:  SLA values from SK_STALENESS_CONTRACT; no hardcoded numbers
 %%   D7:  cross-slice imports ONLY via {slice}/index.ts public API
 %%   D21: new tag categories ONLY in CTA TAG_ENTITIES subgraph
+%%   D24: feature slices MUST NOT import firebase/* directly; use SK_PORTS
 %% FORBIDDEN:
 %%   BC X MUST NOT write to BC Y aggregate → use Domain Event via IER
 %%   TX Runner MUST NOT create events → Aggregates only (#4)
 %%   SECURITY_BLOCK DLQ: auto-replay FORBIDDEN; human review required
 %%   B-track MUST NOT call back A-track → communicate via Domain Event
-%% Full rule definitions (D1–D23, S1–S6, #1–#19, #A1–#A11, TE1–TE6) encoded below.
+%%   Direct firebase/* import in feature slices FORBIDDEN [D24]
+%% Full rule definitions (D1–D25, S1–S6, #1–#19, #A1–#A11, TE1–TE6) encoded below.
+%% v12 主變更：FIREBASE_ACL + FIREBASE_EXT + SK_PORTS — 防腐層顯式化
 %% ==========================================================================
 
 flowchart TD
@@ -89,6 +92,14 @@ subgraph SK["🔷 VS0 · Shared Kernel + Tag Authority Center"]
         TAG_EVENTS -->|pending| TAG_OUTBOX
         CTA -.->|"唯讀引用契約"| TAG_READONLY
         CTA -.->|"Deprecated 通知"| TAG_STALE_GUARD
+    end
+
+    subgraph SK_PORTS["🔌 Infrastructure Port 介面（VS0 定義 · ACL 遵守契約）"]
+        direction LR
+        I_AUTH["IAuthService\n身份驗證 Port\nVS1 依賴"]
+        I_REPO["IFirestoreRepo\nFirestore 存取 Port\nVS8 依賴 [S2]"]
+        I_MSG["IMessaging\n訊息推播 Port\nVS7 依賴 [R8]"]
+        I_STORE["IFileStore\n檔案儲存 Port\nVS5 依賴"]
     end
 end
 
@@ -638,6 +649,70 @@ TAG_STALE_GUARD -.->|"StaleTagWarning"| DOMAIN_ERRORS
 TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 
 %% ==========================================================================
+%% FIREBASE_ACL) INFRASTRUCTURE ANTI-CORRUPTION LAYER — 防腐層
+%% 實作 VS0 SK_PORTS 定義的 Infrastructure Port 介面
+%% 規則：S2 Version Guard（FirestoreAdapter）、R8 Trace Injector（FCMAdapter）
+%% 路徑：src/shared/infra/{auth|firestore|messaging|storage}
+%% D24：feature slices 禁止直接 import firebase/*；必須透過此層 Port 介面
+%% D25：新增 Firebase 功能必須在此宣告 Adapter 並實作對應 Port
+%% ==========================================================================
+
+subgraph FIREBASE_ACL["🔌 Firebase ACL Adapters（防腐層 · src/shared/infra）"]
+    direction TB
+
+    subgraph ACL_AUTH["⚙ Identity Translator"]
+        AUTH_ADAPTER["auth.adapter.ts\nAuthAdapter\n實作 IAuthService\nFirebase User ↔ Auth Identity\n[D24] 唯一合法 firebase/auth 呼叫點"]
+    end
+
+    subgraph ACL_REPO["⚙ Firestore Adapter [S2]"]
+        FIRESTORE_ADAPTER["firestore.facade.ts + adapters\nFirestoreAdapter\n實作 IFirestoreRepo\n[SK_VERSION_GUARD S2]\naggregateVersion 單調遞增守衛\n[D24] 唯一合法 firebase/firestore 呼叫點"]
+    end
+
+    subgraph ACL_MSG["⚙ FCM Adapter [R8]"]
+        FCM_ADAPTER["messaging.adapter.ts\nFCMAdapter\n實作 IMessaging\n[R8] 注入 envelope.traceId → FCM metadata\n禁止在此生成新 traceId\n[D24] 唯一合法 firebase/messaging 呼叫點"]
+    end
+
+    subgraph ACL_STORE["⚙ Storage Adapter"]
+        STORAGE_ADAPTER["storage.facade.ts + adapters\nStorageAdapter\n實作 IFileStore\nPath Resolver / URL 簽發\n[D24] 唯一合法 firebase/storage 呼叫點"]
+    end
+end
+
+%% ==========================================================================
+%% FIREBASE_EXT) EXTERNAL FIREBASE INFRASTRUCTURE — 外部雲端平台
+%% 外部服務 — 僅允許透過 FIREBASE_ACL 介面存取
+%% FORBIDDEN: 任何 feature slice 或 shared/infra 以外代碼禁止直接呼叫 [D24]
+%% ==========================================================================
+
+subgraph FIREBASE_EXT["☁ Firebase Infrastructure（外部雲端平台）"]
+    direction LR
+    F_AUTH[("Firebase Auth\nfirebase/auth")]
+    F_DB[("Firestore\nfirebase/firestore")]
+    F_FCM[("Firebase Cloud Messaging\nfirebase/messaging")]
+    F_STORE[("Cloud Storage\nfirebase/storage")]
+end
+
+%% ACL Adapters → Infrastructure Ports（實作關係）
+AUTH_ADAPTER -.->|"implements"| I_AUTH
+FIRESTORE_ADAPTER -.->|"implements [S2]"| I_REPO
+FCM_ADAPTER -.->|"implements [R8]"| I_MSG
+STORAGE_ADAPTER -.->|"implements"| I_STORE
+
+%% ACL Adapters → Firebase External（平台呼叫）
+AUTH_ADAPTER --> F_AUTH
+FIRESTORE_ADAPTER --> F_DB
+FCM_ADAPTER --> F_FCM
+STORAGE_ADAPTER --> F_STORE
+
+%% Domain Slices → Infrastructure Ports（依賴 Port 介面，不依賴具體實作）
+AUTH_IDENTITY -.->|"uses IAuthService"| I_AUTH
+USER_NOTIF -.->|"uses IMessaging [R8]"| I_MSG
+FUNNEL -.->|"uses IFirestoreRepo [S2]"| I_REPO
+W_FILES -.->|"uses IFileStore"| I_STORE
+
+%% SSOT Rules constrain ACL Adapters
+SK_INFRA_CONTRACTS -.->|"S2/R8/S4 規則約束"| FIREBASE_ACL
+
+%% ==========================================================================
 %% CONSISTENCY INVARIANTS 完整索引
 %% ==========================================================================
 %% #1  每個 BC 只能修改自己的 Aggregate
@@ -732,6 +807,17 @@ TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 %%     消除：ORG_PARTNER 只描述「partner（tagSlug 唯讀）」
 %%     效益：partner vs member 語義邊界明確，AI Graph 可區分
 %% ==========================================================================
+%% v12 Firebase 防腐層下沉索引
+%% SK_PORTS  Infrastructure Port 介面下沉至 VS0
+%%     消除：VS1/VS7/VS8/VS5 直接依賴 firebase SDK 的隱式耦合
+%%     效益：domain slices 只依賴 Port interface，不依賴具體 Firebase 實作
+%% FIREBASE_ACL  防腐層顯式化（src/shared/infra）
+%%     消除：adapter/facade 邏輯未在架構圖中顯示，難以稽核
+%%     效益：AuthAdapter/FirestoreAdapter/FCMAdapter/StorageAdapter 與規則（S2/R8）明確對應
+%% FIREBASE_EXT  外部 Firebase 平台隔離
+%%     消除：Firebase 服務散落在 VS1/VS7 節點內，邊界不清
+%%     效益：firebase/* 呼叫點收斂至 FIREBASE_ACL，D24 可稽核
+%% ==========================================================================
 %% ── v10 統一開發守則（D1~D20 完整守則）──
 %% ── 基礎路徑約束（D1~D12）──
 %% D1  事件傳遞：只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
@@ -773,6 +859,14 @@ TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 %%     語義邊標注：-.->|"{dimension} tag 語義"| {NODE_NAME}
 %%     category 命名：單字直接命名（role/skill/team/partner）；
 %%     多字使用底線（user_level/skill_tier）；category 值以 CTA 定義為唯一真相
+%% D24 Firebase 隔離規則（v12 新增）：
+%%     feature slice / shared/types / app 層禁止直接 import firebase/*
+%%     所有 Firebase SDK 呼叫必須透過 FIREBASE_ACL 對應 Adapter 進行
+%%     Adapter 路徑：src/shared/infra/{auth|firestore|messaging|storage}
+%%     對應 Port 介面由 VS0 SK_PORTS 定義（IAuthService/IFirestoreRepo/IMessaging/IFileStore）
+%% D25 新增 Firebase 功能（v12 新增）：
+%%     必須在 FIREBASE_ACL 新增 Adapter 並實作對應 SK_PORTS Port 介面
+%%     不得直接在 feature slice 或 _actions.ts 呼叫 firebase SDK
 %% ==========================================================================
 
 %% ==========================================================================
@@ -822,6 +916,9 @@ classDef tierFn fill:#fdf4ff,stroke:#9333ea,color:#000
 classDef talent fill:#fff1f2,stroke:#f43f5e,color:#000
 classDef serverAction fill:#fed7aa,stroke:#f97316,color:#000
 classDef tagEntity fill:#ecfdf5,stroke:#059669,color:#000,font-weight:bold,stroke-width:2px
+classDef infraPort fill:#e0f7fa,stroke:#00838f,color:#000,font-weight:bold
+classDef aclAdapter fill:#fce4ec,stroke:#ad1457,color:#000,font-weight:bold
+classDef firebaseExt fill:#fff9c4,stroke:#f9a825,color:#000,font-weight:bold
 
 class SK,SK_ENV,SK_AUTH_SNAP,SK_SKILL_TIER,SK_SKILL_REQ,SK_FOUNDATION sk
 class SK_CMD_RESULT cmdResult
@@ -870,3 +967,6 @@ class TIER_FN tierFn
 class VS9,TRACE_ID,DOMAIN_METRICS,DOMAIN_ERRORS observability
 class SERVER_ACTIONS serverAction
 class TAG_USER_LEVEL,TAG_SKILL,TAG_SKILL_TIER,TAG_TEAM,TAG_ROLE,TAG_PARTNER tagEntity
+class SK_PORTS,I_AUTH,I_REPO,I_MSG,I_STORE infraPort
+class FIREBASE_ACL,ACL_AUTH,ACL_REPO,ACL_MSG,ACL_STORE,AUTH_ADAPTER,FIRESTORE_ADAPTER,FCM_ADAPTER,STORAGE_ADAPTER aclAdapter
+class FIREBASE_EXT,F_AUTH,F_DB,F_FCM,F_STORE firebaseExt
