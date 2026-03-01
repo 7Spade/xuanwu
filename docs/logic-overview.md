@@ -740,12 +740,17 @@ TOKEN_REFRESH_SIGNAL -.->|"Claims 刷新成功通知 [S6]"| DOMAIN_METRICS
 %%     shared/types 僅可作 legacy/common DTO fallback，不得作為新跨片契約預設落點
 %% D20 匯入優先序：shared.kernel.* > feature slice index.ts > shared/types
 %%     若同一概念同時存在於 shared.kernel 與 shared/types，以 shared.kernel 為唯一權威
-%% ── v11 新增守則（D21~D22）──
+%% ── v11 新增守則（D21~D23）──
 %% D21 新增 tag 語義類別：必須在 CTA 定義 TAG_ENTITIES 節點，
 %%     不得在各 slice 自行創建語義 tag 類別（tagSlug category 統一由 CTA 管轄）
 %% D22 跨切片 tag 語義引用：必須指向 TAG_USER_LEVEL / TAG_SKILL / TAG_SKILL_TIER /
 %%     TAG_TEAM / TAG_ROLE / TAG_PARTNER 實體節點，
 %%     禁止僅以 tagSlug 字串隱式引用（語義邊要顯示在圖中）
+%% D23 tag 語義標注格式（節點文字與邊一致性規範）：
+%%     節點內標注：→ tag::{category} [{NODE_NAME}]
+%%     語義邊標注：-.->|"{dimension} tag 語義"| {NODE_NAME}
+%%     category 命名：單字直接命名（role/skill/team/partner）；
+%%     多字使用底線（user_level/skill_tier）；category 值以 CTA 定義為唯一真相
 %% ==========================================================================
 
 %% ==========================================================================
