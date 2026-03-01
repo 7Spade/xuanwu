@@ -24,9 +24,7 @@ src/features/
 │
 ├─ account.slice                                  (VS2 Account Slice — unified)
 │  ├─ user.profile                                (user-account profile + FCM token)
-│  ├─ user.notification                           (FCM delivery + device token management)
 │  ├─ user.wallet                                 (strong-consistency financial ledger [S3])
-│  ├─ gov.notification-router                     (stateless notification router [#A10])
 │  ├─ gov.role                                    (account-level role → CUSTOM_CLAIMS [S6])
 │  └─ gov.policy                                  (account-level policy → CUSTOM_CLAIMS [S6])
 │
@@ -81,8 +79,8 @@ src/features/
 ├─ projection.demand-board                        (VS6 — @deprecated shim → scheduling.slice)
 ├─ projection.account-schedule                    (VS6 — @deprecated shim → scheduling.slice)
 │
-├─ notification-router                            (VS7 Notification Slice — see VS2 account.slice/gov.notification-router)
-├─ account-user.notification                      (VS7 Notification Slice — see VS2 account.slice/user.notification)
+├─ notification-router                            (VS7 Notification Slice — notification.slice/gov.notification-router)
+├─ account-user.notification                      (VS7 Notification Slice — notification.slice/user.notification)
 │
 ├─ projection-bus                                 (VS8 Projection Bus)
 │  ├─ projection.workspace-view
@@ -105,7 +103,7 @@ infra.gateway-query                               (L6 Query Gateway — read-mod
 infra.event-router                                (L4 IER — in-process fan-out [D1][R8])
 infra.outbox-relay                                (L4 OUTBOX_RELAY — CDC scan → IER [S1])
 infra.dlq-manager                                 (L4 DLQ Manager — SAFE_AUTO / REVIEW_REQUIRED / SECURITY_BLOCK [S1])
-infra.observability                               (VS9 Observability — domain-metrics / domain-errors)
+infra.observability                               (VS9 Observability → renamed to observability)
 ```
 
 ## How to use this tree (quick rule)

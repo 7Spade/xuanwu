@@ -323,13 +323,17 @@ src/features/
 
 ```
 src/features/
-└── account.slice/
-    ├── user.notification/       # FCM delivery + device token management (see VS2)
+└── notification.slice/
+    ├── user.notification/       # FCM delivery + device token management
+    │   ├── _delivery.ts
+    │   ├── _queries.ts
     │   ├── _hooks/
     │   ├── _components/
     │   └── index.ts
-    └── gov.notification-router/ # Stateless router (#A10) (see VS2)
-        └── index.ts
+    ├── gov.notification-router/ # Stateless notification router (#A10)
+    │   ├── _router.ts
+    │   └── index.ts
+    └── index.ts
 ```
 
 ---
@@ -384,7 +388,7 @@ src/features/
 │   └── index.ts
 ├── infra.dlq-manager/         # DLQ three-tier handler: SAFE_AUTO/REVIEW_REQUIRED/SECURITY_BLOCK [R5]
 │   └── index.ts
-└── infra.observability/       # VS9: trace-identifier, domain-metrics, domain-error-log [R8]
+└── observability/             # VS9: trace-identifier, domain-metrics, domain-error-log [R8]
     ├── _trace.ts
     ├── _metrics.ts
     ├── _error-log.ts

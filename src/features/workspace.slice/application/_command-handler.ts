@@ -31,7 +31,7 @@
 import { checkWorkspaceAccess } from './_scope-guard';
 import { evaluatePolicy, type WorkspaceRole } from './_policy-engine';
 import { runTransaction, type TransactionContext } from './_transaction-runner';
-import { createTraceContext, logDomainError } from '@/features/infra.observability';
+import { createTraceContext, logDomainError } from '@/features/observability';
 
 export interface WorkspaceCommand {
   workspaceId: string;

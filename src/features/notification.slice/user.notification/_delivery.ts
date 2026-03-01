@@ -1,5 +1,5 @@
 /**
- * account-user.notification — _delivery.ts
+ * notification.slice/user.notification — _delivery.ts
  *
  * FCM Layer 3: Notification Delivery
  * Receives routed notifications, stores them in Firestore, and pushes FCM.
@@ -102,7 +102,7 @@ export async function deliverNotification(
       // [R8] TRACE_PROPAGATION_RULE: traceId MUST be included in FCM message data field.
       // The FCM message must carry traceId so the device-side handler can correlate
       // push notifications with audit records in globalAuditView.
-      const traceId = input.traceId !== undefined ? input.traceId : '';
+      const traceId = input.traceId ?? '';
       // Example FCM Admin SDK call (server-side):
       //   await fcmAdmin.send({
       //     token: fcmToken,
@@ -125,7 +125,15 @@ export async function deliverNotification(
 
 /**
  * Sanitizes notification content for external account recipients.
- * Redacts internal workspace IDs, financial amounts, and internal-only details.
+ * Redacts internal workspace IDs, financial amounts, and internal-only details
+ * to prevent leaking sensitive workspace-internal data to external participants.
+ *
+ * @example
+ * sanitizeForExternal('Workspace abc12345-... has $1,234.56 balance')
+ * // → 'Workspace [ID] has [金額] balance'
+ *
+ * @param message - Raw notification message text
+ * @returns Sanitized message safe for external account delivery
  */
 function sanitizeForExternal(message: string): string {
   // Remove patterns like workspace IDs (UUIDs), financial amounts (e.g. $1,234.56)

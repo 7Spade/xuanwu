@@ -22,6 +22,8 @@ if (getApps().length === 0) {
 
 const MAX_DELIVERY_ATTEMPTS = 3;
 const INITIAL_BACKOFF_MS = 500;
+/** Timeout for DLQ HTTPS processor notification calls [memory: outbox relay DLQ integration]. */
+const DLQ_PROCESSOR_TIMEOUT_MS = 10_000;
 
 interface OutboxRecord extends EventEnvelope {
   deliveryAttempts: number;
@@ -115,25 +117,77 @@ async function deliverToIer(record: OutboxRecord): Promise<void> {
   });
 }
 
-/** Move failed event to the appropriate DLQ collection [S1] */
+/** Move failed event to the appropriate DLQ collection [S1] and notify DLQ processor */
 async function moveToDlq(
   db: FirebaseFirestore.Firestore,
   record: OutboxRecord,
   error: unknown
 ): Promise<void> {
   const collection = dlqCollectionName(record.dlqTier);
-  await db.collection(collection).doc(record.eventId).set({
+  const dlqRecord = {
     ...record,
     failedAt: Timestamp.now(),
     failureReason: String(error),
     status: "DLQ",
-  });
+  };
+
+  await db.collection(collection).doc(record.eventId).set(dlqRecord);
+
   logger.error("RELAY: moved to DLQ", {
     eventId: record.eventId,
     dlqTier: record.dlqTier,
     dlqCollection: collection,
     structuredData: true,
   });
+
+  // Notify the appropriate DLQ HTTPS processor endpoint [R5]
+  // Each DLQ tier has a dedicated onRequest handler that processes the record.
+  const dlqProcessorUrl = getDlqProcessorUrl(record.dlqTier);
+  if (dlqProcessorUrl) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), DLQ_PROCESSOR_TIMEOUT_MS);
+    try {
+      await fetch(dlqProcessorUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dlqRecord),
+        signal: controller.signal,
+      });
+    } catch (notifyErr) {
+      // Non-fatal: the DLQ Firestore record is already written; processor will be retried separately
+      logger.warn("RELAY: DLQ processor notification failed (non-fatal)", {
+        eventId: record.eventId,
+        dlqTier: record.dlqTier,
+        error: String(notifyErr),
+        structuredData: true,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+}
+
+/**
+ * Returns the DLQ HTTPS processor URL for the given tier, or null if not configured.
+ * Reads from environment variables:
+ *   - DLQ_SAFE_URL     → dlqSafe Cloud Function URL (SAFE_AUTO tier)
+ *   - DLQ_REVIEW_URL   → dlqReview Cloud Function URL (REVIEW_REQUIRED tier)
+ *   - DLQ_BLOCK_URL    → dlqBlock Cloud Function URL (SECURITY_BLOCK tier)
+ *
+ * @param dlqTier - One of "SAFE_AUTO", "REVIEW_REQUIRED", "SECURITY_BLOCK"
+ * @returns HTTPS URL string, or null if env var is unset
+ */
+function getDlqProcessorUrl(dlqTier: string): string | null {
+  switch (dlqTier) {
+    case "SAFE_AUTO":
+      return process.env.DLQ_SAFE_URL ?? null;
+    case "REVIEW_REQUIRED":
+      return process.env.DLQ_REVIEW_URL ?? null;
+    case "SECURITY_BLOCK":
+      return process.env.DLQ_BLOCK_URL ?? null;
+    default:
+      return null;
+  }
 }
 
 function sleep(ms: number): Promise<void> {

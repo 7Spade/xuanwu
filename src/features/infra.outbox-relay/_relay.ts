@@ -35,7 +35,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
-import { logDomainError } from '@/features/infra.observability';
+import { logDomainError } from '@/features/observability';
 
 /** Delivery status of an outbox entry. */
 export type OutboxStatus = 'pending' | 'delivered' | 'dlq';
