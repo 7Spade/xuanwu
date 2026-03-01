@@ -22,7 +22,7 @@ import { Loader2 } from "lucide-react";
 
 import { SidebarProvider } from "@/shared/shadcn-ui/sidebar";
 import { useAuth } from "@/shared/app-providers/auth-provider";
-import { AccountProvider } from "@/features/workspace-core";
+import { AccountProvider } from "@/features/workspace.slice";
 import { useTokenRefreshListener } from "@/features/identity.slice";
 
 type ShellLayoutProps = {

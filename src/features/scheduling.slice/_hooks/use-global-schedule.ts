@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useAccount } from "@/features/workspace-core";
+import { useAccount } from "@/features/workspace.slice";
 import { useApp } from "@/shared/app-providers/app-context";
 import { subDays, isFuture, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 

@@ -1,4 +1,4 @@
-import { WorkspaceFiles } from "@/features/workspace-business.files"
+import { WorkspaceFiles } from "@/features/workspace.slice"
 
 export default function FilesCapabilityPage() {
   return <WorkspaceFiles />

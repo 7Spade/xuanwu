@@ -21,7 +21,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
-import { useAccount } from '@/features/workspace-core';
+import { useAccount } from '@/features/workspace.slice';
 import {
   approveScheduleItemWithMember,
   updateScheduleItemStatus,

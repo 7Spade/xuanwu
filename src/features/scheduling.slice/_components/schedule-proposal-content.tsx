@@ -2,7 +2,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useWorkspace } from "@/features/workspace-core"
+import { useWorkspace } from "@/features/workspace.slice"
 import { toast } from "@/shared/utility-hooks/use-toast"
 import type { ScheduleItem, Location } from "@/shared/types"
 import type { SkillRequirement } from "@/features/shared.kernel.skill-tier"

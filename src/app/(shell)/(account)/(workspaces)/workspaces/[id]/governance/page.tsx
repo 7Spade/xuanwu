@@ -3,8 +3,8 @@
 
 import { useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { useWorkspace } from "@/features/workspace-core"
-import { useAccount } from "@/features/workspace-core"
+import { useWorkspace } from "@/features/workspace.slice"
+import { useAccount } from "@/features/workspace.slice"
 import { GovernanceSidebar , useScheduleActions } from "@/features/scheduling.slice"
 import type { ScheduleItem } from "@/shared/types"
 
