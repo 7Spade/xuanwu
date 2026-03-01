@@ -45,7 +45,6 @@ import {
 import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
 import type { Timestamp } from 'firebase/firestore';
 import { tierSatisfies } from '@/features/shared.kernel.skill-tier';
-import type { SkillTier } from '@/features/shared.kernel.skill-tier';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -72,7 +71,7 @@ function computeSkillMatch(
   const matched = skillRequirements.filter((req) => {
     const skill = member.skills.find((s) => s.skillId === req.tagSlug);
     if (!skill) return false;
-    return tierSatisfies(skill.tier as SkillTier, req.minimumTier as SkillTier);
+    return tierSatisfies(skill.tier, req.minimumTier);
   }).length;
   return [matched, skillRequirements.length];
 }

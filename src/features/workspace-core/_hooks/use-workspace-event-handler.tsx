@@ -328,7 +328,7 @@ export function useWorkspaceEventHandler() {
         try {
           await handleScheduleProposed(payload);
         } catch (err) {
-          console.error("[W_B_SCHEDULE] handleScheduleProposed failed:", err);
+          console.error("[W_B_SCHEDULE] handleScheduleProposed failed", { payload, err });
         }
       }
     );

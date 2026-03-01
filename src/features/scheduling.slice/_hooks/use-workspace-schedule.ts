@@ -56,9 +56,15 @@ export function useWorkspaceSchedule() {
       where("workspaceId", "==", workspace.id),
       orderBy("createdAt", "desc")
     );
-    return onSnapshot(q, (snap) => {
-      setLocalItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as ScheduleItem)));
-    });
+    return onSnapshot(
+      q,
+      (snap) => {
+        setLocalItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as ScheduleItem)));
+      },
+      (err) => {
+        console.error("[useWorkspaceSchedule] schedule_items subscription failed:", err);
+      }
+    );
   }, [db, workspace.dimensionId, workspace.id]);
 
   const activeOrganization = useMemo(() =>
