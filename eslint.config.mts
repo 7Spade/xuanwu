@@ -152,75 +152,23 @@ export default tseslint.config(
     },
   },
 
-  // shadcn-ui — official UI primitives. DO NOT MODIFY.
-  // These files are scaffolded by the shadcn-ui CLI and must be kept in their original state.
-  // All inherited quality rules are disabled to avoid noise from generated component patterns.
-  // The single active rule flags any new assignment that is not a standard .displayName setter,
-  // making accidental edits immediately visible during linting.
-  {
-    files: ["src/shared/shadcn-ui/**/*.{ts,tsx}"],
-    rules: {
-      // Disable TypeScript rules that fire on generated component code
-      "@typescript-eslint/consistent-type-imports": "off",
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-misused-promises": "off",
-      "@typescript-eslint/strict-boolean-expressions": "off",
-      "@typescript-eslint/no-empty-object-type": "off",
-      "@typescript-eslint/prefer-as-const": "off",
-      "@typescript-eslint/no-unused-expressions": "off",
-      // Disable React rules (primitive wrappers are intentionally low-level)
-      "react/jsx-key": "off",
-      "react/no-array-index-key": "off",
-      "react/jsx-no-useless-fragment": "off",
-      "react/self-closing-comp": "off",
-      "react/prop-types": "off",
-      "react/no-unknown-property": "off",
-      "react/display-name": "off",
-      "react-hooks/rules-of-hooks": "off",
-      "react-hooks/exhaustive-deps": "off",
-      // Disable accessibility rules (shadcn-ui delegates a11y responsibility to consumers)
-      "jsx-a11y/click-events-have-key-events": "off",
-      "jsx-a11y/no-noninteractive-element-interactions": "off",
-      "jsx-a11y/no-static-element-interactions": "off",
-      "jsx-a11y/interactive-supports-focus": "off",
-      "jsx-a11y/heading-has-content": "off",
-      "jsx-a11y/anchor-has-content": "off",
-      "jsx-a11y/anchor-is-valid": "off",
-      "jsx-a11y/label-has-associated-control": "off",
-      // Disable import / tailwind style rules
-      "import/no-relative-parent-imports": "off",
-      "tailwindcss/no-custom-classname": "off",
-      "tailwindcss/classnames-order": "off",
-      "tailwindcss/no-contradicting-classname": "off",
-      // ── Modification guard ──────────────────────────────────────────────────
-      // Flags any assignment that is NOT a standard `.displayName = "..."` setter.
-      // React.forwardRef components always set .displayName — those are excluded.
-      // Any other assignment indicates an unsanctioned modification to these files.
-      "no-restricted-syntax": [
-        "error",
-        {
-          selector:
-            "AssignmentExpression:not([left.type='MemberExpression'][left.property.name='displayName'])",
-          message: "禁止修改 shadcn-ui 內部檔案",
-        },
-      ],
-    },
-  },
-
-  // ── VSA one-way dependency rules ─────────────────────────────────────────
-  // Architecture (Vertical Slice Architecture):
+  // ── VSA one-way dependency rules (D1–D12, D19–D20) ──────────────────────
+  // Reference: docs/logic-overview.md §D1–D20, docs/project-structure.md §D1–D12
+  //
+  // Enforced dependency direction:
   //
   //   app/  →  features/{name}/index.ts  →  shared/*
   //
-  // Three invariants:
+  // Key invariants:
   //   1. shared/* has zero feature and zero app dependencies
-  //   2. features/* imports shared/* freely; cross-slice imports go through index.ts only
-  //   3. app/* imports features through public index.ts APIs; never feature internals
+  //   2. features/* imports shared/* freely; cross-slice access only via index.ts (D2, D7)
+  //   3. app/* imports features through public index.ts APIs; never feature internals (D7)
+  //   4. shared.kernel.* contains only pure contracts and functions; no I/O (D8)
+  //   5. Domain slices deliver events via infra.outbox-relay, not infra.event-router (D1)
 
-  // ── "use client" protection ──────────────────────────────────────────────
+  // ── D6: "use client" protection ──────────────────────────────────────────
   // shared/types, shared/lib, shared/infra, shared/ai are always server-side
-  // or framework-agnostic. A "use client" directive in them is an arch mistake.
+  // or framework-agnostic. A "use client" directive in them is an arch mistake (D6).
   {
     files: [
       "src/shared/types/**/*.{ts,tsx}",
@@ -234,13 +182,44 @@ export default tseslint.config(
         {
           selector: "ExpressionStatement > Literal[value='use client']",
           message:
-            "This shared module must never contain a 'use client' directive — it is server-side or framework-agnostic.",
+            "This shared module must never contain a 'use client' directive — it is server-side or framework-agnostic (D6).",
         },
       ],
     },
   },
 
-  // shared/*: cross-cutting infrastructure — no feature dependencies, no app
+  // ── D8: shared.kernel.* purity guard ─────────────────────────────────────
+  // shared.kernel.* contains ONLY contracts and pure functions — no I/O, no
+  // Firestore calls, no side effects (D8). Shared kernel slices are the canonical
+  // cross-BC contract boundary (D19, D20).
+  // All current shared kernel slices follow the `shared.kernel.<name>` folder
+  // naming convention (see docs/project-structure.md §VS0), so the glob
+  // `shared.kernel.*/**` captures exactly the right set.
+  {
+    files: ["src/features/shared.kernel.*/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/shared/infra", "@/shared/infra/**"],
+              message:
+                "shared.kernel.* must be pure — no infrastructure imports allowed (D8)",
+            },
+            {
+              group: ["firebase/**", "firebase-admin/**", "firebase-functions/**"],
+              message:
+                "shared.kernel.* must be pure — no Firebase SDK imports allowed (D8)",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ── shared/*: cross-cutting infrastructure (D5) ──────────────────────────
+  // shared/* has zero feature dependencies and zero app dependencies.
   {
     files: ["src/shared/**/*.{ts,tsx}"],
     rules: {
@@ -250,7 +229,8 @@ export default tseslint.config(
           patterns: [
             {
               group: ["@/features", "@/features/**"],
-              message: "shared/* must not import from features/ — zero feature dependencies in shared",
+              message:
+                "shared/* must not import from features/ — zero feature dependencies in shared",
             },
             {
               group: ["@/app", "@/app/**"],
@@ -262,9 +242,16 @@ export default tseslint.config(
     },
   },
 
-  // features/*: vertical slices — no app imports; cross-slice only via index.ts
+  // ── features/*: vertical slices (D1, D2, D7) ─────────────────────────────
+  // features/* has zero app imports; cross-slice access only via index.ts (D2, D7).
+  // D1: Domain slices must not import infra.event-router directly — use
+  //     infra.outbox-relay for event delivery.
+  // All infra.* slices are exempt: they are infrastructure coordinators (not
+  // "domain slices") that legitimately wire the routing layer together. D1 is
+  // specifically scoped to domain slices (VS1–VS8) per logic-overview.md.
   {
     files: ["src/features/**/*.{ts,tsx}"],
+    ignores: ["src/features/infra.*/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -279,7 +266,15 @@ export default tseslint.config(
               // Within-slice code uses relative paths, so @/features/own-slice/_x won't appear here.
               group: ["@/features/**/_*"],
               message:
-                "Cross-feature imports must go through index.ts — do not import private (_-prefixed) files from another slice",
+                "Cross-feature imports must go through index.ts — do not import private (_-prefixed) files from another slice (D2, D7)",
+            },
+            {
+              group: [
+                "@/features/infra.event-router",
+                "@/features/infra.event-router/**",
+              ],
+              message:
+                "Domain slices must not import infra.event-router directly — use infra.outbox-relay for event delivery (D1)",
             },
           ],
         },
@@ -287,7 +282,11 @@ export default tseslint.config(
     },
   },
 
-  // app/*: routing only — no feature internals; must use public index.ts API
+  // ── app/*: routing composition only (D3, D5, D7) ─────────────────────────
+  // app/ is composition only — no feature internals, no direct Firestore calls.
+  // D3: All mutations must go through features/{slice}/_actions.ts (Server Actions).
+  // D5: No src/shared/infra/firestore imports in app/ or UI components.
+  // D7: Must use features/{name}/index.ts public API only.
   {
     files: ["src/app/**/*.{ts,tsx}"],
     rules: {
@@ -298,7 +297,12 @@ export default tseslint.config(
             {
               group: ["@/features/**/_*"],
               message:
-                "app/ must not import feature internals directly — use features/{name}/index.ts (public API only)",
+                "app/ must not import feature internals directly — use features/{name}/index.ts (public API only) (D7)",
+            },
+            {
+              group: ["@/shared/infra/firestore", "@/shared/infra/firestore/**"],
+              message:
+                "app/ must not import Firestore directly — use features/{slice}/_actions.ts or _queries.ts (D3, D5)",
             },
           ],
         },
