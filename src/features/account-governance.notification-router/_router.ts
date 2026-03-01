@@ -71,7 +71,7 @@ export function registerNotificationRouter(): RouterRegistration {
       await deliverNotification(payload.targetAccountId, {
         title: '排程取消通知',
         message: `您的排程指派已被取消${payload.reason ? `：${payload.reason}` : ''}`,
-        type: 'warning',
+        type: 'alert',
         sourceEvent: 'organization:schedule:assignmentCancelled',
         sourceId: payload.scheduleItemId,
         workspaceId: payload.workspaceId,

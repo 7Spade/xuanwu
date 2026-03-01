@@ -67,6 +67,7 @@ export const unassignMemberFromScheduleItem = repositories.unassignMemberFromSch
 export const updateScheduleItemStatus = repositories.updateScheduleItemStatus
 export const assignMemberAndApprove = repositories.assignMemberAndApprove
 export const toggleDailyLogLike = repositories.toggleDailyLogLike
+export const addDailyLogComment = repositories.addDailyLogComment
 
 // ==================================================================
 // == Read-Only Aggregate Exports
