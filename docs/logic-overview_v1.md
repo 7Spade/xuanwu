@@ -1,5 +1,5 @@
 %%  ╔══════════════════════════════════════════════════════════════════════════╗
-%%  ║  LOGIC OVERVIEW v13 — ARCHITECTURE SSOT (FULL REDESIGN)                ║
+%%  ║  LOGIC OVERVIEW v1 — ARCHITECTURE SSOT (FULL REDESIGN)                ║
 %%  ║  設計原則：                                                              ║
 %%  ║    ① 統一由上至下：外部入口 → 閘道 → 領域 → 事件總線 → 投影 → 查詢出口  ║
 %%  ║    ② SK 契約集中定義，所有節點僅引用不重複宣告                           ║
