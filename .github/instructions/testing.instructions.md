@@ -1,15 +1,29 @@
 ---
 applyTo: '**/*.{ts,tsx,js,jsx}'
-description: 'Use Playwright MCP (playwright-browser_* tools) for browser-based E2E testing. Do not use browser_eval or next-devtools-browser_eval.'
+description: 'Testing workflow: Playwright MCP (playwright-browser_* tools) for browser/UI/E2E, next-devtools MCP (nextjs_index/nextjs_call) for RSC/route diagnostics. Use each for its purpose; never call browser_eval(action:evaluate) during a Playwright snapshot flow.'
 ---
 
-# Testing with Playwright MCP
+# Testing with Playwright MCP + next-devtools MCP
 
-Use the `playwright-browser_*` MCP tools for all browser-based testing.
+Two independent MCPs serve different purposes and are used together in a full testing workflow.
 
-> ⚠️ Do **NOT** use `next-devtools-browser_eval` or `browser_eval` with `action: "evaluate"` — they lock the browser and make `playwright-browser_snapshot` unavailable.
+> ⚠️ **Critical**: `browser_eval` with `action: "evaluate"` **locks the browser** and breaks subsequent `playwright-browser_snapshot` calls. Use `next-devtools-nextjs_index` / `next-devtools-nextjs_call` for server diagnostics — these do **not** touch the browser and are safe alongside Playwright.
 
-## Tool Reference
+## Tool Responsibilities
+
+| Concern | Tool |
+|---------|------|
+| UI interactions (click, fill, type) | `playwright-browser_*` |
+| Browser console errors | `playwright-browser_console_messages` |
+| Visual verification / screenshots | `playwright-browser_take_screenshot` |
+| Accessibility tree / element refs | `playwright-browser_snapshot` |
+| RSC boundary / Server-Client split | `next-devtools-nextjs_call` |
+| Parallel Route `@slot` validation | `next-devtools-nextjs_call` |
+| Suspense/Streaming analysis | `next-devtools-nextjs_call` |
+| Build / compilation errors | `next-devtools-nextjs_call` |
+| Route listing / diagnostics | `next-devtools-nextjs_index` + `nextjs_call` |
+
+## Playwright MCP Tool Reference
 
 | Task | Tool |
 |------|------|
@@ -42,6 +56,7 @@ Use the `playwright-browser_*` MCP tools for all browser-based testing.
 5. `playwright-browser_snapshot` → fresh refs for new page
 6. `playwright-browser_console_messages` → check for errors
 7. `playwright-browser_take_screenshot` → visual evidence
+8. *(Optional)* `next-devtools-nextjs_call` → RSC/route diagnostics if SSR errors found
 
 ## Test Credentials (Dev/Test only)
 

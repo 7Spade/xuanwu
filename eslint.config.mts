@@ -154,7 +154,7 @@ export default tseslint.config(
   },
 
   // ── VSA one-way dependency rules (D1–D12, D19–D20) ──────────────────────
-  // Reference: docs/logic-overview.md §D1–D20, docs/project-structure.md §D1–D12
+  // Reference: docs/logic-overview.md §D1–D25
   //
   // Enforced dependency direction:
   //
@@ -189,12 +189,13 @@ export default tseslint.config(
     },
   },
 
-  // ── D8: shared-kernel purity guard ───────────────────────────────────────
-  // shared-kernel contains ONLY contracts and pure functions — no I/O, no
-  // Firestore calls, no side effects (D8). It is the canonical cross-BC
-  // contract boundary (D19, D20).
-  // Exception: centralized-tag/_aggregate.ts is an aggregate that currently
-  // calls infra adapters directly — tracked for IFirestoreRepo DI migration.
+  // ── D8: shared.kernel.* purity guard ─────────────────────────────────────
+  // shared.kernel.* contains ONLY contracts and pure functions — no I/O, no
+  // Firestore calls, no side effects (D8). Shared kernel slices are the canonical
+  // cross-BC contract boundary (D19, D20).
+  // All current shared kernel slices follow the `shared.kernel.<name>` folder
+  // naming convention (see docs/logic-overview.md §VS0 / Shared Kernel), so the glob
+  // `shared.kernel.*/**` captures exactly the right set.
   {
     files: ["src/features/shared-kernel/**/*.{ts,tsx}"],
     ignores: ["src/features/shared-kernel/centralized-tag/**"],

@@ -1,13 +1,15 @@
 ---
 applyTo: '**/*.tsx, **/*.ts, **/*.jsx, **/*.js'
-description: 'Use Playwright MCP (playwright-browser_* tools) for browser-based testing: navigate pages, fill forms, click elements, capture screenshots, and read console logs. Do not use browser_eval or next-devtools-browser_eval for E2E testing.'
+description: 'Playwright MCP (playwright-browser_* tools) for browser-based E2E testing. next-devtools MCP (nextjs_index/nextjs_call) for RSC/route server diagnostics. Do NOT call browser_eval with action:evaluate during a Playwright snapshot flow — it locks the browser.'
 ---
 
 # Playwright MCP Testing
 
 Use the `playwright-browser_*` MCP tools for all browser-based testing.
 
-> ⚠️ Do **NOT** use `next-devtools-browser_eval` or `browser_eval` with `action: "evaluate"` for E2E testing — they lock the browser and make `playwright-browser_snapshot` unavailable.
+> ⚠️ Do **NOT** use `next-devtools-browser_eval` with `action: "evaluate"` during a Playwright MCP flow — it locks the browser and makes `playwright-browser_snapshot` unavailable.
+>
+> `next-devtools-nextjs_index` / `next-devtools-nextjs_call` query the **Next.js dev server** (not the browser) and are **safe to use alongside Playwright**.
 
 ## Tool Reference
 
