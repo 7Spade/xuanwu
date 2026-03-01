@@ -15,8 +15,9 @@ import type { ScheduleStatus } from "@/shared/types"
  */
 export const VALID_STATUS_TRANSITIONS: Record<ScheduleStatus, ScheduleStatus[]> = {
   PROPOSAL: ["OFFICIAL", "REJECTED"],
-  OFFICIAL: ["REJECTED"],
+  OFFICIAL: ["COMPLETED", "REJECTED"],
   REJECTED: ["PROPOSAL"],
+  COMPLETED: [],
 }
 
 // ---------------------------------------------------------------------------

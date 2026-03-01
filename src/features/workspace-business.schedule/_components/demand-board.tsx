@@ -1,9 +1,14 @@
 'use client';
 
 /**
- * projection.demand-board — _components/demand-board.tsx
+ * workspace-business.schedule — _components/demand-board.tsx
  *
  * Demand Board UI — org HR real-time view of open and assigned demands.
+ *
+ * Relocated from projection.demand-board/_components/demand-board.tsx to
+ * eliminate the circular dependency between projection.demand-board ↔
+ * workspace-business.schedule. Projection slices contain only projector
+ * functions and read queries; UI lives in the business slice.
  *
  * Single source of truth: accounts/{orgId}/schedule_items.
  * All three schedule tabs (Calendar, DemandBoard, HR Governance) read from this
@@ -20,7 +25,7 @@ import { useAccount } from '@/features/workspace-core';
 import {
   approveScheduleItemWithMember,
   updateScheduleItemStatus,
-} from '@/features/workspace-business.schedule';
+} from '../_actions';
 import { useApp } from '@/shared/app-providers/app-context';
 import { toast } from '@/shared/utility-hooks/use-toast';
 import type { ScheduleItem } from '@/shared/types';
@@ -218,7 +223,7 @@ export function DemandBoard() {
   const orgMembers = useMemo<OrgMember[]>(() => {
     if (!orgId) return [];
     const org = accounts[orgId];
-    return (org?.members ?? []).map((m: OrgMember) => ({ id: m.id, name: m.name }));
+    return (org?.members ?? []).map((m) => ({ id: m.id as string, name: m.name as string }));
   }, [orgId, accounts]);
 
   if (!orgId) {

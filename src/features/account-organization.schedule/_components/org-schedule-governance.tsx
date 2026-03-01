@@ -25,7 +25,7 @@ import { useAccount } from '@/features/workspace-core';
 import {
   approveScheduleItemWithMember,
   updateScheduleItemStatus,
-} from '@/features/workspace-business.schedule';
+} from '../_actions';
 import { toast } from '@/shared/utility-hooks/use-toast';
 import type { ScheduleItem } from '@/shared/types';
 import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';

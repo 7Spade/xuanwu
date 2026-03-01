@@ -10,6 +10,7 @@ export { ProposalDialog } from './_components/proposal-dialog'
 export { ScheduleProposalContent } from './_components/schedule-proposal-content'
 export { ScheduleDataTable } from './_components/schedule-data-table'
 export { UnifiedCalendarGrid } from './_components/unified-calendar-grid'
+export { DemandBoard } from './_components/demand-board'
 // Hooks
 export { useGlobalSchedule } from './_hooks/use-global-schedule'
 export { useScheduleActions } from './_hooks/use-schedule-commands'

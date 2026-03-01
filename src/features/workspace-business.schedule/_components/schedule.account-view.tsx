@@ -35,7 +35,7 @@ import { Button } from "@/shared/shadcn-ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
 import { useScheduleActions } from "../_hooks/use-schedule-commands";
 import { useApp } from "@/shared/app-providers/app-context";
-import { DemandBoard } from "@/features/projection.demand-board";
+import { DemandBoard } from "./demand-board";
 import { OrgScheduleGovernance } from "@/features/account-organization.schedule";
 
 export function AccountScheduleSection() {

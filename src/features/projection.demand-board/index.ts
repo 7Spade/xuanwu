@@ -24,5 +24,3 @@ export {
   subscribeToDemandBoard,
   DEMAND_BOARD_STALENESS,
 } from './_queries';
-
-export { DemandBoard } from './_components/demand-board';

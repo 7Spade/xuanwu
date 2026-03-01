@@ -20,11 +20,80 @@
 
 import { approveOrgScheduleProposal, cancelOrgScheduleProposal, completeOrgSchedule } from './_schedule';
 import {
+  assignMemberAndApprove,
+  updateScheduleItemStatus as updateScheduleItemStatusRepo,
+} from '@/shared/infra/firestore/firestore.facade';
+import {
   type CommandResult,
   commandSuccess,
   commandFailureFrom,
 } from '@/features/shared.kernel.contract-interfaces';
 import type { SkillRequirement } from '@/features/shared.kernel.skill-tier';
+
+// =================================================================
+// Lightweight facade-level schedule item mutations
+// (Used by OrgScheduleGovernance — no domain-logic pass-through required)
+// =================================================================
+
+/**
+ * Assigns a member to a schedule item and marks it OFFICIAL in one write.
+ *
+ * This is the "fast path" used by the HR governance UI when the actor
+ * has already validated skill eligibility via the org-eligible-member-view
+ * projection (FR-W2). It does not re-run domain-level skill-tier checks.
+ *
+ * Use manualAssignScheduleMember when you need the full domain validation.
+ *
+ * @param organizationId - The org account ID owning the schedule item.
+ * @param itemId         - The schedule item document ID.
+ * @param memberId       - The account ID of the member to assign.
+ */
+export async function approveScheduleItemWithMember(
+  organizationId: string,
+  itemId: string,
+  memberId: string
+): Promise<CommandResult> {
+  try {
+    await assignMemberAndApprove(organizationId, itemId, memberId);
+    return commandSuccess(itemId, Date.now());
+  } catch (err) {
+    return commandFailureFrom(
+      'APPROVE_SCHEDULE_ITEM_FAILED',
+      err instanceof Error ? err.message : 'Failed to approve schedule item'
+    );
+  }
+}
+
+/**
+ * Updates the status of a schedule item (OFFICIAL | REJECTED | COMPLETED).
+ *
+ * Used by the HR governance UI to reject proposals or mark items completed
+ * without re-running the full domain lifecycle (which requires saga/event context).
+ *
+ * For the full domain-validated complete flow, use completeOrgScheduleAction.
+ *
+ * @param organizationId - The org account ID owning the schedule item.
+ * @param itemId         - The schedule item document ID.
+ * @param newStatus      - The target status:
+ *   - `OFFICIAL`   → confirm the proposal (normally done via approveScheduleItemWithMember)
+ *   - `REJECTED`   → cancel/reject a PROPOSAL before it is assigned
+ *   - `COMPLETED`  → mark an OFFICIAL assignment as done (FR-S6)
+ */
+export async function updateScheduleItemStatus(
+  organizationId: string,
+  itemId: string,
+  newStatus: 'OFFICIAL' | 'REJECTED' | 'COMPLETED'
+): Promise<CommandResult> {
+  try {
+    await updateScheduleItemStatusRepo(organizationId, itemId, newStatus);
+    return commandSuccess(itemId, Date.now());
+  } catch (err) {
+    return commandFailureFrom(
+      'UPDATE_SCHEDULE_ITEM_STATUS_FAILED',
+      err instanceof Error ? err.message : 'Failed to update schedule item status'
+    );
+  }
+}
 
 // =================================================================
 // FR-W6 — Manual Assignment (Critical Gap #0)
