@@ -28,7 +28,7 @@ import type { SkillRequirement } from '@/features/shared-kernel';
 import { tierSatisfies } from '@/features/shared-kernel';
 import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
-import { SKILLS } from '@/shared/constants/skills';
+import { findSkill } from '@/shared/constants/skills';
 import type { Timestamp } from '@/shared/ports';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
@@ -56,11 +56,9 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Static slug → display-name lookup so we never show raw tagSlug in the UI. */
-const SKILL_NAME_MAP = new Map<string, string>(SKILLS.map((s) => [s.slug, s.name]));
-
+/** Returns the human-readable display name for a skill slug. */
 function getSkillName(slug: string): string {
-  return SKILL_NAME_MAP.get(slug) ?? slug;
+  return findSkill(slug)?.name ?? slug;
 }
 
 function formatTimestamp(ts: Timestamp | string | undefined): string {
@@ -156,19 +154,24 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
    */
   const { fullMatch, partialMatch, noMatch } = useMemo(() => {
     const hasRequirements = (item.requiredSkills?.length ?? 0) > 0;
-    const full: typeof orgMembers = [];
-    const partial: typeof orgMembers = [];
-    const none: typeof orgMembers = [];
+    const full: Array<{ id: string; name: string }> = [];
+    const partial: Array<{ id: string; name: string; matched: number; total: number }> = [];
+    const none: Array<{ id: string; name: string }> = [];
 
     for (const m of orgMembers) {
       if (!hasRequirements) {
         none.push(m);
         continue;
       }
+      // Members absent from eligibleMembers cannot be matched — treat as noMatch.
       const view = eligibleMembers.find((e) => e.accountId === m.id);
-      const [matched, total] = view ? computeSkillMatch(view, item.requiredSkills) : [0, 0];
+      if (!view) {
+        none.push(m);
+        continue;
+      }
+      const [matched, total] = computeSkillMatch(view, item.requiredSkills);
       if (matched === total) full.push(m);
-      else if (matched > 0) partial.push(m);
+      else if (matched > 0) partial.push({ ...m, matched, total });
       else none.push(m);
     }
     return { fullMatch: full, partialMatch: partial, noMatch: none };
@@ -236,22 +239,16 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
                     <SelectLabel className="text-[9px] font-bold uppercase tracking-widest text-amber-600" aria-label={`部分符合技能，共 ${partialMatch.length} 人`}>
                         ◑ 部分符合（{partialMatch.length}）
                     </SelectLabel>
-                      {partialMatch.map((m) => {
-                        const view = eligibleMembers.find((e) => e.accountId === m.id);
-                        const [matched, total] = view
-                          ? computeSkillMatch(view, item.requiredSkills)
-                          : [0, 0];
-                        return (
+                      {partialMatch.map((m) => (
                           <SelectItem key={m.id} value={m.id} className="text-xs">
                             <span className="flex items-center gap-1.5">
                               {m.name}
                               <span className="text-[9px] font-bold text-amber-500">
-                                {matched}/{total}
+                                {m.matched}/{m.total}
                               </span>
                             </span>
                           </SelectItem>
-                        );
-                      })}
+                        ))}
                     </SelectGroup>
                   </>
                 )}
