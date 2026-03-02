@@ -17,13 +17,13 @@
     "node": "22"
   },
   "scripts": {
-    "install": "npm install --legacy-peer-deps",
     "dev": "next dev --turbopack -p 9002",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint --config eslint.config.mts .",
+    "lint": "eslint --cache --cache-location .eslintcache --config eslint.config.mts .",
+    "lint:fix": "npm run lint -- --fix",
     "typecheck": "tsc --noEmit",
     "check": "npm install && npm run lint && npm run typecheck",
     "deploy:functions": "firebase deploy --only functions --config ./src/shared-infra/firebase/firebase.json",
@@ -99,24 +99,25 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.17.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-config-next": "^15.1.0",
+    "eslint-config-next": "^15.5.12",
     "eslint-plugin-check-file": "^3.3.1",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-import-x": "^4.16.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-unused-imports": "^4.4.1",
     "genkit-cli": "^1.20.0",
     "globals": "^15.14.0",
     "jiti": "^2.6.1",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.56.1"
   },
   "overrides": {
-    "eslint": "^9.17.0"
+    "eslint": "^9.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1"
   }
 }

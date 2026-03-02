@@ -42,7 +42,9 @@
       "observations": [
         "Hard invariants = R/S/(A#)/(#N). Index semantics: #N = consistency/design invariant, A# = atomicity/transaction invariant.",
         "Critical retained references: #9 replay rebuildability, #12 getTier(xp) purity, #14 scheduling reads ORG_ELIGIBLE_MEMBER_VIEW, #19 monotonic aggregateVersion guard, A8 one-command-one-aggregate TX, A9 scope-guard re-source.",
-        "SSOT fallback: use docs/logic-overview.md for full definitions and implementation details."
+        "SSOT fallback: use docs/logic-overview.md for full definitions and implementation details.",
+        "A11 Occam's Razor: Simplicity is a hard constraint. Do not multiply entities or abstractions beyond necessity. Use 'sequential-thinking mcp' to validate the simplest path before implementation.",
+        "A12 Unified IO: All state mutations must pass through L2 Command Gateway; all data reads via L6 Query Gateway. Direct infrastructure access (L8) is strictly forbidden."
       ]
     },
     {
@@ -50,7 +52,10 @@
       "entityType": "Design_Rule",
       "observations": [
         "Design rules D1-D25 are all mandatory governance constraints.",
-        "Enforcement hotspots: D7 public slice boundary via {slice}/index.ts; D24 no direct firebase/* import in feature slices; D25 new Firebase capability must enter through FIREBASE_ACL + SK_PORTS."
+        "Enforcement hotspots: D7 public slice boundary via {slice}/index.ts; D24 no direct firebase/* import in feature slices; D25 new Firebase capability must enter through FIREBASE_ACL + SK_PORTS.",
+        "D26 Style Consistency: Adhere strictly to project .prettierrc and ESLint rules. Use 'ESLint mcp' for style-rule validation.",
+        "UI component source consistency: use 'shadcn mcp' as the primary source for generated UI components.",
+        "D27 Type Truth: All domain entities must be defined in L1 Shared Kernel (SK_DATA). No duplicate type definitions allowed in local feature slices. Trace type origins and contracts using 'software-planning mcp'."
       ]
     },
     {
@@ -66,7 +71,93 @@
       "entityType": "Tag_Semantics",
       "observations": [
         "Tag semantics source: standalone TAG_AUTH authority (outside SharedKernel) under D21 governance.",
-        "Critical retained references: T4 scheduling demand uses SK_SKILL_REQ × tagSlug; T5 TAG_SNAPSHOT is read-only to consumers."
+        "Critical retained references: T4 scheduling demand uses SK_SKILL_REQ × tagSlug; T5 TAG_SNAPSHOT is read-only to consumers.",
+        "Tooling MCP governance is modeled via dedicated Tooling_MCP entities and relations.",
+        "Relation note: T_Category → A_Category (validates) denotes tooling-assisted conformance checks against architecture invariants and applies to all Tooling_MCP entities unless a narrower relation overrides it."
+      ]
+    },
+    {
+      "name": "A11 Occam's Razor",
+      "entityType": "Architecture_Invariant",
+      "observations": [
+        "Simplicity is a hard constraint; validate simplest implementation path before expanding abstractions."
+      ]
+    },
+    {
+      "name": "A12 Unified IO",
+      "entityType": "Architecture_Invariant",
+      "observations": [
+        "Writes pass through L2 Command Gateway and reads pass through L6 Query Gateway; direct L8 access is forbidden."
+      ]
+    },
+    {
+      "name": "D26 Style Consistency",
+      "entityType": "Design_Rule",
+      "observations": [
+        "Enforce project Prettier and ESLint baselines with MCP-assisted validation."
+      ]
+    },
+    {
+      "name": "D27 Type Truth",
+      "entityType": "Design_Rule",
+      "observations": [
+        "Domain entity types are defined once in L1 Shared Kernel and reused without local duplication."
+      ]
+    },
+    {
+      "name": "sequential-thinking mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used to evaluate logic complexity and confirm the simplest valid implementation path."
+      ]
+    },
+    {
+      "name": "filesystem mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used for precise read/write operations within repository boundaries."
+      ]
+    },
+    {
+      "name": "context7 mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used to retrieve authoritative, up-to-date technical documentation and architecture references."
+      ]
+    },
+    {
+      "name": "shadcn mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used to generate UI components with consistent design and implementation patterns."
+      ]
+    },
+    {
+      "name": "next-devtools mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used to inspect Next.js runtime behavior, hydration state, and route diagnostics."
+      ]
+    },
+    {
+      "name": "ESLint mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used as an automated gatekeeper for lint compliance and style consistency."
+      ]
+    },
+    {
+      "name": "memory mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used to store and retrieve long-term project decisions and conventions."
+      ]
+    },
+    {
+      "name": "software-planning mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used to model type contracts, architecture boundaries, and domain modeling workflows."
       ]
     },
     {
@@ -153,6 +244,31 @@
       "from": "T_Category",
       "to": "D_Category",
       "relationType": "aligned_with"
+    },
+    {
+      "from": "T_Category",
+      "to": "A_Category",
+      "relationType": "validates"
+    },
+    {
+      "from": "sequential-thinking mcp",
+      "to": "A11 Occam's Razor",
+      "relationType": "supports"
+    },
+    {
+      "from": "context7 mcp",
+      "to": "L_Category",
+      "relationType": "explains_design"
+    },
+    {
+      "from": "ESLint mcp",
+      "to": "D26 Style Consistency",
+      "relationType": "guarantees"
+    },
+    {
+      "from": "software-planning mcp",
+      "to": "A12 Unified IO",
+      "relationType": "plans"
     },
     {
       "from": "E_Category",
