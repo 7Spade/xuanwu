@@ -13,7 +13,10 @@
       "entityType": "System_Layer",
       "observations": [
         "Layer pipeline: L0 External Triggers → L1 Shared Kernel → L2 Command Gateway → L3 Domain Slices → L4 IER → L5 Projection Bus → L6 Query Gateway → L7 Firebase ACL → L8 Firebase Infra → L9 Observability.",
-        "Infrastructure note: L5 ProjectionBus and L9 Observability are infrastructure layers (no VS designation)."
+        "Infrastructure note: L5 ProjectionBus and L9 Observability are infrastructure layers (no VS designation).",
+        "Runtime stack snapshot: Next.js 15 App Router + React 19 + TypeScript 5 + Tailwind CSS 3 + Firebase SDK; dev server runs with Turbopack.",
+        "Routing architecture snapshot: route groups ((public)/(shell)) + parallel routes (@modal/@header/@sidebar/@panel/@businesstab) + intercepting routes ((.)*) for overlay flows.",
+        "Top-level source baseline: src/, src/app/, src/app-runtime/, src/config/, src/features/, src/shared/, src/shared-infra/."
       ]
     },
     {
