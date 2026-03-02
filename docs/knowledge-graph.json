@@ -1,11 +1,11 @@
 {
   "meta": {
-    "version": "5.0.0",
+    "version": "6.0.0",
     "initializedAt": "2026-03-01",
-    "updatedAt": "2026-03-01",
+    "updatedAt": "2026-03-02",
     "source": "docs/logic-overview.md (SSOT — sole authoritative source)",
     "ssot": "docs/logic-overview.md",
-    "note": "v5.0.0: full rewrite derived exclusively from logic-overview.md. Removed all references to deleted supplementary docs. Entities and relations reflect the L0-L9 layered architecture, VS0-VS9 vertical slices, 6 SK infra contracts (S1-S6), 6 tag semantic entities (TE1-TE6), development rules D1-D25, consistency invariants #1-#19, and atomicity rules #A1-#A11."
+    "note": "v6.0.0: ontology fixes — VS8/VS9 removed from VS namespace (now L5/L9 infrastructure only); Tag Authority extracted from Shared Kernel as standalone domain authority; EventEnvelope gains causationId + correlationId; Hard Invariants (R/S/A/#) vs Governance Rules (D/P/T/E) distinction added; L3 Domain Slices explicitly declared as VS1-VS7; Quick Reference tables added to logic-overview.md header."
   },
   "entities": [
     {
@@ -13,10 +13,11 @@
       "entityType": "Data_Schema",
       "observations": [
         "File: docs/logic-overview.md — SINGLE SOURCE OF TRUTH for ALL architecture decisions. All conflicts resolve to this file.",
-        "Defines 10-layer architecture: L0 External Triggers → L1 Shared Kernel → L2 Command Gateway → L3 Domain Slices (VS1-VS7) → L4 IER → L5 Projection Bus (VS8) → L6 Query Gateway → L7 Firebase ACL → L8 Firebase Infra → L9 Observability (VS9).",
+        "Defines 10-layer architecture: L0 External Triggers → L1 Shared Kernel → L2 Command Gateway → L3 Domain Slices (VS1-VS7) → L4 IER → L5 Projection Bus (infrastructure only, no VS designation) → L6 Query Gateway → L7 Firebase ACL → L8 Firebase Infra → L9 Observability (cross-cutting infrastructure, no VS designation).",
         "Design principles: ① top-down unified flow; ② SK contracts centralised, no re-declarations; ③ Firebase boundary explicit (FIREBASE_ACL sole SDK call point); ④ three gateway separation CMD/IER/QGWAY; ⑤ all invariants indexed inline [#N]/[SN]/[RN].",
         "Key invariants: [R8] traceId injected once at CBG_ENTRY, read-only; [S2] all Projections must call applyVersionGuard(); [S4] SLA values only from SK_STALENESS_CONTRACT; [D7] cross-slice refs only via {slice}/index.ts; [D21] new tag categories only in CTA TAG_ENTITIES; [D24] feature slices must not import firebase/* directly.",
-        "Forbidden patterns: BC_X direct write to BC_Y aggregate; TX Runner producing Domain Events; SECURITY_BLOCK DLQ auto-replay; B-track calling back A-track; direct firebase/* imports in feature slices."
+        "Forbidden patterns: BC_X direct write to BC_Y aggregate; TX Runner producing Domain Events; SECURITY_BLOCK DLQ auto-replay; B-track calling back A-track; direct firebase/* imports in feature slices.",
+        "Quick Reference: VS0–VS7 are Business Capability Domains only. L5(ProjectionBus) and L9(Observability) are Infrastructure — they hold NO VS designation. Hard Invariants: R(Runtime)·S(SystemContract)·A(Architecture)·#(SSOT-index). Governance Rules: D(DesignRule)·P(Policy)·T(TagSemantics)·E(EventSemantics). EventEnvelope fields: version·traceId·causationId·correlationId·timestamp."
       ]
     },
     {
@@ -35,7 +36,7 @@
       "entityType": "Data_Schema",
       "observations": [
         "Shared Kernel (VS0) L1 — foundation data contracts group [#8].",
-        "SK_ENV (event-envelope): version · traceId · timestamp; idempotency-key = eventId+aggId+version; [R8] traceId shared across full chain, read-only after CBG_ENTRY injection.",
+        "SK_ENV (event-envelope): version · traceId · causationId · correlationId · timestamp; idempotency-key = eventId+aggId+version; [R8] traceId shared across full chain, read-only after CBG_ENTRY injection. causationId = ID of the command/event that triggered this event; correlationId = shared ID for saga/replay/audit chain linkage.",
         "SK_AUTH_SNAP (authority-snapshot): claims / roles / scopes; TTL = Token valid period.",
         "SK_SKILL_TIER (skill-tier pure function): getTier(xp)→Tier; never persisted to DB [#12].",
         "SK_SKILL_REQ (skill-requirement): tagSlug × minXp; cross-slice workforce demand contract.",
@@ -115,7 +116,8 @@
         "TAG_ENTS group defines 6 AI-ready semantic tag entities (TE1-TE6) — new categories must be declared here [D21].",
         "Lifecycle: CTA emits TagLifecycleEvent (in-process) → tag-outbox [SK_OUTBOX: SAFE_AUTO] → IER BACKGROUND_LANE.",
         "Read-only reference rule: downstream slices subscribe to TagLifecycleEvent; they must not write to CTA [T5].",
-        "TAG_STALE_GUARD enforces [S4: TAG_MAX_STALENESS ≤ 30s]; deprecated tags trigger StaleTagWarning → VS9."
+        "TAG_STALE_GUARD enforces [S4: TAG_MAX_STALENESS ≤ 30s]; deprecated tags trigger StaleTagWarning → L9(Observability).",
+        "ONTOLOGY FIX: Tag Authority (CTA) is a domain authority with lifecycle — it is NOT a passive contract layer. It is extracted from Shared Kernel (L1) and declared as standalone subgraph TAG_AUTH. This prevents SK from degrading from a passive-contract layer into a business domain. [#A6 #17]"
       ]
     },
     {
@@ -250,7 +252,7 @@
       "entityType": "Architecture_Decision",
       "observations": [
         "Layer 4: Integration Event Router (IER) — unified event routing bus.",
-        "outbox-relay-worker: shared infra consumed by all OUTBOXes; scans via Firestore onSnapshot (CDC); delivers OUTBOX → IER lane; on failure: retry backoff → 3 failures → DLQ; emits relay_lag metric → VS9.",
+        "outbox-relay-worker: shared infra consumed by all OUTBOXes; scans via Firestore onSnapshot (CDC); delivers OUTBOX → IER lane; on failure: retry backoff → 3 failures → DLQ; emits relay_lag metric → L9(Observability).",
         "integration-event-router: sole event exit [#9]; preserves envelope.traceId, never overwrites [R8].",
         "Three priority lanes [P1]: CRITICAL_LANE (RoleChanged→Claims refresh [S6], WalletDeducted/Credited, OrgContextProvisioned, SLA: deliver ASAP); STANDARD_LANE (SkillXpAdded/Deducted, ScheduleAssigned/Proposed, MemberJoined/Left, SLA < 2s); BACKGROUND_LANE (TagLifecycleEvent, AuditEvents, SLA < 30s).",
         "DLQ three-tier [R5 S1]: SAFE_AUTO → auto replay (preserves idempotency-key); REVIEW_REQUIRED → human confirm then replay (finance/scheduling/role); SECURITY_BLOCK → alert + freeze + human confirm, no auto-replay.",
@@ -258,10 +260,10 @@
       ]
     },
     {
-      "name": "VS8_Projection_Bus",
+      "name": "L5_Projection_Bus",
       "entityType": "Architecture_Decision",
       "observations": [
-        "VS8: Projection Bus — Layer 5 event projection bus (at src/features/projection.bus/). 8 sub-dirs: account-audit, account-view, global-audit-view, org-eligible-member-view, organization-view, tag-snapshot, workspace-scope-guard, workspace-view.",
+        "L5: Projection Bus — Layer 5 event projection bus (at src/features/projection.bus/). 8 sub-dirs: account-audit, account-view, global-audit-view, org-eligible-member-view, organization-view, tag-snapshot, workspace-scope-guard, workspace-view. ONTOLOGY FIX: Projection Bus is infrastructure/cross-cutting — it holds NO VS designation. Mermaid subgraph ID renamed from VS8 to PROJ_BUS.",
         "event-funnel [#9 Q3 R8 S2]: sole Projection write path; upsert by idempotency-key [Q3]; reads traceId from envelope → DOMAIN_METRICS [R8]; ALL lanes enforce SK_VERSION_GUARD [S2] (event.aggVersion > view.lastVersion → update; else discard); WS event-store supports replay → rebuild [#9].",
         "CRITICAL_PROJ_LANE [S4: PROJ_STALE_CRITICAL ≤ 500ms]: projection.workspace-scope-guard-view [#A9 S2]; projection.org-eligible-member-view [S2 #14 #15 #16 T3] (skills{tagSlug→xp}/eligible, tag::skill [TE2], tag::skill-tier [TE3]); projection.wallet-balance [S3: EVENTUAL_READ for display, STRONG_READ for precise transactions].",
         "STANDARD_PROJ_LANE [S4: PROJ_STALE_STANDARD ≤ 10s]: projection.workspace-view; projection.account-schedule; projection.account-view; projection.organization-view; projection.account-skill-view [S2]; projection.global-audit-view (each record contains traceId [R8]); projection.tag-snapshot [S4: TAG_MAX_STALENESS; T5 consumers must not write].",
@@ -304,10 +306,10 @@
       ]
     },
     {
-      "name": "VS9_Observability",
+      "name": "L9_Observability",
       "entityType": "Architecture_Decision",
       "observations": [
-        "VS9: Observability — cross-cutting concern (at src/features/observability/). No infra.observability shim.",
+        "L9: Observability — cross-cutting concern (at src/features/observability/). No infra.observability shim. ONTOLOGY FIX: Observability is cross-cutting infrastructure — it holds NO VS designation. Mermaid subgraph ID renamed from VS9 to OBS_LAYER.",
         "trace-identifier: TraceID injected at CBG_ENTRY; shared across entire event chain [R8].",
         "domain-metrics: IER lane throughput/latency; FUNNEL lane processing time; OUTBOX RELAY lag [R1]; rate-limit hit count; circuit-breaker open/half-open events; Claims refresh success [S6].",
         "domain-error-log: WS_TX_RUNNER errors; SCHEDULE_SAGA errors; DLQ_BLOCK security events [R5]; StaleTagWarning; TOKEN_REFRESH failure alert [S6]."
@@ -636,7 +638,7 @@
     },
     {
       "from": "L4_Integration_Event_Router",
-      "to": "VS9_Observability",
+      "to": "L9_Observability",
       "relationType": "DEPENDS_ON"
     },
     {
@@ -645,43 +647,43 @@
       "relationType": "DEPENDS_ON"
     },
     {
-      "from": "VS8_Projection_Bus",
+      "from": "L5_Projection_Bus",
       "to": "SK_Version_Guard",
       "relationType": "IMPLEMENTS"
     },
     {
-      "from": "VS8_Projection_Bus",
+      "from": "L5_Projection_Bus",
       "to": "SK_Staleness_Contract",
       "relationType": "FOLLOWS"
     },
     {
-      "from": "VS8_Projection_Bus",
+      "from": "L5_Projection_Bus",
       "to": "SK_Read_Consistency",
       "relationType": "FOLLOWS"
     },
     {
-      "from": "VS8_Projection_Bus",
+      "from": "L5_Projection_Bus",
       "to": "SK_Ports",
       "relationType": "DEPENDS_ON"
     },
     {
-      "from": "VS8_Projection_Bus",
+      "from": "L5_Projection_Bus",
       "to": "Tag_Semantic_Entities",
       "relationType": "DEPENDS_ON"
     },
     {
-      "from": "VS8_Projection_Bus",
+      "from": "L5_Projection_Bus",
       "to": "L4_Integration_Event_Router",
       "relationType": "DEPENDS_ON"
     },
     {
-      "from": "VS8_Projection_Bus",
-      "to": "VS9_Observability",
+      "from": "L5_Projection_Bus",
+      "to": "L9_Observability",
       "relationType": "DEPENDS_ON"
     },
     {
       "from": "L6_Query_Gateway",
-      "to": "VS8_Projection_Bus",
+      "to": "L5_Projection_Bus",
       "relationType": "DEPENDS_ON"
     },
     {
@@ -696,7 +698,7 @@
     },
     {
       "from": "SK_Version_Guard",
-      "to": "VS8_Projection_Bus",
+      "to": "L5_Projection_Bus",
       "relationType": "CONSTRAINS"
     },
     {
@@ -711,7 +713,7 @@
     },
     {
       "from": "SK_Staleness_Contract",
-      "to": "VS8_Projection_Bus",
+      "to": "L5_Projection_Bus",
       "relationType": "CONSTRAINS"
     },
     {
@@ -741,7 +743,7 @@
     },
     {
       "from": "Consistency_Invariants",
-      "to": "VS8_Projection_Bus",
+      "to": "L5_Projection_Bus",
       "relationType": "CONSTRAINS"
     },
     {
@@ -831,17 +833,17 @@
     },
     {
       "from": "Tag_Authority_Rules",
-      "to": "VS8_Projection_Bus",
+      "to": "L5_Projection_Bus",
       "relationType": "CONSTRAINS"
     },
     {
-      "from": "VS9_Observability",
+      "from": "L9_Observability",
       "to": "Logic_Overview_SSOT",
       "relationType": "FOLLOWS"
     },
     {
       "from": "L2_Command_Gateway",
-      "to": "VS9_Observability",
+      "to": "L9_Observability",
       "relationType": "DEPENDS_ON"
     }
   ]
