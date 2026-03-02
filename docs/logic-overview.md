@@ -1,5 +1,5 @@
 %%  ╔══════════════════════════════════════════════════════════════════════════╗
-%%  ║  LOGIC OVERVIEW v1 — ARCHITECTURE SSOT (FULL REDESIGN)                ║
+%%  ║  LOGIC OVERVIEW v2 — ARCHITECTURE SSOT                                ║
 %%  ║  設計原則：                                                              ║
 %%  ║    ① 統一由上至下：外部入口 → 閘道 → 領域 → 事件總線 → 投影 → 查詢出口  ║
 %%  ║    ② SK 契約集中定義，所有節點僅引用不重複宣告                           ║
@@ -11,12 +11,36 @@
 %%    Architecture rules   → docs/logic-overview.md  ← THIS FILE
 %%    Semantic relations   → docs/knowledge-graph.json
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
+%%  QUICK REFERENCE（快速索引 — 最速取得上下文）
+%%  ── Vertical Slice（業務域 · VS0–VS7 only）──
+%%    VS0=SharedKernel  VS1=Identity   VS2=Account      VS3=Skill
+%%    VS4=Organization  VS5=Workspace  VS6=Scheduling   VS7=Notification
+%%    ※ L5(ProjectionBus) 與 L9(Observability) 為 Infrastructure，不佔用 VS 編號
+%%  ── Layer（系統層）──
+%%    L0=ExternalTriggers   L1=SharedKernel       L2=CommandGateway
+%%    L3=DomainSlices       L4=IER                L5=ProjectionBus
+%%    L6=QueryGateway       L7=FirebaseACL         L8=FirebaseInfra      L9=Observability
+%%    ※ L3 Domain Slices = VS1(Identity) · VS2(Account) · VS3(Skill) ·
+%%                          VS4(Organization) · VS5(Workspace) · VS6(Scheduling) · VS7(Notification)
+%%  ── Hard Invariants（不可違反）: R · S · A · # ──
+%%    R1=relay-lag-metrics   R5=DLQ-failure-rule   R6=workflow-state-rule
+%%    R7=aggVersion-relay    R8=traceId-readonly
+%%    S1=OUTBOX-contract     S2=VersionGuard       S3=ReadConsistency
+%%    S4=Staleness-SLA       S5=Resilience         S6=TokenRefresh
+%%    A3=workflow-blockedBy  A5=scheduling-saga    A8=1cmd-1agg
+%%    A9=scope-guard         A10=notification-stateless
+%%  ── Governance Rules（可演化治理）: D · P · T · E ──
+%%    D7=cross-slice-index-only   D21=tag-centralized    D24=no-firebase-import
+%%    P1=IER-lane-priority        P4=eligibility-query   P5=projection-funnel
+%%    T1=tag-lifecycle-sub        T3=eligible-tag-logic  T5=tag-snapshot-readonly
+%%    E2=OrgContextProvisioned    E3=ScheduleAssigned    E5=ws-event-flow   E6=claims-refresh
+%%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  KEY INVARIANTS（絕對遵守）:
 %%    [R8]  traceId 在 CBG_ENTRY 注入一次，全鏈唯讀不可覆蓋
 %%    [S2]  所有 Projection 寫入前必須呼叫 applyVersionGuard()
 %%    [S4]  SLA 數值只能引用 SK_STALENESS_CONTRACT，禁止硬寫
 %%    [D7]  跨切片引用只能透過 {slice}/index.ts 公開 API
-%%    [D21] 新 tag 類別只在 CTA TAG_ENTITIES 定義
+%%    [D21] 新 tag 類別只在 TAG_AUTH（Tag Authority Center）定義
 %%    [D24] Feature slice 禁止直接 import firebase/*，必須走 SK_PORTS
 %%  FORBIDDEN:
 %%    BC_X 禁止直接寫入 BC_Y aggregate → 必須透過 IER Domain Event
@@ -48,7 +72,7 @@ subgraph SK["🔷 L1 · Shared Kernel — 全域契約中心（VS0）"]
 
     subgraph SK_DATA["📄 基礎資料契約 [#8]"]
         direction LR
-        SK_ENV["event-envelope\nversion · traceId · timestamp\nidempotency-key = eventId+aggId+version\n[R8] traceId 整鏈共享・不可覆蓋"]
+        SK_ENV["event-envelope\nversion · traceId · causationId · correlationId · timestamp\nidempotency-key = eventId+aggId+version\n[R8] traceId 整鏈共享・不可覆蓋\ncausationId = 觸發此事件的命令/事件 ID\ncorrelationId = 同一 saga/replay 的關聯 ID"]
         SK_AUTH_SNAP["authority-snapshot\nclaims / roles / scopes\nTTL = Token 有效期"]
         SK_SKILL_TIER["skill-tier（純函式）\ngetTier(xp)→Tier\n永不存 DB [#12]"]
         SK_SKILL_REQ["skill-requirement\ntagSlug × minXp\n跨片人力需求契約"]
@@ -71,31 +95,6 @@ subgraph SK["🔷 L1 · Shared Kernel — 全域契約中心（VS0）"]
         SK_TOKEN["🔄 SK_TOKEN_REFRESH_CONTRACT [S6]\n觸發：RoleChanged | PolicyChanged\n  → IER CRITICAL_LANE → CLAIMS_HANDLER\n完成：TOKEN_REFRESH_SIGNAL\n客端義務：強制重取 Firebase Token\n失敗：→ DLQ SECURITY_BLOCK + 告警"]
     end
 
-    subgraph SK_TAG["🏷️ Tag Authority Center [#A6 #17]"]
-        direction TB
-        CTA["centralized-tag.aggregate\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule"]
-
-        subgraph TAG_ENTS["🏷️ AI-ready Semantic Tag Entities [D21]"]
-            direction LR
-            TE_UL["tag::user-level\ncategory: user_level"]
-            TE_SK["tag::skill\ncategory: skill"]
-            TE_ST["tag::skill-tier\ncategory: skill_tier"]
-            TE_TM["tag::team\ncategory: team"]
-            TE_RL["tag::role\ncategory: role"]
-            TE_PT["tag::partner\ncategory: partner"]
-        end
-
-        TAG_EV["TagLifecycleEvent（in-process）"]
-        TAG_OB["tag-outbox\n[SK_OUTBOX: SAFE_AUTO]"]
-        TAG_RO["🔒 唯讀引用規則\nT1 新切片訂閱事件即可擴展"]
-        TAG_SG["⚠️ TAG_STALE_GUARD\n[S4: TAG_MAX_STALENESS ≤ 30s]\nDeprecated → StaleTagWarning"]
-
-        CTA --> TAG_ENTS
-        CTA -->|"標籤異動廣播"| TAG_EV --> TAG_OB
-        CTA -.->|"唯讀引用契約"| TAG_RO
-        CTA -.->|"Deprecated 通知"| TAG_SG
-    end
-
     subgraph SK_PORTS["🔌 Infrastructure Ports（依賴倒置介面）[D24]"]
         direction LR
         I_AUTH["IAuthService\n身份驗證 Port"]
@@ -103,6 +102,34 @@ subgraph SK["🔷 L1 · Shared Kernel — 全域契約中心（VS0）"]
         I_MSG["IMessaging\n訊息推播 Port [R8]"]
         I_STORE["IFileStore\n檔案儲存 Port"]
     end
+end
+
+%% ─── Tag Authority Center（跨域語義權威 · 獨立於 Shared Kernel 之外）
+%% ─── centralized-tag.aggregate 具備 lifecycle，為 domain authority，
+%% ─── 不屬被動契約層 → 從 Shared Kernel 獨立出來 [#A6 #17]
+subgraph TAG_AUTH["🏷️ Tag Authority Center [#A6 #17]（跨域語義權威）"]
+    direction TB
+    CTA["centralized-tag.aggregate\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule"]
+
+    subgraph TAG_ENTS["🏷️ AI-ready Semantic Tag Entities [D21]"]
+        direction LR
+        TE_UL["tag::user-level\ncategory: user_level"]
+        TE_SK["tag::skill\ncategory: skill"]
+        TE_ST["tag::skill-tier\ncategory: skill_tier"]
+        TE_TM["tag::team\ncategory: team"]
+        TE_RL["tag::role\ncategory: role"]
+        TE_PT["tag::partner\ncategory: partner"]
+    end
+
+    TAG_EV["TagLifecycleEvent（in-process）"]
+    TAG_OB["tag-outbox\n[SK_OUTBOX: SAFE_AUTO]"]
+    TAG_RO["🔒 唯讀引用規則\nT1 新切片訂閱事件即可擴展"]
+    TAG_SG["⚠️ TAG_STALE_GUARD\n[S4: TAG_MAX_STALENESS ≤ 30s]\nDeprecated → StaleTagWarning"]
+
+    CTA --> TAG_ENTS
+    CTA -->|"標籤異動廣播"| TAG_EV --> TAG_OB
+    CTA -.->|"唯讀引用契約"| TAG_RO
+    CTA -.->|"Deprecated 通知"| TAG_SG
 end
 
 %% ═══════════════════════════════════════════════════════════════
@@ -130,7 +157,9 @@ subgraph GW_CMD["🔵 L2 · Command Gateway（統一寫入入口）"]
 end
 
 %% ═══════════════════════════════════════════════════════════════
-%% LAYER 3 ── DOMAIN SLICES（領域切片）
+%% LAYER 3 ── L3 · Domain Slices（領域切片 · VS1–VS7）
+%% ── VS1=Identity · VS2=Account · VS3=Skill · VS4=Organization
+%% ── VS5=Workspace · VS6=Scheduling · VS7=Notification
 %% ═══════════════════════════════════════════════════════════════
 
 %% ── VS1 Identity ──
@@ -408,7 +437,7 @@ USER_NOTIF -.->|"uses IMessaging [R8]"| I_MSG
 subgraph GW_IER["🟠 L4 · Integration Event Router（IER）"]
     direction TB
 
-    RELAY["outbox-relay-worker\n【共用 Infra・所有 OUTBOX 共享】\n掃描：Firestore onSnapshot (CDC)\n投遞：OUTBOX → IER 對應 Lane\n失敗：retry backoff → 3次失敗 → DLQ\n監控：relay_lag → VS9"]
+    RELAY["outbox-relay-worker\n【共用 Infra・所有 OUTBOX 共享】\n掃描：Firestore onSnapshot (CDC)\n投遞：OUTBOX → IER 對應 Lane\n失敗：retry backoff → 3次失敗 → DLQ\n監控：relay_lag → L9(Observability)"]
 
     subgraph IER_CORE["⚙️ IER Core"]
         IER[["integration-event-router\n統一事件出口 [#9]\n[R8] 保留 envelope.traceId 禁止覆蓋"]]
@@ -461,10 +490,10 @@ TAG_OB -->|"BACKGROUND_LANE"| IER
 %% LAYER 5 ── PROJECTION BUS（事件投影總線）
 %% ═══════════════════════════════════════════════════════════════
 
-subgraph VS8["🟡 L5 · Projection Bus（VS8）"]
+subgraph PROJ_BUS["🟡 L5 · Projection Bus（基礎設施層 · 非業務域）"]
     direction TB
 
-    subgraph VS8_FUNNEL["▶ Event Funnel [S2 P5 R8]"]
+    subgraph PROJ_BUS_FUNNEL["▶ Event Funnel [S2 P5 R8]"]
         direction LR
         FUNNEL[["event-funnel\n[#9] 唯一 Projection 寫入路徑\n[Q3] upsert by idempotency-key\n[R8] 從 envelope 讀取 traceId → DOMAIN_METRICS\n[S2] 所有 Lane 遵守 SK_VERSION_GUARD\n     event.aggVersion > view.lastVersion\n     → 更新；否則 → 丟棄"]]
         CRIT_PROJ["🔴 CRITICAL_PROJ_LANE\n[S4: PROJ_STALE_CRITICAL ≤ 500ms]\n獨立重試 / dead-letter"]
@@ -472,20 +501,20 @@ subgraph VS8["🟡 L5 · Projection Bus（VS8）"]
         FUNNEL --> CRIT_PROJ & STD_PROJ
     end
 
-    subgraph VS8_META["⚙️ Stream Meta"]
+    subgraph PROJ_BUS_META["⚙️ Stream Meta"]
         PROJ_VER["projection.version\n事件串流偏移量"]
         READ_REG["read-model-registry\n版本目錄"]
         PROJ_VER -->|version mapping| READ_REG
     end
 
-    subgraph VS8_CRIT["🔴 Critical Projections [S2 S4]"]
+    subgraph PROJ_BUS_CRIT["🔴 Critical Projections [S2 S4]"]
         WS_SCOPE_V["projection.workspace-scope-guard-view\n授權路徑 [#A9]\n[S2: SK_VERSION_GUARD]"]
         ORG_ELIG_V["projection.org-eligible-member-view\n[S2: SK_VERSION_GUARD]\nskills{tagSlug→xp} / eligible\n[#14 #15 #16 T3]\n→ tag::skill [TE_SK]\n→ tag::skill-tier [TE_ST]"]
         WALLET_V["projection.wallet-balance\n[S3: EVENTUAL_READ]\n顯示用・精確交易回源 AGG"]
         TIER_FN[["getTier(xp) → Tier\n純函式 [#12]"]]
     end
 
-    subgraph VS8_STD["⚪ Standard Projections [S4]"]
+    subgraph PROJ_BUS_STD["⚪ Standard Projections [S4]"]
         direction LR
         WS_PROJ["projection.workspace-view"]
         ACC_SCHED_V["projection.account-schedule"]
@@ -582,7 +611,7 @@ STORE_ADP --> F_STORE
 %% LAYER 9 ── OBSERVABILITY（橫切面可觀測性）
 %% ═══════════════════════════════════════════════════════════════
 
-subgraph VS9["⬜ L9 · Observability（橫切面）"]
+subgraph OBS_LAYER["⬜ L9 · Observability（橫切面）"]
     direction LR
     TRACE_ID["trace-identifier\nCBG_ENTRY 注入 TraceID\n整條事件鏈共享 [R8]"]
     DOMAIN_METRICS["domain-metrics\nIER 各 Lane Throughput/Latency\nFUNNEL 各 Lane 處理時間\nOUTBOX_RELAY lag [R1]\nRATELIMIT hit / CIRCUIT open"]
@@ -702,14 +731,14 @@ class DLQ_S dlqSafe
 class DLQ_R dlqReview
 class DLQ_B dlqBlock
 class GW_QUERY,QGWAY,QGWAY_SCHED,QGWAY_NOTIF,QGWAY_SCOPE,QGWAY_WALLET qgway
-class VS8,FUNNEL,PROJ_VER,READ_REG stdProj
+class PROJ_BUS,FUNNEL,PROJ_VER,READ_REG stdProj
 class CRIT_PROJ,WS_SCOPE_V,ORG_ELIG_V,WALLET_V critProj
 class STD_PROJ,WS_PROJ,ACC_SCHED_V,ACC_PROJ_V,ORG_PROJ_V,SKILL_V stdProj
 class AUDIT_V auditView
 class TAG_SNAP tagSub
 class TIER_FN tierFn
 class TALENT talent
-class VS9,TRACE_ID,DOMAIN_METRICS,DOMAIN_ERRORS obs
+class OBS_LAYER,TRACE_ID,DOMAIN_METRICS,DOMAIN_ERRORS obs
 class FIREBASE_ACL,AUTH_ADP,FSTORE_ADP,FCM_ADP,STORE_ADP aclAdapter
 class FIREBASE_EXT,F_AUTH,F_DB,F_FCM,F_STORE firebaseExt
 class EXT_CLIENT,EXT_AUTH,EXT_WEBHOOK serverAct
@@ -751,7 +780,7 @@ class EXT_CLIENT,EXT_AUTH,EXT_WEBHOOK serverAct
 %%  #A10 Notification Router 無狀態路由
 %%  #A11 eligible = 「無衝突排班」快照，非靜態狀態
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  TAG AUTHORITY 擴展規則
+%%  TAG AUTHORITY 擴展規則（TAG_AUTH · 跨域語義權威 · 獨立於 Shared Kernel）
 %%  T1  新切片訂閱 TagLifecycleEvent（BACKGROUND_LANE）即可擴展
 %%  T2  SKILL_TAG_POOL = Tag Authority 組織作用域唯讀投影
 %%  T3  ORG_ELIGIBLE_MEMBER_VIEW.skills{tagSlug→xp} 交叉快照
@@ -781,6 +810,7 @@ class EXT_CLIENT,EXT_AUTH,EXT_WEBHOOK serverAct
 %%  D25 新增 Firebase 功能必須在 FIREBASE_ACL 新增 Adapter 實作對應 SK_PORTS Port
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  UNIFIED DEVELOPMENT RULES [D1~D25]
+%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Governance Rules (D21~D25 語義治理) ──
 %%  ── 基礎路徑約束（D1~D12）──
 %%  D1  事件傳遞只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
 %%  D2  跨切片引用：import from '@/features/{slice}/index' only；_*.ts 為私有
@@ -804,7 +834,7 @@ class EXT_CLIENT,EXT_AUTH,EXT_WEBHOOK serverAct
 %%  D19 型別歸屬規則：跨 BC 契約優先放 shared.kernel.*；shared/types 僅為 legacy fallback
 %%  D20 匯入優先序：shared.kernel.* > feature slice index.ts > shared/types
 %%  ── 語義 Tag 守則（D21~D23）──
-%%  D21 新增 tag 語義類別：必須在 CTA TAG_ENTITIES 定義，禁止各 slice 自行創建
+%%  D21 新增 tag 語義類別：必須在 TAG_AUTH（Tag Authority Center）CTA TAG_ENTITIES 定義，禁止各 slice 自行創建
 %%  D22 跨切片 tag 語義引用：必須指向 TE1~TE6 實體節點，禁止隱式 tagSlug 字串引用
 %%  D23 tag 語義標注格式：節點內 → tag::{category}；邊 → -.->|"{dim} tag 語義"|
 %%  ╚══════════════════════════════════════════════════════════════════════════╝
