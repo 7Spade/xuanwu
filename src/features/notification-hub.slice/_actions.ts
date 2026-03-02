@@ -24,6 +24,7 @@ import {
 import type {
   NotificationSourceEvent,
   TagRoutingRule,
+  NotificationDispatchResult,
 } from './_types';
 
 // =================================================================
@@ -31,21 +32,36 @@ import type {
 // =================================================================
 
 /**
+ * Result wrapper for notification dispatch — carries both CommandResult
+ * and the full dispatch result for status tracking.
+ */
+export interface DispatchNotificationResult {
+  readonly commandResult: CommandResult;
+  readonly dispatch: NotificationDispatchResult | null;
+}
+
+/**
  * Process a source event through the notification hub's tag-aware routing
  * pipeline and dispatch to the appropriate channels.
  *
  * This is the SOLE entry point for triggering notifications in the system.
- * Returns CommandResult per [R4].
+ * Returns both CommandResult per [R4] and the dispatch result for status tracking.
  */
 export async function dispatchNotification(
   event: NotificationSourceEvent
-): Promise<CommandResult> {
+): Promise<DispatchNotificationResult> {
   try {
     const result = await processNotificationEvent(event);
-    return commandSuccess(result.dispatchId, 0);
+    return {
+      commandResult: commandSuccess(result.dispatchId, 0),
+      dispatch: result,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return commandFailureFrom('NOTIFICATION_DISPATCH_FAILED', message);
+    return {
+      commandResult: commandFailureFrom('NOTIFICATION_DISPATCH_FAILED', message),
+      dispatch: null,
+    };
   }
 }
 

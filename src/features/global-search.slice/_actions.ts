@@ -18,30 +18,55 @@ import type { CommandResult } from '@/features/shared-kernel';
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
 
 import { executeSearch as executeSearchService } from './_services';
-import type { ExecuteSearchInput } from './_types';
+import type { ExecuteSearchInput, SearchResponse } from './_types';
 
 // =================================================================
 // Search Execution Action
 // =================================================================
 
 /**
+ * Result wrapper for global search — carries both CommandResult and SearchResponse.
+ */
+export interface ExecuteGlobalSearchResult {
+  readonly commandResult: CommandResult;
+  readonly response: SearchResponse | null;
+}
+
+/**
  * Execute a cross-domain search through the semantic index.
  * This is the ONLY entry point for cross-domain search in the system.
  *
  * Routes the query through semantic-graph.slice's (VS8) semantic index,
- * groups results by domain, and returns a unified SearchResponse.
+ * groups results by domain, and returns both CommandResult and SearchResponse.
  *
  * Returns CommandResult per [R4]. For search queries, aggregateId is the
- * query string and version is always 0 (read-only operation).
+ * traceId (or query string) and version is always 0 (read-only operation).
+ */
+export async function executeGlobalSearch(
+  input: ExecuteSearchInput
+): Promise<ExecuteGlobalSearchResult> {
+  try {
+    const response = executeSearchService(input);
+    return {
+      commandResult: commandSuccess(response.traceId ?? input.query, 0),
+      response,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      commandResult: commandFailureFrom('GLOBAL_SEARCH_FAILED', message),
+      response: null,
+    };
+  }
+}
+
+/**
+ * Simplified action that returns only CommandResult per [R4].
+ * Use executeGlobalSearch when you need the SearchResponse data.
  */
 export async function executeSearch(
   input: ExecuteSearchInput
 ): Promise<CommandResult> {
-  try {
-    const _result = executeSearchService(input);
-    return commandSuccess(input.query, 0);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return commandFailureFrom('GLOBAL_SEARCH_FAILED', message);
-  }
+  const result = await executeGlobalSearch(input);
+  return result.commandResult;
 }

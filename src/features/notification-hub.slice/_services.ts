@@ -177,6 +177,75 @@ export async function processNotificationEvent(
 }
 
 // =================================================================
+// Projection Bus Subscriber (TAG_CHANGED events)
+// =================================================================
+
+/**
+ * Event key for tag lifecycle events from projection.bus.
+ * The notification hub subscribes to these events for tag-aware routing.
+ */
+export const TAG_CHANGED_EVENT_KEY = 'projection:tag:changed';
+
+/**
+ * Listener function type for projection bus events.
+ */
+export type ProjectionBusListener = (event: NotificationSourceEvent) => void;
+
+const busListeners = new Map<string, ProjectionBusListener[]>();
+
+/**
+ * Subscribe to a projection.bus event key.
+ * Returns an unsubscribe function.
+ *
+ * Per logic-overview.md (VS7):
+ *   Notification Hub monitors projection.bus for tag lifecycle events
+ *   and evaluates tag-aware routing to decide delivery channels.
+ */
+export function subscribeToProjectionBus(
+  eventKey: string,
+  listener: ProjectionBusListener
+): () => void {
+  const existing = busListeners.get(eventKey) ?? [];
+  existing.push(listener);
+  busListeners.set(eventKey, existing);
+
+  return () => {
+    const listeners = busListeners.get(eventKey);
+    if (listeners) {
+      const filtered = listeners.filter((l) => l !== listener);
+      if (filtered.length > 0) {
+        busListeners.set(eventKey, filtered);
+      } else {
+        busListeners.delete(eventKey);
+      }
+    }
+  };
+}
+
+/**
+ * Emit an event to all registered projection bus listeners.
+ * Used by projection.bus adapters to forward domain events.
+ */
+export function emitProjectionBusEvent(event: NotificationSourceEvent): void {
+  const listeners = busListeners.get(event.eventKey) ?? [];
+  for (const listener of listeners) {
+    listener(event);
+  }
+}
+
+/**
+ * Initialize the TAG_CHANGED subscription — connects projection.bus
+ * tag lifecycle events to the notification routing pipeline.
+ *
+ * Returns an unsubscribe function for cleanup.
+ */
+export function initTagChangedSubscriber(): () => void {
+  return subscribeToProjectionBus(TAG_CHANGED_EVENT_KEY, (event) => {
+    void processNotificationEvent(event);
+  });
+}
+
+// =================================================================
 // Observability
 // =================================================================
 

@@ -55,6 +55,14 @@ export {
 } from './_aggregate';
 
 // =================================================================
+// Server Actions (all tag mutations go through here) [D3]
+// =================================================================
+export {
+  upsertTagWithConflictCheck,
+  removeTag,
+} from './_actions';
+
+// =================================================================
 // Services — Semantic Index (query interface for global-search)
 // =================================================================
 export {

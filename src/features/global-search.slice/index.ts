@@ -46,7 +46,8 @@ export type {
 // =================================================================
 // Server Actions (all search operations go through here) [D3]
 // =================================================================
-export { executeSearch } from './_actions';
+export { executeSearch, executeGlobalSearch } from './_actions';
+export type { ExecuteGlobalSearchResult } from './_actions';
 
 // =================================================================
 // Services (L6 Query Gateway — internal, re-exported for testing)

@@ -47,6 +47,7 @@ export {
   registerRoutingRule,
   unregisterRoutingRule,
 } from './_actions';
+export type { DispatchNotificationResult } from './_actions';
 
 // =================================================================
 // Services (tag-aware routing engine + event subscription)
@@ -58,4 +59,8 @@ export {
   unregisterSubscription,
   getSubscriptions,
   getHubStats,
+  subscribeToProjectionBus,
+  emitProjectionBusEvent,
+  initTagChangedSubscriber,
+  TAG_CHANGED_EVENT_KEY,
 } from './_services';
