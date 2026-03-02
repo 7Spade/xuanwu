@@ -1,733 +1,167 @@
 {
   "entities": [
     {
-      "name": "Logic_Overview_SSOT",
-      "entityType": "Data_Schema",
+      "name": "VS_Category",
+      "entityType": "Domain_Category",
       "observations": [
-        "File: docs/logic-overview.md — SINGLE SOURCE OF TRUTH for ALL architecture decisions. All conflicts resolve to this file.",
-        "Defines 10-layer architecture: L0 External Triggers → L1 Shared Kernel → L2 Command Gateway → L3 Domain Slices (VS1-VS7) → L4 IER → L5 Projection Bus (infrastructure only, no VS designation) → L6 Query Gateway → L7 Firebase ACL → L8 Firebase Infra → L9 Observability (cross-cutting infrastructure, no VS designation).",
-        "Design principles: ① top-down unified flow; ② SK contracts centralised, no re-declarations; ③ Firebase boundary explicit (FIREBASE_ACL sole SDK call point); ④ three gateway separation CMD/IER/QGWAY; ⑤ all invariants indexed inline [#N]/[SN]/[RN]."
+        "VS = Vertical Slice business domains (VS0-VS7): VS0 represents the Shared Kernel foundation layer (not a business vertical slice), including SK_ENV/SK_AUTH_SNAP contracts and core infrastructure ports (IAuthService, IFirestoreRepo) used by all slices; VS1-VS7 are the actual business vertical-slice domains (identity, account, skill-xp, organization, workspace, scheduling, notification).",
+        "Cross-slice collaboration must occur through contracts/events/projections; no direct aggregate mutation across slices.",
+        "Detailed per-slice flow remains in docs/logic-overview.md (SSOT)."
       ]
     },
     {
-      "name": "L0_External_Triggers",
-      "entityType": "Architecture_Decision",
+      "name": "L_Category",
+      "entityType": "System_Layer",
       "observations": [
-        "Layer 0: external entry points into the system.",
-        "EXT_CLIENT: Next.js Client via _actions.ts, subject to SK_RESILIENCE_CONTRACT [S5].",
-        "EXT_AUTH: Firebase Auth — login / register / token lifecycle."
+        "L = Layer runtime pipeline: L0 triggers → L1 shared-kernel → L2 command gateway → L3 slices → L4 IER → L5 projection bus → L6 query gateway → L7 Firebase ACL → L8 Firebase infra → L9 observability.",
+        "L5 ProjectionBus and L9 Observability are infrastructure layers (no VS designation).",
+        "Layer responsibilities are orchestration boundaries; do not bypass contracts."
       ]
     },
     {
-      "name": "SK_Foundation_Data_Contracts",
-      "entityType": "Data_Schema",
+      "name": "R_Category",
+      "entityType": "Runtime_Invariant",
       "observations": [
-        "Shared Kernel (VS0) L1 — foundation data contracts group [#8].",
-        "SK_ENV (event-envelope): version · traceId · causationId · correlationId · timestamp; idempotency-key = eventId+aggId+version; [R8] traceId shared across full chain, read-only after CBG_ENTRY injection. causationId = ID of the command/event that triggered this event; correlationId = shared ID for saga/replay/audit chain linkage.",
-        "SK_AUTH_SNAP (authority-snapshot): claims / roles / scopes; TTL = Token valid period."
+        "R = runtime invariants: single traceId injection at CBG_ENTRY, read-only propagation, deterministic event envelope fields, version-safe projection updates.",
+        "Projection writes must apply monotonic version guard (aggregateVersion).",
+        "Runtime invariants are non-optional and validated via architecture rules."
       ]
     },
     {
-      "name": "SK_Outbox_Contract",
-      "entityType": "Data_Schema",
+      "name": "S_Category",
+      "entityType": "System_Contract",
       "observations": [
-        "SK_OUTBOX_CONTRACT [S1] — Shared Kernel infrastructure contract.",
-        "Three mandatory requirements: ① at-least-once delivery (EventBus → OUTBOX → RELAY → IER); ② idempotency-key must be present (format: eventId+aggId+version); ③ DLQ tier declaration required on every OUTBOX.",
-        "DLQ tiers: SAFE_AUTO (idempotent events, auto-retry); REVIEW_REQUIRED (finance/scheduling/role changes, manual review); SECURITY_BLOCK (security events, freeze + alert, no auto-replay)."
+        "S = shared contracts from Shared Kernel: outbox relay, version guard, staleness/read consistency, resilience/retry, token refresh, and port boundaries.",
+        "All projections must remain replay/rebuild safe via event-store driven reconstruction.",
+        "Skill tier semantics stay pure-function based (getTier(xp)); never persisted as mutable source-of-truth."
       ]
     },
     {
-      "name": "SK_Version_Guard",
-      "entityType": "Data_Schema",
+      "name": "A_Category",
+      "entityType": "Architecture_Invariant",
       "observations": [
-        "SK_VERSION_GUARD [S2] — Shared Kernel infrastructure contract.",
-        "Rule: event.aggregateVersion > view.lastProcessedVersion → allow update; otherwise discard (stale event must not overwrite).",
-        "Applies to ALL Projections [#19]; enforced at FUNNEL (event-funnel) and IFirestoreRepo adapter."
+        "A = architecture invariants + SSOT indexes: #N indexes cross-cutting consistency/design principles from docs/logic-overview.md (example: #9 replay rebuildability), while A# indexes atomicity/transaction-boundary invariants (example: A8 one-command/one-aggregate TX atomicity).",
+        "Critical retained references: #9 replay rebuildability, #12 getTier(xp) purity, #14 scheduling reads ORG_ELIGIBLE_MEMBER_VIEW, #19 projection monotonic version guard, A8 one-command/one-aggregate TX atomicity, A9 scope-guard re-source for high risk.",
+        "For detailed contract behavior, layer responsibilities, and VS1-VS7 implementation flows, consult docs/logic-overview.md as SSOT when compressed entries are not sufficient."
       ]
     },
     {
-      "name": "SK_Read_Consistency",
-      "entityType": "Data_Schema",
+      "name": "D_Category",
+      "entityType": "Design_Rule",
       "observations": [
-        "SK_READ_CONSISTENCY [S3] — Shared Kernel infrastructure contract.",
-        "STRONG_READ: re-source from Aggregate — applies to finance, security, irreversible operations.",
-        "EVENTUAL_READ: read from Projection — applies to display, statistics, list views."
+        "D = design/governance rules D1-D25; full text remains in docs/logic-overview.md and lint architecture checks.",
+        "All D-rules (D1-D25) are mandatory. High-risk/frequently violated boundaries called out for enforcement focus: D7 public slice boundary via {slice}/index.ts, D24 no direct firebase/* imports in feature slices, D25 new Firebase capability requires FIREBASE_ACL adapter + SK_PORTS alignment; D24+D25 jointly define Firebase isolation boundary strategy.",
+        "D-rules are evolvable governance but cannot violate R/S/A/# hard invariants."
       ]
     },
     {
-      "name": "SK_Staleness_Contract",
-      "entityType": "Data_Schema",
+      "name": "P_Category",
+      "entityType": "Processing_Policy_Rule",
       "observations": [
-        "SK_STALENESS_CONTRACT [S4] — Shared Kernel infrastructure contract.",
-        "TAG_MAX_STALENESS ≤ 30 s.",
-        "PROJ_STALE_CRITICAL ≤ 500 ms."
+        "P = processing/policy rules for command orchestration, saga/pipeline handling, and protection against unsafe replay paths.",
+        "Policy execution must preserve auditability, idempotency, and eventual consistency guarantees.",
+        "Queue/background lanes may optimize throughput but cannot bypass contract checks."
       ]
     },
     {
-      "name": "SK_Resilience_Contract",
-      "entityType": "Data_Schema",
+      "name": "T_Category",
+      "entityType": "Tag_Semantics",
       "observations": [
-        "SK_RESILIENCE_CONTRACT [S5] — Shared Kernel infrastructure contract.",
-        "R1 rate-limit: per user ∪ per org → HTTP 429 + retry-after.",
-        "R2 circuit-break: consecutive 5xx → trip; half-open probe to recover."
+        "T = tag semantics represented in this compressed model by T_Category, sourced from the standalone TAG_AUTH subgraph in docs/logic-overview.md (Tag Authority subsection + D21 governance section).",
+        "Architectural clarification: TAG_AUTH is outside Shared Kernel while retaining centralized authority via D21 and cross-slice projection consumption.",
+        "Critical retained references: T4 scheduling demand uses SK_SKILL_REQ × tagSlug, T5 TAG_SNAPSHOT is read-only for consumers."
       ]
     },
     {
-      "name": "SK_Token_Refresh_Contract",
-      "entityType": "Data_Schema",
+      "name": "E_Category",
+      "entityType": "Event_Semantics",
       "observations": [
-        "SK_TOKEN_REFRESH_CONTRACT [S6] — Shared Kernel infrastructure contract.",
-        "Trigger: RoleChanged | PolicyChanged → IER CRITICAL_LANE → CLAIMS_HANDLER.",
-        "Completion signal: TOKEN_REFRESH_SIGNAL."
-      ]
-    },
-    {
-      "name": "Tag_Authority",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "centralized-tag.aggregate (CTA) — global semantic dictionary, single source of tag truth [#17 #A6].",
-        "Fields: tagSlug / label / category / deprecatedAt / deleteRule.",
-        "TAG_ENTS group defines 6 AI-ready semantic tag entities (TE1-TE6) — new categories must be declared here [D21]."
-      ]
-    },
-    {
-      "name": "Tag_Semantic_Entities",
-      "entityType": "Data_Schema",
-      "observations": [
-        "TE1 TAG_USER_LEVEL: tag::user-level — category: user_level — tagSlug: user-level:{slug}",
-        "TE2 TAG_SKILL: tag::skill — category: skill — tagSlug: skill:{slug}",
-        "TE3 TAG_SKILL_TIER: tag::skill-tier — category: skill_tier — tagSlug: skill-tier:{tier}"
-      ]
-    },
-    {
-      "name": "SK_Ports",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "Infrastructure Ports (dependency inversion interfaces) — Shared Kernel [D24].",
-        "IAuthService: authentication port.",
-        "IFirestoreRepo: Firestore access port; enforces SK_VERSION_GUARD [S2]."
-      ]
-    },
-    {
-      "name": "L2_Command_Gateway",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "Layer 2: unified write entry point.",
-        "Guard layer [S5]: rate-limiter (per user / per org, 429 + retry-after) → circuit-breaker (5xx trip / half-open probe) → bulkhead-router (slice isolation, independent thread pool).",
-        "Command pipeline: unified-command-gateway (CBG_ENTRY) — sole TraceID injection point [R8] → authority-interceptor (AuthoritySnapshot [#A9], ACTIVE_CTX wins on conflict) → command-router (routes to slice, returns SK_CMD_RESULT)."
-      ]
-    },
-    {
-      "name": "VS1_Identity_Slice",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "VS1: Identity Slice — authentication and context lifecycle.",
-        "authenticated-identity + account-identity-link (firebaseUserId ↔ accountId).",
-        "Context lifecycle manager: created on Login; refreshed on OrgSwitched/WorkspaceSwitched; invalidated on TokenExpired/Logout. active-account-context TTL = Token valid period."
-      ]
-    },
-    {
-      "name": "VS2_Account_Slice",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "VS2: Account Slice — personal and organisation account domain.",
-        "Personal account domain: user-account.aggregate, wallet.aggregate (strong consistency [#A1], STRONG_READ [S3]), account.profile (FCM Token, weak consistency).",
-        "Organisation account domain: organization-account.aggregate, org-account.settings, org-account.binding (ACL anti-corruption layer [#A2])."
-      ]
-    },
-    {
-      "name": "VS3_SkillXP_Slice",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "VS3: Skill XP Slice — capability growth domain (at src/features/skill-xp.slice/).",
-        "account-skill.aggregate: accountId / skillId(tagSlug) / xp / version; references tag::skill [TE2] and tag::skill-tier [TE3].",
-        "account-skill-xp-ledger: entryId / delta / reason / sourceId / timestamp; every XP change must write ledger [#13]."
-      ]
-    },
-    {
-      "name": "VS4_Organization_Slice",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "VS4: Organization Slice — org governance (at src/features/organization.slice/). 6 sub-dirs: core, core.event-bus, gov.teams, gov.members, gov.partners, gov.policy.",
-        "Core: organization-core.aggregate.",
-        "Governance: org.member (tag::role [TE5], tag::user-level [TE1], tagSlug read-only); org.partner (tag::partner [TE6]); org.team (tag::team [TE4]); org.policy; org-skill-recognition.aggregate (minXpRequired / status [#11])."
-      ]
-    },
-    {
-      "name": "VS5_Workspace_Slice",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "VS5: Workspace Slice — workspace business domain (at src/features/workspace.slice/). 20 sub-dirs: core, core.event-bus, core.event-store, application, gov.*, business.*.",
-        "Application coordinator [#3]: command-handler → scope-guard [#A9] → policy-engine → transaction-runner [#A8: 1cmd/1agg atomic commit] → ws-outbox [SK_OUTBOX: SAFE_AUTO].",
-        "TX Runner is the sole IER delivery source [E5]; it must not produce Domain Events [#4b]; domain rules live in Aggregates [#3]."
-      ]
-    },
-    {
-      "name": "VS6_Scheduling_Slice",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "VS6: Scheduling Slice — HR scheduling collaboration (at src/features/scheduling.slice/). Unified; no deprecated shims.",
-        "SSOT collection: accounts/{orgId}/schedule_items. 3 UI tabs: calendar, demand board, HR governance. All in AccountScheduleSection.",
-        "org.schedule: HR Scheduling (tagSlug T4); TAG_STALE_GUARD check before matching [S4]; events carry aggregateVersion [R7]."
-      ]
-    },
-    {
-      "name": "VS7_Notification_Slice",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "VS7: Notification Slice — notification delivery (at src/features/notification.slice/). 2 sub-dirs: user.notification, gov.notification-router.",
-        "notification-router: stateless routing [#A10]; consumes IER STANDARD_LANE; matches ScheduleAssigned [E3] and other domain events; reads traceId from envelope [R8].",
-        "Notification Router reads only Projections [#6]; must not read Aggregate internal state."
-      ]
-    },
-    {
-      "name": "L4_Integration_Event_Router",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "Layer 4: Integration Event Router (IER) — unified event routing bus.",
-        "outbox-relay-worker: shared infra consumed by all OUTBOXes; scans via Firestore onSnapshot (CDC); delivers OUTBOX → IER lane; on failure: retry backoff → 3 failures → DLQ; emits relay_lag metric → L9(Observability).",
-        "integration-event-router: sole event exit [#9]; preserves envelope.traceId, never overwrites [R8]."
-      ]
-    },
-    {
-      "name": "L5_Projection_Bus",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "L5: Projection Bus — Layer 5 event projection bus (at src/features/projection.bus/). 8 sub-dirs: account-audit, account-view, global-audit-view, org-eligible-member-view, organization-view, tag-snapshot, workspace-scope-guard, workspace-view. ONTOLOGY FIX: Projection Bus is infrastructure/cross-cutting — it holds NO VS designation. Mermaid subgraph ID renamed from VS8 to PROJ_BUS.",
-        "event-funnel [#9 Q3 R8 S2]: sole Projection write path; upsert by idempotency-key [Q3]; reads traceId from envelope → DOMAIN_METRICS [R8]; ALL lanes enforce SK_VERSION_GUARD [S2] (event.aggVersion > view.lastVersion → update; else discard); WS event-store supports replay → rebuild [#9].",
-        "CRITICAL_PROJ_LANE [S4: PROJ_STALE_CRITICAL ≤ 500ms]: projection.workspace-scope-guard-view [#A9 S2]; projection.org-eligible-member-view [S2 #14 #15 #16 T3] (skills{tagSlug→xp}/eligible, tag::skill [TE2], tag::skill-tier [TE3]); projection.wallet-balance [S3: EVENTUAL_READ for display, STRONG_READ for precise transactions]."
-      ]
-    },
-    {
-      "name": "L6_Query_Gateway",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "Layer 6: Query Gateway — unified read exit [S2 S3].",
-        "read-model-registry: unified read entry; version mapping / snapshot routing; all Projections enforce SK_VERSION_GUARD [S2].",
-        "Routes: → org-eligible-member-view [#14 #15 #16]; → account-view [#6] FCM Token; → workspace-scope-guard-view [#A9]; → wallet-balance ([S3] display → Projection, precise → STRONG_READ)."
-      ]
-    },
-    {
-      "name": "L7_Firebase_ACL",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "Layer 7: Firebase ACL Adapters — anti-corruption layer at src/shared/infra/{auth|firestore|messaging|storage} [D24 D25].",
-        "auth.adapter.ts (AuthAdapter): implements IAuthService; Firebase User ↔ Auth Identity; sole legal firebase/auth call point [D24].",
-        "firestore.facade.ts (FirestoreAdapter): implements IFirestoreRepo; enforces aggregateVersion monotonic increment guard [S2]; sole legal firebase/firestore call point [D24]."
-      ]
-    },
-    {
-      "name": "L8_Firebase_Infrastructure",
-      "entityType": "Framework_Feature",
-      "observations": [
-        "Layer 8: Firebase external cloud platform.",
-        "Firebase Auth (firebase/auth): authentication provider.",
-        "Firestore (firebase/firestore): event store + projection store."
-      ]
-    },
-    {
-      "name": "L9_Observability",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "L9: Observability — cross-cutting concern (at src/features/observability/). No infra.observability shim. ONTOLOGY FIX: Observability is cross-cutting infrastructure — it holds NO VS designation. Mermaid subgraph ID renamed from VS9 to OBS_LAYER.",
-        "trace-identifier: TraceID injected at CBG_ENTRY; shared across entire event chain [R8].",
-        "domain-metrics: IER lane throughput/latency; FUNNEL lane processing time; OUTBOX RELAY lag [R1]; rate-limit hit count; circuit-breaker open/half-open events; Claims refresh success [S6]."
-      ]
-    },
-    {
-      "name": "Consistency_Invariants",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "#1 Each BC may only modify its own Aggregate.",
-        "#2 Cross-BC interaction only via Domain Event / Projection / ACL anti-corruption layer.",
-        "#3 Application Layer coordinates only; domain rules live in Aggregates exclusively.",
-        "#9 Projections must be fully rebuildable via event-store replay (replay-safe).",
-        "#12 Skill Tier = getTier(xp) pure function; never persisted to DB.",
-        "#14 Scheduling workforce demand reads only from ORG_ELIGIBLE_MEMBER_VIEW.",
-        "#19 Projection updates require aggregateVersion monotonic guard (applyVersionGuard)."
-      ]
-    },
-    {
-      "name": "Atomicity_Rules",
-      "entityType": "Architecture_Decision",
-      "observations": [
-        "#A1 wallet strong consistency; profile/notification weak consistency.",
-        "#A2 org-account.binding uses ACL/projection anti-corruption layer only.",
-        "#A3 blockWorkflow → blockedBy Set; allIssuesResolved → unblockWorkflow.",
-        "#A8 TX Runner enforces 1 command / 1 aggregate atomic commit.",
-        "#A9 Scope Guard provides fast path; high-risk operations must re-source from Aggregate.",
-        "A4-A7/A10-A11 remain required: ParsingIntent workflow, scheduling saga, centralized-tag authority boundary, event-funnel-only projection writes, stateless notification routing, eligible-member snapshot rules."
-      ]
-    },
-    {
-      "name": "Development_Rules",
-      "entityType": "Project_Convention",
-      "observations": [
-        "D1 Event delivery only via infra.outbox-relay; domain slices must not import infra.event-router directly.",
-        "D2 Cross-slice reference: import from '@/features/{slice}/index' only; _*.ts files are private.",
-        "D3 All mutations: src/features/{slice}/_actions.ts only.",
-        "D7 Cross-slice references must use public {slice}/index.ts only.",
-        "D24 Feature slices must not import firebase/* directly; use FIREBASE_ACL adapters via SK_PORTS.",
-        "D25 New Firebase capabilities require corresponding FIREBASE_ACL adapter implementations.",
-        "D4-D6/D8-D23 stay in force (including D10 traceId injection at CBG_ENTRY, D12 getTier source in SK, D14 VERSION_GUARD on projection writes, D21 tag-category centralization)."
-      ]
-    },
-    {
-      "name": "Tag_Authority_Rules",
-      "entityType": "Project_Convention",
-      "observations": [
-        "T1 New slices subscribe to TagLifecycleEvent (BACKGROUND_LANE) to extend tag awareness.",
-        "T2 SKILL_TAG_POOL = Tag Authority organisation-scope read-only projection.",
-        "T3 ORG_ELIGIBLE_MEMBER_VIEW.skills{tagSlug→xp} cross-slice snapshot.",
-        "T4 Scheduling workforce demand must use SK_SKILL_REQ × Tag Authority tagSlug.",
-        "T5 TAG_SNAPSHOT is read-only for consumers; writes are forbidden."
-      ]
-    },
-    {
-      "name": "Firebase_Isolation_Rules",
-      "entityType": "Project_Convention",
-      "observations": [
-        "D24: feature slice / shared/types / app layer — direct firebase/* import is forbidden. All Firebase SDK calls must go through the FIREBASE_ACL Adapter. Adapter paths: src/shared/infra/{auth|firestore|messaging|storage}.",
-        "D25: Adding a new Firebase capability requires adding a new Adapter in FIREBASE_ACL that implements the corresponding SK_PORTS Port.",
-        "These are the sole rules governing Firebase SDK boundary; they supersede any other firebase import convention."
+        "E = event semantics: domain events flow through outbox/IER/projection bus; no direct side-channel delivery.",
+        "EventEnvelope requires causationId + correlationId for traceable cross-slice processing.",
+        "Event semantics must support deterministic replay and projection rebuild."
       ]
     }
   ],
   "relations": [
     {
-      "from": "L0_External_Triggers",
-      "to": "SK_Resilience_Contract",
-      "relationType": "FOLLOWS"
+      "from": "VS_Category",
+      "to": "L_Category",
+      "relationType": "operates_within"
     },
     {
-      "from": "L0_External_Triggers",
-      "to": "L2_Command_Gateway",
-      "relationType": "DEPENDS_ON"
+      "from": "VS_Category",
+      "to": "D_Category",
+      "relationType": "governed_by"
     },
     {
-      "from": "SK_Foundation_Data_Contracts",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "IMPLEMENTS"
+      "from": "VS_Category",
+      "to": "A_Category",
+      "relationType": "constrained_by"
     },
     {
-      "from": "SK_Outbox_Contract",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "IMPLEMENTS"
+      "from": "VS_Category",
+      "to": "R_Category",
+      "relationType": "must_satisfy"
     },
     {
-      "from": "SK_Version_Guard",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "IMPLEMENTS"
+      "from": "VS_Category",
+      "to": "S_Category",
+      "relationType": "depends_on"
     },
     {
-      "from": "SK_Read_Consistency",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "IMPLEMENTS"
+      "from": "L_Category",
+      "to": "S_Category",
+      "relationType": "implements"
     },
     {
-      "from": "SK_Staleness_Contract",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "IMPLEMENTS"
+      "from": "L_Category",
+      "to": "E_Category",
+      "relationType": "transports"
     },
     {
-      "from": "SK_Resilience_Contract",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "IMPLEMENTS"
+      "from": "L_Category",
+      "to": "R_Category",
+      "relationType": "enforces"
     },
     {
-      "from": "SK_Token_Refresh_Contract",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "IMPLEMENTS"
+      "from": "R_Category",
+      "to": "A_Category",
+      "relationType": "derived_from"
     },
     {
-      "from": "Tag_Authority",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "IMPLEMENTS"
+      "from": "S_Category",
+      "to": "A_Category",
+      "relationType": "stabilized_by"
     },
     {
-      "from": "Tag_Semantic_Entities",
-      "to": "Tag_Authority",
-      "relationType": "IMPLEMENTS"
+      "from": "D_Category",
+      "to": "A_Category",
+      "relationType": "must_not_violate"
     },
     {
-      "from": "SK_Ports",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "IMPLEMENTS"
+      "from": "P_Category",
+      "to": "E_Category",
+      "relationType": "applies_to"
     },
     {
-      "from": "L7_Firebase_ACL",
-      "to": "SK_Ports",
-      "relationType": "IMPLEMENTS"
+      "from": "P_Category",
+      "to": "VS_Category",
+      "relationType": "orchestrates"
     },
     {
-      "from": "L7_Firebase_ACL",
-      "to": "L8_Firebase_Infrastructure",
-      "relationType": "DEPENDS_ON"
+      "from": "T_Category",
+      "to": "VS_Category",
+      "relationType": "provides_semantics_for"
     },
     {
-      "from": "L2_Command_Gateway",
-      "to": "SK_Resilience_Contract",
-      "relationType": "IMPLEMENTS"
+      "from": "T_Category",
+      "to": "D_Category",
+      "relationType": "aligned_with"
     },
     {
-      "from": "L2_Command_Gateway",
-      "to": "SK_Foundation_Data_Contracts",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS1_Identity_Slice",
-      "to": "SK_Token_Refresh_Contract",
-      "relationType": "IMPLEMENTS"
-    },
-    {
-      "from": "VS1_Identity_Slice",
-      "to": "SK_Foundation_Data_Contracts",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS1_Identity_Slice",
-      "to": "SK_Ports",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS2_Account_Slice",
-      "to": "SK_Outbox_Contract",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "VS2_Account_Slice",
-      "to": "SK_Read_Consistency",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "VS2_Account_Slice",
-      "to": "Tag_Semantic_Entities",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS3_SkillXP_Slice",
-      "to": "SK_Outbox_Contract",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "VS3_SkillXP_Slice",
-      "to": "Tag_Semantic_Entities",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS3_SkillXP_Slice",
-      "to": "SK_Foundation_Data_Contracts",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS4_Organization_Slice",
-      "to": "SK_Outbox_Contract",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "VS4_Organization_Slice",
-      "to": "SK_Staleness_Contract",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS4_Organization_Slice",
-      "to": "Tag_Semantic_Entities",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS4_Organization_Slice",
-      "to": "Tag_Authority",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS5_Workspace_Slice",
-      "to": "SK_Outbox_Contract",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "VS5_Workspace_Slice",
-      "to": "Consistency_Invariants",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "VS5_Workspace_Slice",
-      "to": "Tag_Semantic_Entities",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS5_Workspace_Slice",
-      "to": "SK_Foundation_Data_Contracts",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS5_Workspace_Slice",
-      "to": "L6_Query_Gateway",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS5_Workspace_Slice",
-      "to": "SK_Ports",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS6_Scheduling_Slice",
-      "to": "SK_Outbox_Contract",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "VS6_Scheduling_Slice",
-      "to": "SK_Staleness_Contract",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS6_Scheduling_Slice",
-      "to": "SK_Foundation_Data_Contracts",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS6_Scheduling_Slice",
-      "to": "L6_Query_Gateway",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS6_Scheduling_Slice",
-      "to": "Tag_Semantic_Entities",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS7_Notification_Slice",
-      "to": "L6_Query_Gateway",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS7_Notification_Slice",
-      "to": "SK_Ports",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "VS7_Notification_Slice",
-      "to": "SK_Foundation_Data_Contracts",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "L4_Integration_Event_Router",
-      "to": "SK_Outbox_Contract",
-      "relationType": "IMPLEMENTS"
-    },
-    {
-      "from": "L4_Integration_Event_Router",
-      "to": "SK_Foundation_Data_Contracts",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "L4_Integration_Event_Router",
-      "to": "L9_Observability",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "L4_Integration_Event_Router",
-      "to": "VS1_Identity_Slice",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "L5_Projection_Bus",
-      "to": "SK_Version_Guard",
-      "relationType": "IMPLEMENTS"
-    },
-    {
-      "from": "L5_Projection_Bus",
-      "to": "SK_Staleness_Contract",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "L5_Projection_Bus",
-      "to": "SK_Read_Consistency",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "L5_Projection_Bus",
-      "to": "SK_Ports",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "L5_Projection_Bus",
-      "to": "Tag_Semantic_Entities",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "L5_Projection_Bus",
-      "to": "L4_Integration_Event_Router",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "L5_Projection_Bus",
-      "to": "L9_Observability",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "L6_Query_Gateway",
-      "to": "L5_Projection_Bus",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "L6_Query_Gateway",
-      "to": "SK_Version_Guard",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "L6_Query_Gateway",
-      "to": "SK_Read_Consistency",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "SK_Version_Guard",
-      "to": "L5_Projection_Bus",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "SK_Version_Guard",
-      "to": "L7_Firebase_ACL",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "SK_Staleness_Contract",
-      "to": "Tag_Authority",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "SK_Staleness_Contract",
-      "to": "L5_Projection_Bus",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "SK_Staleness_Contract",
-      "to": "VS6_Scheduling_Slice",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "SK_Token_Refresh_Contract",
-      "to": "L4_Integration_Event_Router",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "SK_Token_Refresh_Contract",
-      "to": "VS1_Identity_Slice",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Consistency_Invariants",
-      "to": "VS5_Workspace_Slice",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Consistency_Invariants",
-      "to": "VS6_Scheduling_Slice",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Consistency_Invariants",
-      "to": "L5_Projection_Bus",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Atomicity_Rules",
-      "to": "VS5_Workspace_Slice",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Atomicity_Rules",
-      "to": "VS2_Account_Slice",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Atomicity_Rules",
-      "to": "Tag_Authority",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Development_Rules",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "Development_Rules",
-      "to": "SK_Outbox_Contract",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "Development_Rules",
-      "to": "SK_Version_Guard",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "Development_Rules",
-      "to": "SK_Read_Consistency",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "Development_Rules",
-      "to": "SK_Staleness_Contract",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "Development_Rules",
-      "to": "SK_Resilience_Contract",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "Development_Rules",
-      "to": "SK_Token_Refresh_Contract",
-      "relationType": "DEPENDS_ON"
-    },
-    {
-      "from": "Development_Rules",
-      "to": "Tag_Semantic_Entities",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Firebase_Isolation_Rules",
-      "to": "SK_Ports",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Firebase_Isolation_Rules",
-      "to": "L7_Firebase_ACL",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Firebase_Isolation_Rules",
-      "to": "L8_Firebase_Infrastructure",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Tag_Authority_Rules",
-      "to": "Tag_Authority",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Tag_Authority_Rules",
-      "to": "VS4_Organization_Slice",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Tag_Authority_Rules",
-      "to": "VS6_Scheduling_Slice",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "Tag_Authority_Rules",
-      "to": "L5_Projection_Bus",
-      "relationType": "CONSTRAINS"
-    },
-    {
-      "from": "L9_Observability",
-      "to": "Logic_Overview_SSOT",
-      "relationType": "FOLLOWS"
-    },
-    {
-      "from": "L2_Command_Gateway",
-      "to": "L9_Observability",
-      "relationType": "DEPENDS_ON"
+      "from": "E_Category",
+      "to": "S_Category",
+      "relationType": "bounded_by"
     }
   ]
 }
