@@ -1,11 +1,10 @@
 
 'use client'
 
-import { onSnapshot, doc } from 'firebase/firestore'
 import { useState, useEffect, useCallback } from 'react'
 
 import { useAuth } from '@/shared/app-providers/auth-provider'
-import { useFirebase } from '@/shared/app-providers/firebase-provider'
+import { subscribeToDocument } from '@/shared/infra/firestore/firestore.read.adapter'
 import { uploadProfilePicture } from '@/shared/infra/storage/storage.facade'
 import type { Account } from '@/shared/types'
 
@@ -22,22 +21,21 @@ import { getUserProfile as getUserProfileQuery } from '../_queries'
 export function useUser() {
   const { state: authState } = useAuth()
   const { user } = authState
-  const { db } = useFirebase()
 
   const [profile, setProfile] = useState<Account | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user || !db) {
+    if (!user) {
       setProfile(null)
       setLoading(false)
       return
     }
 
-    // Set up a real-time listener for the user's profile document.
-    const unsub = onSnapshot(doc(db, 'accounts', user.id), (doc) => {
-      if (doc.exists()) {
-        setProfile({ id: doc.id, ...doc.data() } as Account)
+    // Set up a real-time listener for the user's profile document via FIREBASE_ACL adapter.
+    const unsub = subscribeToDocument<Account>(`accounts/${user.id}`, (data) => {
+      if (data) {
+        setProfile(data)
       } else {
         // If profile doesn't exist, create a default one.
         getUserProfileQuery(user.id).then(setProfile)
@@ -47,7 +45,7 @@ export function useUser() {
 
     // Cleanup subscription on unmount
     return () => unsub()
-  }, [user, db])
+  }, [user])
 
   const updateProfile = useCallback(
     async (data: Partial<Omit<Account, 'id'>>) => {

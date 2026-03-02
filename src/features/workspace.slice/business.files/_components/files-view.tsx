@@ -1,7 +1,7 @@
 
 "use client";
 
-import { serverTimestamp, type FieldValue } from "firebase/firestore";
+import { serverTimestamp, type FieldValue } from "@/shared/infra/firestore/firestore.write.adapter";
 import { 
   FileText, 
   UploadCloud, 

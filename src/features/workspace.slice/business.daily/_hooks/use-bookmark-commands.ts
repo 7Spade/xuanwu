@@ -6,7 +6,7 @@
  */
 "use client";
 
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query } from '@/shared/infra/firestore/firestore.read.adapter';
 import { useState, useEffect, useCallback } from 'react';
 
 import { useAuth } from '@/shared/app-providers/auth-provider';

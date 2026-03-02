@@ -1,6 +1,9 @@
 // projection.global-audit-view · queries · logic-overview.md [R8]
 // Read-only access to GLOBAL_AUDIT_VIEW. T5-equivalent: consumers MUST NOT write here.
 
+import { collection, getDocs, where, limit, query as firestoreQuery } from '@/shared/infra/firestore/firestore.read.adapter';
+import { db } from '@/shared/infra/firestore/firestore.client';
+
 import type { GlobalAuditRecord, GlobalAuditQuery } from './_projector';
 
 /**
@@ -9,8 +12,6 @@ import type { GlobalAuditRecord, GlobalAuditQuery } from './_projector';
 export async function getGlobalAuditEvents(
   query: GlobalAuditQuery = {}
 ): Promise<GlobalAuditRecord[]> {
-  const { getFirestore, collection, getDocs, where, limit, query: firestoreQuery } = await import('firebase/firestore');
-  const db = getFirestore();
   const constraints = [];
 
   if (query.accountId) {

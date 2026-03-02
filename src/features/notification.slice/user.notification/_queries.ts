@@ -12,9 +12,9 @@ import {
   limit,
   onSnapshot,
   doc,
-  updateDoc,
   type Unsubscribe,
-} from 'firebase/firestore';
+} from '@/shared/infra/firestore/firestore.read.adapter';
+import { updateDoc } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { db } from '@/shared/infra/firestore/firestore.client';
 import type { Notification } from '@/shared/types';

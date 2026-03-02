@@ -1,7 +1,6 @@
 
 "use client";
 
-import { serverTimestamp, type FieldValue, type Firestore } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { createContext, useContext, useMemo, useCallback, useEffect, useState } from 'react';
@@ -11,8 +10,8 @@ import {
   createScheduleItem as createScheduleItemAction,
 } from '@/features/scheduling.slice'
 import type { CommandResult } from '@/features/shared-kernel';
-import { useFirebase } from '@/shared/app-providers/firebase-provider';
 import { addDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { serverTimestamp, type FieldValue } from '@/shared/infra/firestore/firestore.write.adapter';
 import { firestoreTimestampToISO } from '@/shared/lib';
 import { type Workspace, type AuditLog, type WorkspaceTask, type WorkspaceRole, type Capability, type WorkspaceLifecycleState, type ScheduleItem } from '@/shared/types';
 
@@ -51,7 +50,6 @@ interface WorkspaceContextType {
   eventBus: WorkspaceEventBus;
   protocol: string;
   scope: string[];
-  db: Firestore;
   // Task specific actions
   createTask: (task: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>) => Promise<CommandResult>;
   updateTask: (taskId: string, updates: Partial<WorkspaceTask>) => Promise<void>;
@@ -85,7 +83,6 @@ const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 export function WorkspaceProvider({ workspaceId, children }: { workspaceId: string, children: React.ReactNode }) {
   const { state: accountState } = useAccount();
   const { state: appState } = useApp();
-  const { db } = useFirebase();
   const { workspaces, auditLogs } = accountState;
   const { activeAccount } = appState;
   const workspace = workspaces[workspaceId];
@@ -118,7 +115,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   }, [auditLogs, workspaceId]);
   
   const logAuditEvent = useCallback(async (action: string, detail: string, type: 'create' | 'update' | 'delete') => {
-    if (!activeAccount || activeAccount.accountType !== 'organization' || !db) return;
+    if (!activeAccount || activeAccount.accountType !== 'organization') return;
     const eventData: Omit<AuditLog, 'id' | 'recordedAt'> & { recordedAt: FieldValue } = {
       actor: activeAccount.name,
       action,
@@ -129,7 +126,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
       workspaceId,
     };
     await addDocument(`accounts/${activeAccount.id}/auditLogs`, eventData);
-  }, [activeAccount, db, workspaceId]);
+  }, [activeAccount, workspaceId]);
 
   const createTask = useCallback(async (task: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>) => createTaskAction(workspaceId, task), [workspaceId]);
   const updateTask = useCallback(async (taskId: string, updates: Partial<WorkspaceTask>) => {
@@ -206,7 +203,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   }, [workspaceId, workspace?.dimensionId, activeAccount?.id, eventBus]);
 
 
-  if (!workspace || !db) {
+  if (!workspace) {
     return (
       <div className="flex size-full flex-col items-center justify-center space-y-4 bg-background p-20">
         <div className="animate-bounce text-4xl">🐢</div>
@@ -224,7 +221,6 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
     eventBus,
     protocol: workspace.protocol || 'Default',
     scope: workspace.scope || [],
-    db,
     createTask,
     updateTask,
     deleteTask,

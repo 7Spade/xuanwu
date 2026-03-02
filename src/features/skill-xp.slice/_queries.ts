@@ -16,7 +16,7 @@
  *   They do NOT read Account aggregate data directly — use projection views for that.
  */
 
-import { getDocs, collection, type QueryDocumentSnapshot } from 'firebase/firestore';
+import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';

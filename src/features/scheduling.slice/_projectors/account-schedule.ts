@@ -10,7 +10,7 @@
  * on projection.bus.
  */
 
-import type { FieldValue } from 'firebase/firestore';
+import type { FieldValue } from '@/shared/infra/firestore/firestore.write.adapter';
 
 export interface AccountScheduleProjection {
   accountId: string;

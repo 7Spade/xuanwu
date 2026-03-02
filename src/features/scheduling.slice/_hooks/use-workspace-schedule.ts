@@ -15,7 +15,7 @@
 "use client";
 
 import { addMonths, subMonths, format } from "date-fns";
-import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot } from "@/shared/infra/firestore/firestore.read.adapter";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 

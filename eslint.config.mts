@@ -82,5 +82,32 @@ export default tseslint.config(
         }
       ]
     },
+  },
+
+  // [D24] FIREBASE_ACL 邊界：features 切片禁止直接引用 firebase/* SDK
+  // Scoped only to src/features/** — the shared/infra adapters are the ACL boundary themselves.
+  {
+    files: ["src/features/**/*.{ts,tsx}", "src/app/**/*.{ts,tsx}", "src/app-runtime/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "warn",
+        {
+          "paths": [
+            {
+              "name": "firebase/firestore",
+              "message": "[D24] Import Firestore utilities from '@/shared/infra/firestore/firestore.read.adapter' or '@/shared/infra/firestore/firestore.write.adapter' instead of 'firebase/firestore'."
+            },
+            {
+              "name": "firebase/auth",
+              "message": "[D24] Import Auth utilities from '@/shared/infra/auth/auth.client' or auth adapter instead of 'firebase/auth'."
+            },
+            {
+              "name": "firebase/storage",
+              "message": "[D24] Import Storage utilities from '@/shared/infra/storage/storage.facade' instead of 'firebase/storage'."
+            }
+          ]
+        }
+      ]
+    }
   }
 );

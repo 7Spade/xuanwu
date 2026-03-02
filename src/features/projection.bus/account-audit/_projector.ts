@@ -23,7 +23,8 @@
  *   writes on replay.
  */
 
-import { serverTimestamp, doc, setDoc, collection } from 'firebase/firestore';
+import { doc, collection } from '@/shared/infra/firestore/firestore.read.adapter';
+import { serverTimestamp, setDoc } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { addDocument } from '@/shared/infra/firestore/firestore.write.adapter';

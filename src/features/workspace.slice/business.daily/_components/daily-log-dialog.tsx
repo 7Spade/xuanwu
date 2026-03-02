@@ -12,7 +12,7 @@
  */
 "use client";
 
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query } from "@/shared/infra/firestore/firestore.read.adapter";
 import { CornerUpLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 

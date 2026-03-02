@@ -16,7 +16,7 @@ import {
   type Unsubscribe,
   type QueryDocumentSnapshot,
   type QuerySnapshot,
-} from 'firebase/firestore';
+} from '@/shared/infra/firestore/firestore.read.adapter';
 
 import type { ImplementsStalenessContract } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';

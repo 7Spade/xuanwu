@@ -16,7 +16,7 @@
  * Invariant: this listener MUST be mounted once per authenticated session in the shell layout.
  */
 
-import { onSnapshot, doc } from 'firebase/firestore';
+import { onSnapshot, doc } from '@/shared/infra/firestore/firestore.read.adapter';
 import { useEffect } from 'react';
 
 import type { ImplementsTokenRefreshContract } from '@/features/shared-kernel';

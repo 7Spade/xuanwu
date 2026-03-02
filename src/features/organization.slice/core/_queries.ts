@@ -7,7 +7,7 @@
  * onSnapshot provides real-time updates.
  */
 
-import { doc, onSnapshot, type Unsubscribe } from 'firebase/firestore'
+import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter'
 
 import { db } from '@/shared/infra/firestore/firestore.client'
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter'

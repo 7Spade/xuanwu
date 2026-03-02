@@ -14,7 +14,7 @@
  *   organization:skill:xpDeducted → applySkillXpDeducted
  */
 
-import { serverTimestamp } from 'firebase/firestore';
+import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';

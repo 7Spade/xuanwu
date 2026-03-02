@@ -11,7 +11,7 @@
  * Stored at: tagSnapshot/{tagSlug}
  */
 
-import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';

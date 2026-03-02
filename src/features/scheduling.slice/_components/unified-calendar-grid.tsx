@@ -1,7 +1,7 @@
 "use client";
 
 import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from "date-fns";
-import type { Timestamp } from "firebase/firestore";
+import type { Timestamp } from "@/shared/infra/firestore/firestore.read.adapter";
 import { Plus, Check, X, Layers, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";

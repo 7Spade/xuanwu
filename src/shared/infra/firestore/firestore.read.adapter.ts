@@ -2,20 +2,69 @@
  * @fileoverview Firestore Read Adapter.
  * This file contains all read-only operations for Firestore, such as getDoc,
  * getDocs, and creating real-time listeners with onSnapshot.
+ *
+ * [D24] FIREBASE_ACL boundary: feature slices MUST import Firestore SDK
+ *       utilities from this adapter (or firestore.write.adapter) rather than
+ *       directly from 'firebase/firestore'.
  */
 
 import {
+  collection,
+  collectionGroup,
   doc,
   getDoc,
   getDocs,
   onSnapshot,
+  query,
+  where,
+  orderBy,
+  limit,
+  Timestamp,
+  type CollectionReference,
   type DocumentData,
+  type DocumentSnapshot,
+  type FieldPath,
+  type OrderByDirection,
   type Query,
+  type QueryConstraint,
+  type QueryDocumentSnapshot,
+  type QuerySnapshot,
   type Unsubscribe,
+  type WhereFilterOp,
   type FirestoreDataConverter,
 } from 'firebase/firestore';
 
 import { db } from './firestore.client';
+
+// ---------------------------------------------------------------------------
+// [D24] Re-exports — feature slices import these instead of 'firebase/firestore'
+// ---------------------------------------------------------------------------
+export {
+  collection,
+  collectionGroup,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+  limit,
+  Timestamp,
+};
+export type {
+  CollectionReference,
+  DocumentData,
+  DocumentSnapshot,
+  FieldPath,
+  OrderByDirection,
+  Query,
+  QueryConstraint,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  Unsubscribe,
+  WhereFilterOp,
+};
 
 /**
  * Fetches a single document from Firestore.
@@ -61,5 +110,23 @@ export const createSubscription = <T>(
   return onSnapshot(query, (querySnapshot) => {
     const data = querySnapshot.docs.map((doc) => doc.data());
     onUpdate(data);
+  });
+};
+
+/**
+ * Creates a real-time subscription to a single Firestore document.
+ * [D24] Use this instead of calling `onSnapshot(doc(...))` directly in feature slices.
+ *
+ * @param path The full path to the document (e.g., 'accounts/userId').
+ * @param onUpdate Callback fired with the document data (or null if it doesn't exist).
+ * @returns An unsubscribe function to detach the listener.
+ */
+export const subscribeToDocument = <T extends object>(
+  path: string,
+  onUpdate: (data: (T & { id: string }) | null) => void
+): Unsubscribe => {
+  const docRef = doc(db, path);
+  return onSnapshot(docRef, (snap) => {
+    onUpdate(snap.exists() ? ({ id: snap.id, ...snap.data() } as T & { id: string }) : null);
   });
 };
