@@ -5,7 +5,7 @@
  * Any user account can hold any of these skills via SkillGrant.tagSlug.
  *
  * Taxonomy (two-level):
- *   SkillGroup (大項目, 6 groups)  →  SkillSubCategory (子項目, 17 sub-categories)  →  SkillDefinition
+ *   SkillGroup (大項目, 9 groups)  →  SkillSubCategory (子項目, 25 sub-categories)  →  SkillDefinition
  *
  * To add a new skill: append an entry to SKILLS.
  * The `slug` is the stable identifier used in SkillGrant.tagSlug and
@@ -17,14 +17,17 @@
 // Two-level taxonomy types
 // ---------------------------------------------------------------------------
 
-/** 大項目 — six top-level discipline groups. */
+/** 大項目 — nine top-level discipline groups. */
 export type SkillGroup =
   | 'CivilStructural'   // 營建工程
   | 'MEP'               // 機電工程
   | 'FinishingWorks'    // 裝修工程
   | 'Landscape'         // 景觀工程
+  | 'TemporaryWorks'    // 假設工程
   | 'SiteManagement'    // 現場管理與技術支援
-  | 'Logistics';        // 物流與環保處理
+  | 'Logistics'         // 物流與環保處理
+  | 'BIM'               // 建築資訊模型與技術應用
+  | 'ProjectConsulting'; // 專案管理與顧問服務
 
 /** 子項目 — granular discipline sub-categories within each group. */
 export type SkillSubCategory =
@@ -42,6 +45,10 @@ export type SkillSubCategory =
   // Landscape
   | 'SoftLandscape'         // 植栽與綠化
   | 'HardLandscape'         // 硬景施作
+  // TemporaryWorks
+  | 'TempScaffolding'       // 鷹架工程
+  | 'TempShoring'           // 支撐與擋土
+  | 'TempSiteFacilities'    // 臨時設施
   // SiteManagement
   | 'HeavyEquipmentOps'     // 重型設備操作
   | 'SpecialistTrades'      // 特殊技藝
@@ -50,7 +57,14 @@ export type SkillSubCategory =
   | 'ProjectMgmt'           // 工程管理
   // Logistics
   | 'MaterialLogistics'     // 物料搬運與物流
-  | 'Environmental';        // 環保與廢棄物處理
+  | 'Environmental'         // 環保與廢棄物處理
+  // BIM
+  | 'BIMModeling'           // BIM建模與協調
+  | 'DigitalConstruction'   // 數位施工技術
+  // ProjectConsulting
+  | 'ContractProcurement'   // 合約與採購管理
+  | 'ConsultingAdvisory'    // 顧問諮詢服務
+  | 'ClaimsDisputes';       // 索賠與爭議
 
 // ---------------------------------------------------------------------------
 // Metadata types
@@ -113,6 +127,12 @@ export const SKILL_GROUPS: readonly SkillGroupMeta[] = [
     subCategories: ['SoftLandscape', 'HardLandscape'],
   },
   {
+    group: 'TemporaryWorks',
+    zhLabel: '假設工程',
+    enLabel: 'Temporary Works',
+    subCategories: ['TempScaffolding', 'TempShoring', 'TempSiteFacilities'],
+  },
+  {
     group: 'SiteManagement',
     zhLabel: '現場管理與技術支援',
     enLabel: 'Site Management & Technical Support',
@@ -123,6 +143,18 @@ export const SKILL_GROUPS: readonly SkillGroupMeta[] = [
     zhLabel: '物流與環保處理',
     enLabel: 'Logistics & Environmental Management',
     subCategories: ['MaterialLogistics', 'Environmental'],
+  },
+  {
+    group: 'BIM',
+    zhLabel: '建築資訊模型與技術應用',
+    enLabel: 'BIM & Construction Technology',
+    subCategories: ['BIMModeling', 'DigitalConstruction'],
+  },
+  {
+    group: 'ProjectConsulting',
+    zhLabel: '專案管理與顧問服務',
+    enLabel: 'Project Management & Consulting',
+    subCategories: ['ContractProcurement', 'ConsultingAdvisory', 'ClaimsDisputes'],
   },
 ] as const;
 
@@ -141,6 +173,10 @@ export const SKILL_SUB_CATEGORIES: readonly SkillSubCategoryMeta[] = [
   // Landscape
   { subCategory: 'SoftLandscape',      group: 'Landscape',       zhLabel: '植栽與綠化',        enLabel: 'Planting & Greening' },
   { subCategory: 'HardLandscape',      group: 'Landscape',       zhLabel: '硬景施作',          enLabel: 'Hardscape Works' },
+  // TemporaryWorks
+  { subCategory: 'TempScaffolding',    group: 'TemporaryWorks',  zhLabel: '鷹架工程',          enLabel: 'Scaffolding Works' },
+  { subCategory: 'TempShoring',        group: 'TemporaryWorks',  zhLabel: '支撐與擋土',        enLabel: 'Shoring & Earth Retention' },
+  { subCategory: 'TempSiteFacilities', group: 'TemporaryWorks',  zhLabel: '臨時設施',          enLabel: 'Temporary Site Facilities' },
   // SiteManagement
   { subCategory: 'HeavyEquipmentOps',    group: 'SiteManagement', zhLabel: '重型設備操作',     enLabel: 'Heavy Equipment Operation' },
   { subCategory: 'SpecialistTrades',     group: 'SiteManagement', zhLabel: '特殊技藝',         enLabel: 'Specialist Trades' },
@@ -150,6 +186,13 @@ export const SKILL_SUB_CATEGORIES: readonly SkillSubCategoryMeta[] = [
   // Logistics
   { subCategory: 'MaterialLogistics', group: 'Logistics', zhLabel: '物料搬運與物流',       enLabel: 'Material Handling & Logistics' },
   { subCategory: 'Environmental',     group: 'Logistics', zhLabel: '環保與廢棄物處理',     enLabel: 'Environmental & Waste Management' },
+  // BIM
+  { subCategory: 'BIMModeling',          group: 'BIM', zhLabel: 'BIM建模與協調',         enLabel: 'BIM Modeling & Coordination' },
+  { subCategory: 'DigitalConstruction',  group: 'BIM', zhLabel: '數位施工技術',           enLabel: 'Digital Construction Technology' },
+  // ProjectConsulting
+  { subCategory: 'ContractProcurement',  group: 'ProjectConsulting', zhLabel: '合約與採購管理',  enLabel: 'Contract & Procurement' },
+  { subCategory: 'ConsultingAdvisory',   group: 'ProjectConsulting', zhLabel: '顧問諮詢服務',    enLabel: 'Consulting & Advisory' },
+  { subCategory: 'ClaimsDisputes',       group: 'ProjectConsulting', zhLabel: '索賠與爭議',      enLabel: 'Claims & Disputes' },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -253,6 +296,50 @@ export const SKILLS: readonly SkillDefinition[] = [
   // 環保與廢棄物處理 — Environmental
   { slug: 'waste-management',    name: 'Waste Management',    group: 'Logistics', subCategory: 'Environmental', description: 'Waste segregation, disposal and recycling on construction sites.' },
   { slug: 'dust-noise-control',  name: 'Dust & Noise Control',group: 'Logistics', subCategory: 'Environmental', description: 'Site hoarding, dust suppression and noise mitigation measures.' },
+
+  // ---------------------------------------------------------------------------
+  // 7. 假設工程 — TemporaryWorks
+  // ---------------------------------------------------------------------------
+
+  // 鷹架工程 — TempScaffolding
+  { slug: 'system-scaffolding',    name: 'System Scaffolding',    group: 'TemporaryWorks', subCategory: 'TempScaffolding',    description: 'Cup-lock and frame system scaffolding erection and dismantling.' },
+  { slug: 'suspended-scaffolding', name: 'Suspended Scaffolding', group: 'TemporaryWorks', subCategory: 'TempScaffolding',    description: 'Cantilever and suspended scaffold design and installation.' },
+
+  // 支撐與擋土 — TempShoring
+  { slug: 'shoring-systems',   name: 'Shoring Systems',   group: 'TemporaryWorks', subCategory: 'TempShoring', description: 'Steel strut and diaphragm wall propping systems installation.' },
+  { slug: 'earth-retention',   name: 'Earth Retention',   group: 'TemporaryWorks', subCategory: 'TempShoring', description: 'Sheet piling, soldier piles and shotcrete retaining works.' },
+
+  // 臨時設施 — TempSiteFacilities
+  { slug: 'site-hoarding',  name: 'Site Hoarding',    group: 'TemporaryWorks', subCategory: 'TempSiteFacilities', description: 'Hoarding panels, hoardings and site boundary enclosures.' },
+  { slug: 'temp-utilities', name: 'Temporary Utilities', group: 'TemporaryWorks', subCategory: 'TempSiteFacilities', description: 'Temporary power, water supply and site office setup.' },
+
+  // ---------------------------------------------------------------------------
+  // 8. 建築資訊模型與技術應用 — BIM
+  // ---------------------------------------------------------------------------
+
+  // BIM建模與協調 — BIMModeling
+  { slug: 'bim-modeling',    name: 'BIM Modeling',    group: 'BIM', subCategory: 'BIMModeling', description: 'Revit/ArchiCAD 3D model authoring and federated model management.' },
+  { slug: 'clash-detection', name: 'Clash Detection', group: 'BIM', subCategory: 'BIMModeling', description: 'MEP/structural clash detection and coordination workflows in Navisworks.' },
+
+  // 數位施工技術 — DigitalConstruction
+  { slug: '4d-scheduling',           name: '4D Construction Scheduling', group: 'BIM', subCategory: 'DigitalConstruction', description: 'Linking programme schedules to BIM model elements for 4D simulation.' },
+  { slug: 'construction-simulation', name: 'Construction Simulation',    group: 'BIM', subCategory: 'DigitalConstruction', description: 'Digital twin and construction sequence simulation.' },
+
+  // ---------------------------------------------------------------------------
+  // 9. 專案管理與顧問服務 — ProjectConsulting
+  // ---------------------------------------------------------------------------
+
+  // 合約與採購管理 — ContractProcurement
+  { slug: 'contract-administration', name: 'Contract Administration', group: 'ProjectConsulting', subCategory: 'ContractProcurement', description: 'NEC/FIDIC contract management, certification and variation assessment.' },
+  { slug: 'quantity-surveying',      name: 'Quantity Surveying',      group: 'ProjectConsulting', subCategory: 'ContractProcurement', description: 'Cost estimation, BOQ preparation and cost control.' },
+
+  // 顧問諮詢服務 — ConsultingAdvisory
+  { slug: 'value-engineering',   name: 'Value Engineering',   group: 'ProjectConsulting', subCategory: 'ConsultingAdvisory', description: 'Structured VE workshops and buildability reviews.' },
+  { slug: 'feasibility-studies', name: 'Feasibility Studies', group: 'ProjectConsulting', subCategory: 'ConsultingAdvisory', description: 'Pre-project feasibility analysis and option appraisals.' },
+
+  // 索賠與爭議 — ClaimsDisputes
+  { slug: 'claims-management',  name: 'Claims Management',  group: 'ProjectConsulting', subCategory: 'ClaimsDisputes', description: 'Contractual claim preparation, entitlement analysis and negotiation.' },
+  { slug: 'dispute-resolution', name: 'Dispute Resolution', group: 'ProjectConsulting', subCategory: 'ClaimsDisputes', description: 'ADR, mediation, adjudication and expert witness support.' },
 ] as const;
 
 // ---------------------------------------------------------------------------
