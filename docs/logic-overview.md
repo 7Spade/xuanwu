@@ -580,7 +580,7 @@ ACTIVE_CTX -->|"查詢鍵"| QGWAY_SCOPE
 QGWAY_SCOPE --> CBG_AUTH
 
 %% ── Global Search（Cross-cutting Authority · 語義門戶）──
-GLOBAL_SEARCH["🔍 Global Search（跨切片權威）\nL6 Query Gateway 核心消費者\n語義化索引檢索\n唯一跨域搜尋權威\n對接 VS8 語義索引\nCmd+K 唯一服務提供者\n_actions.ts / _services.ts [D3 D8]"]
+GLOBAL_SEARCH["🔍 Global Search（跨切片權威）\nL6 Query Gateway 核心消費者\n語義化索引檢索\n唯一跨域搜尋權威\n對接 VS8 語義索引\nCmd+K 唯一服務提供者\n_actions.ts / _services.ts [D26]"]
 GLOBAL_SEARCH -->|"語義化索引檢索"| QGWAY_SEARCH
 
 %% ── VS8 Semantic Graph 跨切片語義提供 ──
@@ -832,14 +832,11 @@ class GLOBAL_SEARCH globalSearch
 %%  S5  SK_RESILIENCE_CONTRACT 外部入口最低防護規格（rate-limit/circuit-break/bulkhead）
 %%  S6  SK_TOKEN_REFRESH_CONTRACT Claims 刷新三方握手（VS1 ↔ IER ↔ 前端）
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  FIREBASE 隔離規則 [D24~D25] 與 Cross-cutting Authority 治理 [D26]
-%%  D24 feature slice / shared/types / app 層禁止直接 import firebase/*
-%%      所有 Firebase SDK 呼叫必須透過 FIREBASE_ACL 對應 Adapter
-%%      Adapter 路徑：src/shared/infra/{auth|firestore|messaging|storage}
-%%  D25 新增 Firebase 功能必須在 FIREBASE_ACL 新增 Adapter 實作對應 SK_PORTS Port
+%%  FIREBASE 隔離規則 與 Cross-cutting Authority 治理 [D24~D26]
+%%  （詳見 UNIFIED DEVELOPMENT RULES 完整定義）
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  UNIFIED DEVELOPMENT RULES [D1~D26]
-%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Governance Rules (D21~D26 語義治理) ──
+%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance (D21~D23) / Infrastructure (D24~D25) / Authority Governance (D26) ──
 %%  ── 基礎路徑約束（D1~D12）──
 %%  D1  事件傳遞只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
 %%  D2  跨切片引用：import from '@/features/{slice}/index' only；_*.ts 為私有
@@ -866,11 +863,12 @@ class GLOBAL_SEARCH globalSearch
 %%  D21 新增 tag 語義類別：必須在 VS8（Semantic Graph）CTA TAG_ENTITIES 定義，禁止各 slice 自行創建
 %%  D22 跨切片 tag 語義引用：必須指向 TE1~TE6 實體節點，禁止隱式 tagSlug 字串引用
 %%  D23 tag 語義標注格式：節點內 → tag::{category}；邊 → -.->|"{dim} tag 語義"|
-%%  ── Cross-cutting Authority 守則（D24~D26）──
+%%  ── Firebase 隔離守則（D24~D25）──
 %%  D24 feature slice / shared/types / app 層禁止直接 import firebase/*
 %%      所有 Firebase SDK 呼叫必須透過 FIREBASE_ACL 對應 Adapter
 %%      Adapter 路徑：src/shared/infra/{auth|firestore|messaging|storage}
 %%  D25 新增 Firebase 功能必須在 FIREBASE_ACL 新增 Adapter 實作對應 SK_PORTS Port
+%%  ── Cross-cutting Authority 守則（D26）──
 %%  D26 Cross-cutting Authority 治理：
 %%      global-search.slice 為唯一跨域搜尋權威，各業務 Slice 禁止自建搜尋邏輯
 %%      notification-hub (VS7) 為唯一副作用出口，業務 Slice 禁止直接調用 sendEmail/push/SMS

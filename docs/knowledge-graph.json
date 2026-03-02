@@ -182,7 +182,7 @@
         "Eliminates duplicate search logic (DRY): all slices delegate search to global-search.slice instead of implementing their own search/filter logic.",
         "Supports multi-dimensional intersection queries: cross-slice compound queries (e.g., Organization × Skill × Availability × Partner).",
         "Sole provider for global shortcut (Cmd+K) UI authority.",
-        "Must own its own _actions.ts and _services.ts per D3/D8 compliance; must not parasitize shared-kernel."
+        "Must own its own _actions.ts and _services.ts per D26 (which enforces D3/D8 compliance); must not parasitize shared-kernel."
       ]
     },
     {
@@ -190,11 +190,11 @@
       "entityType": "Cross_Cutting_Authority",
       "observations": [
         "Notification Hub (notification-hub.slice / VS7 enhanced) is the system's sole side-effect outlet (反應中樞) and a Cross-cutting Authority (跨切片權威).",
-        "Per ARCH-D3, business slices (e.g., Scheduling) only produce Events; Notification Hub decides 'how to notify' — decoupling business logic from delivery infrastructure.",
+        "Per D3, business slices (e.g., Scheduling) only produce Events; Notification Hub decides 'how to notify' — decoupling business logic from delivery infrastructure.",
         "Tag-Aware routing: Hub consults VS8 Semantic Graph tags to determine notification strategy (e.g., #channel:slack → Slack, #urgency:high → phone call).",
         "Causality consistency: notification delivery is traceable (traceId from EventEnvelope [R8]) and replayable (idempotency-key).",
         "Replaces scattered sendEmail()/push() calls across _actions.ts files; all notification side-effects route through this hub.",
-        "Must own its own _actions.ts and _services.ts per D3/D8 compliance; must not parasitize shared-kernel."
+        "Must own its own _actions.ts and _services.ts per D26 (which enforces D3/D8 compliance); must not parasitize shared-kernel."
       ]
     },
     {
