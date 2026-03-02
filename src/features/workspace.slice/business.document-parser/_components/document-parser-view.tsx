@@ -4,6 +4,7 @@ import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Cl
 import { useActionState, useTransition, useRef, useEffect, useCallback, useState, type ChangeEvent } from 'react';
 
 import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
+import { logDomainError } from '@/features/observability';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
@@ -224,7 +225,13 @@ export function WorkspaceDocumentParser() {
     eventBus.publish('workspace:parsing-intent:deltaProposed', deltaPayload);
     persistWorkspaceOutboxEvent(workspace.id, 'workspace:parsing-intent:deltaProposed', deltaPayload)
       .catch((err: unknown) => {
-        console.error('[document-parser] wsOutbox persist failed for deltaProposed', err);
+        logDomainError({
+          occurredAt: new Date().toISOString(),
+          traceId: crypto.randomUUID(),
+          source: 'document-parser:handleImport:persistWorkspaceOutboxEvent',
+          message: 'wsOutbox persist failed for deltaProposed — at-least-once delivery may be degraded.',
+          detail: err instanceof Error ? (err.stack ?? err.message) : String(err),
+        });
       });
 
     // Reset source file references after successful import
