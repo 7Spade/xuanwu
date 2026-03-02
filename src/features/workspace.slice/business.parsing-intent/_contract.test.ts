@@ -2,11 +2,13 @@
  * @fileoverview Tests for ParsingIntentContract — Digital Twin [#A4]
  *
  * Validates that:
- *   1. createParsingIntentContract produces a valid contract with SkillRequirement[] [#A4]
+ *   1. createParsingIntentContract produces a valid contract with SkillRequirement[] [#A4][TE_SK]
  *   2. skillRequirements defaults to [] when not provided
  *   3. markParsingIntentImported transitions status to 'imported'
  *   4. supersedeParsingIntent transitions status to 'superseded'
  *   5. Immutability — operations return new objects without mutating the original
+ *
+ * Tags: [#A4] Digital Twin contract, [TE_SK] task::skill anchor, [A5] Scheduling Saga
  */
 
 import { describe, it, expect } from 'vitest';
