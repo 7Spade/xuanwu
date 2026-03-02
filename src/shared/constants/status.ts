@@ -16,6 +16,12 @@
 
 import type { ScheduleStatus } from '@/shared/types/schedule.types';
 import type { WorkspaceLifecycleState } from '@/shared/types/workspace.types';
+import type { AuditLogType } from '@/shared/types/audit.types';
+import type {
+  InviteState,
+  NotificationType,
+  Presence,
+} from '@/shared/types/account.types';
 
 // ---------------------------------------------------------------------------
 // ScheduleStatus
@@ -116,7 +122,7 @@ export const WORKSPACE_LIFECYCLE_STATE_META: Record<
 // AuditLogType
 // ---------------------------------------------------------------------------
 
-export type AuditLogType = 'create' | 'update' | 'delete' | 'security';
+export type { AuditLogType };
 
 /** Stable ordered list of AuditLogType values. */
 export const AUDIT_LOG_TYPES: readonly AuditLogType[] = [
@@ -164,7 +170,7 @@ export const AUDIT_LOG_TYPE_META: Record<AuditLogType, AuditLogTypeMeta> = {
 // InviteState (PartnerInvite.inviteState)
 // ---------------------------------------------------------------------------
 
-export type InviteState = 'pending' | 'accepted' | 'expired';
+export type { InviteState };
 
 /** Stable ordered list of InviteState values. */
 export const INVITE_STATES: readonly InviteState[] = [
@@ -205,7 +211,7 @@ export const INVITE_STATE_META: Record<InviteState, InviteStateMeta> = {
 // Presence (MemberReference.presence)
 // ---------------------------------------------------------------------------
 
-export type Presence = 'active' | 'away' | 'offline';
+export type { Presence };
 
 /** Stable ordered list of Presence values. */
 export const PRESENCES: readonly Presence[] = ['active', 'away', 'offline'] as const;
@@ -243,7 +249,7 @@ export const PRESENCE_META: Record<Presence, PresenceMeta> = {
 // NotificationType (Notification.type)
 // ---------------------------------------------------------------------------
 
-export type NotificationType = 'info' | 'alert' | 'success';
+export type { NotificationType };
 
 /** Stable ordered list of NotificationType values. */
 export const NOTIFICATION_TYPES: readonly NotificationType[] = [

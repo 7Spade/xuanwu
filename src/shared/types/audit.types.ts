@@ -1,5 +1,7 @@
 import type { Timestamp } from '@/shared/ports'
 
+export type AuditLogType = 'create' | 'update' | 'delete' | 'security';
+
 export interface AuditLog {
   id: string;
   accountId: string;
@@ -10,7 +12,7 @@ export interface AuditLog {
   actorId?: string;
   action: string;
   target: string;
-  type: 'create' | 'update' | 'delete' | 'security';
+  type: AuditLogType;
   metadata?: {
     before?: unknown;
     after?: unknown;
