@@ -3,7 +3,7 @@ import type { Config } from 'tailwindcss';
 export default {
   darkMode: ['class'],
   content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}', // 只掃描 src 下的必要檔案
+    './src/**/*.{ts,tsx,mdx}',
   ],
   theme: {
     extend: {
