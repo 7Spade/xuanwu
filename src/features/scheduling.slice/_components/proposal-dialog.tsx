@@ -133,6 +133,10 @@ export function ProposalDialog({
       toast({ variant: 'destructive', title: 'Title is required' });
       return;
     }
+    if (requiredSkills.length === 0) {
+      toast({ variant: 'destructive', title: 'At least one skill requirement is needed' });
+      return;
+    }
     setIsAdding(true);
     try {
       await onSubmit({ title, description, startDate: dateRange?.from, endDate: dateRange?.to, location, requiredSkills });
@@ -204,8 +208,8 @@ export function ProposalDialog({
                 />
             </div>
           <div className="space-y-2">
-            <Label>Required Skills (Optional)</Label>
-            <p className="text-xs text-muted-foreground">Specify staffing requirements so the organization can match available members.</p>
+            <Label>Required Skills</Label>
+            <p className="text-xs text-muted-foreground">Specify at least one staffing requirement so the organization can match available members.</p>
             {requiredSkills.length > 0 && (
               <div className="flex flex-wrap gap-2 py-1">
                 {requiredSkills.map(req => {
