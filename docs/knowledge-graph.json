@@ -53,8 +53,9 @@
       "observations": [
         "Design rules D1-D25 are all mandatory governance constraints.",
         "Enforcement hotspots: D7 public slice boundary via {slice}/index.ts; D24 no direct firebase/* import in feature slices; D25 new Firebase capability must enter through FIREBASE_ACL + SK_PORTS.",
-        "D26 Style Consistency: Adhere strictly to project .prettierrc and ESLint rules. Use 'ESLint mcp' for validation and 'shadcn mcp' as the primary source for UI components.",
-        "D27 Type Truth: All domain entities must be defined in L1 Shared Kernel (SK_DATA). No duplicate type definitions allowed in local feature slices. Validate type origins using 'software-planning mcp'."
+        "D26 Style Consistency: Adhere strictly to project .prettierrc and ESLint rules. Use 'ESLint mcp' for style-rule validation.",
+        "UI component source consistency: use 'shadcn mcp' as the primary source for generated UI components.",
+        "D27 Type Truth: All domain entities must be defined in L1 Shared Kernel (SK_DATA). No duplicate type definitions allowed in local feature slices. Trace type origins and contracts using 'software-planning mcp'."
       ]
     },
     {
@@ -71,14 +72,8 @@
       "observations": [
         "Tag semantics source: standalone TAG_AUTH authority (outside SharedKernel) under D21 governance.",
         "Critical retained references: T4 scheduling demand uses SK_SKILL_REQ × tagSlug; T5 TAG_SNAPSHOT is read-only to consumers.",
-        "filesystem mcp: Used for precise read/write operations of the codebase within the src/ directory.",
-        "sequential-thinking mcp: Essential for evaluating logic complexity and enforcing 'A11 Occam's Razor' before coding.",
-        "software-planning mcp: Used to define type contracts, architecture boundaries, and I/O paths for new features.",
-        "context7 mcp: The primary tool for querying technical documentation, design concepts, and deep architectural context.",
-        "shadcn mcp: The sole generator for UI components to ensure visual and code consistency.",
-        "next-devtools mcp: Used for inspecting Next.js runtime state, performance, and hydration issues.",
-        "ESLint mcp: The automated gatekeeper for code style and linting rule compliance.",
-        "memory mcp: Used to store and retrieve long-term development decisions and project-specific conventions."
+        "Tooling MCP governance is modeled via dedicated Tooling_MCP entities and relations.",
+        "Relation note: T_Category → A_Category (validates) denotes tooling-assisted conformance checks against architecture invariants and applies to all Tooling_MCP entities unless a narrower relation overrides it."
       ]
     },
     {
@@ -117,10 +112,31 @@
       ]
     },
     {
+      "name": "filesystem mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used for precise read/write operations within repository boundaries."
+      ]
+    },
+    {
       "name": "context7 mcp",
       "entityType": "Tooling_MCP",
       "observations": [
         "Used to retrieve authoritative, up-to-date technical documentation and architecture references."
+      ]
+    },
+    {
+      "name": "shadcn mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used to generate UI components with consistent design and implementation patterns."
+      ]
+    },
+    {
+      "name": "next-devtools mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used to inspect Next.js runtime behavior, hydration state, and route diagnostics."
       ]
     },
     {
@@ -131,10 +147,17 @@
       ]
     },
     {
+      "name": "memory mcp",
+      "entityType": "Tooling_MCP",
+      "observations": [
+        "Used to store and retrieve long-term project decisions and conventions."
+      ]
+    },
+    {
       "name": "software-planning mcp",
       "entityType": "Tooling_MCP",
       "observations": [
-        "Used to model type contracts, architecture boundaries, and execution plans."
+        "Used to model type contracts, architecture boundaries, and domain modeling workflows."
       ]
     },
     {
@@ -221,11 +244,6 @@
       "from": "T_Category",
       "to": "D_Category",
       "relationType": "aligned_with"
-    },
-    {
-      "from": "T_Category",
-      "to": "D_Category",
-      "relationType": "enforces"
     },
     {
       "from": "T_Category",
