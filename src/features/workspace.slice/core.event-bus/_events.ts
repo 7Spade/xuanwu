@@ -56,6 +56,28 @@ export interface DocumentParserItemsExtractedPayload {
   skillRequirements?: SkillRequirement[]
 }
 
+/**
+ * IntentDeltaProposed — emitted by a ParsingIntent Digital Twin [#A4].
+ *
+ * Per logic-overview.md: PARSE_INT -.->|"IntentDeltaProposed [#A4]"| A_TASKS
+ * Invariant #A4: ParsingIntent only allows proposing events (CQS — no direct mutation).
+ *
+ * This event is persisted to the ws-outbox Firestore collection [S1][E5] for
+ * at-least-once delivery via the OUTBOX_RELAY_WORKER [R1].
+ */
+export interface IntentDeltaProposedPayload {
+  /** The ParsingIntent Digital Twin that produced this delta. */
+  intentId: string
+  workspaceId: string
+  sourceFileName: string
+  /** Number of line-item task drafts in this delta. */
+  taskDraftCount: number
+  /** Skill requirements forwarded to the tasks system for eligibility checks [TE_SK]. */
+  skillRequirements?: SkillRequirement[]
+  /** [R8] TraceID for end-to-end audit trail propagation. */
+  traceId?: string
+}
+
 export interface DailyLogForwardRequestedPayload {
   log: DailyLog
   targetCapability: "tasks" | "issues"
@@ -129,6 +151,7 @@ export type WorkspaceEventName =
   | "workspace:issues:resolved"
   | "workspace:finance:disburseFailed"
   | "daily:log:forwardRequested"
+  | "workspace:parsing-intent:deltaProposed"
 
 // =================================================================
 // Event-to-Payload Mapping (Type-Safe Constraint)
@@ -149,6 +172,7 @@ export interface WorkspaceEventPayloadMap {
   "workspace:issues:resolved": WorkspaceIssueResolvedPayload
   "workspace:finance:disburseFailed": WorkspaceFinanceDisbursementFailedPayload
   "daily:log:forwardRequested": DailyLogForwardRequestedPayload
+  "workspace:parsing-intent:deltaProposed": IntentDeltaProposedPayload
 }
 
 export type WorkspaceEventPayload<T extends WorkspaceEventName> =

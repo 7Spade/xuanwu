@@ -54,7 +54,7 @@ export async function runTransaction<T>(
   correlationId?: string
 ): Promise<TransactionResult<T>> {
   const resolvedCorrelationId = correlationId ?? generateTraceId();
-  const outbox = createOutbox();
+  const outbox = createOutbox(workspaceId);
 
   const ctx: TransactionContext = { workspaceId, correlationId: resolvedCorrelationId, outbox };
   const value = await handler(ctx);
