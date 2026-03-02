@@ -36,8 +36,10 @@
 %%    S4=Staleness-SLA       S5=Resilience         S6=TokenRefresh
 %%    A3=workflow-blockedBy  A5=scheduling-saga    A8=1cmd-1agg
 %%    A9=scope-guard         A10=notification-stateless
+%%    A12=global-search-authority   A13=notification-hub-authority
 %%  ── Governance Rules（可演化治理）: D · P · T · E ──
 %%    D7=cross-slice-index-only   D21=tag-centralized    D24=no-firebase-import
+%%    D26=cross-cutting-authority
 %%    P1=IER-lane-priority        P4=eligibility-query   P5=projection-funnel
 %%    T1=tag-lifecycle-sub        T3=eligible-tag-logic  T5=tag-snapshot-readonly
 %%    E2=OrgContextProvisioned    E3=ScheduleAssigned    E5=ws-event-flow   E6=claims-refresh
@@ -49,12 +51,17 @@
 %%    [D7]  跨切片引用只能透過 {slice}/index.ts 公開 API
 %%    [D21] 新 tag 類別只在 VS8（Semantic Graph）定義
 %%    [D24] Feature slice 禁止直接 import firebase/*，必須走 SK_PORTS
+%%    [D26] global-search = 唯一搜尋權威；notification-hub = 唯一副作用出口
+%%    [#A12] Global Search = 唯一跨域搜尋出口，禁止各 Slice 自建搜尋邏輯
+%%    [#A13] Notification Hub = 唯一副作用出口，業務 Slice 只產生事件不決定通知策略
 %%  FORBIDDEN:
 %%    BC_X 禁止直接寫入 BC_Y aggregate → 必須透過 IER Domain Event
 %%    TX Runner 禁止產生 Domain Event → 只有 Aggregate 可以 [#4b]
 %%    SECURITY_BLOCK DLQ → 禁止自動 Replay，必須人工審查
 %%    B-track 禁止回呼 A-track → 只能透過 Domain Event 溝通
 %%    Feature slice 禁止直接 import firebase/* [D24]
+%%    Feature slice 禁止自建搜尋邏輯，必須透過 Global Search [D26 #A12]
+%%    Feature slice 禁止直接 call sendEmail/push/SMS，必須透過 Notification Hub [D26 #A13]
 %%  ╚══════════════════════════════════════════════════════════════════════════╝
 
 flowchart TD
@@ -115,7 +122,7 @@ end
 %% ─── 前身為 TAG_AUTH (Tag Authority Center)，升級為正式業務垂直切片
 %% ─── 職責：標籤分類學 (Taxonomy)、因果追蹤 (Causality)、排班衝突語義檢測
 %% ─── centralized-tag.aggregate 具備 lifecycle，為 domain authority [#A6 #17]
-subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17 A13]（語義中樞）"]
+subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（語義中樞）"]
     direction TB
     CTA["centralized-tag.aggregate\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule"]
 
@@ -582,6 +589,7 @@ QGWAY_SCOPE --> CBG_AUTH
 %% ── Global Search（Cross-cutting Authority · 語義門戶）──
 GLOBAL_SEARCH["🔍 Global Search（跨切片權威）\nL6 Query Gateway 核心消費者\n語義化索引檢索\n唯一跨域搜尋權威\n對接 VS8 語義索引\nCmd+K 唯一服務提供者\n_actions.ts / _services.ts [D26]"]
 GLOBAL_SEARCH -->|"語義化索引檢索"| QGWAY_SEARCH
+GLOBAL_SEARCH -.->|"queries VS8 semantic index [D26]"| VS8
 
 %% ── VS8 Semantic Graph 跨切片語義提供 ──
 VS8 -.->|"排班組合匹配"| VS6
@@ -713,7 +721,6 @@ classDef serverAct fill:#fed7aa,stroke:#f97316,color:#000
 classDef aclAdapter fill:#fce4ec,stroke:#ad1457,color:#000,font-weight:bold
 classDef firebaseExt fill:#fff9c4,stroke:#f9a825,color:#000,font-weight:bold
 classDef semanticGraph fill:#e0e7ff,stroke:#4f46e5,color:#000,font-weight:bold
-classDef globalSearch fill:#fef3c7,stroke:#d97706,color:#000,font-weight:bold
 classDef crossCutAuth fill:#fde68a,stroke:#b45309,color:#000,font-weight:bold,stroke-width:3px
 
 class SK,SK_ENV,SK_AUTH_SNAP,SK_SKILL_TIER,SK_SKILL_REQ,SK_CMD_RESULT sk
@@ -742,7 +749,7 @@ class A_TASKS,A_QA,A_ACCEPT,A_FINANCE trackA
 class B_ISSUES,W_DAILY,W_SCHED wsSlice
 class VS6,ORG_SCH,SCH_SAGA schedSlice
 class SCH_OB outboxNode
-class VS7,NOTIF_R,NOTIF_HUB_SVC,USER_NOTIF,USER_DEV notifSlice
+class VS7,NOTIF_R,USER_NOTIF,USER_DEV notifSlice
 class GW_CMD,GW_GUARD,GW_PIPE gateway
 class RATE_LIM,CIRCUIT,BULKHEAD guardLayer
 class CBG_ENTRY,CBG_AUTH,CBG_ROUTE cmdGw
@@ -768,7 +775,8 @@ class FIREBASE_ACL,AUTH_ADP,FSTORE_ADP,FCM_ADP,STORE_ADP aclAdapter
 class FIREBASE_EXT,F_AUTH,F_DB,F_FCM,F_STORE firebaseExt
 class EXT_CLIENT,EXT_AUTH,EXT_WEBHOOK serverAct
 class VS8 semanticGraph
-class GLOBAL_SEARCH globalSearch
+class GLOBAL_SEARCH crossCutAuth
+class NOTIF_HUB_SVC crossCutAuth
 
 %%  ╔══════════════════════════════════════════════════════════════════════════╗
 %%  ║  CONSISTENCY INVARIANTS 完整索引                                         ║
