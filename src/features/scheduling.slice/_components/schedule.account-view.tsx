@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 
 import { useApp } from "@/shared/app-providers/app-context";
+import { cn } from "@/shared/lib";
 import { Button } from "@/shared/shadcn-ui/button";
 import {
   Command,
@@ -85,7 +86,7 @@ function MemberAssignPopover({ item, members, onAssign, onUnassign }: MemberAssi
                       }
                     }}
                   >
-                    <Check className={`mr-2 size-3 ${isAssigned ? 'opacity-100' : 'opacity-0'}`} />
+                    <Check className={cn("mr-2 size-3", isAssigned ? "opacity-100" : "opacity-0")} />
                     {member.name}
                   </CommandItem>
                 );
