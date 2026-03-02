@@ -76,6 +76,7 @@ export { useScheduleEventHandler } from './_hooks/use-schedule-event-handler';
 // Account-level views
 export { AccountScheduleSection } from './_components/schedule.account-view';
 export { OrgScheduleGovernance } from './_components/org-schedule-governance';
+export { OrgSkillPoolManager } from './_components/org-skill-pool-manager';
 // Workspace-level views
 export { WorkspaceSchedule } from './_components/schedule.workspace-view';
 // Shared schedule UI primitives

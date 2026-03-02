@@ -17,7 +17,7 @@
 "use client";
 
 import { addMonths, subMonths } from "date-fns";
-import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users } from "lucide-react";
+import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 
@@ -39,6 +39,7 @@ import { useScheduleActions } from "../_hooks/use-schedule-commands";
 
 import { decisionHistoryColumns } from "./decision-history-columns";
 import { OrgScheduleGovernance } from "./org-schedule-governance";
+import { OrgSkillPoolManager } from "./org-skill-pool-manager";
 import { ScheduleDataTable } from "./schedule-data-table";
 import { UnifiedCalendarGrid } from "./unified-calendar-grid";
 import { upcomingEventsColumns } from "./upcoming-events-columns";
@@ -123,6 +124,10 @@ export function AccountScheduleSection() {
             <Users className="size-4" />
             人力管理
           </TabsTrigger>
+          <TabsTrigger value="skill-pool" className="gap-2">
+            <BookOpen className="size-4" />
+            技能庫
+          </TabsTrigger>
         </TabsList>
 
         {/* Tab 1: Calendar — full-width grid + upcoming/present/history tables */}
@@ -170,6 +175,13 @@ export function AccountScheduleSection() {
             (approve-only, no assignment) that previously lived in the Calendar tab. */}
         <TabsContent value="hr-management">
           <OrgScheduleGovernance />
+        </TabsContent>
+
+        {/* Tab 3: 技能庫 — manage which global skills apply to this organization.
+            Activated skills appear in ProposalDialog's picker instead of the full
+            global library, reducing browsing burden for HR (FR-K5). */}
+        <TabsContent value="skill-pool" className="flex-1">
+          <OrgSkillPoolManager />
         </TabsContent>
       </Tabs>
     </div>
