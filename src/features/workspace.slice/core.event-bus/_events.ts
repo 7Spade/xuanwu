@@ -104,6 +104,8 @@ export interface WorkspaceTaskAssignedPayload {
   workspaceId: string
   /** SourcePointer: the IntentID that originated this task, if any. */
   sourceIntentId?: string
+  /** [TE_SK] Skill requirements from the originating task — forwarded to the schedule proposal for VS6 eligibility checks. */
+  requiredSkills?: SkillRequirement[]
   /** TraceID from the originating EventEnvelope — required for R8 audit trail. */
   traceId?: string
 }

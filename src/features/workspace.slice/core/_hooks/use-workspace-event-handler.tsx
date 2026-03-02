@@ -121,6 +121,9 @@ export function useWorkspaceEventHandler() {
             priority: "medium",
             progressState: "todo",
             sourceIntentId: payload.intentId,
+            // [TE_SK] ParsingIntent uses `skillRequirements`; WorkspaceTask uses `requiredSkills`
+            // to align with ScheduleItem's field name — intentional cross-model mapping.
+            ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
           }));
 
         batchImportTasks(workspace.id, items)
@@ -244,6 +247,9 @@ export function useWorkspaceEventHandler() {
             originType: "TASK_AUTOMATION",
             originTaskId: payload.taskId,
             assigneeIds: [payload.assigneeId],
+            // [TE_SK] Forward skill requirements so the scheduling saga can run
+            // eligibility checks (SK_SKILL_REQ) without knowing task details [D7].
+            ...(payload.requiredSkills?.length ? { requiredSkills: payload.requiredSkills } : {}),
           });
           logAuditEvent(
             "Auto-Generated Assignment Proposal",

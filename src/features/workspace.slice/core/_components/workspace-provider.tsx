@@ -142,6 +142,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
         assigneeId: updates.assigneeId,
         workspaceId,
         sourceIntentId: taskData?.sourceIntentId,
+        requiredSkills: taskData?.requiredSkills,
       });
     }
   }, [workspaceId, eventBus]);
