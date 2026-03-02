@@ -1,189 +1,158 @@
-# Copilot Instructions for `7Spade/xuanwu`
+# 🚀 Copilot 最速理解規則集（Knowledge Graph 驅動版）
 
-This repository is onboarding Copilot with an **architecture-first, root-cause-first rule set**, integrated with **Memory MCP** for long-term project context.
-
----
-
-## 🧠 Memory MCP — 強制執行協議（MANDATORY SESSION PROTOCOL）
-
-> ⚠️ **每次 session 開始時必須執行以下步驟，不得跳過。**
-
-### Step 1 — Session Start: Read Knowledge Graph（強制讀取）
-
-Session 開始的**第一個動作**必須是讀取架構知識圖譜（以下為 MCP tool 調用方式）：
-
-```
-// 優先使用（在大部分環境下更可靠）
-memory.read_graph()
-
-// 備用：針對特定主題搜尋
-memory.search_nodes({ query: "Architecture_Governance_Principles" })
-memory.open_nodes({ names: ["Logic_Overview_SSOT", "Development_Rules"] })
-```
-
-**若 MCP 圖譜為空（0 entities），執行 Cold-Start Recovery：**
-1. 讀取 `docs/knowledge-graph.json`
-2. 呼叫 `memory.create_entities(entities)` 載入所有實體
-3. 呼叫 `memory.create_relations(relations)` 載入所有關係
-4. 驗證：再次呼叫 `memory.read_graph()` 確認載入成功
-
-詳細步驟參見 `docs/knowledge-graph.json`（知識圖譜資料）與 `docs/logic-overview.md`（架構規則 SSOT）。
-
-### Step 2 — During Session: Write Ongoing（邊做邊記）
-
-完成新功能、解決架構問題或做出設計決策後，立即更新圖譜：
-
-```
-// 新增實體
-memory.create_entities([{
-  name: "EntityName",
-  entityType: "Architecture_Decision",  // 見下方實體類型
-  observations: ["關鍵約束或決策描述"]
-}])
-
-// 新增關係
-memory.create_relations([{
-  from: "EntityA",
-  to: "EntityB",
-  relationType: "CONSTRAINS"  // 見下方關係類型
-}])
-
-// 補充現有實體的觀察
-memory.add_observations([{
-  entityName: "ExistingEntity",
-  contents: ["新增的觀察或決策記錄"]
-}])
-
-// 刪除過時資訊
-memory.delete_observations([{
-  entityName: "EntityName",
-  observations: ["需要移除的舊觀察"]
-}])
-memory.delete_relations([{ from: "A", to: "B", relationType: "FOLLOWS" }])
-memory.delete_entities(["ObsoleteEntity"])
-```
-
-**合法的實體類型（entityType）：**
-- `Framework_Feature` — 框架功能或版本特性
-- `Project_Convention` — 專案慣例與工作流程規範
-- `Component_Standard` — UI 元件使用標準
-- `Data_Schema` — 資料模型、合約或 Schema
-- `Architecture_Decision` — 架構決策與治理原則
-
-**合法的關係類型（relationType）：**
-- `FOLLOWS` — 遵循某架構原則
-- `IMPLEMENTS` — 具體實作某抽象規範
-- `CONSTRAINS` — 對另一實體施加約束
-- `DEPENDS_ON` — 依賴某實體才能運作
-- `REPLACES` — 取代舊版規範
-
-### Step 3 — Session End: Store Persistent Memory（強制儲存）
-
-Session 結束前，將本次 session 的**重要發現、修復或決策**儲存為持久記憶：
-
-```
-store_memory({
-  subject: "簡短主題（1-2 個詞）",
-  fact: "本次 session 確認或修改的關鍵事實（< 200 字元）",
-  reason: "為什麼此事實重要，對未來任務有什麼影響（2-3 句話）",
-  citations: "src/features/... 或 docs/... 相關來源",
-  category: "general" | "file_specific" | "bootstrap_and_build" | "user_preferences"
-})
-```
-
-**同時更新 `docs/knowledge-graph.json`** 以確保持久化（`docs/knowledge-graph.json` 是知識圖譜的跨-session 持久化存儲；`docs/logic-overview.md` 是架構規則的最高權威文件 — 兩者角色不同，互補而非衝突）。
+> 🎯 本專案所有**事實依據（Single Source of Truth）**統一來自：
+>
+> * `docs/knowledge-graph.json`
+> * `docs/logic-overview.md`
+>
+> ❗ 任何推論、流程、任務拆解、AI 判斷
+> 都必須以這兩份文件為基礎，不得憑空假設。
 
 ---
 
-## Core principles
-- Follow **Root-Cause First**: always identify and fix the fundamental cause before choosing implementation size.
-- Keep code in the repository's **Vertical Slice Architecture (VSA)**.
-- Apply **small/local patches only after** root cause and affected boundaries are fully verified; do not use “minimal change” as a shortcut.
-- **SSOT**: `docs/logic-overview.md` 是本專案唯一最高權威文件，所有衝突以此為準。
+# 🧠 核心事實來源規則（強制）
 
-## Memory MCP & Knowledge Graph (Crucial)
-You must actively maintain the project's knowledge graph using the `memory` tool:
-- **Initialize & Sync**: Upon start or when requested, read `.github/prompts/*.md` to sync governance rules into memory.
-- **Read First**: Before any task, use `read_graph` or `search_nodes` to recall architecture decisions and domain constraints.
-- **Write Ongoing (The Habit)**:
-  - **Feature Completion**: When a new feature or vertical slice is completed, create entities/relations to document its public API and dependencies.
-  - **Error Learning**: After fixing a complex bug, record the "Root Cause" and "Solution" as an observation in memory to prevent regression.
-  - **Architecture Decided**: If a new pattern is established (e.g., a specific way to handle Parallel Routes), log it as an `Architecture_Decision` entity.
+```rules
+1. 所有業務邏輯以 docs/logic-overview.md 為流程定義依據。
+2. 所有實體關係與知識結構以 docs/knowledge-graph.json 為語義依據。
+3. 不允許跳過文件直接生成邏輯。
+4. 若文件未定義，必須先更新 Knowledge Graph 再實作。
+```
 
-## Architecture rules (must follow)
-- Top-level structure:
-  - `src/app`: Next.js App Router composition only.
-  - `src/features`: Business-domain vertical slices.
-  - `src/shared`: Cross-cutting infrastructure.
-  - `src/features/shared-kernel`: Core domain models and utilities shared across features.
-- Dependency direction:
-  - `app -> features/{slice}/index.ts -> shared`
-- Cross-slice access:
-  - Import from another slice via its `index.ts` public API only. Do not import private `_` files across slices.
+---
 
-## Parallel routes + Next.js App Router
-- The project uses **parallel routes** (e.g., `@sidebar`, `@modal`, `@header`, `@plugintab`) and route groups.
-- Keep layouts thin: compose slots and shared chrome, do not add feature business logic in layout files.
-- Preserve current route behavior when editing slot routes or intercepting routes.
+# 💾 記憶系統使用規則（store_memory × memory MCP）
 
-## Next.js 15 & Data Mutations
-- Prefer **Server Actions** placed in `src/features/{slice}/actions.ts` for data mutations.
-- Use React 19 / Next.js 15 hooks like `useActionState` and `useFormStatus` for form handling. Do not use legacy `useFormState`.
-- Ensure Server Actions return serializable objects: `{ success: boolean, error?: string, data?: any }`.
+```rules
+1. 當產生新業務規則 → 使用 store_memory 寫入 Knowledge Graph。
+2. 當 AI 需要上下文歷史 → 使用 memory MCP 查詢。
+3. 不得在未同步 Knowledge Graph 情況下生成持久邏輯。
+4. 所有跨對話決策必須來自 memory MCP。
+```
 
-## UI & Styling
-- Use Tailwind CSS v3 for styling. Do not write inline CSS or standard CSS modules.
-- Use standard components from `src/shared/components/ui/` (shadcn/ui) **exclusively**. Do not add Material-UI, Chakra UI, Ant Design, or any other UI library.
-- If shadcn/ui lacks a needed component, first check if a composition of existing shadcn/ui primitives can satisfy the requirement. Only build a custom component as a last resort, and place it in `src/shared/components/` with a comment explaining why shadcn/ui was insufficient.
-- Use **Lucide React** for all iconography.
+---
 
-## Agent Task Workflow & MCP
+# 🧩 Copilot 行為決策流程（Mermaid）
 
-> All agents and sub-agents must follow the Memory MCP protocol above before any code changes.
+```mermaid
+flowchart TD
 
-- **READ FIRST**: Call `memory.read_graph()` before any code generation or refactoring.
-- **Plan first**: Outline the files you will touch before writing code.
-- **Context gathering**: If modifying database schemas or API contracts, utilize available MCP tools (e.g., Database MCP or GitHub MCP) to verify the current state first.
-- **Test driven**: If modifying a feature, check for existing tests in the slice (e.g., `src/features/{slice}/__tests__`) and update them accordingly.
-- **WRITE LAST**: After completing a task, update Memory MCP and `docs/knowledge-graph.json`, then call `store_memory` for key facts.
+A[接收任務] --> B{是否屬於既有邏輯?}
 
-## Sub-Agent Capabilities
+B -- 是 --> C[查詢 docs/logic-overview.md]
+C --> D[查詢 docs/knowledge-graph.json]
+D --> E[必要時使用 memory MCP]
+E --> F[產出解決方案]
 
-Sub-agents invoked by the primary agent (e.g., via the `Task` tool) **inherit the same Memory MCP protocol**:
+B -- 否 --> G[設計新邏輯]
+G --> H[更新 knowledge-graph.json]
+H --> I[store_memory 寫入]
+I --> F
 
-1. **Sub-agent session start**: Call `memory.read_graph()` to load architecture context before executing the delegated task.
-2. **Sub-agent focus**: Use `memory.search_nodes({ query: "..." })` or `memory.open_nodes({ names: [...] })` to narrow context to the relevant domain entities.
-3. **Sub-agent session end**: Call `store_memory` and update `docs/knowledge-graph.json` with any new facts discovered during the sub-task.
-4. **Sub-agent SSOT**: `docs/logic-overview.md` is authoritative for all sub-agents — no sub-agent may override or ignore its constraints.
-5. **Sub-agent boundary**: Sub-agents must only import from another slice's `index.ts` public API; never from `_private` files.
+F --> J{是否涉及專案工具?}
+J --> K[啟動對應 MCP]
+```
 
-Available MCP tools for agents and sub-agents:
-- `memory.read_graph` / `memory.search_nodes` / `memory.open_nodes` — read
-- `memory.create_entities` / `memory.create_relations` / `memory.add_observations` — write
-- `memory.delete_entities` / `memory.delete_relations` / `memory.delete_observations` — delete
-- `store_memory` — persist important facts across sessions
-- `sequential-thinking` — for complex multi-step reasoning
-- `software-planning` — for task decomposition and planning
-- `context7` — for up-to-date external library/framework documentation
-- **Styling**: Use **Tailwind CSS** for all styling. Follow the existing theme configuration.
-- **Components**: Use standard components from `src/shared/components/ui/` (**shadcn/ui**) before creating custom ones.
-- **Icons**: Use **Lucide React** for all iconography.
+---
 
-## Working style for Copilot
-- Prioritize existing patterns in `src/features/*`, `src/app/*`, `src/shared`, and `src/features/shared-kernel/*`.
-- Prefer server-first Next.js patterns and minimal client boundaries (use `"use client"` only at leaf nodes).
-- **Before validating**: always run `npm install` first. If `node_modules/.bin/eslint` does not exist, the lint output is noise — do NOT report "Cannot find module" errors as code defects.
-- Validate with existing commands: `npm run lint`, `npm run typecheck`.
-- Use `npm run check` for a single reliable install+lint+typecheck pass.
+# 🛠 MCP 使用時機規則句
 
-## Prompt Orchestration & Compliance Workflow
+## MCP 使用時機規則句
 
-Agent prompt index and workflow: **`.github/prompts/GEMINI.md`**
+1. **sonarqube**
 
-Before finalizing any PR:
-1. Run `npm run check` to confirm 0 errors baseline
-2. Invoke `compliance-audit.prompt.md` to verify no new D-rule violations introduced
-3. For architectural refactors, invoke `iterative-alignment-refactor.prompt.md`
+   * 當需要全面程式碼品質掃描或技術債分析時啟用。
+   * 適合在 CI/CD pipeline 或重大 PR merge 前運行。
 
-The D24 migration backlog (43 files with direct `firebase/firestore` imports) is tracked in `AGENTS.md`.
-Do NOT add new D24 violations. Any new code must use `SK_PORTS` interfaces via `@/shared/ports`.
+2. **shadcn**
+
+   * 當設計或更新 UI 元件時使用，用於查詢、生成與管理 shadcn/ui 元件。
+   * 適合開發新頁面、組件庫更新或 Dark Mode 設計時啟用。
+
+3. **next-devtools**
+
+   * 當需診斷 Next.js App Router、平行路由或 server-side 行為時使用。
+   * 適合本地開發或排查資料渲染/Streaming 問題。
+
+4. **chrome-devtools-mcp**
+
+   * 當需自動化除錯或模擬前端操作時使用。
+   * 適合跨頁面測試、UI 行為驗證或瀏覽器事件監控。
+
+5. **context7**
+
+   * 當需要長上下文記憶或知識檢索時使用。
+   * 適合多步對話、歷史資料參考或知識圖譜查詢。
+
+6. **sequential-thinking**
+
+   * 當需多步推理或複雜決策拆解時啟用。
+   * 適合 Task Planning、Chain-of-thought 推理或 AI workflow 流程控制。
+
+7. **software-planning**
+
+   * 當需軟體專案規劃、任務拆解或 DAG-based 計畫生成時使用。
+   * 適合大型專案設計或需求分析階段。
+
+8. **repomix**
+
+   * 當需分析或摘要整個程式碼庫結構時使用。
+   * 適合專案初期結構理解或重構前評估。
+
+9. **ESLint**
+
+   * 當需靜態程式碼檢查、格式規範或潛在錯誤掃描時使用。
+   * 適合 commit 前、CI/CD pipeline 或本地開發檢查。
+
+10. **memory**
+
+    * 當需存取或更新 Knowledge Graph 記憶時啟用。
+    * 適合 AI 流程的上下文保存與查詢操作。
+
+11. **filesystem**
+
+    * 當需讀寫專案檔案或操作檔案系統時使用。
+    * 適合專案分析、資料導入或生成檔案操作。
+
+12. **codacy**
+
+    * 當需程式碼安全、品質或維護性分析時使用。
+    * 適合大型 PR 審核或 CI/CD pipeline 自動檢查。
+
+---
+
+# 🏗 系統運作總結（極簡決策版）
+
+```rules
+IF 任務涉及業務邏輯
+  THEN 先讀 docs/logic-overview.md
+
+IF 任務涉及實體關係
+  THEN 查 docs/knowledge-graph.json
+
+IF 需要歷史上下文
+  THEN 使用 memory MCP
+
+IF 產生新知識
+  THEN store_memory + 更新 knowledge-graph.json
+
+IF 涉及專案分析
+  THEN 選擇對應 MCP 工具
+
+禁止：
+- 憑空生成未定義邏輯
+- 跳過 Knowledge Graph
+- 未持久化新規則
+```
+
+---
+
+# 🧬 最終架構哲學
+
+> 不把 AI 當黑盒
+> 不把邏輯寫死在 Prompt
+> 所有知識可追溯
+> 所有決策可查詢
+> 所有流程可觀測
+
+---
