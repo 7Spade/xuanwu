@@ -33,17 +33,16 @@ import type { Timestamp } from '@/shared/ports';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
-import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/shadcn-ui/select';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/shared/shadcn-ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/shadcn-ui/popover';
+import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import type { ScheduleItem } from '@/shared/types';
 import { toast } from '@/shared/utility-hooks/use-toast';
 
@@ -106,6 +105,7 @@ interface ProposalRowProps {
 function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }: ProposalRowProps) {
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [memberSearchOpen, setMemberSearchOpen] = useState(false);
 
   const handleApprove = useCallback(async () => {
     if (!selectedMemberId) return;
@@ -212,76 +212,88 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
       )}
 
       <div className="flex items-center gap-2">
-        <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
-          <SelectTrigger className="h-8 flex-1 text-xs">
-            <Users className="mr-1 size-3 shrink-0 text-muted-foreground" />
-            <SelectValue placeholder="選擇指派成員" />
-          </SelectTrigger>
-          <SelectContent>
-            {hasRequirements ? (
-              <>
-                {fullMatch.length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel className="text-[9px] font-bold uppercase tracking-widest text-green-600" aria-label={`全部符合技能，共 ${fullMatch.length} 人`}>
-                      ✓ 全部符合技能（{fullMatch.length}）
-                    </SelectLabel>
-                    {fullMatch.map((m) => (
-                      <SelectItem key={m.id} value={m.id} className="text-xs">
-                        {m.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
-                {partialMatch.length > 0 && (
+        <Popover open={memberSearchOpen} onOpenChange={setMemberSearchOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" role="combobox" aria-expanded={memberSearchOpen} className="h-8 flex-1 justify-start text-xs">
+              <Users className="mr-1 size-3 shrink-0 text-muted-foreground" />
+              {selectedMemberId
+                ? orgMembers.find(m => m.id === selectedMemberId)?.name ?? '選擇指派成員'
+                : '選擇指派成員'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-0" align="start">
+            <Command>
+              <CommandInput placeholder="搜尋成員..." />
+              <CommandList>
+                <CommandEmpty>無符合成員</CommandEmpty>
+                {hasRequirements ? (
                   <>
-                    {fullMatch.length > 0 && <SelectSeparator />}
-                    <SelectGroup>
-                    <SelectLabel className="text-[9px] font-bold uppercase tracking-widest text-amber-600" aria-label={`部分符合技能，共 ${partialMatch.length} 人`}>
-                        ◑ 部分符合（{partialMatch.length}）
-                    </SelectLabel>
-                      {partialMatch.map((m) => (
-                          <SelectItem key={m.id} value={m.id} className="text-xs">
-                            <span className="flex items-center gap-1.5">
-                              {m.name}
-                              <span className="text-[9px] font-bold text-amber-500">
-                                {m.matched}/{m.total}
-                              </span>
-                            </span>
-                          </SelectItem>
+                    {fullMatch.length > 0 && (
+                      <CommandGroup heading={`✓ 全部符合技能（${fullMatch.length}）`}>
+                        {fullMatch.map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={m.name}
+                            onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
+                            className="text-xs"
+                          >
+                            <span className="mr-1 text-green-600">●</span>
+                            {m.name}
+                          </CommandItem>
                         ))}
-                    </SelectGroup>
+                      </CommandGroup>
+                    )}
+                    {partialMatch.length > 0 && (
+                      <CommandGroup heading={`◑ 部分符合（${partialMatch.length}）`}>
+                        {partialMatch.map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={m.name}
+                            onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
+                            className="text-xs"
+                          >
+                            <span className="mr-1 text-amber-500">●</span>
+                            {m.name}
+                            <span className="ml-auto text-[9px] font-bold text-amber-500">
+                              {m.matched}/{m.total}
+                            </span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                    {noMatch.length > 0 && (
+                      <CommandGroup heading={`其他成員（${noMatch.length}）`}>
+                        {noMatch.map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={m.name}
+                            onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
+                            className="text-xs text-muted-foreground"
+                          >
+                            {m.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
                   </>
+                ) : (
+                  <CommandGroup>
+                    {orgMembers.map((m) => (
+                      <CommandItem
+                        key={m.id}
+                        value={m.name}
+                        onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
+                        className="text-xs"
+                      >
+                        {m.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
                 )}
-                {noMatch.length > 0 && (
-                  <>
-                    {(fullMatch.length > 0 || partialMatch.length > 0) && <SelectSeparator />}
-                    <SelectGroup>
-                      <SelectLabel className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-                        其他成員（{noMatch.length}）
-                      </SelectLabel>
-                      {noMatch.map((m) => (
-                        <SelectItem key={m.id} value={m.id} className="text-xs text-muted-foreground">
-                          {m.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </>
-                )}
-                {orgMembers.length === 0 && (
-                  <p className="px-2 py-3 text-center text-xs text-muted-foreground">尚無組織成員</p>
-                )}
-              </>
-            ) : (
-              <>
-                {orgMembers.map((m) => (
-                  <SelectItem key={m.id} value={m.id} className="text-xs">
-                    {m.name}
-                  </SelectItem>
-                ))}
-              </>
-            )}
-          </SelectContent>
-        </Select>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
         {selectedMemberMatch && (
           <Badge
