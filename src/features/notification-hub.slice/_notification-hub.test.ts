@@ -191,14 +191,18 @@ describe('registerRoutingRule / unregisterRoutingRule — Actions', () => {
   it('registerRoutingRule returns CommandResult success', async () => {
     const result = await registerRoutingRule(makeRule());
     expect(result.success).toBe(true);
-    expect(result.aggregateId).toBe('rule-1');
+    if (result.success) {
+      expect(result.aggregateId).toBe('rule-1');
+    }
   });
 
   it('unregisterRoutingRule returns CommandResult success', async () => {
     registerRuleService(makeRule());
     const result = await unregisterRoutingRule('rule-1');
     expect(result.success).toBe(true);
-    expect(result.aggregateId).toBe('rule-1');
+    if (result.success) {
+      expect(result.aggregateId).toBe('rule-1');
+    }
   });
 });
 

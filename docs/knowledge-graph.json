@@ -7,7 +7,7 @@
         "VS mapping: VS0=SharedKernel foundation (not a business vertical slice); VS1=Identity; VS2=Account; VS3=SkillXP; VS4=Organization; VS5=Workspace; VS6=Scheduling; VS7=Notification; VS8=SemanticGraph (The Brain).",
         "VS8 replaces the former TAG_AUTH (Tag Authority Center) and elevates it to a first-class business vertical slice with taxonomy, causality tracking, and scheduling conflict semantic detection.",
         "Cross-slice rule: each slice mutates only its own aggregate; collaboration via contracts/events/projections.",
-        "Tag write rule [A13]: all business slices (VS1–VS7) must write tag changes through L2 Command Gateway into VS8; direct tag mutation is forbidden."
+        "Tag write rule [#A6 D21]: all business slices (VS1–VS7) must write tag changes through L2 Command Gateway into VS8; direct tag mutation is forbidden."
       ]
     },
     {
@@ -46,17 +46,17 @@
         "Critical retained references: #9 replay rebuildability, #12 getTier(xp) purity, #14 scheduling reads ORG_ELIGIBLE_MEMBER_VIEW, #19 monotonic aggregateVersion guard, A8 one-command-one-aggregate TX, A9 scope-guard re-source.",
         "SSOT fallback: use docs/logic-overview.md for full definitions and implementation details.",
         "A11 Occam's Razor: Simplicity is a hard constraint. Do not multiply entities or abstractions beyond necessity. Use 'sequential-thinking mcp' to validate the simplest path before implementation.",
-        "A12 Unified IO: All state mutations must pass through L2 Command Gateway; all data reads via L6 Query Gateway. Direct infrastructure access (L8) is strictly forbidden.",
-        "A13 Everything as a Tag: All domain concepts (skills, roles, teams, partners, user-levels) are modeled as semantic tags governed by VS8 Semantic Graph. This enables uniform taxonomy, causality tracking, and cross-slice semantic matching."
+        "A12 Global Search Authority: Global Search = cross-slice authority (語義門戶). Sole cross-domain search outlet; all slices are forbidden from building their own search logic.",
+        "A13 Notification Hub Authority: Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy."
       ]
     },
     {
       "name": "D_Category",
       "entityType": "Design_Rule",
       "observations": [
-        "Design rules D1-D25 are all mandatory governance constraints.",
+        "Design rules D1-D26 are all mandatory governance constraints.",
         "Enforcement hotspots: D7 public slice boundary via {slice}/index.ts; D24 no direct firebase/* import in feature slices; D25 new Firebase capability must enter through FIREBASE_ACL + SK_PORTS.",
-        "D26 Style Consistency: Adhere strictly to project .prettierrc and ESLint rules. Use 'ESLint mcp' for style-rule validation.",
+        "D26 Cross-cutting Authority: global-search.slice = sole cross-domain search authority [#A12]; notification-hub = sole side-effect outlet [#A13]. Both must own _actions.ts / _services.ts per D3; must not parasitize shared-kernel per D8.",
         "UI component source consistency: use 'shadcn mcp' as the primary source for generated UI components.",
         "D27 Type Truth: All domain entities must be defined in L1 Shared Kernel (SK_DATA). No duplicate type definitions allowed in local feature slices. Trace type origins and contracts using 'software-planning mcp'."
       ]
@@ -87,17 +87,17 @@
       ]
     },
     {
-      "name": "A12 Unified IO",
+      "name": "A12 Global Search Authority",
       "entityType": "Architecture_Invariant",
       "observations": [
-        "Writes pass through L2 Command Gateway and reads pass through L6 Query Gateway; direct L8 access is forbidden."
+        "Global Search = cross-slice authority (語義門戶). Sole cross-domain search outlet; all slices are forbidden from building their own search logic."
       ]
     },
     {
-      "name": "D26 Style Consistency",
+      "name": "D26 Cross-cutting Authority",
       "entityType": "Design_Rule",
       "observations": [
-        "Enforce project Prettier and ESLint baselines with MCP-assisted validation."
+        "global-search.slice = sole cross-domain search authority [#A12]; notification-hub = sole side-effect outlet [#A13]. Both must own _actions.ts / _services.ts per D3; must not parasitize shared-kernel per D8."
       ]
     },
     {
@@ -198,10 +198,10 @@
       ]
     },
     {
-      "name": "A13 Everything as a Tag",
+      "name": "A13 Notification Hub Authority",
       "entityType": "Architecture_Invariant",
       "observations": [
-        "All domain concepts (skills, roles, teams, partners, user-levels) are modeled as semantic tags governed by VS8 Semantic Graph. This enables uniform taxonomy, causality tracking, and cross-slice semantic matching."
+        "Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy."
       ]
     },
     {
@@ -306,12 +306,13 @@
     },
     {
       "from": "ESLint mcp",
-      "to": "D26 Style Consistency",
-      "relationType": "guarantees"
+      "to": "D26 Cross-cutting Authority",
+      "relationType": "enforces",
+      "description": "ESLint rules (D24 no-restricted-imports) enforce parts of cross-cutting authority boundaries."
     },
     {
       "from": "software-planning mcp",
-      "to": "A12 Unified IO",
+      "to": "A12 Global Search Authority",
       "relationType": "plans"
     },
     {
