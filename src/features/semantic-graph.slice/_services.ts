@@ -17,8 +17,8 @@
  * Dependency rule: Pure in-memory index. No infrastructure imports.
  */
 
-import type { SearchDomain, SemanticSearchHit } from '@/features/shared-kernel/semantic-primitives';
-import { SEARCH_DOMAINS } from '@/features/shared-kernel/semantic-primitives';
+import type { SearchDomain, SemanticSearchHit } from '@/features/shared-kernel';
+import { SEARCH_DOMAINS } from '@/features/shared-kernel';
 
 import type { SemanticIndexEntry, SemanticIndexStats } from './_types';
 

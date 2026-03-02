@@ -29,6 +29,10 @@ export interface RouterRegistration {
  * Should be called once at app startup (e.g., in the root layout or app-provider).
  *
  * Returns an unsubscribe function to clean up on unmount.
+ *
+ * @deprecated Use `initTagChangedSubscriber` from `@/features/notification-hub.slice` instead.
+ * The notification-hub.slice is the D26-compliant sole side-effect outlet.
+ * This function remains for backwards compatibility during the D26 migration.
  */
 export function registerNotificationRouter(): RouterRegistration {
   const unsubscribers: Array<() => void> = [];

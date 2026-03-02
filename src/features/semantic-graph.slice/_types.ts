@@ -22,7 +22,7 @@ import type {
   TaxonomyDimension,
   TaxonomyNode,
   SemanticSearchHit,
-} from '@/features/shared-kernel/semantic-primitives';
+} from '@/features/shared-kernel';
 
 // ─── Temporal Conflict (Scheduling-aware) ─────────────────────────────────────
 

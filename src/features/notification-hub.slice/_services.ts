@@ -20,7 +20,7 @@
  *   [#A10] Notification routing is stateless — no persistent state in routing engine.
  */
 
-import type { NotificationPriority } from '@/features/shared-kernel/semantic-primitives';
+import type { NotificationPriority } from '@/features/shared-kernel';
 
 import type {
   TagRoutingRule,

@@ -18,7 +18,7 @@ import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared/infra/
 import { resolveSkillTier } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { SkillTier } from '@/shared/types';
+import type { SkillTier } from '@/features/shared-kernel';
 
 import type { OrgEligibleMemberEntry } from './_projector';
 

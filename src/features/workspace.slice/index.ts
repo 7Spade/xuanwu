@@ -154,11 +154,13 @@ export {
   AuditTimeline,
   AuditEventItemContainer,
   AuditTypeIcon,
+  writeAuditLog,
   useAccountAudit,
   useWorkspaceAudit,
   useLogger,
   getAuditLogs,
 } from './gov.audit'
+export type { WriteAuditLogInput } from './gov.audit'
 export { default as AccountAuditView } from './gov.audit'
 
 // ─── gov.audit-convergence ───────────────────────────────────────────────────
