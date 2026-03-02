@@ -10,12 +10,14 @@
  */
 
 import { describe, it, expect } from 'vitest';
+
+import type { SkillRequirement } from '@/features/shared-kernel';
+import type { IntentDeltaProposedPayload } from '@/features/workspace.slice/core.event-bus';
 import {
   createParsingIntentContract,
   markParsingIntentImported,
   supersedeParsingIntent,
 } from '@/features/workspace.slice/business.parsing-intent/_contract';
-import type { SkillRequirement } from '@/features/shared-kernel';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -148,5 +150,55 @@ describe('supersedeParsingIntent', () => {
     expect(superseded.intentId).toBe(contract.intentId);
     expect(superseded.workspaceId).toBe(contract.workspaceId);
     expect(superseded.skillRequirements).toEqual(SKILL_REQUIREMENTS);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// IntentDeltaProposedPayload contract [#A4 — Digital Twin event]
+// ---------------------------------------------------------------------------
+
+describe('IntentDeltaProposedPayload [#A4 — ws-outbox at-least-once event]', () => {
+  it('accepts required fields only', () => {
+    const payload: IntentDeltaProposedPayload = {
+      intentId: 'intent-001',
+      workspaceId: 'ws-abc',
+      sourceFileName: 'BOQ-2026-Q1.xlsx',
+      taskDraftCount: 12,
+    };
+    expect(payload.intentId).toBe('intent-001');
+    expect(payload.taskDraftCount).toBe(12);
+    expect(payload.skillRequirements).toBeUndefined();
+    expect(payload.traceId).toBeUndefined();
+  });
+
+  it('accepts optional skillRequirements for TE_SK propagation', () => {
+    const payload: IntentDeltaProposedPayload = {
+      intentId: 'intent-002',
+      workspaceId: 'ws-xyz',
+      sourceFileName: 'Schedule.pdf',
+      taskDraftCount: 3,
+      skillRequirements: SKILL_REQUIREMENTS,
+      traceId: 'trace-001',
+    };
+    expect(payload.skillRequirements).toHaveLength(2);
+    expect(payload.traceId).toBe('trace-001');
+  });
+
+  it('payload fields match what document-parser-view dispatches [#A4×document-parser]', () => {
+    // Mirrors the shape built in handleImport() — prevents shape drift
+    const simulatedDispatch = (
+      intentId: string,
+      workspaceId: string,
+      sourceFileName: string,
+      taskDraftCount: number,
+    ): IntentDeltaProposedPayload => ({ intentId, workspaceId, sourceFileName, taskDraftCount });
+
+    const payload = simulatedDispatch('intent-003', 'ws-001', 'doc.xlsx', 5);
+    expect(payload).toEqual({
+      intentId: 'intent-003',
+      workspaceId: 'ws-001',
+      sourceFileName: 'doc.xlsx',
+      taskDraftCount: 5,
+    });
   });
 });

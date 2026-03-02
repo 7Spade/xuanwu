@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/sha
 import type { SourcePointer, ParsingIntent } from '@/shared/types';
 import { useToast } from '@/shared/utility-hooks/use-toast';
 
+import { persistWorkspaceOutboxEvent } from '../../application/_outbox';
 import { useWorkspace } from '../../core';
 import {
   extractDataFromDocument,
@@ -210,6 +211,21 @@ export function WorkspaceDocumentParser() {
         autoImport: true,
         items: lineItems,
     });
+
+    // Dispatch IntentDeltaProposed [#A4] — at-least-once delivery via wsOutbox [S1][E5].
+    // This cross-BC event notifies external consumers (e.g. scheduling.slice) that a new
+    // Digital Twin delta is available, without exposing document-parser internals [D7].
+    const deltaPayload = {
+      intentId,
+      workspaceId: workspace.id,
+      sourceFileName: state.fileName || 'Unknown Document',
+      taskDraftCount: lineItems.length,
+    };
+    eventBus.publish('workspace:parsing-intent:deltaProposed', deltaPayload);
+    persistWorkspaceOutboxEvent(workspace.id, 'workspace:parsing-intent:deltaProposed', deltaPayload)
+      .catch((err: unknown) => {
+        console.error('[document-parser] wsOutbox persist failed for deltaProposed', err);
+      });
 
     // Reset source file references after successful import
     sourceFileIdRef.current = undefined;
