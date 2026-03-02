@@ -138,8 +138,34 @@ async function persistToWsOutbox(
 }
 
 // =============================================================================
-// In-process Outbox factory
+// Direct persistence helper (for client-side handlers outside runTransaction)
 // =============================================================================
+
+/**
+ * Persists an outbox event directly to Firestore — for use by client-side handlers
+ * (e.g. document-parser-view) that cannot go through `runTransaction` but still
+ * need at-least-once delivery semantics [S1][E5].
+ *
+ * Only persists event types registered in `WS_OUTBOX_PERSISTED_EVENTS`.
+ * Fire-and-forget — the caller is responsible for `.catch()` handling.
+ */
+export async function persistWorkspaceOutboxEvent<T extends WorkspaceEventName>(
+  workspaceId: string,
+  type: T,
+  payload: WorkspaceEventPayloadMap[T],
+): Promise<void> {
+  if (!WS_OUTBOX_PERSISTED_EVENTS.has(type)) {
+    logDomainError({
+      occurredAt: new Date().toISOString(),
+      traceId: crypto.randomUUID(),
+      source: 'workspace-application:persistWorkspaceOutboxEvent',
+      message: `Event type "${type}" is not registered in WS_OUTBOX_PERSISTED_EVENTS — Firestore persistence skipped. Add it to the set if at-least-once delivery is required.`,
+      detail: undefined,
+    });
+    return;
+  }
+  await persistToWsOutbox({ type, payload } as OutboxEvent, workspaceId);
+}
 
 /** Creates a new in-process Outbox for use within a single transaction.
  *

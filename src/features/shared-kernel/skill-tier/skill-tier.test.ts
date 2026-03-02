@@ -1,146 +1,177 @@
 /**
- * @test skill-tier pure functions — SK_SKILL_TIER [#12] + SK_SKILL_REQ [A5]
+ * @fileoverview Tests for shared-kernel skill-tier pure functions [SK_SKILL_TIER]
  *
- * Validates the canonical tier computation functions used by:
- *   — scheduling.slice eligibility checks [A5][P4]
- *   — projection.org-eligible-member-view
- *   — workspace.slice staffing requirements
+ * Validates that:
+ *   1. getTier(xp) returns the correct tier for each XP threshold [#12]
+ *   2. getTierRank returns the correct ordinal rank
+ *   3. tierSatisfies correctly evaluates minimum-tier requirements [A5][P4]
+ *   4. resolveSkillTier is an alias for getTier
+ *   5. TIER_DEFINITIONS covers all 7 tiers
  *
- * Invariant #12: Tier is ALWAYS derived (never persisted to DB).
- * SK_SKILL_REQ: skill-requirement = tagSlug × minimumTier — cross-BC staffing contract.
+ * These pure functions power the scheduling eligibility check in `_saga.ts`.
  */
+
 import { describe, it, expect } from 'vitest';
+
 import {
   getTier,
   getTierRank,
-  getTierDefinition,
   tierSatisfies,
-  TIER_DEFINITIONS,
   resolveSkillTier,
+  getTierDefinition,
+  TIER_DEFINITIONS,
 } from '@/features/shared-kernel/skill-tier';
 
-describe('SK_SKILL_TIER — canonical tier functions [#12]', () => {
-  describe('TIER_DEFINITIONS', () => {
-    it('defines exactly 7 tiers', () => {
-      expect(TIER_DEFINITIONS).toHaveLength(7);
-    });
+// ---------------------------------------------------------------------------
+// TIER_DEFINITIONS coverage
+// ---------------------------------------------------------------------------
 
-    it('has ranks from 1 to 7 with no gaps', () => {
-      const ranks = TIER_DEFINITIONS.map((d) => d.rank).sort((a, b) => a - b);
-      expect(ranks).toEqual([1, 2, 3, 4, 5, 6, 7]);
-    });
-
-    it('has monotonically increasing XP thresholds', () => {
-      for (let i = 1; i < TIER_DEFINITIONS.length; i++) {
-        expect(TIER_DEFINITIONS[i].minXp).toBeGreaterThan(TIER_DEFINITIONS[i - 1].minXp);
-      }
-    });
+describe('TIER_DEFINITIONS', () => {
+  it('defines exactly 7 tiers', () => {
+    expect(TIER_DEFINITIONS).toHaveLength(7);
   });
 
-  describe('getTier(xp) — Invariant #12', () => {
-    it('returns apprentice for xp = 0', () => {
-      expect(getTier(0)).toBe('apprentice');
-    });
-
-    it('returns apprentice for xp = 1 (within apprentice band)', () => {
-      expect(getTier(1)).toBe('apprentice');
-    });
-
-    it('returns journeyman at boundary xp = 75', () => {
-      expect(getTier(75)).toBe('journeyman');
-    });
-
-    it('returns expert at boundary xp = 150', () => {
-      expect(getTier(150)).toBe('expert');
-    });
-
-    it('returns artisan at boundary xp = 225', () => {
-      expect(getTier(225)).toBe('artisan');
-    });
-
-    it('returns grandmaster at boundary xp = 300', () => {
-      expect(getTier(300)).toBe('grandmaster');
-    });
-
-    it('returns legendary at boundary xp = 375', () => {
-      expect(getTier(375)).toBe('legendary');
-    });
-
-    it('returns titan at boundary xp = 450', () => {
-      expect(getTier(450)).toBe('titan');
-    });
-
-    it('returns titan for very high xp', () => {
-      expect(getTier(9999)).toBe('titan');
-    });
+  it('tiers are ordered by ascending rank (rank 1 = lowest)', () => {
+    for (let i = 1; i < TIER_DEFINITIONS.length; i++) {
+      expect(TIER_DEFINITIONS[i].rank).toBe(TIER_DEFINITIONS[i - 1].rank + 1);
+    }
   });
 
-  describe('resolveSkillTier — alias for getTier', () => {
-    it('resolveSkillTier is identical to getTier', () => {
-      expect(resolveSkillTier(0)).toBe(getTier(0));
-      expect(resolveSkillTier(150)).toBe(getTier(150));
-      expect(resolveSkillTier(450)).toBe(getTier(450));
-    });
+  it('XP ranges are contiguous — each tier starts where the previous ends', () => {
+    for (let i = 1; i < TIER_DEFINITIONS.length; i++) {
+      expect(TIER_DEFINITIONS[i].minXp).toBe(TIER_DEFINITIONS[i - 1].maxXp);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getTier [#12] — canonical XP → Tier mapping
+// ---------------------------------------------------------------------------
+
+describe('getTier [#12]', () => {
+  it('returns "apprentice" for XP = 0', () => {
+    expect(getTier(0)).toBe('apprentice');
   });
 
-  describe('getTierRank', () => {
-    it('returns rank 1 for apprentice (lowest)', () => {
-      expect(getTierRank('apprentice')).toBe(1);
-    });
-
-    it('returns rank 7 for titan (highest)', () => {
-      expect(getTierRank('titan')).toBe(7);
-    });
-
-    it('returns strictly increasing ranks', () => {
-      const tiers = ['apprentice', 'journeyman', 'expert', 'artisan', 'grandmaster', 'legendary', 'titan'] as const;
-      for (let i = 1; i < tiers.length; i++) {
-        expect(getTierRank(tiers[i])).toBeGreaterThan(getTierRank(tiers[i - 1]));
-      }
-    });
+  it('returns "apprentice" for XP = 74 (boundary - 1)', () => {
+    expect(getTier(74)).toBe('apprentice');
   });
 
-  describe('getTierDefinition', () => {
-    it('returns the full definition for a valid tier', () => {
-      const def = getTierDefinition('expert');
-      expect(def.tier).toBe('expert');
-      expect(def.rank).toBe(3);
-      expect(def.minXp).toBe(150);
-      expect(def.maxXp).toBe(225);
-    });
-
-    it('throws for unknown tier name', () => {
-      expect(() => getTierDefinition('unknown' as never)).toThrow();
-    });
+  it('returns "journeyman" for XP = 75 (tier 2 lower boundary)', () => {
+    expect(getTier(75)).toBe('journeyman');
   });
 
-  describe('tierSatisfies — [A5] VS6 eligibility gate [P4]', () => {
-    it('returns true when granted tier equals required tier', () => {
-      expect(tierSatisfies('expert', 'expert')).toBe(true);
-    });
+  it('returns "expert" for XP = 150', () => {
+    expect(getTier(150)).toBe('expert');
+  });
 
-    it('returns true when granted tier is higher than required', () => {
-      expect(tierSatisfies('artisan', 'expert')).toBe(true);
-      expect(tierSatisfies('titan', 'apprentice')).toBe(true);
-      expect(tierSatisfies('legendary', 'grandmaster')).toBe(true);
-    });
+  it('returns "artisan" for XP = 225', () => {
+    expect(getTier(225)).toBe('artisan');
+  });
 
-    it('returns false when granted tier is lower than required', () => {
-      expect(tierSatisfies('apprentice', 'journeyman')).toBe(false);
-      expect(tierSatisfies('journeyman', 'expert')).toBe(false);
-      expect(tierSatisfies('grandmaster', 'legendary')).toBe(false);
-    });
+  it('returns "grandmaster" for XP = 300', () => {
+    expect(getTier(300)).toBe('grandmaster');
+  });
 
-    it('apprentice never satisfies anything higher', () => {
-      expect(tierSatisfies('apprentice', 'journeyman')).toBe(false);
-      expect(tierSatisfies('apprentice', 'titan')).toBe(false);
-    });
+  it('returns "legendary" for XP = 375', () => {
+    expect(getTier(375)).toBe('legendary');
+  });
 
-    it('titan satisfies all tiers', () => {
-      const allTiers = ['apprentice', 'journeyman', 'expert', 'artisan', 'grandmaster', 'legendary', 'titan'] as const;
-      allTiers.forEach((tier) => {
-        expect(tierSatisfies('titan', tier)).toBe(true);
-      });
-    });
+  it('returns "titan" for XP = 450 (max tier)', () => {
+    expect(getTier(450)).toBe('titan');
+  });
+
+  it('returns "titan" for XP beyond max range', () => {
+    expect(getTier(9999)).toBe('titan');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveSkillTier alias
+// ---------------------------------------------------------------------------
+
+describe('resolveSkillTier', () => {
+  it('is an alias for getTier — same output for any XP', () => {
+    expect(resolveSkillTier(0)).toBe(getTier(0));
+    expect(resolveSkillTier(75)).toBe(getTier(75));
+    expect(resolveSkillTier(450)).toBe(getTier(450));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getTierRank
+// ---------------------------------------------------------------------------
+
+describe('getTierRank', () => {
+  it('returns rank 1 for "apprentice" (lowest)', () => {
+    expect(getTierRank('apprentice')).toBe(1);
+  });
+
+  it('returns rank 7 for "titan" (highest)', () => {
+    expect(getTierRank('titan')).toBe(7);
+  });
+
+  it('returns ranks in ascending order across all tiers', () => {
+    const tiers = ['apprentice', 'journeyman', 'expert', 'artisan', 'grandmaster', 'legendary', 'titan'] as const;
+    for (let i = 1; i < tiers.length; i++) {
+      expect(getTierRank(tiers[i])).toBeGreaterThan(getTierRank(tiers[i - 1]));
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getTierDefinition
+// ---------------------------------------------------------------------------
+
+describe('getTierDefinition', () => {
+  it('returns correct definition for "expert"', () => {
+    const def = getTierDefinition('expert');
+    expect(def.tier).toBe('expert');
+    expect(def.rank).toBe(3);
+    expect(def.minXp).toBe(150);
+    expect(def.maxXp).toBe(225);
+  });
+
+  it('throws for unknown tier identifier', () => {
+    expect(() => getTierDefinition('unknown' as never)).toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tierSatisfies — core eligibility gate [A5][P4]
+// ---------------------------------------------------------------------------
+
+describe('tierSatisfies [A5][P4] — scheduling eligibility gate', () => {
+  it('same tier satisfies itself (e.g., expert >= expert)', () => {
+    expect(tierSatisfies('expert', 'expert')).toBe(true);
+  });
+
+  it('higher tier satisfies a lower minimum (artisan >= expert)', () => {
+    expect(tierSatisfies('artisan', 'expert')).toBe(true);
+  });
+
+  it('lower tier does NOT satisfy a higher minimum (journeyman < expert)', () => {
+    expect(tierSatisfies('journeyman', 'expert')).toBe(false);
+  });
+
+  it('"titan" satisfies any minimum tier', () => {
+    const allTiers = ['apprentice', 'journeyman', 'expert', 'artisan', 'grandmaster', 'legendary', 'titan'] as const;
+    for (const min of allTiers) {
+      expect(tierSatisfies('titan', min)).toBe(true);
+    }
+  });
+
+  it('"apprentice" only satisfies "apprentice"', () => {
+    expect(tierSatisfies('apprentice', 'apprentice')).toBe(true);
+    expect(tierSatisfies('apprentice', 'journeyman')).toBe(false);
+  });
+
+  it('grandmaster satisfies journeyman (construction HR scenario)', () => {
+    // Real-world: an expert site manager (grandmaster) assigned to a journeyman role
+    expect(tierSatisfies('grandmaster', 'journeyman')).toBe(true);
+  });
+
+  it('artisan does not satisfy grandmaster requirement', () => {
+    expect(tierSatisfies('artisan', 'grandmaster')).toBe(false);
   });
 });

@@ -22,6 +22,7 @@ export type {
   WorkspaceTaskBlockedPayload,
   WorkspaceTaskAssignedPayload,
   WorkspaceScheduleProposedPayload,
+  IntentDeltaProposedPayload,
 } from './_events'
 // Context and hook for consuming the event bus
 export { WorkspaceEventContext, useWorkspaceEvents } from './_context'
