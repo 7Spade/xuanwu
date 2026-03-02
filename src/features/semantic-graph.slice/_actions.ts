@@ -16,7 +16,7 @@
 
 import type { CommandResult } from '@/features/shared-kernel';
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
-import type { TaxonomyNode } from '@/features/shared-kernel/semantic-primitives';
+import type { TaxonomyNode } from '@/features/shared-kernel';
 
 import { detectTemporalConflicts, validateTaxonomyAssignment } from './_aggregate';
 import { indexEntity, removeFromIndex } from './_services';

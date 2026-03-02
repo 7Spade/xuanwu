@@ -1,1 +1,2 @@
-export { default } from '@/features/workspace.slice/business.daily';
+import { AccountDailyView } from '@/features/workspace.slice';
+export default AccountDailyView;

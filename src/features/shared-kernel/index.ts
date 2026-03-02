@@ -22,6 +22,8 @@
  * │  token-refresh-contract SK_TOKEN_REFRESH [S6] Claims refresh handshake     │
  * ├─ 🏷️ Tag Authority Center ───────────────────────────────────────────────────┤
  * │  tag-authority         [#A6][#17][D21]        Tag contract types (RO only)  │
+ * ├─ 🔍 Semantic Primitives ────────────────────────────────────────────────────┤
+ * │  semantic-primitives   [D19][D21][D26]        Search + notification + taxonomy │
  * ├─ 🔌 Infrastructure Ports ───────────────────────────────────────────────────┤
  * │  infrastructure-ports  SK_PORTS [D24]         Dependency-inversion ports   │
  * │                        Timestamp               D24-compliant Timestamp type │
@@ -118,7 +120,7 @@ export { TOKEN_REFRESH_SIGNAL, CLIENT_TOKEN_REFRESH_OBLIGATION } from './token-r
 
 // ─── 🏷️ Tag Authority Center [#A6][#17][D21] ──────────────────────────────────
 
-export { TAG_CATEGORIES, tagSlugRef } from './tag-authority';
+export { TAG_CATEGORIES, tagSlugRef, onTagEvent } from './tag-authority';
 export type {
   TagCategory,
   TagDeleteRule,
@@ -132,6 +134,25 @@ export type {
   ITagReadPort,
   ImplementsTagStaleGuard,
 } from './tag-authority';
+
+// ─── 🔍 Semantic Primitives (VS8/VS9/VS7) [D19][D21][D26] ────────────────────
+
+export {
+  SEARCH_DOMAINS,
+  NOTIFICATION_CHANNELS,
+  NOTIFICATION_PRIORITIES,
+  TAXONOMY_DIMENSIONS,
+} from './semantic-primitives';
+export type {
+  SearchDomain,
+  SemanticSearchQuery,
+  SemanticSearchHit,
+  SemanticSearchResult,
+  NotificationChannel,
+  NotificationPriority,
+  TaxonomyDimension,
+  TaxonomyNode,
+} from './semantic-primitives';
 
 // ─── 🔌 Infrastructure Ports [D24] ───────────────────────────────────────────
 

@@ -21,7 +21,7 @@ import type {
   SemanticSearchQuery,
   SemanticSearchHit,
   SemanticSearchResult,
-} from '@/features/shared-kernel/semantic-primitives';
+} from '@/features/shared-kernel';
 
 // ─── Search Filter Types ──────────────────────────────────────────────────────
 

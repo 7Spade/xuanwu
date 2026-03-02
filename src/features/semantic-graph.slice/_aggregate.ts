@@ -17,8 +17,8 @@
  * Dependency rule: ZERO infrastructure imports. Pure functions only.
  */
 
-import { TAXONOMY_DIMENSIONS } from '@/features/shared-kernel/semantic-primitives';
-import type { TaxonomyDimension, TaxonomyNode } from '@/features/shared-kernel/semantic-primitives';
+import { TAXONOMY_DIMENSIONS } from '@/features/shared-kernel';
+import type { TaxonomyDimension, TaxonomyNode } from '@/features/shared-kernel';
 
 import type {
   TemporalTagAssignment,

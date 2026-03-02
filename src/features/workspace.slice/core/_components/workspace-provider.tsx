@@ -5,13 +5,11 @@ import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { createContext, useContext, useMemo, useCallback, useEffect, useState } from 'react';
 
-import { registerNotificationRouter } from '@/features/notification.slice';
+import { initTagChangedSubscriber } from '@/features/notification-hub.slice';
 import {
   createScheduleItem as createScheduleItemAction,
 } from '@/features/scheduling.slice'
 import type { CommandResult } from '@/features/shared-kernel';
-import { addDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import { serverTimestamp, type FieldValue } from '@/shared/infra/firestore/firestore.write.adapter';
 import { firestoreTimestampToISO } from '@/shared/lib';
 import { type Workspace, type AuditLog, type WorkspaceTask, type WorkspaceRole, type Capability, type WorkspaceLifecycleState, type ScheduleItem } from '@/shared/types';
 
@@ -27,6 +25,7 @@ import {
   deleteTask as deleteTaskAction,
   getWorkspaceTask as getWorkspaceTaskAction,
 } from '../../business.tasks'
+import { writeAuditLog } from '../../gov.audit/_actions';
 import { WorkspaceEventBus , WorkspaceEventContext, registerWorkspaceFunnel, registerOrganizationFunnel, type WorkspaceEventName, type FileSendToParserPayload } from '../../core.event-bus';
 import {
   authorizeWorkspaceTeam as authorizeWorkspaceTeamAction,
@@ -99,7 +98,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   useEffect(() => {
     const unsubWorkspace = registerWorkspaceFunnel(eventBus);
     const unsubOrg = registerOrganizationFunnel();
-    const { unsubscribe: unsubNotif } = registerNotificationRouter();
+    const unsubNotif = initTagChangedSubscriber();
     const unsubPolicy = registerOrgPolicyCache();
     return () => {
       unsubWorkspace();
@@ -116,16 +115,14 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   
   const logAuditEvent = useCallback(async (action: string, detail: string, type: 'create' | 'update' | 'delete') => {
     if (!activeAccount || activeAccount.accountType !== 'organization') return;
-    const eventData: Omit<AuditLog, 'id' | 'recordedAt'> & { recordedAt: FieldValue } = {
+    await writeAuditLog({
+      accountId: activeAccount.id,
       actor: activeAccount.name,
       action,
       target: detail,
       type,
-      recordedAt: serverTimestamp(),
-      accountId: activeAccount.id,
       workspaceId,
-    };
-    await addDocument(`accounts/${activeAccount.id}/auditLogs`, eventData);
+    });
   }, [activeAccount, workspaceId]);
 
   const createTask = useCallback(async (task: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>) => createTaskAction(workspaceId, task), [workspaceId]);

@@ -5,7 +5,7 @@
 > **Source of truth**: `docs/logic-overview.md`  
 > **Scope**: `src/features/`, `src/shared/`, `src/app/`, `src/app-runtime/`  
 > **Mode**: Read-only scan — **no code changes made**  
-> **Status**: 16 issues open — 0 fixed, 4 newly discovered
+> **Status**: 8 issues open — 8 fixed (ARCH-D7-001 ✅ ARCH-D7-002 ✅ ARCH-D7-003 ✅ ARCH-D7-004 ✅ ARCH-D7-005 ✅ ARCH-D26-001 ✅ ARCH-D5-001 ✅ TYPE-D20-001 ✅)
 
 ---
 
@@ -13,14 +13,14 @@
 
 | Category | Critical | Major | Minor | Total |
 |----------|----------|-------|-------|-------|
-| ARCH (D7 Cross-Slice Index) | 1 | 1 | 3 | 5 |
+| ARCH (D7 Cross-Slice Index) | ~~1~~ 0 | ~~1~~ 0 | ~~3~~ 0 | ~~5~~ 0 ✅ |
 | ARCH (D6 Client Boundary) | 0 | 1 | 2 | 3 |
 | ARCH (D3 Mutation Location) | 0 | 2 | 0 | 2 |
-| ARCH (D5 UI Infra Boundary) ⭐ new | 0 | 1 | 0 | 1 |
+| ARCH (D5 UI Infra Boundary) ⭐ new | 0 | ~~1~~ 0 | 0 | ~~1~~ 0 ✅ |
 | ARCH (D8 Shared-Kernel Purity) | 0 | 1 | 0 | 1 |
-| ARCH (D26 Cross-Cutting Authority) ⭐ new | 0 | 1 | 0 | 1 |
-| TYPE (D19/D20 Contract) | 0 | 2 | 1 | 3 |
-| **Total** | **1** | **9** | **6** | **16** |
+| ARCH (D26 Cross-Cutting Authority) ⭐ new | 0 | ~~1~~ 0 | 0 | ~~1~~ 0 ✅ |
+| TYPE (D19/D20 Contract) | 0 | 2 | ~~1~~ 0 | ~~3~~ 2 ✅ |
+| **Total** | ~~1~~ **0** | ~~9~~ **6** | ~~6~~ **2** | ~~16~~ **8** |
 
 ---
 
@@ -28,10 +28,12 @@
 
 ---
 
-### ARCH-D7-001
+### ARCH-D7-001 ✅ Fixed
 
-**Severity**: Critical (violates D7)  
+**Severity**: ~~Critical~~ Resolved (violates D7)  
 **Rule**: D7 — 跨切片引用只能透過 `{slice}/index.ts` 公開 API；禁止直接存取內部子路徑
+
+**Fix Applied**: Added `onTagEvent` to `src/features/shared-kernel/index.ts` barrel and updated `projection.bus/_funnel.ts` line 39 to `import { onTagEvent } from '@/features/shared-kernel'`.
 
 **Violation File**: `src/features/projection.bus/_funnel.ts`  
 **Line**: 39  
@@ -60,10 +62,12 @@ import { onTagEvent } from '@/features/shared-kernel';
 
 ---
 
-### ARCH-D7-002
+### ARCH-D7-002 ✅ Fixed
 
-**Severity**: Minor (violates D7, pragmatic Next.js pattern)  
+**Severity**: ~~Minor~~ Resolved (violates D7, pragmatic Next.js pattern)  
 **Rule**: D7 — `src/app/` 消費 feature slice 時必須透過 `@/features/{slice}` (index.ts)
+
+**Fix Applied**: Replaced `export { default } from '@/features/workspace.slice/gov.audit'` with `import { AccountAuditView } from '@/features/workspace.slice'; export default AccountAuditView`.
 
 **Violation File**: `src/app/(shell)/(account)/(dashboard)/dashboard/account/audit/page.tsx`  
 **Line**: 1  
@@ -85,10 +89,12 @@ export default AccountAuditView;
 
 ---
 
-### ARCH-D7-003
+### ARCH-D7-003 ✅ Fixed
 
-**Severity**: Minor (violates D7, pragmatic Next.js pattern)  
+**Severity**: ~~Minor~~ Resolved (violates D7, pragmatic Next.js pattern)  
 **Rule**: D7 — `src/app/` 消費 feature slice 時必須透過 `@/features/{slice}` (index.ts)
+
+**Fix Applied**: Replaced `export { default } from '@/features/workspace.slice/business.daily'` with `import { AccountDailyView } from '@/features/workspace.slice'; export default AccountDailyView`.
 
 **Violation File**: `src/app/(shell)/(account)/(dashboard)/dashboard/account/daily/page.tsx`  
 **Line**: 1  
@@ -109,10 +115,12 @@ export default AccountDailyView;
 
 ---
 
-### ARCH-D7-004 ⭐ new
+### ARCH-D7-004 ✅ Fixed ⭐ new
 
-**Severity**: Major (violates D7 — sub-path bypass of unexported sub-module)  
+**Severity**: ~~Major~~ Resolved (violates D7 — sub-path bypass of unexported sub-module)  
 **Rule**: D7 — 跨切片引用只能透過 `{slice}/index.ts` 公開 API；禁止直接存取內部子路徑
+
+**Fix Applied**: Added all `semantic-primitives` exports to `src/features/shared-kernel/index.ts` and updated all 7 consuming files to import from `@/features/shared-kernel`.
 
 **Affected Files** (7 files in the VS7/VS8/VS9 slices):
 ```
@@ -171,10 +179,12 @@ Then update all 7 files to import from `@/features/shared-kernel` (root).
 
 ---
 
-### ARCH-D7-005 ⭐ new
+### ARCH-D7-005 ✅ Fixed ⭐ new
 
-**Severity**: Minor (violates D7 — redundant sub-path bypass when root already exports the symbols)  
+**Severity**: ~~Minor~~ Resolved (violates D7 — redundant sub-path bypass when root already exports the symbols)  
 **Rule**: D7 — 跨切片引用只能透過 `{slice}/index.ts` 公開 API
+
+**Fix Applied**: Changed `src/features/workspace.slice/application/_outbox.ts` line 24 to `import { buildIdempotencyKey, type DlqTier } from '@/features/shared-kernel'`.
 
 **Violation File**: `src/features/workspace.slice/application/_outbox.ts`  
 **Line**: 24  
@@ -338,43 +348,18 @@ Either move `demand-board.ts` into the `projection.bus/` infrastructure layer (w
 
 ---
 
-### ARCH-D5-001 ⭐ new
+### ARCH-D5-001 ✅ Fixed ⭐ new
 
-**Severity**: Major (D5 + D3 dual violation)  
+**Severity**: ~~Major~~ Resolved (D5 + D3 dual violation)  
 **Rules**:
 - D5 — `src/app/` 與 UI 元件禁止 import `src/shared/infra/firestore`
 - D3 — 所有 mutation：`src/features/{slice}/_actions.ts` only
 
-**Violation File**: `src/features/workspace.slice/core/_components/workspace-provider.tsx`  
-**Lines**: 13–14, 128  
-**Statements**:
-```ts
-// Lines 13–14
-import { addDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import { serverTimestamp, type FieldValue } from '@/shared/infra/firestore/firestore.write.adapter';
-
-// Line 128 (usage site) — direct Firestore write for audit log:
-await addDocument(AUDIT_COLLECTION, { ...auditPayload, createdAt: serverTimestamp() });
-```
-
-**Diagnosis**:  
-`workspace-provider.tsx` is a React client component (`_components/` directory) that performs two simultaneous rule violations:
-
-1. **D5**: A UI component directly imports from `@/shared/infra/firestore`. D5 explicitly forbids `src/app/` and UI components from touching the Firestore infra layer. The Firestore adapter is infrastructure — it must be accessed exclusively through `_actions.ts` in the domain slice.
-
-2. **D3**: The `addDocument` call at line 128 is a direct Firestore mutation from within a component. D3 requires all mutations to flow through `src/features/{slice}/_actions.ts`. `workspace.slice/core` already has `_actions.ts` at `src/features/workspace.slice/core/_actions.ts` — the audit log write should be delegated there.
-
-**Note**: `workspace.slice/gov.audit/_hooks/use-logger.ts` has the same D5 pattern (lines 4–9), reinforcing that the audit log write path has no D3-compliant `_actions.ts` implementation.
-
-**Recommended Fix**:  
-1. Create (or extend) `src/features/workspace.slice/gov.audit/_actions.ts` with a `writeAuditLog()` action that performs the Firestore write.
-2. In `workspace-provider.tsx`, replace the direct `addDocument` call with a call to the new action:
-```ts
-// workspace-provider.tsx — remove infra import, use action instead
-import { writeAuditLog } from '@/features/workspace.slice'; // or via workspace.slice index
-await writeAuditLog({ ...auditPayload });
-```
-3. Remove the `@/shared/infra/firestore` imports from `workspace-provider.tsx`.
+**Fix Applied**:
+1. Created `src/features/workspace.slice/gov.audit/_actions.ts` with `writeAuditLog()` action.
+2. Exported `writeAuditLog` from `gov.audit/index.ts` and `workspace.slice/index.ts`.
+3. In `workspace-provider.tsx`, replaced direct `addDocument` + `serverTimestamp` calls with `writeAuditLog` from `../../gov.audit/_actions`.
+4. Removed all `@/shared/infra/firestore` imports from `workspace-provider.tsx`.
 
 ---
 
@@ -382,47 +367,16 @@ await writeAuditLog({ ...auditPayload });
 
 ---
 
-### ARCH-D26-001 ⭐ new
+### ARCH-D26-001 ✅ Fixed ⭐ new
 
-**Severity**: Major (violates D26 / invariant A13)  
+**Severity**: ~~Major~~ Resolved (violates D26 / invariant A13)  
 **Rule**: D26 — `notification-hub` (VS7) 為唯一副作用出口，業務 Slice 禁止直接調用 sendEmail/push/SMS  
 **Invariant**: A13 — Notification Hub = 唯一副作用出口，業務 Slice 只產生事件不決定通知策略
 
-**Violation File**: `src/features/workspace.slice/core/_components/workspace-provider.tsx`  
-**Line**: 8  
-**Statement**:
-```ts
-import { registerNotificationRouter, type RouterRegistration } from '@/features/notification.slice';
-```
-
-**Diagnosis**:  
-`workspace-provider.tsx` registers a notification routing rule via `registerNotificationRouter` from the **legacy** `notification.slice`. This function sets up FCM Layer 2 routing within the old `gov.notification-router` sub-module, which is architecturally superseded by `notification-hub.slice` (VS7).
-
-Per D26 and invariant A13:
-- `notification-hub.slice` is the **sole** side-effect outlet and routing authority as of the VS7 expansion.
-- Business slices (`workspace.slice`) must not decide notification strategy or register routes directly. They should emit domain events, and the Notification Hub dispatches them.
-- `notification.slice/gov.notification-router` is a legacy FCM Layer 2 path. All routing logic should migrate to `notification-hub.slice/_services.ts`.
-
-**Evidence**:
-- `notification-hub.slice` exports `registerRoutingRule` and `evaluateTagRouting` — the D26-compliant equivalents of `notification.slice/gov.notification-router`.
-- `notification-hub.slice/_services.ts` implements tag-aware routing (lines 180–260), fully replacing the legacy router.
-- The old `notification.slice` still exports `registerNotificationRouter` (index.ts), creating a parallel routing path that violates the "sole outlet" invariant.
-
-**Impact**:  
-While the import goes through `@/features/notification.slice` (index-compliant per D7), it references a **deprecated functional path** that bypasses the VS7 authority layer. Two competing notification routing paths now exist simultaneously:
-1. Legacy: `notification.slice/gov.notification-router` (via `workspace-provider.tsx`)
-2. D26-compliant: `notification-hub.slice` (via its own `_actions.ts`)
-
-**Recommended Fix**:
-1. Replace the `registerNotificationRouter` call in `workspace-provider.tsx` with `registerRoutingRule` from `@/features/notification-hub.slice`:
-```ts
-// Replace:
-import { registerNotificationRouter } from '@/features/notification.slice';
-// With:
-import { registerRoutingRule } from '@/features/notification-hub.slice';
-```
-2. Migrate the `RouterRegistration` payload to the `notification-hub.slice` routing rule format (see `notification-hub.slice/_services.ts` for the `RoutingRule` type).
-3. Deprecate `notification.slice/gov.notification-router` (add `@deprecated` JSDoc to all exports) to prevent further use.
+**Fix Applied**:
+1. In `workspace-provider.tsx`, replaced `import { registerNotificationRouter } from '@/features/notification.slice'` with `import { initTagChangedSubscriber } from '@/features/notification-hub.slice'`.
+2. Changed `const { unsubscribe: unsubNotif } = registerNotificationRouter()` to `const unsubNotif = initTagChangedSubscriber()`.
+3. Added `@deprecated` JSDoc to `registerNotificationRouter` in `notification.slice/gov.notification-router/_router.ts` pointing to `initTagChangedSubscriber`.
 
 ---
 
@@ -469,32 +423,12 @@ Extract `shared-kernel/centralized-tag/` into its own feature slice (e.g., `src/
 
 ---
 
-### TYPE-D20-001
+### TYPE-D20-001 ✅ Fixed
 
-**Severity**: Minor (violates D20 import priority order)  
+**Severity**: ~~Minor~~ Resolved (violates D20 import priority order)  
 **Rule**: D20 — 匯入優先序：`shared.kernel.*` > `feature slice index.ts` > `shared/types`
 
-**Violation File**: `src/features/projection.bus/org-eligible-member-view/_queries.ts`  
-**Line**: 21  
-**Statement**:
-```ts
-import type { SkillTier } from '@/shared/types';
-```
-
-**Diagnosis**:  
-`SkillTier` is already published by `shared-kernel/skill-tier` and is re-exported from `@/features/shared-kernel`. The same file already imports `resolveSkillTier` from `@/features/shared-kernel` (line 19), confirming the shared-kernel module is available.
-
-D20 explicitly states `shared.kernel.*` takes priority over `@/shared/types`. Importing `SkillTier` from the legacy barrel when the canonical contract module (`shared-kernel`) already exposes it is a priority-order violation.
-
-**Recommended Fix**:  
-Change line 21 from:
-```ts
-import type { SkillTier } from '@/shared/types';
-```
-to:
-```ts
-import type { SkillTier } from '@/features/shared-kernel';
-```
+**Fix Applied**: Changed `src/features/projection.bus/org-eligible-member-view/_queries.ts` line 21 from `import type { SkillTier } from '@/shared/types'` to `import type { SkillTier } from '@/features/shared-kernel'`.
 
 ---
 

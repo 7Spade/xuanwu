@@ -21,7 +21,7 @@
  */
 
 import { logDomainError } from '@/features/observability';
-import { buildIdempotencyKey, type DlqTier } from '@/features/shared-kernel/outbox-contract';
+import { buildIdempotencyKey, type DlqTier } from '@/features/shared-kernel';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import type {

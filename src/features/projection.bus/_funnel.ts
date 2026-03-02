@@ -36,7 +36,7 @@ import {
   applyDemandProposalCancelled,
   applyDemandAssignRejected,
 } from '@/features/scheduling.slice';
-import { onTagEvent } from '@/features/shared-kernel/tag-authority';
+import { onTagEvent } from '@/features/shared-kernel';
 import { applySkillXpAdded, applySkillXpDeducted } from '@/features/skill-xp.slice';
 import {
   handleTagUpdatedForPool,

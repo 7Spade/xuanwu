@@ -1,1 +1,2 @@
-export { default } from '@/features/workspace.slice/gov.audit';
+import { AccountAuditView } from '@/features/workspace.slice';
+export default AccountAuditView;
