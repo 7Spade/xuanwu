@@ -31,7 +31,7 @@ import type {
   TagUpdatedPayload,
   TagDeprecatedPayload,
   TagDeletedPayload,
-} from '@/features/shared-kernel/centralized-tag';
+} from '@/features/shared-kernel';
 import {
   syncTagUpdateToPool,
   syncTagDeprecationToPool,

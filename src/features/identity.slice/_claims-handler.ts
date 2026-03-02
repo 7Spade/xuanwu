@@ -38,7 +38,7 @@
  */
 
 import { logDomainError } from '@/features/observability';
-import type { EventEnvelope } from '@/features/shared-kernel/event-envelope';
+import type { EventEnvelope } from '@/features/shared-kernel';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 // ---------------------------------------------------------------------------

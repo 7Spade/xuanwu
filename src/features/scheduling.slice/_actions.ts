@@ -27,11 +27,11 @@ import {
 import { approveOrgScheduleProposal, cancelOrgScheduleProposal, completeOrgSchedule } from './_aggregate';
 import {
   type CommandResult,
+  type SkillRequirement,
   commandSuccess,
   commandFailureFrom,
-} from '@/features/shared-kernel/command-result-contract';
+} from '@/features/shared-kernel';
 import type { ScheduleItem } from '@/shared/types';
-import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
 
 // =================================================================
 // A. Workspace-level mutations

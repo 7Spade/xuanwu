@@ -287,8 +287,10 @@ export default tseslint.config(
   // ── D24: Firebase isolation — feature slices (warn, migration in progress) ──
   // Feature slices must not import Firebase SDK directly; all Firebase access
   // must go through FIREBASE_ACL adapters via SK_PORTS (D24).
-  // Severity: warn (existing violations tracked; new code must not add more).
-  // infra.* slices are exempt — they ARE the ACL adapters.
+  // D7 (shared-kernel public API): slices must import from @/features/shared-kernel index.ts,
+  //   not from sub-directories directly. Exception: centralized-tag for operational imports.
+  // Severity: warn (D24 violations tracked; D7 violations fully resolved).
+  // infra.* slices are exempt from D24 — they ARE the ACL adapters.
   {
     files: ["src/features/**/*.{ts,tsx}"],
     ignores: ["src/features/infra.*/**"],
@@ -301,6 +303,23 @@ export default tseslint.config(
               group: ["firebase/**", "firebase-admin/**", "firebase-functions/**"],
               message:
                 "Feature slices must not import Firebase SDK directly — use SK_PORTS via @/shared/ports instead (D24). All Firebase calls must go through FIREBASE_ACL adapters (src/shared/infra/).",
+            },
+            {
+              group: [
+                "@/features/shared-kernel/command-result-contract",
+                "@/features/shared-kernel/event-envelope",
+                "@/features/shared-kernel/token-refresh-contract",
+                "@/features/shared-kernel/resilience-contract",
+                "@/features/shared-kernel/authority-snapshot",
+                "@/features/shared-kernel/version-guard",
+                "@/features/shared-kernel/skill-tier",
+                "@/features/shared-kernel/staleness-contract",
+                "@/features/shared-kernel/outbox-contract",
+                "@/features/shared-kernel/tag-authority",
+                "@/features/shared-kernel/infrastructure-ports",
+              ],
+              message:
+                "Import from '@/features/shared-kernel' (public index) instead of sub-directories (D7). Only @/features/shared-kernel/centralized-tag is exempt for operational imports.",
             },
           ],
         },

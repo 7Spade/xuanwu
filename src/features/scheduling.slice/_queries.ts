@@ -21,7 +21,7 @@ import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getScheduleItems as getScheduleItemsFacade } from '@/shared/infra/firestore/firestore.facade';
 import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
-import type { ImplementsStalenessContract } from '@/features/shared-kernel/staleness-contract';
+import type { ImplementsStalenessContract } from '@/features/shared-kernel';
 import type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
 
 // =================================================================

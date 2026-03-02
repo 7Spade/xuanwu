@@ -1,11 +1,15 @@
 /**
  * centralized-tag — _events.ts
  *
- * TagLifecycleEvent contract.
+ * TagLifecycleEvent payload types — re-exported from the canonical tag-authority contract.
  *
  * Per logic-overview.md (VS0 Tag Authority Center):
  *   CTA -->|"標籤異動廣播"| TAG_EVENTS
  *   TAG_EVENTS["TagLifecycleEvent\nTagCreated · TagUpdated\nTagDeprecated · TagDeleted\n→ Integration Event Router"]
+ *
+ * Architecture: tag-authority owns the CONTRACT (payload interfaces).
+ *   centralized-tag owns the IMPLEMENTATION (aggregate + event bus).
+ *   All consumers subscribe via onTagEvent; payload types flow from the single source of truth.
  *
  * Invariant #17: CENTRALIZED_TAG_AGGREGATE manages tagSlug uniqueness and deletion rules;
  *   all consumers hold read-only tagSlug references.
@@ -13,49 +17,13 @@
  *   they must not maintain their own tag master data.
  */
 
-// =================================================================
-// == Payload Interfaces
-// =================================================================
-
-export interface TagCreatedPayload {
-  tagSlug: string;
-  label: string;
-  category: string;
-  createdBy: string;
-  createdAt: string;
-}
-
-export interface TagUpdatedPayload {
-  tagSlug: string;
-  label: string;
-  category: string;
-  updatedBy: string;
-  updatedAt: string;
-}
-
-export interface TagDeprecatedPayload {
-  tagSlug: string;
-  /** Optional replacement tagSlug suggested to consumers. */
-  replacedByTagSlug?: string;
-  deprecatedBy: string;
-  deprecatedAt: string;
-}
-
-export interface TagDeletedPayload {
-  tagSlug: string;
-  deletedBy: string;
-  deletedAt: string;
-}
-
-// =================================================================
-// == Event Key Map
-// =================================================================
-
-export interface TagLifecycleEventPayloadMap {
-  'tag:created': TagCreatedPayload;
-  'tag:updated': TagUpdatedPayload;
-  'tag:deprecated': TagDeprecatedPayload;
-  'tag:deleted': TagDeletedPayload;
-}
-
-export type TagLifecycleEventKey = keyof TagLifecycleEventPayloadMap;
+// Re-export canonical payload types from the tag-authority contract layer.
+// This ensures onTagEvent() callbacks and consumer handlers share a single type definition.
+export type {
+  TagCreatedPayload,
+  TagUpdatedPayload,
+  TagDeprecatedPayload,
+  TagDeletedPayload,
+  TagLifecycleEventPayloadMap,
+  TagLifecycleEventKey,
+} from '../tag-authority';

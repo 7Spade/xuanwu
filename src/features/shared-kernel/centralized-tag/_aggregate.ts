@@ -21,6 +21,7 @@ import {
 } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { buildIdempotencyKey, type DlqTier } from '../outbox-contract';
+import type { TagCategory } from '../tag-authority';
 import { publishTagEvent } from './_bus';
 
 // ---------------------------------------------------------------------------
@@ -75,7 +76,7 @@ export type TagDeleteRule = 'allow' | 'block-if-referenced';
 export interface CentralizedTagEntry {
   tagSlug: string;
   label: string;
-  category: string;
+  category: TagCategory;
   /** ISO timestamp when the tag was deprecated; absent if not deprecated. */
   deprecatedAt?: string;
   /** Optional replacement tag for consumers holding this slug. */
@@ -99,7 +100,7 @@ export interface CentralizedTagEntry {
 export async function createTag(
   tagSlug: string,
   label: string,
-  category: string,
+  category: TagCategory,
   createdBy: string,
   deleteRule: TagDeleteRule = 'block-if-referenced',
   traceId?: string
@@ -140,7 +141,7 @@ export async function createTag(
  */
 export async function updateTag(
   tagSlug: string,
-  updates: { label?: string; category?: string },
+  updates: { label?: string; category?: TagCategory },
   updatedBy: string,
   traceId?: string
 ): Promise<void> {

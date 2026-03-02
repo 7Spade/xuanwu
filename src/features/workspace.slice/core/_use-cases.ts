@@ -5,7 +5,7 @@
 
 import { createWorkspace, mountCapabilities , updateWorkspaceSettings, deleteWorkspace } from "./_actions"
 import type { Account, Capability , WorkspaceLifecycleState, Address } from "@/shared/types"
-import type { CommandResult } from '@/features/shared-kernel/command-result-contract';
+import type { CommandResult } from '@/features/shared-kernel';
 
 /**
  * Creates a workspace and immediately mounts a set of initial capabilities.

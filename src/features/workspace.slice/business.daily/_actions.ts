@@ -16,7 +16,7 @@ import {
   type CommandResult,
   commandSuccess,
   commandFailureFrom,
-} from "@/features/shared-kernel/command-result-contract";
+} from "@/features/shared-kernel";
 
 /**
  * Toggles a like on a daily log entry.

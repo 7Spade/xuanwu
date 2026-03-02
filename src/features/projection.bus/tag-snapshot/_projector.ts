@@ -17,8 +17,8 @@
 
 import { setDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { versionGuardAllows } from '@/features/shared-kernel/version-guard';
-import type { TagCreatedPayload, TagUpdatedPayload, TagDeprecatedPayload, TagDeletedPayload } from '@/features/shared-kernel/centralized-tag';
+import { versionGuardAllows } from '@/features/shared-kernel';
+import type { TagCreatedPayload, TagUpdatedPayload, TagDeprecatedPayload, TagDeletedPayload } from '@/features/shared-kernel';
 
 // ---------------------------------------------------------------------------
 // Types

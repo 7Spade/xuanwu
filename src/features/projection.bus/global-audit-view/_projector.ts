@@ -2,7 +2,7 @@
 // GLOBAL_AUDIT_VIEW — cross-slice governance audit projection
 // Feed path: AUDIT_COLLECTOR → IER BACKGROUND_LANE → FUNNEL → STANDARD_PROJ_LANE → here
 
-import type { EventEnvelope } from '@/features/shared-kernel/event-envelope';
+import type { EventEnvelope } from '@/features/shared-kernel';
 
 export interface GlobalAuditRecord {
   readonly auditEventId: string;
