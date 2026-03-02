@@ -2,21 +2,45 @@
  * @fileoverview Firestore Write Adapter.
  * This file contains all write operations for Firestore, such as addDoc,
  * setDoc, updateDoc, and deleteDoc, ensuring a clear separation of concerns.
+ *
+ * [D24] FIREBASE_ACL boundary: feature slices MUST import Firestore SDK
+ *       utilities from this adapter (or firestore.read.adapter) rather than
+ *       directly from 'firebase/firestore'.
  */
 
 import {
+  arrayRemove,
+  arrayUnion,
   collection,
   doc,
   addDoc,
   setDoc,
   updateDoc,
   deleteDoc,
+  runTransaction,
+  serverTimestamp,
+  type FieldValue,
+  type Transaction,
   type WithFieldValue,
   type DocumentData,
   type FirestoreDataConverter,
 } from 'firebase/firestore';
 
 import { db } from './firestore.client';
+
+// ---------------------------------------------------------------------------
+// [D24] Re-exports — feature slices import these instead of 'firebase/firestore'
+// ---------------------------------------------------------------------------
+export {
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove,
+  runTransaction,
+  addDoc,
+  setDoc,
+  updateDoc,
+};
+export type { FieldValue, Transaction };
 
 /**
  * Adds a new document to a collection with a Firestore-generated ID.

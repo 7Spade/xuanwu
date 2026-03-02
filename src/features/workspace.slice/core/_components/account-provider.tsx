@@ -1,6 +1,6 @@
 "use client";
 
-import { collection, query, where, onSnapshot, type QuerySnapshot, orderBy, limit } from "firebase/firestore";
+import { collection, query, where, onSnapshot, type QuerySnapshot, orderBy, limit } from "@/shared/infra/firestore/firestore.read.adapter";
 import type React from 'react';
 import {type ReactNode} from 'react';
 import { createContext, useReducer, useEffect } from 'react';

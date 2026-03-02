@@ -26,7 +26,7 @@
  *   A5  — ScheduleAssignRejected is the compensating event when skill validation fails.
  */
 
-import { arrayUnion } from 'firebase/firestore';
+import { arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
 import { z } from 'zod';
 
 import { publishOrgEvent } from '@/features/organization.slice';

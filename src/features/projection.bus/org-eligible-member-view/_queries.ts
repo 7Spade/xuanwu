@@ -13,7 +13,7 @@
  *   ORG_ELIGIBLE_MEMBER_VIEW -.→ getTier 計算（不存 DB）
  */
 
-import { getDocs, collection, type QueryDocumentSnapshot } from 'firebase/firestore';
+import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import { resolveSkillTier } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';

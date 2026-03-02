@@ -1,6 +1,6 @@
 // [職責] 監聽事件並執行副作用 (The Orchestrator)
 "use client";
-import { Timestamp } from "firebase/firestore";
+import { Timestamp } from "@/shared/infra/firestore/firestore.read.adapter";
 import { useEffect } from "react";
 
 import { handleScheduleProposed } from "@/features/scheduling.slice";

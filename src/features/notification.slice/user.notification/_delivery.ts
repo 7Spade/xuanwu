@@ -19,11 +19,10 @@
 
 import {
   collection,
-  addDoc,
-  serverTimestamp,
-  getDoc,
   doc,
-} from 'firebase/firestore';
+  getDoc,
+} from '@/shared/infra/firestore/firestore.read.adapter';
+import { addDoc, serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { db } from '@/shared/infra/firestore/firestore.client';
 

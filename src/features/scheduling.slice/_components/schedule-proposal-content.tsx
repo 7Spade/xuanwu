@@ -2,7 +2,7 @@
 "use client"
 
 import { parseISO } from "date-fns"
-import { Timestamp } from "firebase/firestore"
+import { Timestamp } from "@/shared/infra/firestore/firestore.read.adapter"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import type { SkillRequirement } from "@/features/shared-kernel"

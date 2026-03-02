@@ -12,7 +12,7 @@
  *   ACCOUNT_PROJECTION_VIEW -.→ shared-kernel.authority-snapshot (contract)
  */
 
-import { serverTimestamp } from 'firebase/firestore';
+import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { versionGuardAllows } from '@/features/shared-kernel';
 import type { AuthoritySnapshot } from '@/features/shared-kernel';

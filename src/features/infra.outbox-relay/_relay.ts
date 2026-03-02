@@ -25,14 +25,12 @@ import {
   where,
   onSnapshot,
   doc,
-  updateDoc,
-  setDoc,
-  type serverTimestamp,
   type Unsubscribe,
   type QuerySnapshot,
   type DocumentData,
   type DocumentChange,
-} from 'firebase/firestore';
+} from '@/shared/infra/firestore/firestore.read.adapter';
+import { updateDoc, setDoc, type serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
 import { logDomainError } from '@/features/observability';

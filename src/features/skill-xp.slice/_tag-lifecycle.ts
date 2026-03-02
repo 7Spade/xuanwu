@@ -25,7 +25,7 @@ import {
   where,
   getDocs,
   type QueryDocumentSnapshot,
-} from 'firebase/firestore';
+} from '@/shared/infra/firestore/firestore.read.adapter';
 
 import type {
   TagUpdatedPayload,

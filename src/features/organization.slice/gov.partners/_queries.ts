@@ -15,7 +15,7 @@
  *   Skill tag data is referenced by tagSlug — read from skill-xp.slice.
  */
 
-import { collection, doc, onSnapshot, orderBy, query, type Unsubscribe } from 'firebase/firestore';
+import { collection, doc, onSnapshot, orderBy, query, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';

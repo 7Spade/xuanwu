@@ -3,6 +3,9 @@
 // Feed path: AUDIT_COLLECTOR → IER BACKGROUND_LANE → FUNNEL → STANDARD_PROJ_LANE → here
 
 import type { EventEnvelope } from '@/features/shared-kernel';
+import { db } from '@/shared/infra/firestore/firestore.client';
+import { doc } from '@/shared/infra/firestore/firestore.read.adapter';
+import { setDoc, serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 
 export interface GlobalAuditRecord {
   readonly auditEventId: string;
@@ -36,8 +39,6 @@ export async function applyAuditEvent(
   payload: Record<string, unknown>,
   context: { accountId: string; workspaceId?: string }
 ): Promise<void> {
-  const { getFirestore, setDoc, doc, serverTimestamp } = await import('firebase/firestore');
-  const db = getFirestore();
   const record: Omit<GlobalAuditRecord, 'timestamp'> & { timestamp: ReturnType<typeof serverTimestamp> } = {
     auditEventId: envelope.eventId,
     traceId: envelope.traceId ?? envelope.eventId,
