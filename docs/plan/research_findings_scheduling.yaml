@@ -1,0 +1,780 @@
+plan_id: scheduling-research
+objective: "Research scheduling features: Assign Member, Required Skills, ScheduleItem type flow, and reusable search/filter components"
+focus_area: scheduling
+created_at: "2025-01-01"
+created_by: gem-researcher
+status: completed
+
+tldr: |
+  - ScheduleItem type (src/shared/types/schedule.types.ts) has requiredSkills?: SkillRequirement[] and assigneeIds: string[]
+  - Assign Member feature lives in schedule.account-view.tsx (calendar tab dropdown) and org-schedule-governance.tsx (HR tab with skill-aware grouped Select)
+  - Required Skills in ProposalDialog (proposal-dialog.tsx) are labeled "Optional" with Select+quantity picker; no required/optional toggle exists
+  - OrgScheduleGovernance groups member dropdown into "全部符合" / "部分符合" / "其他成員" using OrgEligibleMemberView projection
+  - Reusable search primitives: Command (cmdk) in shadcn-ui/command.tsx and GlobalSearch in workspace.slice; no generic combobox/searchable-select component exists
+
+research_metadata:
+  methodology: "Hybrid retrieval: glob for file discovery, grep for pattern matching, view for detailed file examination"
+  tools_used:
+    - glob
+    - grep
+    - view
+  scope: "Full scheduling vertical slice, shared types, projection bus, shadcn-ui primitives"
+  confidence: high
+  coverage: 95
+
+# =================================================================
+# FILES ANALYZED
+# =================================================================
+files_analyzed:
+
+  # --- Core Types ---
+  - file: schedule.types.ts
+    path: src/shared/types/schedule.types.ts
+    purpose: "Core ScheduleItem interface and ScheduleStatus type"
+    key_elements:
+      - element: ScheduleItem
+        type: interface
+        location: "schedule.types.ts:8-37"
+        description: |
+          Core type with fields: id, accountId, workspaceId, title, description, startDate, endDate,
+          status (ScheduleStatus), originType, assigneeIds: string[], requiredSkills?: SkillRequirement[],
+          proposedBy?, version?, traceId?, location?, locationId?
+      - element: ScheduleStatus
+        type: type
+        location: "schedule.types.ts:6"
+        description: "'PROPOSAL' | 'OFFICIAL' | 'REJECTED' | 'COMPLETED'"
+    language: TypeScript
+    lines: 40
+
+  - file: skill.types.ts
+    path: src/shared/types/skill.types.ts
+    purpose: "Skill & Tag-Badge system core domain types"
+    key_elements:
+      - element: SkillRequirement
+        type: interface
+        location: "skill.types.ts:60-65"
+        description: "{ tagSlug: string; tagId?: string; minimumTier: SkillTier; quantity: number } — staffing need inside ScheduleItem"
+      - element: SkillTier
+        type: type
+        location: "skill.types.ts:30-37"
+        description: "Seven-tier scale: 'apprentice'|'journeyman'|'expert'|'artisan'|'grandmaster'|'legendary'|'titan'"
+      - element: SkillGrant
+        type: interface
+        location: "skill.types.ts:105-131"
+        description: "Per-user skill assignment with tagSlug, tier, xp. Stored on accounts/{userId}.skillGrants[]"
+    language: TypeScript
+    lines: 132
+
+  - file: account.types.ts
+    path: src/shared/types/account.types.ts
+    purpose: "Account, MemberReference, Team types"
+    key_elements:
+      - element: Account
+        type: interface
+        location: "account.types.ts:11-43"
+        description: "Organization account with members?: MemberReference[], memberIds?, teams?, skillGrants?"
+      - element: MemberReference
+        type: interface
+        location: "account.types.ts:45-59"
+        description: "{ id, name, email, role, presence, isExternal?, skillGrants?: SkillGrant[] } — display cache of member info"
+    language: TypeScript
+    lines: 116
+
+  - file: workspace.types.ts
+    path: src/shared/types/workspace.types.ts
+    purpose: "Workspace type with requiredSkills on WorkspaceTask, Location, WorkspaceLocation"
+    key_elements:
+      - element: WorkspaceTask.requiredSkills
+        type: variable
+        location: "workspace.types.ts:112"
+        description: "requiredSkills?: SkillRequirement[] — tasks also carry skill requirements"
+      - element: Location
+        type: interface
+        location: "workspace.types.ts:82-87"
+        description: "{ building?, floor?, room?, description } — used by ScheduleItem"
+    language: TypeScript
+    lines: 188
+
+  # --- Route Pages ---
+  - file: page.tsx (account schedule)
+    path: src/app/(shell)/(account)/(dashboard)/dashboard/account/schedule/page.tsx
+    purpose: "Route page for /dashboard/account/schedule — renders AccountScheduleSection"
+    key_elements:
+      - element: AccountSchedulePage
+        type: function
+        location: "page.tsx:3-5"
+        description: "Simple wrapper rendering <AccountScheduleSection />"
+    language: TypeScript/TSX
+    lines: 6
+
+  - file: page.tsx (workspace schedule)
+    path: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/schedule/page.tsx
+    purpose: "Route page for workspace schedule tab — renders WorkspaceSchedule"
+    key_elements:
+      - element: ScheduleCapabilityPage
+        type: function
+        location: "page.tsx:3-5"
+        description: "Simple wrapper rendering <WorkspaceSchedule />"
+    language: TypeScript/TSX
+    lines: 6
+
+  - file: page.tsx (governance canonical)
+    path: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/governance/page.tsx
+    purpose: "Full-page governance route — uses GovernanceSidebar with approveItem/rejectItem"
+    key_elements:
+      - element: GovernancePage
+        type: function
+        location: "page.tsx:12-40"
+        description: "Filters schedule_items for workspace PROPOSAL items, passes to GovernanceSidebar"
+    language: TypeScript/TSX
+    lines: 41
+
+  - file: page.tsx (governance intercepted)
+    path: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@panel/(.)governance/page.tsx
+    purpose: "Intercepting route — governance sidebar as Sheet panel"
+    key_elements:
+      - element: GovernancePanelPage
+        type: function
+        location: "page.tsx:13-39"
+        description: "Same GovernanceSidebar wrapped in Sheet component for panel-style display"
+    language: TypeScript/TSX
+    lines: 40
+
+  # --- Feature Components ---
+  - file: schedule.account-view.tsx
+    path: src/features/scheduling.slice/_components/schedule.account-view.tsx
+    purpose: "Organization-wide schedule view with 3 tabs: Calendar, HR Management, Skill Pool"
+    key_elements:
+      - element: AccountScheduleSection
+        type: function
+        location: "schedule.account-view.tsx:47-189"
+        description: "Main component. Gets organizationMembers from useGlobalSchedule(). Has 3 tabs."
+      - element: renderItemActions (Assign Member)
+        type: function
+        location: "schedule.account-view.tsx:64-92"
+        description: |
+          Calendar tab's member assignment dropdown. Uses DropdownMenu with DropdownMenuCheckboxItem.
+          Lists ALL organizationMembers as flat checkboxes — NO search, NO skill filtering, NO grouping.
+          Toggles assignMember/unassignMember from useScheduleActions().
+    language: TypeScript/TSX
+    lines: 190
+
+  - file: org-schedule-governance.tsx
+    path: src/features/scheduling.slice/_components/org-schedule-governance.tsx
+    purpose: "HR governance panel — skill-aware member assignment with grouped Select dropdown"
+    key_elements:
+      - element: OrgScheduleGovernance
+        type: function
+        location: "org-schedule-governance.tsx:403-495"
+        description: "Main panel. Fetches eligibleMembers via getOrgEligibleMembersWithTier(). Shows pending + confirmed sections."
+      - element: ProposalRow
+        type: function
+        location: "org-schedule-governance.tsx:106-318"
+        description: |
+          Per-proposal row with skill-aware member Select dropdown.
+          Groups members into: fullMatch (✓ 全部符合技能), partialMatch (◑ 部分符合), noMatch (其他成員).
+          Uses Select (not searchable) — no search/filter within the member list.
+          Shows skill match badge (技能 X/Y) when member selected.
+          Uses approveScheduleItemWithMember() for fast-path approve+assign.
+      - element: computeSkillMatch
+        type: function
+        location: "org-schedule-governance.tsx:81-92"
+        description: "Returns [matchedCount, totalRequired] by comparing member skills against SkillRequirement[]"
+      - element: ConfirmedRow
+        type: function
+        location: "org-schedule-governance.tsx:330-386"
+        description: "Row for OFFICIAL items — shows assigned member names, mark complete button"
+    language: TypeScript/TSX
+    lines: 496
+
+  - file: schedule.workspace-view.tsx
+    path: src/features/scheduling.slice/_components/schedule.workspace-view.tsx
+    purpose: "Workspace-level schedule view — calendar grid with add proposal button"
+    key_elements:
+      - element: WorkspaceSchedule
+        type: function
+        location: "schedule.workspace-view.tsx:14-49"
+        description: "Uses useWorkspaceSchedule() for local items. Has Governance Panel link and calendar grid."
+    language: TypeScript/TSX
+    lines: 50
+
+  - file: proposal-dialog.tsx
+    path: src/features/scheduling.slice/_components/proposal-dialog.tsx
+    purpose: "Dialog for creating schedule proposals — includes Required Skills section"
+    key_elements:
+      - element: ProposalDialog
+        type: function
+        location: "proposal-dialog.tsx:57-270"
+        description: |
+          Form with: title, description, date range, location, required skills.
+          Required Skills section labeled "Required Skills (Optional)" — skills are always optional.
+          Uses Select dropdown for skill picker (not searchable).
+          FR-K5: loads org skill pool via getOrgSkillTags(orgId), falls back to global SKILLS.
+          Each skill requirement has: tagSlug + quantity (minimumTier hardcoded to 'apprentice').
+      - element: handleAddSkillRequirement
+        type: function
+        location: "proposal-dialog.tsx:110-125"
+        description: "Adds SkillRequirement with tagSlug, minimumTier='apprentice', quantity. Prevents duplicates."
+    language: TypeScript/TSX
+    lines: 271
+
+  - file: schedule-proposal-content.tsx
+    path: src/features/scheduling.slice/_components/schedule-proposal-content.tsx
+    purpose: "Shared proposal form wrapper for both canonical and intercepting routes"
+    key_elements:
+      - element: ScheduleProposalContent
+        type: function
+        location: "schedule-proposal-content.tsx:21-80"
+        description: |
+          Wraps ProposalDialog. handleSubmit creates ScheduleItem via workspace.createScheduleItem().
+          requiredSkills from form data spread into ScheduleItem only when array is non-empty.
+    language: TypeScript/TSX
+    lines: 81
+
+  - file: demand-board.tsx
+    path: src/features/scheduling.slice/_components/demand-board.tsx
+    purpose: "Demand board — real-time org view of open/assigned demands"
+    key_elements:
+      - element: DemandBoard
+        type: function
+        location: "demand-board.tsx:213-308"
+        description: "Shows open (PROPOSAL) and assigned (OFFICIAL) items. Simple member Select without skill grouping."
+      - element: DemandRow
+        type: function
+        location: "demand-board.tsx:77-200"
+        description: "Per-item row with flat member Select dropdown — no search, no skill matching."
+    language: TypeScript/TSX
+    lines: 309
+
+  - file: governance-sidebar.tsx
+    path: src/features/scheduling.slice/_components/governance-sidebar.tsx
+    purpose: "Simple governance sidebar — approve/reject proposals with skill badges"
+    key_elements:
+      - element: GovernanceSidebar
+        type: function
+        location: "governance-sidebar.tsx:25-76"
+        description: "Shows pending proposals with skill requirement badges. Only approve/reject — no member assignment."
+    language: TypeScript/TSX
+    lines: 77
+
+  - file: unified-calendar-grid.tsx
+    path: src/features/scheduling.slice/_components/unified-calendar-grid.tsx
+    purpose: "Shared calendar grid component — pure presentation"
+    key_elements:
+      - element: UnifiedCalendarGrid
+        type: function
+        location: "unified-calendar-grid.tsx:43-221"
+        description: |
+          Pure presentation calendar. Accepts renderItemActions prop for custom actions per cell item.
+          Shows assignee avatars. Workspace mode has +Add button, org mode has approve/reject buttons.
+    language: TypeScript/TSX
+    lines: 222
+
+  - file: upcoming-events-columns.tsx
+    path: src/features/scheduling.slice/_components/upcoming-events-columns.tsx
+    purpose: "Column definitions for upcoming events data table"
+    key_elements:
+      - element: upcomingEventsColumns
+        type: variable
+        location: "upcoming-events-columns.tsx:21-131"
+        description: "Columns: Date, Workspace, Event, Required Skills (badge list), Assignees (avatar stack)"
+      - element: UpcomingEventItem
+        type: type
+        location: "upcoming-events-columns.tsx:19"
+        description: "Pick<ScheduleItem, 'id'|'title'|'workspaceName'|'startDate'|'endDate'|'assigneeIds'|'requiredSkills'> & { members }"
+    language: TypeScript/TSX
+    lines: 132
+
+  - file: org-skill-pool-manager.tsx
+    path: src/features/scheduling.slice/_components/org-skill-pool-manager.tsx
+    purpose: "Org skill pool management — activate/deactivate global skills for org use"
+    key_elements:
+      - element: OrgSkillPoolManager
+        type: function
+        location: "org-skill-pool-manager.tsx:55-250"
+        description: "Full CRUD for org skill pool. Groups by SkillGroup → SkillSubCategory. Optimistic updates."
+    language: TypeScript/TSX
+    lines: 251
+
+  # --- Hooks ---
+  - file: use-schedule-commands.ts
+    path: src/features/scheduling.slice/_hooks/use-schedule-commands.ts
+    purpose: "Hook for schedule write operations — assign, unassign, approve, reject"
+    key_elements:
+      - element: useScheduleActions
+        type: function
+        location: "use-schedule-commands.ts:29-140"
+        description: |
+          Returns { assignMember, unassignMember, approveItem, rejectItem }.
+          assignMember checks: auth → active assignments conflict → skill eligibility (warning-only).
+          Uses getAccountActiveAssignments() and getOrgMemberEligibilityWithTier() for validation.
+    language: TypeScript
+    lines: 141
+
+  - file: use-global-schedule.ts
+    path: src/features/scheduling.slice/_hooks/use-global-schedule.ts
+    purpose: "Hook for organization-level schedule data derivation"
+    key_elements:
+      - element: useGlobalSchedule
+        type: function
+        location: "use-global-schedule.ts:14-79"
+        description: |
+          Returns { allItems, pendingProposals, decisionHistory, upcomingEvents, presentEvents, organizationMembers }.
+          Derives organizationMembers from activeOrganization.members (MemberReference[]).
+          allItems from accountState.schedule_items enriched with workspaceName.
+    language: TypeScript
+    lines: 80
+
+  - file: use-workspace-schedule.ts
+    path: src/features/scheduling.slice/_hooks/use-workspace-schedule.ts
+    purpose: "Hook for workspace-scoped schedule state and actions"
+    key_elements:
+      - element: useWorkspaceSchedule
+        type: function
+        location: "use-workspace-schedule.ts:28-93"
+        description: |
+          Subscribes directly to accounts/{dimensionId}/schedule_items for this workspace.
+          Returns { localItems, organizationMembers, currentDate, handleMonthChange, handleOpenAddDialog }.
+    language: TypeScript
+    lines: 94
+
+  # --- Server Actions & Aggregate ---
+  - file: _actions.ts
+    path: src/features/scheduling.slice/_actions.ts
+    purpose: "Server Actions for all schedule mutations"
+    key_elements:
+      - element: createScheduleItem
+        type: function
+        location: "_actions.ts:41-53"
+        description: "Creates schedule item via Firestore facade. Returns CommandResult."
+      - element: assignMember
+        type: function
+        location: "_actions.ts:55-69"
+        description: "Assigns member to schedule item. Params: accountId, itemId, memberId."
+      - element: unassignMember
+        type: function
+        location: "_actions.ts:71-85"
+        description: "Unassigns member from schedule item."
+      - element: manualAssignScheduleMember
+        type: function
+        location: "_actions.ts:140-169"
+        description: "HR full-validation assign. Runs approveOrgScheduleProposal with skill-tier check."
+      - element: approveScheduleItemWithMember
+        type: function
+        location: "_actions.ts:96-110"
+        description: "Fast-path: assign + approve in one write. No domain-level skill re-check."
+    language: TypeScript
+    lines: 211
+
+  - file: _aggregate.ts
+    path: src/features/scheduling.slice/_aggregate.ts
+    purpose: "Organization schedule aggregate root — DDD state machine"
+    key_elements:
+      - element: approveOrgScheduleProposal
+        type: function
+        location: "_aggregate.ts:165-240"
+        description: |
+          Full skill validation via projection: reads OrgEligibleMemberView, derives tier via resolveSkillTier(xp),
+          validates each SkillRequirement, publishes organization:schedule:assigned or :assignRejected events.
+      - element: handleScheduleProposed
+        type: function
+        location: "_aggregate.ts:125-135"
+        description: "Enriches schedule item with org-domain fields when proposal arrives from workspace."
+    language: TypeScript
+    lines: 412
+
+  - file: _queries.ts
+    path: src/features/scheduling.slice/_queries.ts
+    purpose: "Read-only queries for scheduling domain"
+    key_elements:
+      - element: getScheduleItems
+        type: function
+        location: "_queries.ts:44-49"
+        description: "Fetches schedule items for account, optionally filtered by workspace."
+      - element: getAccountActiveAssignments
+        type: function
+        location: "_queries.ts:151-157"
+        description: "Returns non-completed assignments for a member — used for conflict checking."
+    language: TypeScript
+    lines: 158
+
+  # --- Repository ---
+  - file: schedule.repository.ts
+    path: src/shared/infra/firestore/repositories/schedule.repository.ts
+    purpose: "Firestore CRUD for schedule_items sub-collection"
+    key_elements:
+      - element: createScheduleItem
+        type: function
+        location: "schedule.repository.ts:27-57"
+        description: "Creates Firestore doc. requiredSkills spread only when length > 0."
+      - element: assignMemberAndApprove
+        type: function
+        location: "schedule.repository.ts:73-84"
+        description: "arrayUnion(memberId) + status='OFFICIAL' in single write."
+      - element: assignMemberToScheduleItem
+        type: function
+        location: "schedule.repository.ts:86-94"
+        description: "arrayUnion(memberId) only — no status change."
+    language: TypeScript
+    lines: 121
+
+  # --- Domain Rules ---
+  - file: schedule.rules.ts
+    path: src/shared/lib/schedule.rules.ts
+    purpose: "Pure schedule domain rules — valid status transitions"
+    key_elements:
+      - element: VALID_STATUS_TRANSITIONS
+        type: variable
+        location: "schedule.rules.ts:16-21"
+        description: "PROPOSAL→[OFFICIAL,REJECTED], OFFICIAL→[COMPLETED,REJECTED], REJECTED→[PROPOSAL], COMPLETED→[]"
+      - element: canTransitionScheduleStatus
+        type: function
+        location: "schedule.rules.ts:30-34"
+        description: "Pure predicate for valid status transition."
+    language: TypeScript
+    lines: 36
+
+  # --- Projection Bus ---
+  - file: _queries.ts (org-eligible-member-view)
+    path: src/features/projection.bus/org-eligible-member-view/_queries.ts
+    purpose: "Read-side queries for org eligible member view — skill tier computed at query time"
+    key_elements:
+      - element: OrgEligibleMemberView
+        type: interface
+        location: "_queries.ts:49-55"
+        description: "{ orgId, accountId, skills: OrgMemberSkillWithTier[], eligible: boolean }"
+      - element: OrgMemberSkillWithTier
+        type: interface
+        location: "_queries.ts:38-43"
+        description: "{ skillId: string, xp: number, tier: SkillTier } — tier computed via resolveSkillTier(xp)"
+      - element: getOrgEligibleMembersWithTier
+        type: function
+        location: "_queries.ts:157-159"
+        description: "Returns all eligible members for an org with computed skill tiers."
+    language: TypeScript
+    lines: 160
+
+  # --- Reusable Search/Filter Components ---
+  - file: command.tsx
+    path: src/shared/shadcn-ui/command.tsx
+    purpose: "shadcn Command primitive — wraps cmdk library for search/command palette"
+    key_elements:
+      - element: Command
+        type: function
+        location: "command.tsx:11-24"
+        description: "Root command component"
+      - element: CommandInput
+        type: function
+        location: "command.tsx:38-53"
+        description: "Search input with Search icon — built-in fuzzy filtering from cmdk"
+      - element: CommandList
+        type: function
+        location: "command.tsx:57-67"
+        description: "Scrollable list container with max-h-[300px]"
+      - element: CommandEmpty
+        type: function
+        location: "command.tsx:71-80"
+        description: "Empty state component"
+      - element: CommandGroup
+        type: function
+        location: "command.tsx:84-97"
+        description: "Group with heading"
+      - element: CommandItem
+        type: function
+        location: "command.tsx:111-125"
+        description: "Selectable item with keyboard navigation"
+    language: TypeScript/TSX
+    lines: 154
+
+  - file: global-search.tsx
+    path: src/features/workspace.slice/core/_shell/global-search.tsx
+    purpose: "Global search dialog — real usage example of Command components"
+    key_elements:
+      - element: GlobalSearch
+        type: function
+        location: "global-search.tsx:28-79"
+        description: |
+          Uses CommandDialog, CommandInput, CommandList, CommandGroup, CommandItem.
+          Groups: Dimensions (orgs), Spaces (workspaces), People (members).
+          Example of searchable member list with name + email display.
+    language: TypeScript/TSX
+    lines: 80
+
+  - file: index.ts (scheduling slice public API)
+    path: src/features/scheduling.slice/index.ts
+    purpose: "Public API barrel file for scheduling vertical slice"
+    key_elements:
+      - element: exports
+        type: variable
+        location: "index.ts:1-111"
+        description: |
+          Exports aggregate functions, server actions, queries, hooks (useOrgSchedule,
+          useGlobalSchedule, useScheduleActions, useWorkspaceSchedule, useScheduleEventHandler),
+          UI components, projectors, and saga.
+    language: TypeScript
+    lines: 111
+
+# =================================================================
+# PATTERNS FOUND
+# =================================================================
+patterns_found:
+  - category: architecture
+    pattern: "Vertical slice architecture per feature"
+    description: "Each feature is organized as a slice with _actions.ts, _aggregate.ts, _queries.ts, _hooks/, _components/, _projectors/, index.ts"
+    examples:
+      - file: scheduling.slice
+        location: "src/features/scheduling.slice/"
+        snippet: "_actions.ts, _aggregate.ts, _queries.ts, _hooks/, _components/, _projectors/, index.ts"
+    prevalence: common
+
+  - category: architecture
+    pattern: "Member assignment has TWO distinct UIs with different capabilities"
+    description: |
+      1. Calendar tab (schedule.account-view.tsx:64-92): DropdownMenuCheckboxItem — flat list, no search, no skill matching
+      2. HR tab (org-schedule-governance.tsx:106-318): Select dropdown — grouped by skill match (full/partial/none), no search
+      Neither has search functionality for members.
+    examples:
+      - file: schedule.account-view.tsx
+        location: "schedule.account-view.tsx:64-92"
+        snippet: |
+          <DropdownMenuCheckboxItem
+            key={member.id}
+            checked={item.assigneeIds.includes(member.id)}
+            onCheckedChange={() => {
+              if (item.assigneeIds.includes(member.id)) {
+                unassignMember(item, member.id);
+              } else {
+                assignMember(item, member.id);
+              }
+            }}
+          >
+            {member.name}
+          </DropdownMenuCheckboxItem>
+      - file: org-schedule-governance.tsx
+        location: "org-schedule-governance.tsx:221-283"
+        snippet: |
+          <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
+            <SelectContent>
+              {/* Groups: fullMatch → partialMatch → noMatch */}
+              <SelectGroup>
+                <SelectLabel>✓ 全部符合技能（{fullMatch.length}）</SelectLabel>
+                {fullMatch.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+              </SelectGroup>
+              ...
+            </SelectContent>
+          </Select>
+    prevalence: common
+
+  - category: architecture
+    pattern: "requiredSkills labeled as 'Optional' — no required vs optional distinction"
+    description: |
+      ProposalDialog labels the skills section as "Required Skills (Optional)" at line 208.
+      All skills added have minimumTier hardcoded to 'apprentice' (line 119).
+      No UI for changing the tier level or marking skills as truly required.
+    examples:
+      - file: proposal-dialog.tsx
+        location: "proposal-dialog.tsx:207-208"
+        snippet: |
+          <Label>Required Skills (Optional)</Label>
+          <p className="text-xs text-muted-foreground">Specify staffing requirements so the organization can match available members.</p>
+    prevalence: common
+
+  - category: naming
+    pattern: "Chinese/English bilingual labels in UI"
+    description: "Tab labels and UI text use Chinese with English in comments (e.g., '排程日曆' / Calendar)"
+    examples:
+      - file: schedule.account-view.tsx
+        location: "schedule.account-view.tsx:119-131"
+        snippet: |
+          <TabsTrigger value="calendar">排程日曆</TabsTrigger>
+          <TabsTrigger value="hr-management">人力管理</TabsTrigger>
+          <TabsTrigger value="skill-pool">技能庫</TabsTrigger>
+    prevalence: common
+
+  - category: architecture
+    pattern: "Single Source of Truth pattern for schedule_items"
+    description: "All schedule data stored at accounts/{orgId}/schedule_items. All three tabs (Calendar, DemandBoard, HR Governance) read from same collection."
+    examples:
+      - file: org-schedule-governance.tsx
+        location: "org-schedule-governance.tsx:1-10"
+        snippet: "Single source of truth: accounts/{orgId}/schedule_items."
+    prevalence: common
+
+  - category: architecture
+    pattern: "Skill validation at multiple layers"
+    description: |
+      1. Client-side warning (use-schedule-commands.ts:64-80): soft check via getOrgMemberEligibilityWithTier
+      2. Server-side hard validation (_aggregate.ts:181-212): approveOrgScheduleProposal with full skill-tier check
+      3. Fast-path bypass (_actions.ts:96): approveScheduleItemWithMember skips domain-level skill re-check
+    examples:
+      - file: use-schedule-commands.ts
+        location: "use-schedule-commands.ts:64-80"
+        snippet: |
+          // Warning-only guard; hard validation happens in approveOrgScheduleProposal.
+          if (item.requiredSkills && item.requiredSkills.length > 0) {
+            const memberView = await getOrgMemberEligibilityWithTier(activeAccount.id, memberId);
+    prevalence: common
+
+  - category: structure
+    pattern: "CommandResult pattern for server actions"
+    description: "All server actions return CommandResult with success/error discrimination"
+    examples:
+      - file: _actions.ts
+        location: "_actions.ts:44-46"
+        snippet: |
+          const id = await createScheduleItemFacade(itemData);
+          return commandSuccess(id, Date.now());
+    prevalence: common
+
+# =================================================================
+# RELATED ARCHITECTURE
+# =================================================================
+related_architecture:
+  components_relevant_to_domain:
+    - component: AccountScheduleSection
+      responsibility: "Organization-wide schedule view with Calendar, HR, Skill Pool tabs"
+      location: "src/features/scheduling.slice/_components/schedule.account-view.tsx"
+      relationship_to_domain: "Primary consumer of schedule data at org level"
+    - component: OrgScheduleGovernance
+      responsibility: "HR governance panel with skill-aware member assignment"
+      location: "src/features/scheduling.slice/_components/org-schedule-governance.tsx"
+      relationship_to_domain: "Most advanced member assignment UI with skill matching"
+    - component: ProposalDialog
+      responsibility: "Schedule proposal creation form with skill requirements"
+      location: "src/features/scheduling.slice/_components/proposal-dialog.tsx"
+      relationship_to_domain: "Entry point for requiredSkills data"
+    - component: WorkspaceSchedule
+      responsibility: "Workspace-level schedule view"
+      location: "src/features/scheduling.slice/_components/schedule.workspace-view.tsx"
+      relationship_to_domain: "Workspace-scoped calendar with proposal creation"
+    - component: OrgEligibleMemberView projection
+      responsibility: "Computed skill tier view for member eligibility"
+      location: "src/features/projection.bus/org-eligible-member-view/"
+      relationship_to_domain: "Schedule reads this projection for skill matching (Invariant #14)"
+
+  data_flow_involving_domain: |
+    1. Workspace creates proposal: ProposalDialog → createScheduleItem() → Firestore accounts/{orgId}/schedule_items
+    2. requiredSkills flows: ProposalDialog form → ScheduleProposalContent.handleSubmit → createScheduleItem action → schedule.repository
+    3. Org reviews: OrgScheduleGovernance reads schedule_items + getOrgEligibleMembersWithTier() for skill matching
+    4. Assignment: Select member → approveScheduleItemWithMember() → assignMemberAndApprove (Firestore arrayUnion + status='OFFICIAL')
+    5. Calendar assign: renderItemActions dropdown → assignMember() → use-schedule-commands → assignMemberAction → schedule.repository
+
+  key_relationships_to_domain:
+    - from: ProposalDialog
+      to: ScheduleItem
+      relationship: "creates (with requiredSkills)"
+    - from: OrgScheduleGovernance
+      to: OrgEligibleMemberView
+      relationship: "reads for skill matching"
+    - from: useScheduleActions
+      to: _actions (server)
+      relationship: "calls assignMember/unassignMember/approveItem/rejectItem"
+    - from: schedule.account-view
+      to: useGlobalSchedule
+      relationship: "reads organizationMembers, allItems"
+    - from: schedule.account-view
+      to: useScheduleActions
+      relationship: "uses assignMember, unassignMember"
+
+# =================================================================
+# RELATED TECHNOLOGY STACK
+# =================================================================
+related_technology_stack:
+  languages_used_in_domain:
+    - TypeScript
+    - TSX (React)
+  frameworks_used_in_domain:
+    - name: Next.js (App Router)
+      usage_in_domain: "Route pages under app/(shell)/..., server actions in _actions.ts"
+    - name: React
+      usage_in_domain: "Client components with hooks pattern"
+  libraries_used_in_domain:
+    - name: shadcn-ui
+      purpose_in_domain: "UI primitives: Button, Select, Badge, Card, Dialog, DropdownMenu, Command, Sheet, ScrollArea"
+    - name: cmdk
+      purpose_in_domain: "Command palette / searchable list (via shadcn Command wrapper)"
+    - name: "@tanstack/react-table"
+      purpose_in_domain: "Data table for upcoming events and decision history"
+    - name: date-fns
+      purpose_in_domain: "Date formatting and manipulation"
+    - name: lucide-react
+      purpose_in_domain: "Icons (UserPlus, Calendar, Users, etc.)"
+    - name: zod
+      purpose_in_domain: "Schema validation in _aggregate.ts"
+    - name: firebase/firestore
+      purpose_in_domain: "Data persistence layer"
+
+# =================================================================
+# RELATED CONVENTIONS
+# =================================================================
+related_conventions:
+  naming_patterns_in_domain: |
+    - Files: kebab-case (schedule.account-view.tsx, org-schedule-governance.tsx)
+    - Components: PascalCase (AccountScheduleSection, OrgScheduleGovernance)
+    - Hooks: camelCase prefixed with 'use' (useGlobalSchedule, useScheduleActions)
+    - Server actions: camelCase (assignMember, createScheduleItem)
+    - Types: PascalCase (ScheduleItem, SkillRequirement)
+  structure_of_domain: |
+    Vertical slice pattern: _actions.ts (server), _aggregate.ts (domain), _queries.ts (reads),
+    _hooks/ (React), _components/ (UI), _projectors/ (event handlers), index.ts (barrel)
+  error_handling_in_domain: |
+    Server actions return CommandResult { success, error }. Client hooks show toast on error.
+    Skill validation failures produce compensating events (ScheduleAssignRejected).
+  testing_in_domain: "No test files found in scheduling.slice"
+  documentation_in_domain: |
+    Heavy JSDoc with @fileoverview, @description, @responsibility.
+    Invariant references (#1, #2, #12, #14, etc.) cross-reference architecture docs.
+    Chinese+English bilingual inline comments.
+
+# =================================================================
+# RELATED DEPENDENCIES
+# =================================================================
+related_dependencies:
+  internal:
+    - component: "workspace.slice (useAccount, useWorkspace)"
+      relationship_to_domain: "Provides workspace context and account state with schedule_items"
+      direction: inbound
+    - component: "projection.bus (getOrgEligibleMembersWithTier)"
+      relationship_to_domain: "Schedule reads eligible member projections for skill matching"
+      direction: outbound
+    - component: "shared-kernel (SkillRequirement, tierSatisfies, resolveSkillTier, CommandResult)"
+      relationship_to_domain: "Shared types and utility functions"
+      direction: outbound
+    - component: "organization.slice (publishOrgEvent)"
+      relationship_to_domain: "Aggregate publishes domain events"
+      direction: outbound
+    - component: "skill-xp.slice (getOrgSkillTags)"
+      relationship_to_domain: "ProposalDialog loads org skill pool"
+      direction: outbound
+    - component: "shared/constants/skills (SKILLS, findSkill)"
+      relationship_to_domain: "Global skill dictionary for name resolution"
+      direction: outbound
+
+# =================================================================
+# OPEN QUESTIONS
+# =================================================================
+open_questions:
+  - question: "Why does ProposalDialog hardcode minimumTier to 'apprentice' for all skill requirements?"
+    context: "Line 119 of proposal-dialog.tsx sets minimumTier: 'apprentice' — there's no UI to set tier level. This may be intentional (workspace proposes needs, org decides tier) or a missing feature."
+
+  - question: "Why does the Calendar tab's Assign Member dropdown (schedule.account-view.tsx) not have skill matching while the HR tab does?"
+    context: "The Calendar tab uses a simple DropdownMenuCheckboxItem list while the HR tab uses grouped Select with full/partial/no skill match. This could be by design (Calendar is quick-assign, HR is formal) or an inconsistency."
+
+  - question: "Is the DemandBoard component (demand-board.tsx) still actively used or superseded by OrgScheduleGovernance?"
+    context: "The account-view file comment says 'DemandBoard (old Tab 2) removed' but the component is still exported from index.ts and the file exists."
+
+# =================================================================
+# GAPS
+# =================================================================
+gaps:
+  - area: "No search/filter in member assignment dropdowns"
+    description: "Neither the Calendar tab dropdown nor the HR governance Select has text search filtering. For organizations with many members, this could be a usability issue."
+    impact: "Users must scroll through entire member list to find the right person."
+
+  - area: "No reusable searchable-select / combobox component"
+    description: "The codebase has the Command (cmdk) primitive in shadcn-ui but no generic searchable-select wrapper component. GlobalSearch exists but is a full-dialog implementation, not a dropdown-style combobox."
+    impact: "Building searchable member assignment requires either creating a new combobox component or adapting the Command primitive."
+
+  - area: "No test files in scheduling.slice"
+    description: "The scheduling vertical slice has no unit or integration tests."
+    impact: "Changes to scheduling logic cannot be automatically verified."
