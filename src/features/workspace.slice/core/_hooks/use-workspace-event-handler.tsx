@@ -121,8 +121,8 @@ export function useWorkspaceEventHandler() {
             priority: "medium",
             progressState: "todo",
             sourceIntentId: payload.intentId,
-            // [TE_SK] Forward skill requirements from the parsed document so
-            // VS6 can perform eligibility checks when the task is assigned.
+            // [TE_SK] ParsingIntent uses `skillRequirements`; WorkspaceTask uses `requiredSkills`
+            // to align with ScheduleItem's field name — intentional cross-model mapping.
             ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
           }));
 
