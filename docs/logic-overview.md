@@ -575,7 +575,6 @@ QGWAY_SCOPE --> CBG_AUTH
 %% ── Global Search（語義搜索消費者）──
 GLOBAL_SEARCH["🔍 Global Search\nL6 Query Gateway 核心消費者\n語義化索引檢索"]
 GLOBAL_SEARCH -->|"語義化索引檢索"| QGWAY_SEARCH
-GLOBAL_SEARCH -.->|"語義查詢路徑"| VS8
 
 %% ── VS8 Semantic Graph 跨切片語義提供 ──
 VS8 -.->|"排班組合匹配"| VS6

@@ -7,7 +7,7 @@
         "VS mapping: VS0=SharedKernel foundation (not a business vertical slice); VS1=Identity; VS2=Account; VS3=SkillXP; VS4=Organization; VS5=Workspace; VS6=Scheduling; VS7=Notification; VS8=SemanticGraph (The Brain).",
         "VS8 replaces the former TAG_AUTH (Tag Authority Center) and elevates it to a first-class business vertical slice with taxonomy, causality tracking, and scheduling conflict semantic detection.",
         "Cross-slice rule: each slice mutates only its own aggregate; collaboration via contracts/events/projections.",
-        "Tag write rule: all business slices (VS1–VS7) must write tag changes through L2 Command Gateway into VS8; direct tag mutation is forbidden."
+        "Tag write rule [A13]: all business slices (VS1–VS7) must write tag changes through L2 Command Gateway into VS8; direct tag mutation is forbidden."
       ]
     },
     {
@@ -307,12 +307,14 @@
     {
       "from": "VS8 Semantic Graph",
       "to": "VS_Category",
-      "relationType": "provides_scheduling_match_to_VS6"
+      "relationType": "provides_scheduling_match_to_VS6",
+      "description": "VS8 provides scheduling combination matching to VS6 (Scheduling). Target is VS_Category because VS6 is modeled as a member of VS_Category, not a standalone entity."
     },
     {
       "from": "VS8 Semantic Graph",
       "to": "VS_Category",
-      "relationType": "provides_semantic_tags_to_VS5"
+      "relationType": "provides_semantic_tags_to_VS5",
+      "description": "VS8 provides semantic tags to VS5 (Workspace) for task tagging. Target is VS_Category because VS5 is modeled as a member of VS_Category, not a standalone entity."
     },
     {
       "from": "Global Search",
