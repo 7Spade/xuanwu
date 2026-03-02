@@ -1,17 +1,25 @@
 "use client";
 
 import { format } from "date-fns";
-import { CalendarIcon, MapPin, Plus, X } from "lucide-react";
+import { CalendarIcon, ChevronsUpDown, MapPin, Plus, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { type DateRange } from "react-day-picker";
 
 import type { SkillRequirement } from "@/features/shared-kernel";
 import { getOrgSkillTags } from "@/features/skill-xp.slice";
-import { SKILLS } from "@/shared/constants/skills";
+import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills";
 import { cn } from "@/shared/lib";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Calendar } from "@/shared/shadcn-ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/shared/shadcn-ui/command";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +31,6 @@ import {
 import { Input } from "@/shared/shadcn-ui/input";
 import { Label } from "@/shared/shadcn-ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/shadcn-ui/select";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
 import { type Location } from "@/shared/types";
 import { toast } from "@/shared/utility-hooks/use-toast";
@@ -68,6 +75,7 @@ export function ProposalDialog({
   const [location, setLocation] = useState<Location>({ description: '' });
   const [requiredSkills, setRequiredSkills] = useState<SkillRequirement[]>([]);
   const [selectedSkillSlug, setSelectedSkillSlug] = useState("");
+  const [skillPickerOpen, setSkillPickerOpen] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState<string>("1");
 
   // FR-K5: Org skill tag pool — loaded once per dialog open when orgId is provided.
@@ -81,6 +89,7 @@ export function ProposalDialog({
     setLocation({ description: '' });
     setRequiredSkills([]);
     setSelectedSkillSlug("");
+    setSkillPickerOpen(false);
     setSelectedQuantity("1");
 
     if (orgId) {
@@ -227,18 +236,71 @@ export function ProposalDialog({
             )}
             <div className="flex items-end gap-2">
               <div className="flex-1">
-                <Select value={selectedSkillSlug} onValueChange={setSelectedSkillSlug}>
-                  <SelectTrigger className="h-9 text-xs">
-                    <SelectValue placeholder="Select skill..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {skillOptions.map(skill => (
-                      <SelectItem key={skill.slug} value={skill.slug} className="text-xs">
-                        {skill.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={skillPickerOpen} onOpenChange={setSkillPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={skillPickerOpen}
+                      className="h-9 w-full justify-between text-xs font-normal"
+                    >
+                      <span className="truncate">
+                        {selectedSkillSlug
+                          ? (skillOptions.find(s => s.slug === selectedSkillSlug)?.name ?? selectedSkillSlug)
+                          : 'Select skill...'}
+                      </span>
+                      <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-72 p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search skills..." className="h-9 text-xs" />
+                      <CommandList>
+                        <CommandEmpty className="text-xs">No skill found.</CommandEmpty>
+                        {SKILL_GROUPS.map(group => {
+                          const groupSkills = skillOptions.filter(s => {
+                            const def = SKILLS.find(d => d.slug === s.slug);
+                            return def?.group === group.group;
+                          });
+                          if (groupSkills.length === 0) return null;
+                          return (
+                            <CommandGroup
+                              key={group.group}
+                              heading={`${group.zhLabel} — ${group.enLabel}`}
+                            >
+                              {group.subCategories.map(subCatKey => {
+                                const subCatMeta = SKILL_SUB_CATEGORY_BY_KEY.get(subCatKey);
+                                const subSkills = groupSkills.filter(s => {
+                                  const def = SKILLS.find(d => d.slug === s.slug);
+                                  return def?.subCategory === subCatKey;
+                                });
+                                if (subSkills.length === 0) return null;
+                                return subSkills.map(skill => (
+                                  <CommandItem
+                                    key={skill.slug}
+                                    value={`${skill.name} ${subCatMeta?.zhLabel ?? ''} ${group.zhLabel}`}
+                                    onSelect={() => {
+                                      setSelectedSkillSlug(skill.slug);
+                                      setSkillPickerOpen(false);
+                                    }}
+                                    className="text-xs"
+                                  >
+                                    <span className="flex-1">{skill.name}</span>
+                                    {subCatMeta && (
+                                      <span className="ml-2 text-[10px] text-muted-foreground">
+                                        {subCatMeta.zhLabel}
+                                      </span>
+                                    )}
+                                  </CommandItem>
+                                ));
+                              })}
+                            </CommandGroup>
+                          );
+                        })}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <Input
                 type="number"
