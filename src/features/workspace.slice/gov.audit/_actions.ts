@@ -44,3 +44,33 @@ export async function writeAuditLog(input: WriteAuditLogInput): Promise<void> {
 
   await addDocument(`accounts/${accountId}/auditLogs`, eventData);
 }
+
+export interface WriteDailyLogInput {
+  accountId: string;
+  content: string;
+  author: { uid: string; name: string; avatarUrl: string };
+  workspaceId?: string;
+  workspaceName?: string;
+  photoURLs?: string[];
+}
+
+/**
+ * Persists a daily log entry to the account's dailyLogs collection.
+ * Replaces direct Firestore writes in use-logger.ts per D3/D5.
+ */
+export async function writeDailyLog(input: WriteDailyLogInput): Promise<void> {
+  const { accountId, content, author, workspaceId, workspaceName, photoURLs } = input;
+
+  const dailyData = {
+    content,
+    author,
+    recordedAt: serverTimestamp(),
+    createdAt: serverTimestamp(),
+    accountId,
+    workspaceId: workspaceId ?? '',
+    workspaceName: workspaceName ?? 'Dimension Level',
+    photoURLs: photoURLs ?? [],
+  };
+
+  await addDocument(`accounts/${accountId}/dailyLogs`, dailyData);
+}

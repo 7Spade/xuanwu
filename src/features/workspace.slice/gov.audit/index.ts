@@ -6,8 +6,8 @@ export { AuditEventItem } from './_components/audit-event-item'
 export { AuditTimeline, AuditEventItemContainer } from './_components/audit-timeline'
 export { AuditTypeIcon } from './_components/audit-type-icon'
 // Actions [D3][D5]
-export { writeAuditLog } from './_actions'
-export type { WriteAuditLogInput } from './_actions'
+export { writeAuditLog, writeDailyLog } from './_actions'
+export type { WriteAuditLogInput, WriteDailyLogInput } from './_actions'
 // Hooks
 export { useAccountAudit } from './_hooks/use-account-audit'
 export { useWorkspaceAudit } from './_hooks/use-workspace-audit'

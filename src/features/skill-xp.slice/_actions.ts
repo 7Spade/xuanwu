@@ -25,6 +25,7 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/features/shared-kernel';
+import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { addXp, deductXp } from './_aggregate';
 import { addSkillTagToPool, removeSkillTagFromPool } from './_tag-pool';
@@ -55,6 +56,8 @@ export async function addSkillXp(input: AddXpInput): Promise<CommandResult> {
       reason: input.reason,
       sourceId: input.sourceId,
     });
+    // D3: aggregate returns computed state; _actions.ts owns the persistence write.
+    await setDocument(result.path, result.record);
     // Application coordinator publishes cross-BC skill event (E1 — not from aggregate)
     await publishOrgEvent('organization:skill:xpAdded', {
       accountId: input.accountId,
@@ -98,6 +101,8 @@ export async function deductSkillXp(input: DeductXpInput): Promise<CommandResult
       reason: input.reason,
       sourceId: input.sourceId,
     });
+    // D3: aggregate returns computed state; _actions.ts owns the persistence write.
+    await setDocument(result.path, result.record);
     // Application coordinator publishes cross-BC skill event (E1 — not from aggregate)
     await publishOrgEvent('organization:skill:xpDeducted', {
       accountId: input.accountId,
