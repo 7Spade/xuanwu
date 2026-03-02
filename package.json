@@ -25,10 +25,10 @@
     "lint": "eslint --config eslint.config.mts .",
     "typecheck": "tsc --noEmit",
     "check": "npm install && npm run lint && npm run typecheck",
-    "deploy:functions": "firebase deploy --only functions",
-    "deploy:indexes": "firebase deploy --only firestore:indexes",
-    "deploy:firestore-rules": "firebase deploy --only firestore:rules",
-    "deploy:storage-rules": "firebase deploy --only storage"
+    "deploy:functions": "firebase deploy --only functions --config ./src/shared-infra/firebase/firebase.json",
+    "deploy:indexes": "firebase deploy --only firestore:indexes --config ./src/shared-infra/firebase/firebase.json",
+    "deploy:firestore-rules": "firebase deploy --only firestore:rules --config ./src/shared-infra/firebase/firebase.json",
+    "deploy:storage-rules": "firebase deploy --only storage --config ./src/shared-infra/firebase/firebase.json"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.20.0",
