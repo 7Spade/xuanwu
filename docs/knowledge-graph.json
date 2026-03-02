@@ -175,11 +175,26 @@
     },
     {
       "name": "Global Search",
-      "entityType": "System_Consumer",
+      "entityType": "Cross_Cutting_Authority",
       "observations": [
-        "Global Search is the core consumer of L6 Query Gateway, providing cross-slice semantic search capabilities.",
-        "Queries VS8 Semantic Graph for semantic-index lookups, enabling unified search across all tagged domain entities.",
-        "Positioned at the read boundary: Global Search → L6 Query Gateway → VS8 Semantic Graph → tag-snapshot projections."
+        "Global Search (global-search.slice) is the system's sole cross-domain semantic portal (語義門戶) and a Cross-cutting Authority (跨切片權威).",
+        "Queries VS8 Semantic Graph for semantic-index lookups, enabling unified search across all tagged domain entities — no direct Firestore collection reads.",
+        "Eliminates duplicate search logic (DRY): all slices delegate search to global-search.slice instead of implementing their own search/filter logic.",
+        "Supports multi-dimensional intersection queries: cross-slice compound queries (e.g., Organization × Skill × Availability × Partner).",
+        "Sole provider for global shortcut (Cmd+K) UI authority.",
+        "Must own its own _actions.ts and _services.ts per D3/D8 compliance; must not parasitize shared-kernel."
+      ]
+    },
+    {
+      "name": "Notification Hub",
+      "entityType": "Cross_Cutting_Authority",
+      "observations": [
+        "Notification Hub (notification-hub.slice / VS7 enhanced) is the system's sole side-effect outlet (反應中樞) and a Cross-cutting Authority (跨切片權威).",
+        "Per ARCH-D3, business slices (e.g., Scheduling) only produce Events; Notification Hub decides 'how to notify' — decoupling business logic from delivery infrastructure.",
+        "Tag-Aware routing: Hub consults VS8 Semantic Graph tags to determine notification strategy (e.g., #channel:slack → Slack, #urgency:high → phone call).",
+        "Causality consistency: notification delivery is traceable (traceId from EventEnvelope [R8]) and replayable (idempotency-key).",
+        "Replaces scattered sendEmail()/push() calls across _actions.ts files; all notification side-effects route through this hub.",
+        "Must own its own _actions.ts and _services.ts per D3/D8 compliance; must not parasitize shared-kernel."
       ]
     },
     {
@@ -325,6 +340,56 @@
       "from": "Global Search",
       "to": "L_Category",
       "relationType": "consumes_query_gateway"
+    },
+    {
+      "from": "Global Search",
+      "to": "D_Category",
+      "relationType": "governed_by"
+    },
+    {
+      "from": "Global Search",
+      "to": "A_Category",
+      "relationType": "constrained_by"
+    },
+    {
+      "from": "Global Search",
+      "to": "VS_Category",
+      "relationType": "provides_cross_slice_search",
+      "description": "Global Search is the sole cross-slice search authority. All slices delegate search to global-search.slice instead of implementing local search logic."
+    },
+    {
+      "from": "Notification Hub",
+      "to": "VS8 Semantic Graph",
+      "relationType": "queries_tag_routing_strategy",
+      "description": "Notification Hub consults VS8 semantic tags to determine notification strategy (channel, urgency, recipient scope)."
+    },
+    {
+      "from": "Notification Hub",
+      "to": "L_Category",
+      "relationType": "consumes_ier_events",
+      "description": "Notification Hub consumes domain events via IER STANDARD_LANE (e.g., ScheduleAssigned [E3]) to decide how and whom to notify."
+    },
+    {
+      "from": "Notification Hub",
+      "to": "D_Category",
+      "relationType": "governed_by"
+    },
+    {
+      "from": "Notification Hub",
+      "to": "A_Category",
+      "relationType": "constrained_by"
+    },
+    {
+      "from": "Notification Hub",
+      "to": "E_Category",
+      "relationType": "sole_side_effect_outlet",
+      "description": "Notification Hub is the system's only side-effect outlet for notifications. Business slices produce events; Notification Hub decides delivery strategy."
+    },
+    {
+      "from": "Notification Hub",
+      "to": "VS_Category",
+      "relationType": "decouples_notification_from_business",
+      "description": "Business slices (VS1-VS6, VS8) must not directly call sendEmail/push/SMS. All notification side-effects route through Notification Hub."
     },
     {
       "from": "VS8 Semantic Graph",
