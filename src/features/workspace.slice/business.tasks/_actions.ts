@@ -36,8 +36,13 @@ export async function updateTask(
   updates: Partial<WorkspaceTask>
 ): Promise<CommandResult> {
   try {
-    // sourceIntentId is a readonly SourcePointer (Digital Twin anchor) — strip it from updates.
-    const { sourceIntentId: _sourceIntentId, ...safeUpdates } = updates;
+    // SourcePointer fields are immutable (Digital Twin anchor) — strip them from updates.
+    const {
+      sourceIntentId: _sourceIntentId,
+      sourceIntentVersion: _sourceIntentVersion,
+      sourceFileId: _sourceFileId,
+      ...safeUpdates
+    } = updates;
     await updateTaskFacade(workspaceId, taskId, safeUpdates);
     return commandSuccess(taskId, Date.now());
   } catch (err) {
