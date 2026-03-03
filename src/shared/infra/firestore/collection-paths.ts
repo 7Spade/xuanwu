@@ -55,7 +55,10 @@ export const SUBCOLLECTIONS = {
   workspaceGrants: 'grants',
   /** workspaces/{workspaceId}/locations */
   workspaceLocations: 'locations',
-  /** workspaces/{workspaceId}/parsingIntents */
+  /**
+   * workspaces/{workspaceId}/parsingIntents
+   * Migration note: standardized to camelCase to match VS5 repositories/queries.
+   */
   parsingIntents: 'parsingIntents',
   /** Generic outbox sub-collection (per aggregate) */
   outbox: 'outbox',

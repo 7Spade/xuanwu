@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { SUBCOLLECTIONS } from './collection-paths';
 
 describe('SUBCOLLECTIONS path contracts', () => {
-  it('uses camelCase ParsingIntent path to match VS5 repositories and queries', () => {
+  it('uses camelCase ParsingIntent path to keep repositories and queries consistent', () => {
     expect(SUBCOLLECTIONS.parsingIntents).toBe('parsingIntents');
   });
 });
