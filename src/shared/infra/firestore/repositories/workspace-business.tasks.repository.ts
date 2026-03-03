@@ -59,8 +59,15 @@ export const updateTask = async (
   taskId: string,
   updates: Partial<WorkspaceTask>
 ): Promise<void> => {
+  const {
+    sourceIntentId: _sourceIntentId,
+    sourceIntentVersion: _sourceIntentVersion,
+    sourceFileId: _sourceFileId,
+    ...safeUpdates
+  } = updates;
+
   const dataWithTimestamp = {
-    ...updates,
+    ...safeUpdates,
     updatedAt: serverTimestamp(),
   };
   return updateDocument(
