@@ -115,8 +115,8 @@ interface WorkspaceTask {
 | 任務狀態 (`progressState`) | 驅動行為 | 說明 |
 |---|---|---|
 | `todo` | 自動同步（Sync） | 就地同步任務財務欄位（`quantity / unitPrice / subtotal`）；不修改 `sourceIntentId / sourceIntentVersion / sourceFileId` |
-| `doing` / `blocked` | 衝突偵測（Conflict） | 不改任務內容，建立 `WorkspaceIssue` 並阻塞 workflow |
-| `completed` 以上 | 忽略（Ignore） | 已完工或已驗收任務不因新 Intent 改動 |
+| `task.status` ∈ {`in_progress`, `blocked`} | 衝突偵測（Conflict） | 不改任務內容，建立 `WorkspaceIssue` 並阻塞 workflow |
+| `task.status = done`（或 `workflow.currentStage` ∈ {`Acceptance`,`Finance`,`Completed`}） | 忽略（Ignore） | 已完工或已驗收任務不因新 Intent 改動 |
 | 新增行項目 | 增量建立（Create） | 建立新 Task，`sourceIntentId` 指向新 Intent |
 
 ---
@@ -129,7 +129,7 @@ stateDiagram-v2
     [*] --> PendingIntent: 文件上傳/解析
     PendingIntent --> DeltaProcessing: 發送 deltaProposed
     DeltaProcessing --> Task_Todo: todo 自動同步
-    DeltaProcessing --> Task_Doing: doing/blocked 建立 Issue + blockWorkflow
+    DeltaProcessing --> Task_Doing: in_progress/blocked 建立 Issue + blockWorkflow
     DeltaProcessing --> New_Task: 新行項目建立 Task
     Task_Todo --> ImportedIntent: 對帳完成
     Task_Doing --> ImportedIntent: 對帳完成
@@ -148,6 +148,7 @@ stateDiagram-v2
 1. `saveParsingIntent`：寫入 `parsingIntents/{intentId}`（`pending`）。
 2. 發送 `workspace:parsing-intent:deltaProposed`（outbox）。
 3. Import handler 收到事件後：
+   - `ParsingIntent` 僅產生 proposal 類事件（如 `workspace:parsing-intent:deltaProposed`），不得直接寫入 A-track 聚合根；此約束用於維持 aggregate 邊界與 command handler 單一寫入入口（對齊 `logic-overview.md` 的 #A4：ParsingIntent 只允許提議事件）。
    - 建立 `parsingImports/{importId}`（`started`）
    - 逐筆 upsert `tasks`（帶 `sourceIntentId/sourceIntentVersion`）
    - 成功後更新 `parsingImports.status=applied`
@@ -155,10 +156,24 @@ stateDiagram-v2
 
 ### 7.2 異常流程（B-track）
 
-- 任務阻塞發 `workspace:tasks:blocked` -> 建立 `issues`。
-- issue 解決發 `workspace:issues:resolved` -> 再由 handler 發 `workspace:tasks:unblocked`。
+- workflow 阻塞發 `workspace:workflow:blocked` -> 建立 `issues`。
+- issue 解決發 `workspace:issues:resolved` -> 由 workflow handler 在同一 transaction 內執行 `blockedBy.delete(issueId)`；若 `blockedBy`（`Set<issueId>`）清空再發 `workspace:workflow:unblocked`。
+
+```ts
+// workflow side (transaction scope)
+if (blockedBy.has(issueId)) {
+  blockedBy.delete(issueId)
+} else {
+  metrics.increment('workflow.unknownIssueId')
+  // idempotent replay / race condition: ignore unknown issueId
+}
+if (blockedBy.size === 0) {
+  emit('workspace:workflow:unblocked')
+}
+```
+- workflow 阻塞語義採 #A3：每個 issueId 需加入 `workflow.blockedBy`；僅當 `blockedBy` 清空（allIssuesResolved）才可解除阻塞。
 - A-track 只消費事件，不直接讀寫 `issues` 狀態機。
-- 實作約束：B-track handler 禁止直接調用 `tasks` repository 寫入 API，只能發布 `workspace:tasks:unblocked` 事件，由 A-track task handler 執行狀態更新。
+- 實作約束：B-track handler 禁止直接調用 `tasks` repository 寫入 API；B-track 僅發布 issue 事件，不決定 workflow 是否解除，解除判定必須經 `workflow.aggregate.unblockWorkflow(issueId): CommandResult`（#A3）。
 
 ---
 
