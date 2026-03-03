@@ -104,6 +104,18 @@ export {
 export type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
 
 // =================================================================
+// Pure Selectors (data-derivation — no React dependencies)
+// =================================================================
+export {
+  selectAllScheduleItems,
+  selectPendingProposals,
+  selectDecisionHistory,
+  selectUpcomingEvents,
+  selectPresentEvents,
+} from './_selectors';
+export type { ScheduleItemWithWorkspace, ScheduleItemWithMembers } from './_selectors';
+
+// =================================================================
 // Saga (cross-org coordination — used by event relay worker)
 // =================================================================
 export { startSchedulingSaga, getSagaState } from './_saga';
