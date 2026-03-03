@@ -269,3 +269,11 @@ export {
   addCommentToIssue,
   resolveIssue,
 } from './business.issues'
+
+// ─── domain rules (shared/lib cohesion) ──────────────────────────────────────
+export {
+  filterVisibleWorkspaces,
+  hasWorkspaceAccess,
+  isWorkspaceVisibleToUser,
+} from '@/shared/lib/workspace.rules'
+export { buildTaskTree } from '@/shared/lib/task.rules'
