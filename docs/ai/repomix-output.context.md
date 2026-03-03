@@ -287,8 +287,6 @@ src/features/scheduling.slice/_projectors/demand-board-queries.ts
 src/features/scheduling.slice/_projectors/demand-board.ts
 src/features/scheduling.slice/_queries.ts
 src/features/scheduling.slice/_saga.ts
-src/features/scheduling.slice/_selectors.ts
-src/features/scheduling.slice/_write-op.ts
 src/features/scheduling.slice/index.ts
 src/features/semantic-graph.slice/_actions.ts
 src/features/semantic-graph.slice/_aggregate.ts
@@ -296,7 +294,6 @@ src/features/semantic-graph.slice/_services.ts
 src/features/semantic-graph.slice/_types.ts
 src/features/semantic-graph.slice/centralized-tag/_actions.ts
 src/features/semantic-graph.slice/index.ts
-src/features/shared-kernel/account-contract/index.ts
 src/features/shared-kernel/authority-snapshot/index.ts
 src/features/shared-kernel/centralized-tag/_aggregate.ts
 src/features/shared-kernel/centralized-tag/_bus.ts
@@ -389,7 +386,6 @@ src/features/workspace.slice/core.event-bus/_bus.ts
 src/features/workspace.slice/core.event-bus/_context.ts
 src/features/workspace.slice/core.event-bus/_event-funnel.ts
 src/features/workspace.slice/core.event-bus/_events.ts
-src/features/workspace.slice/core.event-bus/_hooks/_context.ts
 src/features/workspace.slice/core.event-bus/index.ts
 src/features/workspace.slice/core.event-store/_store.ts
 src/features/workspace.slice/core.event-store/index.ts
@@ -2914,89 +2910,6 @@ import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import { toast } from '@/shared/utility-hooks/use-toast';
 ```
 
-## File: src/features/scheduling.slice/_components/proposal-dialog.tsx
-```typescript
-import { format } from "date-fns";
-import { CalendarIcon, ChevronsUpDown, MapPin, Plus, X } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
-import { type DateRange } from "react-day-picker";
-import type { SkillRequirement } from "@/features/shared-kernel";
-import { getOrgSkillTags } from "@/features/skill-xp.slice";
-import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills";
-import { cn } from "@/shared/lib";
-import { Badge } from "@/shared/shadcn-ui/badge";
-import { Button } from "@/shared/shadcn-ui/button";
-import { Calendar } from "@/shared/shadcn-ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/shared/shadcn-ui/command";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/shared/shadcn-ui/dialog";
-import { Input } from "@/shared/shadcn-ui/input";
-import { Label } from "@/shared/shadcn-ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
-import { Textarea } from "@/shared/shadcn-ui/textarea";
-import { type Location } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
-⋮----
-interface ProposalDialogProps {
-  isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void;
-  onSubmit: (data: {
-    title: string;
-    description: string;
-    startDate?: Date;
-    endDate?: Date;
-    location: Location;
-    requiredSkills: SkillRequirement[];
-  }) => Promise<void>;
-  initialDate: Date;
-  orgId?: string;
-}
-export function ProposalDialog({
-  isOpen,
-  onOpenChange,
-  onSubmit,
-  initialDate,
-  orgId,
-}: ProposalDialogProps)
-⋮----
-/** Value string for cmdk filtering — covers zh + en + sub-category labels. */
-⋮----
-const handleLocationChange = (field: keyof Location, value: string) =>
-const handleAddSkillRequirement = () =>
-const handleRemoveSkillRequirement = (slug: string) =>
-const handleSubmit = async () =>
-⋮----
-<Input id="item-title" value=
-⋮----
-
-⋮----
-<button
-                        type="button"
-                        onClick={() => handleRemoveSkillRequirement(req.tagSlug)}
-                        className="ml-1 rounded-full hover:text-destructive"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </Badge>
-                  );
-⋮----
-setSelectedSkillSlug(skill.slug);
-setSkillPickerOpen(false);
-```
-
 ## File: src/features/scheduling.slice/_components/schedule-data-table.tsx
 ```typescript
 import {
@@ -3048,6 +2961,15 @@ import { UnifiedCalendarGrid } from "./unified-calendar-grid";
 export function WorkspaceSchedule()
 ⋮----
 onClick=
+```
+
+## File: src/features/scheduling.slice/_hooks/use-global-schedule.ts
+```typescript
+import { subDays, isFuture, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { useMemo } from "react";
+import { useAccount } from "@/features/workspace.slice";
+import { useApp } from "@/shared/app-providers/app-context";
+export function useGlobalSchedule()
 ```
 
 ## File: src/features/scheduling.slice/_hooks/use-schedule-event-handler.ts
@@ -4243,6 +4165,21 @@ export async function handleIssueResolvedForWorkflow(
 ## File: src/features/workspace.slice/business.workflow/index.ts
 ```typescript
 
+```
+
+## File: src/features/workspace.slice/core.event-bus/_context.ts
+```typescript
+import { createContext, useContext } from "react"
+import type {
+  PublishFn,
+  SubscribeFn,
+} from "./_events"
+export interface WorkspaceEventContextType {
+  publish: PublishFn
+  subscribe: SubscribeFn
+}
+⋮----
+export function useWorkspaceEvents(): WorkspaceEventContextType
 ```
 
 ## File: src/features/workspace.slice/core.event-bus/_event-funnel.ts
@@ -5661,69 +5598,6 @@ export function workspaceRoleAtLeast(
 ## File: src/shared/constants/settings.ts
 ```typescript
 
-```
-
-## File: src/shared/constants/skills.ts
-```typescript
-export type SkillGroup =
-  | 'CivilStructural'
-  | 'MEP'
-  | 'FinishingWorks'
-  | 'Landscape'
-  | 'TemporaryWorks'
-  | 'SiteManagement'
-  | 'Logistics'
-  | 'BIM'
-  | 'ProjectConsulting';
-export type SkillSubCategory =
-  | 'ConcreteFormwork'
-  | 'MasonryStructural'
-  | 'EarthSpecial'
-  | 'ElectricalWorks'
-  | 'MechanicalPlumbing'
-  | 'FireProtection'
-  | 'WetWorks'
-  | 'DryWorks'
-  | 'SoftLandscape'
-  | 'HardLandscape'
-  | 'TempScaffolding'
-  | 'TempShoring'
-  | 'TempSiteFacilities'
-  | 'HeavyEquipmentOps'
-  | 'SpecialistTrades'
-  | 'EngineeringTechnical'
-  | 'SafetyQuality'
-  | 'ProjectMgmt'
-  | 'MaterialLogistics'
-  | 'Environmental'
-  | 'BIMModeling'
-  | 'DigitalConstruction'
-  | 'ContractProcurement'
-  | 'ConsultingAdvisory'
-  | 'ClaimsDisputes';
-export interface SkillGroupMeta {
-  group: SkillGroup;
-  zhLabel: string;
-  enLabel: string;
-  subCategories: readonly SkillSubCategory[];
-}
-export interface SkillSubCategoryMeta {
-  subCategory: SkillSubCategory;
-  group: SkillGroup;
-  zhLabel: string;
-  enLabel: string;
-}
-export interface SkillDefinition {
-  slug: string;
-  name: string;
-  group: SkillGroup;
-  subCategory: SkillSubCategory;
-  description?: string;
-}
-⋮----
-export type SkillSlug = (typeof SKILLS)[number]['slug'];
-⋮----
-export function findSkill(slug: string): SkillDefinition | undefined
 ```
 
 ## File: src/shared/constants/taiwan-address.ts
@@ -7275,6 +7149,84 @@ import { cn } from "@/shared/utils/utils"
 className=
 ```
 
+## File: src/shared/types/account.types.ts
+```typescript
+import type { Timestamp } from '@/shared/ports'
+import type { SkillGrant } from './skill.types'
+export type AccountType = 'user' | 'organization'
+export type OrganizationRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
+export type Presence = 'active' | 'away' | 'offline';
+export type InviteState = 'pending' | 'accepted' | 'expired';
+export type NotificationType = 'info' | 'alert' | 'success';
+export interface Account {
+  id: string
+  name: string
+  accountType: AccountType
+  email?: string
+  photoURL?: string
+  bio?: string
+  achievements?: string[]
+  expertiseBadges?: ExpertiseBadge[]
+  skillGrants?: SkillGrant[]
+  wallet?: Wallet
+  description?: string
+  ownerId?: string
+  role?: OrganizationRole
+  theme?: ThemeConfig
+  members?: MemberReference[]
+  memberIds?: string[]
+  teams?: Team[]
+  createdAt?: Timestamp
+}
+export interface MemberReference {
+  id: string;
+  name: string;
+  email: string;
+  role: OrganizationRole;
+  presence: Presence;
+  isExternal?: boolean;
+  expiryDate?: Timestamp;
+  skillGrants?: SkillGrant[];
+}
+export interface Team {
+  id: string;
+  name: string;
+  description: string;
+  type: 'internal' | 'external';
+  memberIds: string[];
+}
+export interface ThemeConfig {
+  primary: string;
+  background: string;
+  accent: string;
+}
+export interface Wallet {
+  balance: number;
+}
+export interface ExpertiseBadge {
+  id: string;
+  name: string;
+  icon?: string;
+}
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  read: boolean;
+  timestamp: number;
+}
+export interface PartnerInvite {
+  id: string;
+  email: string;
+  teamId: string;
+  role: OrganizationRole;
+  inviteState: InviteState;
+  invitedAt: Timestamp;
+  protocol: string;
+}
+```
+
 ## File: src/shared/types/audit.types.ts
 ```typescript
 import type { Timestamp } from '@/shared/ports'
@@ -8622,21 +8574,6 @@ const handleSubmit = async (data: {
 }) =>
 ```
 
-## File: src/features/scheduling.slice/_hooks/use-global-schedule.ts
-```typescript
-import { useMemo } from "react";
-import { useAccount } from "@/features/workspace.slice";
-import { useApp } from "@/shared/app-providers/app-context";
-import {
-  selectAllScheduleItems,
-  selectPendingProposals,
-  selectDecisionHistory,
-  selectUpcomingEvents,
-  selectPresentEvents,
-} from '../_selectors';
-export function useGlobalSchedule()
-```
-
 ## File: src/features/scheduling.slice/_hooks/use-org-schedule.ts
 ```typescript
 import { useState, useEffect } from 'react';
@@ -8650,119 +8587,9 @@ export function usePendingScheduleProposals(orgId: string | null)
 export function useConfirmedScheduleProposals(orgId: string | null)
 ```
 
-## File: src/features/scheduling.slice/_selectors.ts
+## File: src/features/scheduling.slice/index.ts
 ```typescript
-import { subDays, isFuture, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
-import type { ScheduleItem } from '@/features/shared-kernel';
-export interface ScheduleItemWithWorkspace extends ScheduleItem {
-  workspaceName: string;
-}
-export type ScheduleItemWithMembers<M> = ScheduleItemWithWorkspace & {
-  members: M[];
-};
-export function selectAllScheduleItems(
-  scheduleItems: Record<string, ScheduleItem>,
-  workspaces: Record<string, { name?: string }>
-): ScheduleItemWithWorkspace[]
-export function selectPendingProposals(
-  items: ScheduleItemWithWorkspace[]
-): ScheduleItemWithWorkspace[]
-export function selectDecisionHistory(
-  items: ScheduleItemWithWorkspace[]
-): ScheduleItemWithWorkspace[]
-export function selectUpcomingEvents<M>(
-  items: ScheduleItemWithWorkspace[],
-  members: M[]
-): ScheduleItemWithMembers<M>[]
-export function selectPresentEvents<M>(
-  items: ScheduleItemWithWorkspace[],
-  members: M[]
-): ScheduleItemWithMembers<M>[]
-```
 
-## File: src/features/scheduling.slice/_write-op.ts
-```typescript
-import { updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
-import type { WriteOp } from './_aggregate';
-export async function executeWriteOp(op: WriteOp): Promise<void>
-```
-
-## File: src/features/shared-kernel/account-contract/index.ts
-```typescript
-import type { Timestamp } from '@/shared/ports'
-import type { SkillGrant } from '../skill-tier'
-export type AccountType = 'user' | 'organization'
-export type OrganizationRole = 'Owner' | 'Admin' | 'Member' | 'Guest'
-export type Presence = 'active' | 'away' | 'offline'
-export type InviteState = 'pending' | 'accepted' | 'expired'
-export type NotificationType = 'info' | 'alert' | 'success'
-export interface Account {
-  id: string
-  name: string
-  accountType: AccountType
-  email?: string
-  photoURL?: string
-  bio?: string
-  achievements?: string[]
-  expertiseBadges?: ExpertiseBadge[]
-  skillGrants?: SkillGrant[]
-  wallet?: Wallet
-  description?: string
-  ownerId?: string
-  role?: OrganizationRole
-  theme?: ThemeConfig
-  members?: MemberReference[]
-  memberIds?: string[]
-  teams?: Team[]
-  createdAt?: Timestamp
-}
-export interface MemberReference {
-  id: string
-  name: string
-  email: string
-  role: OrganizationRole
-  presence: Presence
-  isExternal?: boolean
-  expiryDate?: Timestamp
-  skillGrants?: SkillGrant[]
-}
-export interface Team {
-  id: string
-  name: string
-  description: string
-  type: 'internal' | 'external'
-  memberIds: string[]
-}
-export interface ThemeConfig {
-  primary: string
-  background: string
-  accent: string
-}
-export interface Wallet {
-  balance: number
-}
-export interface ExpertiseBadge {
-  id: string
-  name: string
-  icon?: string
-}
-export interface Notification {
-  id: string
-  title: string
-  message: string
-  type: NotificationType
-  read: boolean
-  timestamp: number
-}
-export interface PartnerInvite {
-  id: string
-  email: string
-  teamId: string
-  role: OrganizationRole
-  inviteState: InviteState
-  invitedAt: Timestamp
-  protocol: string
-}
 ```
 
 ## File: src/features/shared-kernel/centralized-tag/_aggregate.ts
@@ -8847,6 +8674,55 @@ export interface TaxonomyNode {
   readonly parentSlug?: string;
   readonly depth: number;
   readonly metadata?: Record<string, unknown>;
+}
+```
+
+## File: src/features/shared-kernel/skill-tier/index.ts
+```typescript
+export type SkillTier =
+  | 'apprentice'
+  | 'journeyman'
+  | 'expert'
+  | 'artisan'
+  | 'grandmaster'
+  | 'legendary'
+  | 'titan';
+export interface TierDefinition {
+  tier: SkillTier;
+  rank: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  label: string;
+  minXp: number;
+  maxXp: number;
+  color: string;
+  cssVar: string;
+}
+export interface SkillRequirement {
+  tagSlug: string;
+  tagId?: string;
+  minimumTier: SkillTier;
+  quantity: number;
+}
+⋮----
+export function getTierDefinition(tier: SkillTier): TierDefinition
+export function getTier(xp: number): SkillTier
+⋮----
+export function getTierRank(tier: SkillTier): number
+export function tierSatisfies(grantedTier: SkillTier, minimumTier: SkillTier): boolean
+export interface WorkspaceScheduleProposedPayload {
+  readonly scheduleItemId: string;
+  readonly workspaceId: string;
+  readonly orgId: string;
+  readonly title: string;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly proposedBy: string;
+  readonly intentId?: string;
+  readonly skillRequirements?: SkillRequirement[];
+  readonly locationId?: string;
+  readonly traceId?: string;
+}
+export interface ImplementsScheduleProposedPayloadContract {
+  readonly implementsScheduleProposedPayload: true;
 }
 ```
 
@@ -9162,11 +9038,6 @@ readonly implementsEventEnvelope = true as const;
 constructor()
 ```
 
-## File: src/features/workspace.slice/core.event-bus/_context.ts
-```typescript
-
-```
-
 ## File: src/features/workspace.slice/core.event-bus/_events.ts
 ```typescript
 import type { SkillRequirement, WorkspaceScheduleProposedPayload } from "@/features/shared-kernel"
@@ -9301,21 +9172,6 @@ export type SubscribeFn = <T extends WorkspaceEventName>(
   type: T,
   handler: WorkspaceEventHandler<T>
 ) => () => void
-```
-
-## File: src/features/workspace.slice/core.event-bus/_hooks/_context.ts
-```typescript
-import { createContext, useContext } from "react"
-import type {
-  PublishFn,
-  SubscribeFn,
-} from "../_events"
-export interface WorkspaceEventContextType {
-  publish: PublishFn
-  subscribe: SubscribeFn
-}
-⋮----
-export function useWorkspaceEvents(): WorkspaceEventContextType
 ```
 
 ## File: src/features/workspace.slice/core.event-bus/index.ts
@@ -9721,11 +9577,6 @@ export function canTransitionScheduleStatus(
 ): boolean
 ```
 
-## File: src/shared/types/account.types.ts
-```typescript
-
-```
-
 ## File: src/shared/types/schedule.types.ts
 ```typescript
 
@@ -9973,6 +9824,44 @@ import { Button } from "@/shared/shadcn-ui/button"
 export type DecisionHistoryItem = Pick<ScheduleItem, 'id' | 'title' | 'workspaceName' | 'status' | 'updatedAt'>
 ```
 
+## File: src/features/scheduling.slice/_components/demand-board.tsx
+```typescript
+import { UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { useState, useCallback, useMemo } from 'react';
+import type { SkillRequirement } from '@/features/shared-kernel';
+import type { ScheduleItem } from '@/features/shared-kernel';
+import { useAccount } from '@/features/workspace.slice';
+import { useApp } from '@/shared/app-providers/app-context';
+import { SKILLS } from '@/shared/constants/skills';
+import type { Timestamp } from '@/shared/ports';
+import { Badge } from '@/shared/shadcn-ui/badge';
+import { Button } from '@/shared/shadcn-ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
+import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/shadcn-ui/select';
+import { toast } from '@/shared/utility-hooks/use-toast';
+import {
+  approveScheduleItemWithMember,
+  updateScheduleItemStatus,
+} from '../_actions';
+function formatTimestamp(ts: Timestamp | string | undefined): string
+interface OrgMember {
+  id: string;
+  name: string;
+}
+interface DemandRowProps {
+  item: ScheduleItem;
+  orgMembers: OrgMember[];
+  orgId: string;
+}
+```
+
 ## File: src/features/scheduling.slice/_components/governance-sidebar.tsx
 ```typescript
 import { Check, X } from "lucide-react";
@@ -9988,54 +9877,6 @@ interface GovernanceSidebarProps {
   onApprove: (item: ScheduleItem) => void;
   onReject: (item: ScheduleItem) => void;
 }
-```
-
-## File: src/features/scheduling.slice/_components/org-schedule-governance.tsx
-```typescript
-import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
-import type { OrgEligibleMemberView } from '@/features/projection.bus';
-import { tierSatisfies } from '@/features/shared-kernel';
-import type { SkillRequirement } from '@/features/shared-kernel';
-import type { ScheduleItem } from '@/features/shared-kernel';
-import { useAccount } from '@/features/workspace.slice';
-import { useApp } from '@/shared/app-providers/app-context';
-import { findSkill } from '@/shared/constants/skills';
-import type { Timestamp } from '@/shared/ports';
-import { Badge } from '@/shared/shadcn-ui/badge';
-import { Button } from '@/shared/shadcn-ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/shared/shadcn-ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/shadcn-ui/popover';
-import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
-import { toast } from '@/shared/utility-hooks/use-toast';
-import {
-  approveScheduleItemWithMember,
-  updateScheduleItemStatus,
-} from '../_actions';
-function getSkillName(slug: string): string
-function formatTimestamp(ts: Timestamp | string | undefined): string
-function computeSkillMatch(
-  member: OrgEligibleMemberView,
-  skillRequirements?: SkillRequirement[]
-): [number, number]
-interface ProposalRowProps {
-  item: ScheduleItem;
-  orgMembers: Array<{ id: string; name: string }>;
-  eligibleMembers: OrgEligibleMemberView[];
-  orgId: string;
-  approvedBy: string;
-}
-⋮----
-onSelect=
 ```
 
 ## File: src/features/scheduling.slice/_components/upcoming-events-columns.tsx
@@ -10082,69 +9923,9 @@ export function useScheduleActions()
 
 ```
 
-## File: src/features/shared-kernel/skill-tier/index.ts
+## File: src/features/shared-kernel/index.ts
 ```typescript
-import type { Timestamp } from '@/shared/ports'
-export type SkillTier =
-  | 'apprentice'
-  | 'journeyman'
-  | 'expert'
-  | 'artisan'
-  | 'grandmaster'
-  | 'legendary'
-  | 'titan';
-export interface TierDefinition {
-  tier: SkillTier;
-  rank: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  label: string;
-  minXp: number;
-  maxXp: number;
-  color: string;
-  cssVar: string;
-}
-export interface SkillRequirement {
-  tagSlug: string;
-  tagId?: string;
-  minimumTier: SkillTier;
-  quantity: number;
-}
-⋮----
-export function getTierDefinition(tier: SkillTier): TierDefinition
-export function getTier(xp: number): SkillTier
-⋮----
-export function getTierRank(tier: SkillTier): number
-export function tierSatisfies(grantedTier: SkillTier, minimumTier: SkillTier): boolean
-export interface SkillTag {
-  slug: string;
-  name: string;
-  category?: string;
-  description?: string;
-}
-export interface SkillGrant {
-  tagSlug: string;
-  tagName?: string;
-  tagId?: string;
-  tier: SkillTier;
-  xp: number;
-  earnedInOrgId?: string;
-  grantedAt?: Timestamp;
-}
-export interface WorkspaceScheduleProposedPayload {
-  readonly scheduleItemId: string;
-  readonly workspaceId: string;
-  readonly orgId: string;
-  readonly title: string;
-  readonly startDate: string;
-  readonly endDate: string;
-  readonly proposedBy: string;
-  readonly intentId?: string;
-  readonly skillRequirements?: SkillRequirement[];
-  readonly locationId?: string;
-  readonly traceId?: string;
-}
-export interface ImplementsScheduleProposedPayloadContract {
-  readonly implementsScheduleProposedPayload: true;
-}
+
 ```
 
 ## File: src/features/workspace.slice/business.daily/_queries.ts
@@ -10341,6 +10122,69 @@ export type AppAction =
 function appReducer(state: AppState, action: AppAction): AppState
 ```
 
+## File: src/shared/constants/skills.ts
+```typescript
+export type SkillGroup =
+  | 'CivilStructural'
+  | 'MEP'
+  | 'FinishingWorks'
+  | 'Landscape'
+  | 'TemporaryWorks'
+  | 'SiteManagement'
+  | 'Logistics'
+  | 'BIM'
+  | 'ProjectConsulting';
+export type SkillSubCategory =
+  | 'ConcreteFormwork'
+  | 'MasonryStructural'
+  | 'EarthSpecial'
+  | 'ElectricalWorks'
+  | 'MechanicalPlumbing'
+  | 'FireProtection'
+  | 'WetWorks'
+  | 'DryWorks'
+  | 'SoftLandscape'
+  | 'HardLandscape'
+  | 'TempScaffolding'
+  | 'TempShoring'
+  | 'TempSiteFacilities'
+  | 'HeavyEquipmentOps'
+  | 'SpecialistTrades'
+  | 'EngineeringTechnical'
+  | 'SafetyQuality'
+  | 'ProjectMgmt'
+  | 'MaterialLogistics'
+  | 'Environmental'
+  | 'BIMModeling'
+  | 'DigitalConstruction'
+  | 'ContractProcurement'
+  | 'ConsultingAdvisory'
+  | 'ClaimsDisputes';
+export interface SkillGroupMeta {
+  group: SkillGroup;
+  zhLabel: string;
+  enLabel: string;
+  subCategories: readonly SkillSubCategory[];
+}
+export interface SkillSubCategoryMeta {
+  subCategory: SkillSubCategory;
+  group: SkillGroup;
+  zhLabel: string;
+  enLabel: string;
+}
+export interface SkillDefinition {
+  slug: string;
+  name: string;
+  group: SkillGroup;
+  subCategory: SkillSubCategory;
+  description?: string;
+}
+⋮----
+export type SkillSlug = (typeof SKILLS)[number]['slug'];
+⋮----
+export function findSkill(slug: string): SkillDefinition | undefined
+```
+
 ## File: src/shared/infra/storage/storage.adapter.ts
 ```typescript
 import type { IFileStore, UploadOptions } from '@/shared/ports/i-file-store';
@@ -10351,6 +10195,28 @@ export class StorageAdapter implements IFileStore
 async upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>
 async getDownloadURL(path: string): Promise<string>
 async deleteFile(path: string): Promise<void>
+```
+
+## File: src/shared/types/skill.types.ts
+```typescript
+import type { SkillTier } from '@/features/shared-kernel/skill-tier';
+import type { Timestamp } from '@/shared/ports';
+⋮----
+export interface SkillTag {
+  slug: string;
+  name: string;
+  category?: string;
+  description?: string;
+}
+export interface SkillGrant {
+  tagSlug: string;
+  tagName?: string;
+  tagId?: string;
+  tier: SkillTier;
+  xp: number;
+  earnedInOrgId?: string;
+  grantedAt?: Timestamp;
+}
 ```
 
 ## File: package.json
@@ -10582,71 +10448,67 @@ async function _closeScheduleItem(
 ): Promise<void>
 ```
 
-## File: src/features/scheduling.slice/_components/demand-board.tsx
+## File: src/features/scheduling.slice/_components/org-schedule-governance.tsx
 ```typescript
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
+import type { OrgEligibleMemberView } from '@/features/projection.bus';
+import { tierSatisfies } from '@/features/shared-kernel';
 import type { SkillRequirement } from '@/features/shared-kernel';
 import type { ScheduleItem } from '@/features/shared-kernel';
 import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
-import { SKILLS } from '@/shared/constants/skills';
+import { findSkill } from '@/shared/constants/skills';
 import type { Timestamp } from '@/shared/ports';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
-import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/shadcn-ui/select';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/shared/shadcn-ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/shadcn-ui/popover';
+import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import { toast } from '@/shared/utility-hooks/use-toast';
 import {
   approveScheduleItemWithMember,
   updateScheduleItemStatus,
 } from '../_actions';
+function getSkillName(slug: string): string
 function formatTimestamp(ts: Timestamp | string | undefined): string
-interface OrgMember {
-  id: string;
-  name: string;
-}
-interface DemandRowProps {
+function computeSkillMatch(
+  member: OrgEligibleMemberView,
+  skillRequirements?: SkillRequirement[]
+): [number, number]
+interface ProposalRowProps {
   item: ScheduleItem;
-  orgMembers: OrgMember[];
+  orgMembers: Array<{ id: string; name: string }>;
+  eligibleMembers: OrgEligibleMemberView[];
   orgId: string;
+  approvedBy: string;
 }
+⋮----
+onSelect=
 ```
 
-## File: src/features/scheduling.slice/_components/schedule.account-view.tsx
+## File: src/features/scheduling.slice/_components/proposal-dialog.tsx
 ```typescript
-import { addMonths, subMonths } from "date-fns";
-import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users, BookOpen, Check } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, useCallback } from "react";
-import type { ScheduleItem } from '@/features/shared-kernel';
-import { useApp } from "@/shared/app-providers/app-context";
+import { format } from "date-fns";
+import { CalendarIcon, ChevronsUpDown, MapPin, Plus, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { type DateRange } from "react-day-picker";
+import type { SkillRequirement } from "@/features/shared-kernel";
+import { getOrgSkillTags } from "@/features/skill-xp.slice";
+import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills";
 import { cn } from "@/shared/lib";
+import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
+import { Calendar } from "@/shared/shadcn-ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -10655,73 +10517,66 @@ import {
   CommandItem,
   CommandList,
 } from "@/shared/shadcn-ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
-import type { MemberReference } from "@/shared/types";
-import { useGlobalSchedule } from "../_hooks/use-global-schedule";
-import { useScheduleActions } from "../_hooks/use-schedule-commands";
-import { decisionHistoryColumns } from "./decision-history-columns";
-import { OrgScheduleGovernance } from "./org-schedule-governance";
-import { OrgSkillPoolManager } from "./org-skill-pool-manager";
-import { ScheduleDataTable } from "./schedule-data-table";
-import { UnifiedCalendarGrid } from "./unified-calendar-grid";
-import { upcomingEventsColumns } from "./upcoming-events-columns";
-interface MemberAssignPopoverProps {
-  item: ScheduleItem;
-  members: MemberReference[];
-  onAssign: (item: ScheduleItem, memberId: string) => void;
-  onUnassign: (item: ScheduleItem, memberId: string) => void;
-}
-⋮----
-onUnassign(item, member.id);
-⋮----
-const onItemClick = (item: ScheduleItem) =>
-const handleMonthChange = (direction: 'prev' | 'next') =>
-```
-
-## File: src/features/scheduling.slice/_components/unified-calendar-grid.tsx
-```typescript
-import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from "date-fns";
-import { Plus, Check, X, Layers, ChevronLeft, ChevronRight } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
-import type { ScheduleItem, Timestamp } from "@/features/shared-kernel";
-import { findSkill } from "@/shared/constants/skills";
-import { cn } from "@/shared/lib";
-import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
-import { Badge } from "@/shared/shadcn-ui/badge";
-import { Button } from "@/shared/shadcn-ui/button";
-import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shared/shadcn-ui/tooltip";
-import { type MemberReference } from "@/shared/types";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/shared/shadcn-ui/dialog";
+import { Input } from "@/shared/shadcn-ui/input";
+import { Label } from "@/shared/shadcn-ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
+import { Textarea } from "@/shared/shadcn-ui/textarea";
+import { type Location } from "@/shared/types";
+import { toast } from "@/shared/utility-hooks/use-toast";
 ⋮----
-interface UnifiedCalendarGridProps {
-  items: ScheduleItem[];
-  members: MemberReference[];
-  viewMode: 'workspace' | 'organization';
-  currentDate: Date;
-  onMonthChange: (direction: 'prev' | 'next') => void;
-  onItemClick?: (item: ScheduleItem) => void;
-  onAddClick?: (date: Date) => void;
-  onApproveProposal?: (item: ScheduleItem) => void;
-  onRejectProposal?: (item: ScheduleItem) => void;
-  renderItemActions?: (item: ScheduleItem) => React.ReactNode;
+interface ProposalDialogProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  onSubmit: (data: {
+    title: string;
+    description: string;
+    startDate?: Date;
+    endDate?: Date;
+    location: Location;
+    requiredSkills: SkillRequirement[];
+  }) => Promise<void>;
+  initialDate: Date;
+  orgId?: string;
 }
+export function ProposalDialog({
+  isOpen,
+  onOpenChange,
+  onSubmit,
+  initialDate,
+  orgId,
+}: ProposalDialogProps)
 ⋮----
-const toDate = (timestamp: Timestamp | Date |
+/** Value string for cmdk filtering — covers zh + en + sub-category labels. */
 ⋮----
-<div className=
+const handleLocationChange = (field: keyof Location, value: string) =>
+const handleAddSkillRequirement = () =>
+const handleRemoveSkillRequirement = (slug: string) =>
+const handleSubmit = async () =>
 ⋮----
-e.stopPropagation();
+<Input id="item-title" value=
 ⋮----
-<Button size="icon" variant="ghost" className="size-6 p-0 text-destructive" onClick=
+
 ⋮----
-<Button size="icon" variant="ghost" className="size-6 p-0 text-green-600" onClick=
+<button
+                        type="button"
+                        onClick={() => handleRemoveSkillRequirement(req.tagSlug)}
+                        className="ml-1 rounded-full hover:text-destructive"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  );
+⋮----
+setSelectedSkillSlug(skill.slug);
+setSkillPickerOpen(false);
 ```
 
 ## File: src/features/scheduling.slice/_eligibility.ts
@@ -10783,11 +10638,6 @@ export function subscribeToDemandBoard(
   onChange: (items: ScheduleItem[]) => void
 ): Unsubscribe
 export async function getAllDemands(orgId: string): Promise<ScheduleItem[]>
-```
-
-## File: src/features/scheduling.slice/index.ts
-```typescript
-
 ```
 
 ## File: src/features/semantic-graph.slice/_services.ts
@@ -10936,11 +10786,6 @@ export async function deleteTag(
 export async function getTag(tagSlug: string): Promise<CentralizedTagEntry | null>
 ```
 
-## File: src/features/shared-kernel/index.ts
-```typescript
-
-```
-
 ## File: src/features/shared-kernel/schedule-contract/index.ts
 ```typescript
 import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
@@ -11062,11 +10907,6 @@ export interface NotificationTypeMeta {
 }
 ```
 
-## File: src/shared/types/skill.types.ts
-```typescript
-
-```
-
 ## File: vitest.config.ts
 ```typescript
 import path from 'path';
@@ -11076,6 +10916,231 @@ import { defineConfig } from 'vitest/config';
 ## File: src/features/notification-hub.slice/index.ts
 ```typescript
 
+```
+
+## File: src/features/scheduling.slice/_actions.ts
+```typescript
+import {
+  type CommandResult,
+  type SkillRequirement,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/features/shared-kernel';
+import type { ScheduleItem } from '@/features/shared-kernel';
+import {
+  assignMemberToScheduleItem,
+  unassignMemberFromScheduleItem,
+  createScheduleItem as createScheduleItemFacade,
+  updateScheduleItemStatus as updateScheduleItemStatusFacade,
+  assignMemberAndApprove,
+} from '@/shared/infra/firestore/firestore.facade';
+import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
+import { updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
+import {
+  approveOrgScheduleProposal,
+  cancelOrgScheduleProposal,
+  completeOrgSchedule,
+  type WriteOp,
+} from './_aggregate';
+async function executeWriteOp(op: WriteOp): Promise<void>
+export async function createScheduleItem(
+  itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'endDate'> & {
+    startDate?: Date | null;
+    endDate?: Date | null;
+  }
+): Promise<CommandResult>
+export async function assignMember(
+  accountId: string,
+  itemId: string,
+  memberId: string
+): Promise<CommandResult>
+export async function unassignMember(
+  accountId: string,
+  itemId: string,
+  memberId: string
+): Promise<CommandResult>
+export async function approveScheduleItemWithMember(
+  organizationId: string,
+  itemId: string,
+  memberId: string
+): Promise<CommandResult>
+export async function updateScheduleItemStatus(
+  organizationId: string,
+  itemId: string,
+  newStatus: 'OFFICIAL' | 'REJECTED' | 'COMPLETED'
+): Promise<CommandResult>
+export async function manualAssignScheduleMember(
+  scheduleItemId: string,
+  targetAccountId: string,
+  assignedBy: string,
+  opts: {
+    workspaceId: string;
+    orgId: string;
+    title: string;
+    startDate: string;
+    endDate: string;
+    traceId?: string;
+  },
+  skillRequirements?: SkillRequirement[]
+): Promise<CommandResult>
+export async function cancelScheduleProposalAction(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  cancelledBy: string,
+  reason?: string,
+  traceId?: string
+): Promise<CommandResult>
+export async function completeOrgScheduleAction(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  targetAccountId: string,
+  completedBy: string,
+  traceId?: string
+): Promise<CommandResult>
+```
+
+## File: src/features/scheduling.slice/_components/schedule.account-view.tsx
+```typescript
+import { addMonths, subMonths } from "date-fns";
+import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users, BookOpen, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
+import type { ScheduleItem } from '@/features/shared-kernel';
+import { useApp } from "@/shared/app-providers/app-context";
+import { cn } from "@/shared/lib";
+import { Button } from "@/shared/shadcn-ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/shared/shadcn-ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
+import type { MemberReference } from "@/shared/types";
+import { useGlobalSchedule } from "../_hooks/use-global-schedule";
+import { useScheduleActions } from "../_hooks/use-schedule-commands";
+import { decisionHistoryColumns } from "./decision-history-columns";
+import { OrgScheduleGovernance } from "./org-schedule-governance";
+import { OrgSkillPoolManager } from "./org-skill-pool-manager";
+import { ScheduleDataTable } from "./schedule-data-table";
+import { UnifiedCalendarGrid } from "./unified-calendar-grid";
+import { upcomingEventsColumns } from "./upcoming-events-columns";
+interface MemberAssignPopoverProps {
+  item: ScheduleItem;
+  members: MemberReference[];
+  onAssign: (item: ScheduleItem, memberId: string) => void;
+  onUnassign: (item: ScheduleItem, memberId: string) => void;
+}
+⋮----
+onUnassign(item, member.id);
+⋮----
+const onItemClick = (item: ScheduleItem) =>
+const handleMonthChange = (direction: 'prev' | 'next') =>
+```
+
+## File: src/features/scheduling.slice/_components/unified-calendar-grid.tsx
+```typescript
+import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from "date-fns";
+import { Plus, Check, X, Layers, ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo } from "react";
+import type { ScheduleItem, Timestamp } from "@/features/shared-kernel";
+import { findSkill } from "@/shared/constants/skills";
+import { cn } from "@/shared/lib";
+import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
+import { Badge } from "@/shared/shadcn-ui/badge";
+import { Button } from "@/shared/shadcn-ui/button";
+import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/shadcn-ui/tooltip";
+import { type MemberReference } from "@/shared/types";
+⋮----
+interface UnifiedCalendarGridProps {
+  items: ScheduleItem[];
+  members: MemberReference[];
+  viewMode: 'workspace' | 'organization';
+  currentDate: Date;
+  onMonthChange: (direction: 'prev' | 'next') => void;
+  onItemClick?: (item: ScheduleItem) => void;
+  onAddClick?: (date: Date) => void;
+  onApproveProposal?: (item: ScheduleItem) => void;
+  onRejectProposal?: (item: ScheduleItem) => void;
+  renderItemActions?: (item: ScheduleItem) => React.ReactNode;
+}
+⋮----
+const toDate = (timestamp: Timestamp | Date |
+⋮----
+<div className=
+⋮----
+e.stopPropagation();
+⋮----
+<Button size="icon" variant="ghost" className="size-6 p-0 text-destructive" onClick=
+⋮----
+<Button size="icon" variant="ghost" className="size-6 p-0 text-green-600" onClick=
+```
+
+## File: src/features/scheduling.slice/_saga.ts
+```typescript
+import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
+import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
+import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
+import { setDocument, updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
+import {
+  handleScheduleProposed,
+  approveOrgScheduleProposal,
+  type WriteOp,
+} from './_aggregate';
+import { findEligibleCandidatesForRequirements } from './_eligibility';
+export type SagaStep =
+  | 'receive_proposal'
+  | 'eligibility_check'
+  | 'assign'
+  | 'compensate';
+export type SagaStatus =
+  | 'pending'
+  | 'eligibility_check'
+  | 'assigned'
+  | 'compensated';
+export interface SagaState {
+  readonly sagaId: string;
+  readonly scheduleItemId: string;
+  readonly workspaceId: string;
+  readonly orgId: string;
+  status: SagaStatus;
+  currentStep: SagaStep;
+  startedAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  compensationReason?: string;
+  traceId?: string;
+}
+⋮----
+function sagaPath(sagaId: string): string
+async function persistSaga(state: SagaState): Promise<void>
+async function updateSagaStatus(
+  sagaId: string,
+  patch: Partial<
+    Pick<
+      SagaState,
+      'status' | 'currentStep' | 'completedAt' | 'compensationReason' | 'updatedAt'
+    >
+  >
+): Promise<void>
+async function executeWriteOp(op: WriteOp): Promise<void>
+export async function getSagaState(sagaId: string): Promise<SagaState | null>
+export async function startSchedulingSaga(
+  event: WorkspaceScheduleProposedPayload,
+  sagaId: string
+): Promise<SagaState>
 ```
 
 ## File: src/features/semantic-graph.slice/index.ts
@@ -11319,87 +11384,6 @@ export function subscribeToWorkspacesForAccount(
 ): Unsubscribe
 ```
 
-## File: src/features/scheduling.slice/_actions.ts
-```typescript
-import {
-  type CommandResult,
-  type SkillRequirement,
-  commandSuccess,
-  commandFailureFrom,
-} from '@/features/shared-kernel';
-import type { ScheduleItem } from '@/features/shared-kernel';
-import {
-  assignMemberToScheduleItem,
-  unassignMemberFromScheduleItem,
-  createScheduleItem as createScheduleItemFacade,
-  updateScheduleItemStatus as updateScheduleItemStatusFacade,
-  assignMemberAndApprove,
-} from '@/shared/infra/firestore/firestore.facade';
-import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import {
-  approveOrgScheduleProposal,
-  cancelOrgScheduleProposal,
-  completeOrgSchedule,
-} from './_aggregate';
-import { executeWriteOp } from './_write-op';
-export async function createScheduleItem(
-  itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'endDate'> & {
-    startDate?: Date | null;
-    endDate?: Date | null;
-  }
-): Promise<CommandResult>
-export async function assignMember(
-  accountId: string,
-  itemId: string,
-  memberId: string
-): Promise<CommandResult>
-export async function unassignMember(
-  accountId: string,
-  itemId: string,
-  memberId: string
-): Promise<CommandResult>
-export async function approveScheduleItemWithMember(
-  organizationId: string,
-  itemId: string,
-  memberId: string
-): Promise<CommandResult>
-export async function updateScheduleItemStatus(
-  organizationId: string,
-  itemId: string,
-  newStatus: 'OFFICIAL' | 'REJECTED' | 'COMPLETED'
-): Promise<CommandResult>
-export async function manualAssignScheduleMember(
-  scheduleItemId: string,
-  targetAccountId: string,
-  assignedBy: string,
-  opts: {
-    workspaceId: string;
-    orgId: string;
-    title: string;
-    startDate: string;
-    endDate: string;
-    traceId?: string;
-  },
-  skillRequirements?: SkillRequirement[]
-): Promise<CommandResult>
-export async function cancelScheduleProposalAction(
-  scheduleItemId: string,
-  orgId: string,
-  workspaceId: string,
-  cancelledBy: string,
-  reason?: string,
-  traceId?: string
-): Promise<CommandResult>
-export async function completeOrgScheduleAction(
-  scheduleItemId: string,
-  orgId: string,
-  workspaceId: string,
-  targetAccountId: string,
-  completedBy: string,
-  traceId?: string
-): Promise<CommandResult>
-```
-
 ## File: src/features/scheduling.slice/_aggregate.ts
 ```typescript
 import { z } from 'zod';
@@ -11547,60 +11531,6 @@ export function subscribeToWorkspaceScheduleItems(
   onUpdate: (items: ScheduleItem[]) => void,
   onError?: (err: Error) => void,
 ): Unsubscribe
-```
-
-## File: src/features/scheduling.slice/_saga.ts
-```typescript
-import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
-import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
-import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import {
-  handleScheduleProposed,
-  approveOrgScheduleProposal,
-} from './_aggregate';
-import { findEligibleCandidatesForRequirements } from './_eligibility';
-import { executeWriteOp } from './_write-op';
-export type SagaStep =
-  | 'receive_proposal'
-  | 'eligibility_check'
-  | 'assign'
-  | 'compensate';
-export type SagaStatus =
-  | 'pending'
-  | 'eligibility_check'
-  | 'assigned'
-  | 'compensated';
-export interface SagaState {
-  readonly sagaId: string;
-  readonly scheduleItemId: string;
-  readonly workspaceId: string;
-  readonly orgId: string;
-  status: SagaStatus;
-  currentStep: SagaStep;
-  startedAt: string;
-  updatedAt: string;
-  completedAt?: string;
-  compensationReason?: string;
-  traceId?: string;
-}
-⋮----
-function sagaPath(sagaId: string): string
-async function persistSaga(state: SagaState): Promise<void>
-async function updateSagaStatus(
-  sagaId: string,
-  patch: Partial<
-    Pick<
-      SagaState,
-      'status' | 'currentStep' | 'completedAt' | 'compensationReason' | 'updatedAt'
-    >
-  >
-): Promise<void>
-export async function getSagaState(sagaId: string): Promise<SagaState | null>
-export async function startSchedulingSaga(
-  event: WorkspaceScheduleProposedPayload,
-  sagaId: string
-): Promise<SagaState>
 ```
 
 ## File: src/features/semantic-graph.slice/_aggregate.ts

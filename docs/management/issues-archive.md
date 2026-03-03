@@ -156,74 +156,8 @@ import type { SkillTier } from '@/features/shared-kernel';
 **Resolution**:  
 All feature-slice import sites for `SkillTier`, `TierDefinition`, and `SkillRequirement` were updated to source from `@/features/shared-kernel` as part of the D7-001 and D2-001 sweep. The D20 ordering is now enforced via the D7 ESLint rule.
 
-**Note**: The underlying type ownership inversion (`SkillTier` defined in `shared/types` and re-exported from `shared-kernel`) was tracked as TYPE-D19-001, which has since been resolved and archived (see TYPE-D19-001 entry below). That issue was distinct from this D20 import-priority violation.
+**Note**: The underlying type ownership inversion (`SkillTier` defined in `shared/types` and re-exported from `shared-kernel`) remains as TYPE-D19-001 in the open issues tracker. That issue is distinct from this D20 import-priority violation.
 
 ---
 
 _Archive last updated: 2026-03-02 — 8 entries_
-
----
-
-## ARCH-D6-003 — `"use client"` Outside `_components/` or `_hooks/` Leaf Node
-
-**Rule**: D6 — `"use client"` 只在 `_components/` 或 `_hooks/` 葉節點  
-**Severity at filing**: Minor  
-**Fixed**: 2026-03-03  
-**Fix reference**: PR copilot/integrate-docs-and-references
-
-**Original Violation**:  
-`src/features/workspace.slice/core.event-bus/_hooks/_context.ts` contained the `"use client"` directive at the top of a React Context module file (`createContext` + `useContext`). The module used the wrong relative import `from "./_events"` — it should have been `from "../_events"` since `_events.ts` lives one directory up in `core.event-bus/`.
-
-**Post-fix**:  
-- Corrected relative import path in `_hooks/_context.ts` from `from "./_events"` → `from "../_events"`.
-- The `"use client"` directive is now correctly placed inside `core.event-bus/_hooks/`, which satisfies D6's `_hooks/` allowance.
-- Root-level `_context.ts` and `index.ts` continue to re-export from `_hooks/_context.ts` without carrying `"use client"`, preserving all consumers unchanged.
-
-_Archive last updated: 2026-03-03 — 9 entries_
-
----
-
-## ARCH-D3-003 — `use-logger.ts` Direct Firestore Writes (D3 + D5 Dual Violation)
-
-**Rule**: D3 — 所有 mutation：`src/features/{slice}/_actions.ts` only; D5 — UI 元件/hooks 禁止 import `src/shared/infra/firestore`  
-**Severity at filing**: Major  
-**Fixed**: 2026-03 (merged in PR #53)  
-**Fix reference**: `src/features/workspace.slice/gov.audit/_actions.ts` (`writeDailyLog` introduced alongside `writeAuditLog`); `use-logger.ts` migrated to call `_actions.ts`
-
-**Original Violation**:  
-`src/features/workspace.slice/gov.audit/_hooks/use-logger.ts` called `addDocument` directly from `@/shared/infra/firestore/firestore.write.adapter` at lines 41 and 57 — bypassing the `_actions.ts` mutation layer entirely. This constituted both a D3 violation (Firestore write outside `_actions.ts`) and a D5 violation (`@/shared/infra/firestore` imported inside a client hook).
-
-**Resolution**:  
-`writeDailyLog` was added to `gov.audit/_actions.ts` alongside the existing `writeAuditLog`. `use-logger.ts` was updated to call both `_actions.ts` functions; all `@/shared/infra/firestore` imports were removed from the hook.
-
----
-
-## ARCH-D3-004 — `skill-xp.slice/_aggregate.ts` Direct Firestore Write (D3)
-
-**Rule**: D3 — 所有 mutation：`src/features/{slice}/_actions.ts` only  
-**Severity at filing**: Major  
-**Fixed**: 2026-03 (merged in PR #53)  
-**Fix reference**: `src/features/skill-xp.slice/_aggregate.ts` and `src/features/skill-xp.slice/_actions.ts`
-
-**Original Violation**:  
-`skill-xp.slice/_aggregate.ts` called `setDocument` directly (imported from `@/shared/infra/firestore/firestore.write.adapter`) inside `addXp` and `deductXp`. The aggregate was responsible for its own persistence instead of returning computed state to the `_actions.ts` layer for the write — mirroring the same D3 anti-pattern as ARCH-D3-001.
-
-**Resolution**:  
-The `setDocument` call was moved out of `_aggregate.ts` into `_actions.ts`. The aggregate now returns the computed `{ newXp, xpDelta, version }` domain result; the persistence call is handled in `_actions.ts`. The `import { setDocument }` was removed from `_aggregate.ts`.
-
----
-
-## TYPE-D19-001 — `skill.types.ts` Ownership Inversion (D19)
-
-**Rule**: D19 — 型別歸屬規則：跨 BC 契約優先放 `shared.kernel.*`；`shared/types` 僅為 legacy fallback  
-**Severity at filing**: Major  
-**Fixed**: 2026-03 (archived in current PR)  
-**Fix reference**: `src/shared/types/skill.types.ts`; `src/features/shared-kernel/skill-tier/index.ts`
-
-**Original Violation**:  
-`src/shared/types/skill.types.ts` **defined** `SkillTier`, `TierDefinition`, `SkillRequirement`, `SkillTag`, and `SkillGrant` — while `src/features/shared-kernel/skill-tier/index.ts` re-exported them from `@/shared/types/skill.types`. Ownership was inverted: the legacy barrel held the canonical definitions instead of the shared-kernel module.
-
-**Resolution**:  
-Type definitions (`SkillTier`, `TierDefinition`, `SkillRequirement`, `SkillTag`, `SkillGrant`) were inlined directly in `src/features/shared-kernel/skill-tier/index.ts`. `src/shared/types/skill.types.ts` was converted to a D19-compliant re-export stub with `@deprecated` JSDoc pointing consumers to `@/features/shared-kernel`.
-
-_Archive last updated: 2026-03-03 — 12 entries_
