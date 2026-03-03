@@ -36,7 +36,7 @@ import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 
 // ---------------------------------------------------------------------------
 // Main component

@@ -24,7 +24,13 @@ export type {
   OrgScheduleProposal,
   OrgScheduleStatus,
   ScheduleApprovalResult,
+  WriteOp,
 } from './_aggregate';
+
+// =================================================================
+// Write-Op executor (D3 — caller executes WriteOp from aggregate)
+// =================================================================
+export { executeWriteOp } from './_write-op';
 
 // =================================================================
 // Server Actions (all schedule mutations go through here)
@@ -58,8 +64,12 @@ export {
   getAllDemands,
   getAccountScheduleProjection,
   getAccountActiveAssignments,
+  subscribeToWorkspaceScheduleItems,
+  getEligibleMemberForSchedule,
+  getEligibleMembersForSchedule,
   DEMAND_BOARD_STALENESS,
 } from './_queries';
+export type { OrgEligibleMemberView, OrgMemberSkillWithTier } from './_queries';
 
 // =================================================================
 // Hooks (React)
@@ -104,7 +114,35 @@ export {
 export type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
 
 // =================================================================
+// Eligibility (QGWAY_SCHED pure business logic — D4 eligible-member channel)
+// =================================================================
+export {
+  SAGA_TIER_ORDER,
+  sagaTierIndex,
+  findEligibleCandidate,
+  findEligibleCandidatesForRequirements,
+} from './_eligibility';
+export type { SagaTier, CandidateAssignment } from './_eligibility';
+
+// =================================================================
+// Pure Selectors (data-derivation — no React dependencies)
+// =================================================================
+export {
+  selectAllScheduleItems,
+  selectPendingProposals,
+  selectDecisionHistory,
+  selectUpcomingEvents,
+  selectPresentEvents,
+} from './_selectors';
+export type { ScheduleItemWithWorkspace, ScheduleItemWithMembers } from './_selectors';
+
+// =================================================================
 // Saga (cross-org coordination — used by event relay worker)
 // =================================================================
 export { startSchedulingSaga, getSagaState } from './_saga';
 export type { SagaState, SagaStep, SagaStatus } from './_saga';
+
+// =================================================================
+// Domain rules
+// =================================================================
+export { canTransitionScheduleStatus, VALID_STATUS_TRANSITIONS } from './_schedule.rules';

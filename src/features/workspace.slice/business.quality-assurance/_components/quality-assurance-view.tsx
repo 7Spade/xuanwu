@@ -7,7 +7,7 @@ import { useAuth } from "@/shared/app-providers/auth-provider";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import { type WorkspaceTask } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { useWorkspace } from '../../core';
 

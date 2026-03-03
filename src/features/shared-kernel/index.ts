@@ -42,11 +42,13 @@ export type { EventEnvelope, ImplementsEventEnvelopeContract } from './event-env
 // SK_AUTH_SNAP
 export type { AuthoritySnapshot, ImplementsAuthoritySnapshotContract } from './authority-snapshot';
 
-// SK_SKILL_TIER + SK_SKILL_REQ [#12][A5]
+// SK_SKILL_TIER + SK_SKILL_REQ + SK_SKILL_GRANT [#12][A5][D19]
 export type {
   SkillTier,
   TierDefinition,
   SkillRequirement,
+  SkillTag,
+  SkillGrant,
   WorkspaceScheduleProposedPayload,
   ImplementsScheduleProposedPayloadContract,
 } from './skill-tier';
@@ -58,6 +60,23 @@ export {
   getTierRank,
   tierSatisfies,
 } from './skill-tier';
+
+// SK_ACCOUNT_CONTRACT [D19]
+export type {
+  AccountType,
+  OrganizationRole,
+  Presence,
+  InviteState,
+  NotificationType,
+  Account,
+  MemberReference,
+  Team,
+  ThemeConfig,
+  Wallet,
+  ExpertiseBadge,
+  Notification,
+  PartnerInvite,
+} from './account-contract';
 
 // SK_CMD_RESULT [R4]
 export type {

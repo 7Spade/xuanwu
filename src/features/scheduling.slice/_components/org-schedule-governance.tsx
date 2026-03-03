@@ -19,7 +19,7 @@
  * FR-W2: Skill match indicators — show per-member skill match against item requirements.
  */
 
-import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
+import { CheckCircle, XCircle, Users, Flag, UserPlus } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
@@ -31,6 +31,7 @@ import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
 import { findSkill } from '@/shared/constants/skills';
 import type { Timestamp } from '@/shared/ports';
+import { Avatar, AvatarFallback } from '@/shared/shadcn-ui/avatar';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
@@ -44,10 +45,16 @@ import {
 } from '@/shared/shadcn-ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/shadcn-ui/popover';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/shared/shadcn-ui/tooltip';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 
 import {
-  approveScheduleItemWithMember,
+  assignMember,
   updateScheduleItemStatus,
 } from '../_actions';
 
@@ -103,17 +110,32 @@ interface ProposalRowProps {
 }
 
 function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }: ProposalRowProps) {
-  const [selectedMemberId, setSelectedMemberId] = useState('');
+  const [openPopoverSlug, setOpenPopoverSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [memberSearchOpen, setMemberSearchOpen] = useState(false);
 
   const handleApprove = useCallback(async () => {
-    if (!selectedMemberId) return;
     setLoading(true);
     try {
-      const result = await approveScheduleItemWithMember(orgId, item.id, selectedMemberId);
+      const result = await updateScheduleItemStatus(orgId, item.id, 'OFFICIAL');
       if (result.success) {
-        toast({ title: '排程已指派', description: `「${item.title}」成員指派成功。` });
+        toast({ title: '排程已核准', description: `「${item.title}」已確認。` });
+      } else {
+        toast({ variant: 'destructive', title: '核准失敗', description: result.error.message });
+      }
+    } catch {
+      toast({ variant: 'destructive', title: '操作失敗', description: '請稍後再試。' });
+    } finally {
+      setLoading(false);
+    }
+  }, [orgId, item.id, item.title]);
+
+  const handleAssignMember = useCallback(async (memberId: string) => {
+    setLoading(true);
+    try {
+      const result = await assignMember(orgId, item.id, memberId);
+      if (result.success) {
+        const memberName = orgMembers.find(m => m.id === memberId)?.name ?? '';
+        toast({ title: '成員已指派', description: `${memberName} 已加入「${item.title}」。` });
       } else {
         toast({ variant: 'destructive', title: '指派失敗', description: result.error.message });
       }
@@ -121,8 +143,9 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
       toast({ variant: 'destructive', title: '操作失敗', description: '請稍後再試。' });
     } finally {
       setLoading(false);
+      setOpenPopoverSlug(null);
     }
-  }, [selectedMemberId, orgId, item.id, item.title]);
+  }, [orgId, item.id, item.title, orgMembers]);
 
   const handleCancel = useCallback(async () => {
     setLoading(true);
@@ -139,14 +162,6 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
       setLoading(false);
     }
   }, [orgId, item.id, item.title]);
-
-  // FR-W2: compute skill match for the selected member
-  const selectedMemberMatch = useMemo(() => {
-    if (!selectedMemberId || !item.requiredSkills?.length) return null;
-    const view = eligibleMembers.find((m) => m.accountId === selectedMemberId);
-    if (!view) return null;
-    return computeSkillMatch(view, item.requiredSkills);
-  }, [selectedMemberId, eligibleMembers, item.requiredSkills]);
 
   /**
    * Pre-compute skill match for every org member so we can group the dropdown
@@ -179,11 +194,80 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
 
   const hasRequirements = (item.requiredSkills?.length ?? 0) > 0;
 
+  const NO_SKILLS_POPOVER_ID = 'no-skills';
+
+  /** Renders a skill-aware member picker popover (same style as the calendar). */
+  function MemberPickerPopover({ popoverId }: { popoverId: string }) {
+    return (
+      <Popover open={openPopoverSlug === popoverId} onOpenChange={(open) => setOpenPopoverSlug(open ? popoverId : null)}>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="icon" className="size-5 text-muted-foreground hover:text-primary" disabled={loading}>
+            <UserPlus className="size-3" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-0" align="start">
+          <Command>
+            <CommandInput placeholder="搜尋成員..." />
+            <CommandList>
+              <CommandEmpty>無符合成員</CommandEmpty>
+              {hasRequirements ? (
+                <>
+                  {fullMatch.length > 0 && (
+                    <CommandGroup heading={`✓ 全部符合技能（${fullMatch.length}）`}>
+                      {fullMatch.map((m) => (
+                        <CommandItem key={m.id} value={m.name} onSelect={() => handleAssignMember(m.id)} className="text-xs">
+                          <span className="mr-1 text-green-600">●</span>{m.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                  {partialMatch.length > 0 && (
+                    <CommandGroup heading={`◑ 部分符合（${partialMatch.length}）`}>
+                      {partialMatch.map((m) => (
+                        <CommandItem key={m.id} value={m.name} onSelect={() => handleAssignMember(m.id)} className="text-xs">
+                          <span className="mr-1 text-amber-500">●</span>{m.name}
+                          <span className="ml-auto text-[9px] font-bold text-amber-500">{m.matched}/{m.total}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                  {noMatch.length > 0 && (
+                    <CommandGroup heading={`其他成員（${noMatch.length}）`}>
+                      {noMatch.map((m) => (
+                        <CommandItem key={m.id} value={m.name} onSelect={() => handleAssignMember(m.id)} className="text-xs text-muted-foreground">
+                          {m.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                </>
+              ) : (
+                <CommandGroup>
+                  {orgMembers.map((m) => (
+                    <CommandItem key={m.id} value={m.name} onSelect={() => handleAssignMember(m.id)} className="text-xs">
+                      {m.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   return (
     <div className="space-y-3 rounded-lg border bg-background p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">{item.title}</p>
+          <p className="text-sm font-semibold">
+            {item.workspaceName ? (
+              <><span className="text-muted-foreground">{item.workspaceName}</span><span className="mx-0.5 text-muted-foreground">-</span>{item.title}</>
+            ) : (
+              item.title
+            )}
+          </p>
           <p className="text-xs text-muted-foreground">
             {formatTimestamp(item.startDate as unknown as Timestamp)} – {formatTimestamp(item.endDate as unknown as Timestamp)}
           </p>
@@ -198,117 +282,38 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
 
       {hasRequirements && (
         <div className="space-y-1" role="group" aria-label="所需技能">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground" aria-hidden="true">
-            所需技能
-          </p>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground" aria-hidden="true">
+              所需技能
+            </p>
+            <Badge variant="secondary" className="flex items-center gap-1 text-[9px]">
+              <Users className="size-2.5" />
+              共需 {item.requiredSkills!.reduce((s, r) => s + (r.quantity ?? 1), 0)} 人
+            </Badge>
+          </div>
+          <div className="flex flex-col gap-1.5">
             {item.requiredSkills?.map((req: SkillRequirement) => (
-              <Badge key={req.tagSlug} variant="secondary" className="text-[10px]">
-                {getSkillName(req.tagSlug)} × {req.quantity}
-              </Badge>
+              <div key={req.tagSlug} className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-[10px]">
+                  {getSkillName(req.tagSlug)} × {req.quantity}
+                </Badge>
+                {/* Per-skill assignment button — same small UserPlus as the calendar */}
+                <MemberPickerPopover popoverId={req.tagSlug} />
+              </div>
             ))}
           </div>
         </div>
       )}
 
       <div className="flex items-center gap-2">
-        <Popover open={memberSearchOpen} onOpenChange={setMemberSearchOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" role="combobox" aria-expanded={memberSearchOpen} className="h-8 flex-1 justify-start text-xs">
-              <Users className="mr-1 size-3 shrink-0 text-muted-foreground" />
-              {selectedMemberId
-                ? orgMembers.find(m => m.id === selectedMemberId)?.name ?? '選擇指派成員'
-                : '選擇指派成員'}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 p-0" align="start">
-            <Command>
-              <CommandInput placeholder="搜尋成員..." />
-              <CommandList>
-                <CommandEmpty>無符合成員</CommandEmpty>
-                {hasRequirements ? (
-                  <>
-                    {fullMatch.length > 0 && (
-                      <CommandGroup heading={`✓ 全部符合技能（${fullMatch.length}）`}>
-                        {fullMatch.map((m) => (
-                          <CommandItem
-                            key={m.id}
-                            value={m.name}
-                            onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
-                            className="text-xs"
-                          >
-                            <span className="mr-1 text-green-600">●</span>
-                            {m.name}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    )}
-                    {partialMatch.length > 0 && (
-                      <CommandGroup heading={`◑ 部分符合（${partialMatch.length}）`}>
-                        {partialMatch.map((m) => (
-                          <CommandItem
-                            key={m.id}
-                            value={m.name}
-                            onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
-                            className="text-xs"
-                          >
-                            <span className="mr-1 text-amber-500">●</span>
-                            {m.name}
-                            <span className="ml-auto text-[9px] font-bold text-amber-500">
-                              {m.matched}/{m.total}
-                            </span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    )}
-                    {noMatch.length > 0 && (
-                      <CommandGroup heading={`其他成員（${noMatch.length}）`}>
-                        {noMatch.map((m) => (
-                          <CommandItem
-                            key={m.id}
-                            value={m.name}
-                            onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
-                            className="text-xs text-muted-foreground"
-                          >
-                            {m.name}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    )}
-                  </>
-                ) : (
-                  <CommandGroup>
-                    {orgMembers.map((m) => (
-                      <CommandItem
-                        key={m.id}
-                        value={m.name}
-                        onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
-                        className="text-xs"
-                      >
-                        {m.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-
-        {selectedMemberMatch && (
-          <Badge
-            variant="outline"
-            className={`shrink-0 text-[9px] ${selectedMemberMatch[0] === selectedMemberMatch[1] ? 'border-green-500 text-green-600' : 'border-amber-500 text-amber-600'}`}
-          >
-            技能 {selectedMemberMatch[0]}/{selectedMemberMatch[1]}
-          </Badge>
-        )}
+        {/* For items without skill requirements, show one UserPlus button */}
+        {!hasRequirements && <MemberPickerPopover popoverId={NO_SKILLS_POPOVER_ID} />}
 
         <Button
           size="icon"
           variant="ghost"
           className="size-8 shrink-0 text-green-600 hover:text-green-700"
-          disabled={!selectedMemberId || loading}
+          disabled={loading}
           onClick={handleApprove}
           title="核准指派"
         >
@@ -342,12 +347,16 @@ interface ConfirmedRowProps {
 function ConfirmedRow({ item, orgId, orgMembers }: ConfirmedRowProps) {
   const [loading, setLoading] = useState(false);
 
-  const assignedNames = useMemo(() => {
-    if (!item.assigneeIds?.length) return null;
-    return item.assigneeIds
-      .map((id) => orgMembers.find((m) => m.id === id)?.name ?? id)
-      .join('、');
+  const assignedMembers = useMemo(() => {
+    if (!item.assigneeIds?.length) return [];
+    return item.assigneeIds.map((id) => ({
+      id,
+      name: orgMembers.find((m) => m.id === id)?.name ?? id,
+    }));
   }, [item.assigneeIds, orgMembers]);
+
+  const hasRequirements = (item.requiredSkills?.length ?? 0) > 0;
+  const totalRequired = item.requiredSkills?.reduce((s, r) => s + (r.quantity ?? 1), 0) ?? 0;
 
   const handleComplete = useCallback(async () => {
     setLoading(true);
@@ -369,18 +378,62 @@ function ConfirmedRow({ item, orgId, orgMembers }: ConfirmedRowProps) {
     <div className="space-y-2 rounded-lg border border-green-500/20 bg-green-50/10 p-4 dark:bg-green-950/10">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">{item.title}</p>
+          <p className="text-sm font-semibold">
+            {item.workspaceName ? (
+              <><span className="text-muted-foreground">{item.workspaceName}</span><span className="mx-0.5 text-muted-foreground">-</span>{item.title}</>
+            ) : (
+              item.title
+            )}
+          </p>
           <p className="text-xs text-muted-foreground">
             {formatTimestamp(item.startDate as unknown as Timestamp)} – {formatTimestamp(item.endDate as unknown as Timestamp)}
           </p>
-          {assignedNames && (
-            <p className="text-xs text-muted-foreground">指派成員：{assignedNames}</p>
-          )}
         </div>
         <Badge variant="outline" className="shrink-0 border-green-500/40 text-[9px] uppercase tracking-widest text-green-600">
           已確認
         </Badge>
       </div>
+
+      {/* Skill requirement tags (one per row) + assigned avatar badges */}
+      {(hasRequirements || assignedMembers.length > 0) && (
+        <div className="space-y-1">
+          {hasRequirements && (
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                所需技能
+              </p>
+              <span className="text-[10px] text-muted-foreground">
+                已指派 {assignedMembers.length} / {totalRequired} 人
+              </span>
+            </div>
+          )}
+          <div className="flex flex-col gap-1.5">
+            {item.requiredSkills?.map((req: SkillRequirement) => (
+              <div key={req.tagSlug} className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-[10px]">
+                  {getSkillName(req.tagSlug)} × {req.quantity}
+                </Badge>
+              </div>
+            ))}
+            {assignedMembers.length > 0 && (
+              <div className="flex -space-x-1">
+                {assignedMembers.map((m) => (
+                  <TooltipProvider key={m.id}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Avatar className="size-6 border-2 border-background">
+                          <AvatarFallback className="text-[9px] font-bold">{m.name[0]}</AvatarFallback>
+                        </Avatar>
+                      </TooltipTrigger>
+                      <TooltipContent><p>{m.name}</p></TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <div className="flex justify-end">
         <Button
           size="sm"

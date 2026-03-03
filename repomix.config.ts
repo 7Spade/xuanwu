@@ -3,7 +3,7 @@ import { defineConfig } from "repomix";
 export default defineConfig({
   output: {
     // 輸出檔案路徑
-    filePath: "repomix-output.context.md",
+    filePath: "docs/ai/repomix-output.context.md",
     // 輸出格式：'markdown' 對 Copilot 的代碼塊識別效果最好
     style: "markdown",
     // 移除代碼註解，大幅節省 Token

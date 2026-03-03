@@ -12,7 +12,7 @@ import { Button } from "@/shared/shadcn-ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/shadcn-ui/card"
 import { type MemberReference } from "@/shared/types"
 import { PageHeader } from "@/shared/ui/page-header"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 
 import { useMemberManagement } from '../_hooks/use-member-management'
 

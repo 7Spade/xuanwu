@@ -15,6 +15,13 @@ export type IntentID = string & { readonly _brand: 'IntentID' }
 /** Branded pointer to a source file download URL — immutable contract anchor. */
 export type SourcePointer = string & { readonly _brand: 'SourcePointer' }
 
+/** Designated role-holders for a workspace (經理/督導/安衛). */
+export interface WorkspacePersonnel {
+  managerId?: string;
+  supervisorId?: string;
+  safetyOfficerId?: string;
+}
+
 export interface Workspace {
   id: string;
   dimensionId: string; // The ID of the User or Organization this workspace belongs to.
@@ -32,6 +39,8 @@ export interface Workspace {
   address?: Address; // The physical address of the entire workspace.
   /** Sub-locations within this workspace (廠區子地點). FR-L1. */
   locations?: WorkspaceLocation[];
+  /** Designated role-holders (經理 | 督導 | 安衛). */
+  personnel?: WorkspacePersonnel;
   createdAt: Timestamp;
 }
 

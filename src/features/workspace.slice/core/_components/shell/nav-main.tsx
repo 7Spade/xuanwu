@@ -62,14 +62,16 @@ export function NavMain({ pathname, isOrganizationAccount, t }: NavMainProps) {
         </SidebarMenuButton>
       </SidebarMenuItem>
 
-      <SidebarMenuItem>
-        <SidebarMenuButton asChild isActive={isPartiallyActive(ROUTES.ACCOUNT_SKILLS)}>
-          <Link href={ROUTES.ACCOUNT_SKILLS}>
-            <BookOpen />
-            <span className="font-semibold">{t("navigation.skills")}</span>
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
+      {!isOrganizationAccount && (
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild isActive={isPartiallyActive(ROUTES.ACCOUNT_SKILLS)}>
+            <Link href={ROUTES.ACCOUNT_SKILLS}>
+              <BookOpen />
+              <span className="font-semibold">{t("navigation.skills")}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
 
       {isOrganizationAccount && (
         <Collapsible asChild defaultOpen className="group/collapsible">

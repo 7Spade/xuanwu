@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 
 import { useWorkspace } from "@/features/workspace.slice";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 /**
  * Subscribes to B-track `IssueResolved` events via the workspace event bus.

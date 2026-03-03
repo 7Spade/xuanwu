@@ -21,6 +21,8 @@
  * [D19] Canonical type definitions live here; @/shared/types/skill.types re-exports for legacy consumers.
  */
 
+import type { Timestamp } from '@/shared/ports'
+
 // ─── Canonical type definitions (D19 — owned by shared-kernel) ───────────────
 
 /**
@@ -122,6 +124,63 @@ export function getTierRank(tier: SkillTier): number {
  */
 export function tierSatisfies(grantedTier: SkillTier, minimumTier: SkillTier): boolean {
   return getTierRank(grantedTier) >= getTierRank(minimumTier);
+}
+
+// ─── SkillTag + SkillGrant (D19 — cross-BC skill identity types) ─────────────
+
+/**
+ * A resolved skill entry, derived from the global static library
+ * in shared/constants/skills.ts.
+ *
+ * Pure value type — no Firestore fields.
+ * [D19] Canonical definition lives here; @/shared/types/skill.types re-exports for legacy consumers.
+ */
+export interface SkillTag {
+  /** Stable hyphen-separated identifier — never change an existing slug. */
+  slug: string;
+  /** Human-readable name (e.g. "Concrete Work", "Crane Operation"). */
+  name: string;
+  /** Grouping category (e.g. "Civil", "Electrical", "Management"). */
+  category?: string;
+  description?: string;
+}
+
+/**
+ * Records that an individual user holds a skill at a given tier.
+ *
+ * Stored on `accounts/{userId}.skillGrants[]` — permanently attached to the
+ * person, not to the organisation.  Survives org deletion, team removal, and
+ * partner-contract expiry.
+ *
+ * `tagSlug` is the portable cross-org identifier (e.g. "electrical-work").
+ * `tagId`   is the org-local UUID and is optional for display/linking purposes.
+ *
+ * [D19] Canonical definition lives here; @/shared/types/skill.types re-exports for legacy consumers.
+ */
+export interface SkillGrant {
+  /**
+   * Portable, hyphen-separated skill identifier — the primary lookup key.
+   * Example: "electrical-work", "project-management"
+   */
+  tagSlug: string;
+  /** Snapshot of the human-readable tag name at grant time (for display). */
+  tagName?: string;
+  /** Org-local UUID — optional, only present when the org still exists. */
+  tagId?: string;
+  /**
+   * Proficiency tier — set manually by an admin or derived from `xp` via
+   * resolveSkillTier() in @/features/shared-kernel/skill-tier.
+   */
+  tier: SkillTier;
+  /**
+   * Accumulated XP (0–525).
+   * Drives tier progression; use resolveSkillTier(xp) from @/features/shared-kernel/skill-tier.
+   */
+  xp: number;
+  /** The organisation in which this XP was earned (audit trail). */
+  earnedInOrgId?: string;
+  /** When the skill was granted / last updated. */
+  grantedAt?: Timestamp;
 }
 
 // ─── Cross-BC staffing contract (SK_SKILL_REQ) ───────────────────────────────

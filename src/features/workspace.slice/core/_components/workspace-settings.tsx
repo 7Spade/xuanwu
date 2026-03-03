@@ -1,6 +1,7 @@
 // [職責] 空間設定對話框
 "use client";
 
+import { HardHat, ShieldCheck, User2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { Button } from "@/shared/shadcn-ui/button";
@@ -21,7 +22,7 @@ import {
   SelectValue,
 } from "@/shared/shadcn-ui/select";
 import { Switch } from "@/shared/shadcn-ui/switch";
-import type { Workspace, WorkspaceLifecycleState, Address } from "@/shared/types";
+import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "@/shared/types";
 
 interface WorkspaceSettingsDialogProps {
   workspace: Workspace;
@@ -32,9 +33,12 @@ interface WorkspaceSettingsDialogProps {
     visibility: "visible" | "hidden";
     lifecycleState: WorkspaceLifecycleState;
     address?: Address;
+    personnel?: WorkspacePersonnel;
   }) => Promise<void>;
   loading: boolean;
 }
+
+const EMPTY_ADDRESS: Address = { street: "", city: "", state: "", postalCode: "", country: "" };
 
 export function WorkspaceSettingsDialog({
   workspace,
@@ -48,20 +52,16 @@ export function WorkspaceSettingsDialog({
   const [lifecycleState, setLifecycleState] = useState<WorkspaceLifecycleState>(
     workspace.lifecycleState
   );
-  const [address, setAddress] = useState<Address>(workspace.address || {
-      street: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      country: "",
-    });
+  const [address, setAddress] = useState<Address>(workspace.address || EMPTY_ADDRESS);
+  const [personnel, setPersonnel] = useState<WorkspacePersonnel>(workspace.personnel || {});
 
   useEffect(() => {
     if (workspace) {
       setName(workspace.name);
       setVisibility(workspace.visibility);
       setLifecycleState(workspace.lifecycleState);
-      setAddress(workspace.address || { street: "", city: "", state: "", postalCode: "", country: "" });
+      setAddress(workspace.address || EMPTY_ADDRESS);
+      setPersonnel(workspace.personnel || {});
     }
   }, [workspace]);
 
@@ -69,8 +69,12 @@ export function WorkspaceSettingsDialog({
     setAddress(prev => ({ ...prev, [field]: value }));
   };
 
+  const handlePersonnelChange = (field: keyof WorkspacePersonnel, value: string) => {
+    setPersonnel(prev => ({ ...prev, [field]: value || undefined }));
+  };
+
   const handleSave = () => {
-    onSave({ name, visibility, lifecycleState, address });
+    onSave({ name, visibility, lifecycleState, address, personnel });
   };
 
   return (
@@ -93,6 +97,52 @@ export function WorkspaceSettingsDialog({
             />
           </div>
 
+          {/* ── Personnel ─────────────────────────────────────── */}
+          <div className="space-y-3">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+              指派人員 Personnel
+            </Label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <User2 className="h-3.5 w-3.5" />
+                  <span>經理 Manager</span>
+                </div>
+                <Input
+                  placeholder="User ID / 姓名"
+                  value={personnel.managerId ?? ""}
+                  onChange={(e) => handlePersonnelChange("managerId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <HardHat className="h-3.5 w-3.5" />
+                  <span>督導 Supervisor</span>
+                </div>
+                <Input
+                  placeholder="User ID / 姓名"
+                  value={personnel.supervisorId ?? ""}
+                  onChange={(e) => handlePersonnelChange("supervisorId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>安衛 Safety</span>
+                </div>
+                <Input
+                  placeholder="User ID / 姓名"
+                  value={personnel.safetyOfficerId ?? ""}
+                  onChange={(e) => handlePersonnelChange("safetyOfficerId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Physical Address ──────────────────────────────── */}
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
                 Physical Address

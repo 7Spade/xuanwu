@@ -10,7 +10,7 @@ import { Button } from "@/shared/shadcn-ui/button"
 import { Card, CardContent } from "@/shared/shadcn-ui/card"
 import type { MemberReference, Team } from "@/shared/types"
 import { PageHeader } from "@/shared/ui/page-header"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 
 /**
  * TeamDetailView - 職責：管理特定團隊內的成員 (Team Member 清單)

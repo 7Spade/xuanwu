@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/shared/shadcn-ui/sheet";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
 import { type WorkspaceIssue } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { useWorkspace } from '../../core';
 

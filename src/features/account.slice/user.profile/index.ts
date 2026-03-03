@@ -1,4 +1,5 @@
 export { UserSettingsView } from './_components/user-settings-view'
+export { AccountSettingsRouter } from './_components/account-settings-router'
 export { UserSettings } from './_components/user-settings'
 export { ProfileCard } from './_components/profile-card'
 export { PreferencesCard } from './_components/preferences-card'

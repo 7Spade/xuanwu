@@ -25,6 +25,8 @@ import type {
   WorkspaceLifecycleState,
   Account,
   WorkspaceLocation,
+  Address,
+  WorkspacePersonnel,
 } from '@/shared/types';
 
 import { db } from '../firestore.client';
@@ -198,6 +200,8 @@ export const updateWorkspaceSettings = async (
     name: string;
     visibility: 'visible' | 'hidden';
     lifecycleState: WorkspaceLifecycleState;
+    address?: Address;
+    personnel?: WorkspacePersonnel;
   }
 ): Promise<void> => {
   return updateDocument(`workspaces/${workspaceId}`, settings);

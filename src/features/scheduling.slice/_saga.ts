@@ -18,14 +18,14 @@
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
 import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import { setDocument, updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
+import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import {
   handleScheduleProposed,
   approveOrgScheduleProposal,
-  type WriteOp,
 } from './_aggregate';
 import { findEligibleCandidatesForRequirements } from './_eligibility';
+import { executeWriteOp } from './_write-op';
 
 
 // ---------------------------------------------------------------------------
@@ -86,18 +86,6 @@ async function updateSagaStatus(
   >
 ): Promise<void> {
   await updateDocument(sagaPath(sagaId), { ...patch, updatedAt: Timestamp.now().toDate().toISOString() });
-}
-
-/**
- * Executes a WriteOp returned by an aggregate function. [D3]
- * Resolves `arrayUnionFields` into Firestore FieldValue sentinels before writing.
- */
-async function executeWriteOp(op: WriteOp): Promise<void> {
-  const data: Record<string, unknown> = { ...op.data };
-  for (const [field, values] of Object.entries(op.arrayUnionFields ?? {})) {
-    data[field] = arrayUnion(...values);
-  }
-  await updateDocument(op.path, data);
 }
 
 // ---------------------------------------------------------------------------

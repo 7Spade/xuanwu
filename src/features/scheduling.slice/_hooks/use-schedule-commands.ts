@@ -15,8 +15,8 @@ import { tierSatisfies } from "@/features/shared-kernel";
 import type { ScheduleItem } from '@/features/shared-kernel';
 import { useApp } from "@/shared/app-providers/app-context";
 import { useAuth } from "@/shared/app-providers/auth-provider";
-import { canTransitionScheduleStatus } from "@/shared/lib";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { canTransitionScheduleStatus } from "../_schedule.rules";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import {
     assignMember as assignMemberAction,

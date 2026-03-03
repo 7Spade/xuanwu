@@ -269,3 +269,11 @@ export {
   addCommentToIssue,
   resolveIssue,
 } from './business.issues'
+
+// ─── domain rules ────────────────────────────────────────────────────────────
+export {
+  filterVisibleWorkspaces,
+  hasWorkspaceAccess,
+  isWorkspaceVisibleToUser,
+} from './_workspace.rules'
+export { buildTaskTree } from './_task.rules'
