@@ -1,50 +1,40 @@
-import { RepomixConfig } from "repomix";
+import { defineConfig } from "repomix";
 
-const config: RepomixConfig = {
+export default defineConfig({
   output: {
-    // 輸出檔案名稱
+    // 輸出檔案路徑
     filePath: "repomix-output.md",
-    // 使用 markdown 格式，對 Copilot 來說結構最清晰
+    // 輸出格式：'markdown' 對 Copilot 的代碼塊識別效果最好
     style: "markdown",
-    // 移除多餘的空白、換行與註解，極大化節省 Token
+    // 移除代碼註解，大幅節省 Token
     removeComments: true,
+    // 移除空行，進一步壓縮體積
     removeEmptyLines: true,
-    // 在檔案頂部加入專案清單，幫助 AI 快速索引
-    topFilesLength: 20,
-    // 顯示目錄結構
-    showDirectoryTree: true,
-    // 加上複選框，有助於與 AI 溝通任務進度
-    copyParameters: {
-      useActionButtons: true,
-    },
+    // 顯示行號（可選，Copilot 有時能更精準定位行數）
+    showLineNumbers: false,
+    // 顯示前 N 個大檔案路徑
+    topFilesLength: 10,
+    // **核心壓縮功能**：使用 Tree-sitter 智能提取結構並移除細節（顯著降低 Token 使用量）
+    compress: true,
   },
   include: ["**/*"],
   ignore: {
-    // 排除不必要的二進位檔、依賴包與快取
+    // 排除不必要的路徑
     customPatterns: [
-      "node_modules/**",
-      "dist/**",
-      "build/**",
-      ".git/**",
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.git/**",
       "package-lock.json",
-      "yarn.lock",
-      "pnpm-lock.yaml",
-      "*.png",
-      "*.jpg",
-      "*.jpeg",
-      "*.gif",
-      "*.svg",
-      "*.ico",
-      "repomix-output.md", // 避免把自己也打包進去
+      "repomix-output.md",
     ],
-    // 排除常見的忽略檔案
+    // 繼承 .gitignore 設定
     useGitignore: true,
+    // 使用 Repomix 內建的預設排除清單
     useDefaultPatterns: true,
   },
   security: {
-    // 開啟安全性檢查，防止敏感資訊（如 API Key）流出給 AI
+    // 啟用安全性掃描，防止 Secret 洩露給 AI
     enableSecurityCheck: true,
   },
-};
-
-export default config;
+});

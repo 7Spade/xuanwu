@@ -2,29 +2,32 @@ name: Repomix Auto Update
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main ]  # 當代碼推送到 main 分支時觸發
+  workflow_dispatch:     # 支援手動觸發
 
 jobs:
-  pack-repo:
+  repomix-job:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write    # 必須開啟寫入權限才能將檔案 Push 回去
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # 使用官方封裝好的 Action
-      - name: Pack repository with Repomix
-        uses: yamadashy/repomix/.github/actions/repomix@main
         with:
-          output: 'repomix-output.txt'
-          style: 'plain'  # 或是 'markdown', 'xml'
-          compress: true  # 自動移除不必要的空白以節省 Token
+          fetch-depth: 0 # 取得完整歷史紀錄，對部分 git 排除邏輯有幫助
 
-      # 依然需要這步來把檔案存回你的 Repo
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Repomix
+        # 直接執行 npx repomix，它會自動抓取目錄下的 repomix.config.ts 並執行
+        run: npx repomix
+
       - name: Commit and Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: update repomix-output.txt [skip ci]"
-          file_pattern: 'repomix-output.txt'
+          commit_message: "docs: update repomix context for AI [skip ci]"
+          file_pattern: 'repomix-output.md'
