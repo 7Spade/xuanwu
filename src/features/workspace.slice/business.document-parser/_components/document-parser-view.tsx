@@ -181,27 +181,25 @@ export function WorkspaceDocumentParser() {
       subtotal: item.price,
     }));
 
-    let intentId: string;
-    try {
-      intentId = await saveParsingIntent(
-        workspace.id,
-        state.fileName || 'Unknown Document',
-        lineItems,
-        {
-          sourceFileId: sourceFileIdRef.current,
-          // SourcePointer: immutable link to the original file in Firebase Storage
-          sourceFileDownloadURL: sourceFileDownloadURLRef.current as SourcePointer | undefined,
-        }
-      );
-    } catch (error: unknown) {
-      console.error('Failed to save parsing intent:', error);
+    const saveResult = await saveParsingIntent(
+      workspace.id,
+      state.fileName || 'Unknown Document',
+      lineItems,
+      {
+        sourceFileId: sourceFileIdRef.current,
+        // SourcePointer: immutable link to the original file in Firebase Storage
+        sourceFileDownloadURL: sourceFileDownloadURLRef.current as SourcePointer | undefined,
+      }
+    );
+    if (!saveResult.success) {
       toast({
         variant: 'destructive',
         title: 'Failed to Save Parsing Record',
-        description: 'Could not persist the parsing intent. Import aborted.',
+        description: saveResult.error.message,
       });
       return;
     }
+    const intentId = saveResult.aggregateId;
 
     // Publish event with intentId so tasks and schedule proposals can reference the Digital Twin.
     // skillRequirements is omitted here — the current AI flow extracts invoice line items only.

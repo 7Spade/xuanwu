@@ -127,9 +127,10 @@ export function useWorkspaceEventHandler() {
 
         batchImportTasks(workspace.id, items)
           .then(async () => {
-            await markParsingIntentImported(workspace.id, payload.intentId).catch(
-              (err: unknown) => console.error("Failed to mark intent imported:", err)
-            );
+            const markResult = await markParsingIntentImported(workspace.id, payload.intentId);
+            if (!markResult.success) {
+              console.error("Failed to mark intent imported:", markResult.error.message);
+            }
             toast({
               title: "Import Successful",
               description: `${payload.items.length} tasks have been added.`,
