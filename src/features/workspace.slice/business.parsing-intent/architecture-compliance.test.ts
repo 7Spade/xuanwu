@@ -369,7 +369,7 @@ describe('[Architecture] VS5×VS6 integration compliance', () => {
 
     it('workspace.slice shell imports GlobalSearch from global-search.slice, not locally [D26]', () => {
       const headerPath = path.join(
-        SRC_ROOT, 'features', 'workspace.slice', 'core', '_shell', 'header.tsx'
+        SRC_ROOT, 'features', 'workspace.slice', 'core', '_components', 'shell', 'header.tsx'
       );
       const content = fs.readFileSync(headerPath, 'utf8');
       // MUST import from global-search.slice (path alias @/ or relative)
@@ -378,9 +378,9 @@ describe('[Architecture] VS5×VS6 integration compliance', () => {
 
     it('workspace.slice shell does NOT own its own global-search.tsx file [D26]', () => {
       const localSearchPath = path.join(
-        SRC_ROOT, 'features', 'workspace.slice', 'core', '_shell', 'global-search.tsx'
+        SRC_ROOT, 'features', 'workspace.slice', 'core', '_components', 'shell', 'global-search.tsx'
       );
-      // The file must have been removed from workspace.slice
+      // The file must have been removed from workspace.slice (now owned by global-search.slice)
       expect(fs.existsSync(localSearchPath)).toBe(false);
     });
 
