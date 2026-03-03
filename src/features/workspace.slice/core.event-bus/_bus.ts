@@ -15,8 +15,9 @@ import type {
 } from "./_events"
 
 // A map where keys are event names (strings) and values are arrays of handler functions (Observers).
- 
-type HandlerRegistry = Map<WorkspaceEventName, WorkspaceEventHandler<any>[]>
+// [V-ANY-01] Use WorkspaceEventName as the generic bound rather than `any` to preserve
+// type discipline; the per-event payload narrowing is enforced at the subscribe/publish call-sites.
+type HandlerRegistry = Map<WorkspaceEventName, WorkspaceEventHandler<WorkspaceEventName>[]>
 
 /**
  * The Subject in the Observer pattern. It maintains a list of Observers (handlers)
@@ -64,10 +65,13 @@ export class WorkspaceEventBus implements ImplementsEventEnvelopeContract {
     }
 
     const handlerList = this.handlers.get(type)!
-    handlerList.push(handler)
+    // Type-cast is safe: `type` and `handler` are constrained to the same T at the
+    // subscribe() call-site. The registry stores them together, so the handler will
+    // always be invoked with the matching payload type via `publish`.
+    handlerList.push(handler as WorkspaceEventHandler<WorkspaceEventName>)
 
     return () => {
-      const index = handlerList.indexOf(handler)
+      const index = handlerList.indexOf(handler as WorkspaceEventHandler<WorkspaceEventName>)
       if (index > -1) {
         handlerList.splice(index, 1)
       }

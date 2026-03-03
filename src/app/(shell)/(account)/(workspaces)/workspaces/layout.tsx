@@ -9,9 +9,10 @@
  * Parallel route structure:
  *   @header  →  Header (SidebarTrigger + Breadcrumb, inside SidebarInset)
  *   @modal   →  route-specific dialog/overlay interceptions
+ *
+ * [D6] Server Component — no hooks or browser APIs; client children handle
+ * their own interactivity. "use client" is not required here.
  */
-
-"use client";
 
 import type { ReactNode } from "react";
 

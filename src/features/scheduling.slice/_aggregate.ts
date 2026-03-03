@@ -32,7 +32,7 @@ import { publishOrgEvent } from '@/features/organization.slice';
 import { getOrgMemberEligibility } from '@/features/projection.bus';
 import { resolveSkillTier, tierSatisfies } from '@/features/shared-kernel';
 import type { WorkspaceScheduleProposedPayload, SkillRequirement } from '@/features/shared-kernel';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import { arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
 import { updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
@@ -260,7 +260,7 @@ async function _cancelProposal(
     workspaceId: opts.workspaceId,
     targetAccountId,
     reason,
-    rejectedAt: new Date().toISOString(),
+    rejectedAt: Timestamp.now().toDate().toISOString(),
     // [R8] Forward traceId to compensating event for end-to-end trace propagation.
     ...(opts.traceId ? { traceId: opts.traceId } : {}),
   });
@@ -299,7 +299,7 @@ export async function cancelOrgScheduleProposal(
     orgId,
     workspaceId,
     cancelledBy,
-    cancelledAt: new Date().toISOString(),
+    cancelledAt: Timestamp.now().toDate().toISOString(),
     ...(reason ? { reason } : {}),
     // [R8] Forward traceId to compensating event for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
@@ -349,7 +349,7 @@ export async function completeOrgSchedule(
     orgId,
     targetAccountId,
     completedBy,
-    completedAt: new Date().toISOString(),
+    completedAt: Timestamp.now().toDate().toISOString(),
     aggregateVersion: nextVersion,
     // [R8] Forward traceId for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
@@ -402,7 +402,7 @@ export async function cancelOrgScheduleAssignment(
     orgId,
     targetAccountId,
     cancelledBy,
-    cancelledAt: new Date().toISOString(),
+    cancelledAt: Timestamp.now().toDate().toISOString(),
     aggregateVersion: nextVersion,
     ...(reason ? { reason } : {}),
     // [R8] Forward traceId for end-to-end trace propagation.

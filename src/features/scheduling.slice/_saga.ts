@@ -17,7 +17,7 @@
 
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import {
@@ -84,7 +84,7 @@ async function updateSagaStatus(
     >
   >
 ): Promise<void> {
-  await updateDocument(sagaPath(sagaId), { ...patch, updatedAt: new Date().toISOString() });
+  await updateDocument(sagaPath(sagaId), { ...patch, updatedAt: Timestamp.now().toDate().toISOString() });
 }
 
 // ---------------------------------------------------------------------------
@@ -116,7 +116,7 @@ export async function startSchedulingSaga(
   event: WorkspaceScheduleProposedPayload,
   sagaId: string
 ): Promise<SagaState> {
-  const now = new Date().toISOString();
+  const now = Timestamp.now().toDate().toISOString();
 
   const existing = await getSagaState(sagaId);
   if (existing) {
@@ -158,7 +158,7 @@ export async function startSchedulingSaga(
       requirements.length > 0
         ? `Could not find enough eligible members for requirements: ${requirements.map((r) => `${r.quantity}× ${r.tagSlug}@${r.minimumTier}`).join(', ')} (needed ${totalNeeded} total)`
         : 'No eligible members found in org-eligible-member-view.';
-    const completedAt = new Date().toISOString();
+    const completedAt = Timestamp.now().toDate().toISOString();
     await updateSagaStatus(sagaId, {
       status: 'compensated',
       currentStep: 'compensate',
@@ -199,7 +199,7 @@ export async function startSchedulingSaga(
   }
 
   if (!compensationReason) {
-    const completedAt = new Date().toISOString();
+    const completedAt = Timestamp.now().toDate().toISOString();
     await updateSagaStatus(sagaId, {
       status: 'assigned',
       currentStep: 'assign',
@@ -208,7 +208,7 @@ export async function startSchedulingSaga(
     return { ...initialState, status: 'assigned', currentStep: 'assign', completedAt, updatedAt: completedAt };
   }
 
-  const completedAt = new Date().toISOString();
+  const completedAt = Timestamp.now().toDate().toISOString();
   await updateSagaStatus(sagaId, {
     status: 'compensated',
     currentStep: 'compensate',
