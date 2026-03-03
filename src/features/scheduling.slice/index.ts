@@ -24,7 +24,13 @@ export type {
   OrgScheduleProposal,
   OrgScheduleStatus,
   ScheduleApprovalResult,
+  WriteOp,
 } from './_aggregate';
+
+// =================================================================
+// Write-Op executor (D3 — caller executes WriteOp from aggregate)
+// =================================================================
+export { executeWriteOp } from './_write-op';
 
 // =================================================================
 // Server Actions (all schedule mutations go through here)
@@ -58,8 +64,12 @@ export {
   getAllDemands,
   getAccountScheduleProjection,
   getAccountActiveAssignments,
+  subscribeToWorkspaceScheduleItems,
+  getEligibleMemberForSchedule,
+  getEligibleMembersForSchedule,
   DEMAND_BOARD_STALENESS,
 } from './_queries';
+export type { OrgEligibleMemberView, OrgMemberSkillWithTier } from './_queries';
 
 // =================================================================
 // Hooks (React)
@@ -102,6 +112,17 @@ export {
 // AccountScheduleProjection types — read model types for scheduling queries.
 // Write-side projection logic lives in projection.bus/account-schedule/.
 export type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
+
+// =================================================================
+// Eligibility (QGWAY_SCHED pure business logic — D4 eligible-member channel)
+// =================================================================
+export {
+  SAGA_TIER_ORDER,
+  sagaTierIndex,
+  findEligibleCandidate,
+  findEligibleCandidatesForRequirements,
+} from './_eligibility';
+export type { SagaTier, CandidateAssignment } from './_eligibility';
 
 // =================================================================
 // Pure Selectors (data-derivation — no React dependencies)
