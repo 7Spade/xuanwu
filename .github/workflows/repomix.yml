@@ -1,0 +1,30 @@
+name: Repomix Auto Update
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  pack-repo:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 使用官方封裝好的 Action
+      - name: Pack repository with Repomix
+        uses: yamadashy/repomix/.github/actions/repomix@main
+        with:
+          output: 'repomix-output.txt'
+          style: 'plain'  # 或是 'markdown', 'xml'
+          compress: true  # 自動移除不必要的空白以節省 Token
+
+      # 依然需要這步來把檔案存回你的 Repo
+      - name: Commit and Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: update repomix-output.txt [skip ci]"
+          file_pattern: 'repomix-output.txt'
