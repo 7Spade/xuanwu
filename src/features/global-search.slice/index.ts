@@ -53,3 +53,11 @@ export type { ExecuteGlobalSearchResult } from './_actions';
 // Services (L6 Query Gateway — internal, re-exported for testing)
 // =================================================================
 export { executeSearch as executeSearchService } from './_services';
+
+// =================================================================
+// UI Components — Cmd+K Portal [D26][A12]
+// All cross-domain search UI MUST be owned here; business slices
+// MUST NOT implement their own Cmd+K or cross-domain search UI.
+// =================================================================
+export { GlobalSearchDialog, GlobalSearch } from './_components/global-search-dialog';
+export type { GlobalSearchDialogProps } from './_components/global-search-dialog';

@@ -1,3 +1,17 @@
+/**
+ * global-search.slice — GlobalSearchDialog component
+ *
+ * Cross-cutting Authority: the system's sole Cmd+K search portal. [D26][A12]
+ *
+ * Per logic-overview.md:
+ *   GLOBAL_SEARCH["...Cmd+K 唯一服務提供者\n_actions.ts / _services.ts [D26]"]
+ *
+ * This component is the SOLE owner of the Cmd+K shortcut UI.
+ * It MUST NOT live inside any business slice (D26/A12 invariant).
+ *
+ * Accepts pre-fetched navigation data (organizations, workspaces, members)
+ * from the hosting shell; cross-domain display is mediated by this boundary.
+ */
 "use client";
 
 import { Globe, Layers, User } from "lucide-react";
@@ -15,7 +29,7 @@ import {
 } from "@/shared/shadcn-ui/command";
 import { type Account, type Workspace, type MemberReference } from "@/shared/types";
 
-interface GlobalSearchProps {
+export interface GlobalSearchDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   organizations: Account[];
@@ -25,7 +39,13 @@ interface GlobalSearchProps {
   onSwitchOrganization: (organization: Account) => void;
 }
 
-export function GlobalSearch({
+/**
+ * GlobalSearchDialog — Cmd+K search portal owned by global-search.slice [D26].
+ *
+ * All business slices MUST use this component; they MUST NOT implement
+ * their own cross-domain search or Cmd+K UI (A12 invariant).
+ */
+export function GlobalSearchDialog({
   isOpen,
   onOpenChange,
   organizations,
@@ -33,7 +53,7 @@ export function GlobalSearch({
   members,
   activeOrganizationId,
   onSwitchOrganization,
-}: GlobalSearchProps) {
+}: GlobalSearchDialogProps) {
   const router = useRouter();
 
   const handleSelect = (callback: () => void) => {
@@ -77,3 +97,9 @@ export function GlobalSearch({
     </CommandDialog>
   );
 }
+
+/**
+ * GlobalSearch — canonical alias for GlobalSearchDialog.
+ * Exposed for backward-compatible imports across the application shell.
+ */
+export { GlobalSearchDialog as GlobalSearch };

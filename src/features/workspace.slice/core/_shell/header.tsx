@@ -22,7 +22,7 @@ import type { Account } from '@/shared/types'
 import { useApp } from "../_hooks/use-app";
 import { useVisibleWorkspaces } from '../_hooks/use-visible-workspaces';
 
-import { GlobalSearch } from "./global-search";
+import { GlobalSearch } from "@/features/global-search.slice";
 import { NotificationCenter } from "./notification-center";
 
 

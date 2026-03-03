@@ -50,12 +50,33 @@ export function onTagEvent<K extends TagLifecycleEventKey>(
 
 /**
  * Publish a tag lifecycle event to all subscribers.
+ *
+ * [D8] sync fire-and-forget — shared-kernel must not have async functions.
+ * Handlers may themselves be async; their errors are swallowed to avoid
+ * disrupting the caller.  Callers that need completion guarantees should
+ * use the durable outbox pattern (tagOutbox) instead.
  */
-export async function publishTagEvent<K extends TagLifecycleEventKey>(
+export function publishTagEvent<K extends TagLifecycleEventKey>(
   eventKey: K,
   payload: TagLifecycleEventPayloadMap[K]
-): Promise<void> {
+): void {
   const list = handlers[eventKey] as Array<TagEventHandler<K>> | undefined;
   if (!list?.length) return;
-  await Promise.allSettled(list.map((h) => h(payload)));
+  for (const h of list) {
+    try {
+      const result = h(payload);
+      if (result && typeof result.catch === 'function') {
+        result.catch((err: unknown) =>
+          console.error(
+            '[centralized-tag] async handler error for',
+            eventKey,
+            `(handler #${list.indexOf(h as TagEventHandler<K>)})`,
+            err
+          )
+        );
+      }
+    } catch (err) {
+      console.error('[centralized-tag] sync handler error for', eventKey, err);
+    }
+  }
 }
