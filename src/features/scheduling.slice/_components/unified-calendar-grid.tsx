@@ -5,7 +5,7 @@ import { Plus, Check, X, Layers, ChevronLeft, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
-import type { Timestamp } from "@/features/shared-kernel";
+import type { ScheduleItem, Timestamp } from "@/features/shared-kernel";
 import { findSkill } from "@/shared/constants/skills";
 import { cn } from "@/shared/lib";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
@@ -18,7 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/shadcn-ui/tooltip";
-import { type MemberReference, type ScheduleItem } from "@/shared/types";
+import { type MemberReference } from "@/shared/types";
 
 
 const DAYS_OF_WEEK = ["日", "一", "二", "三", "四", "五", "六"];

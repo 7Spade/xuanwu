@@ -28,14 +28,6 @@
 
 import { onOrgEvent } from '@/features/organization.slice';
 import { handleScheduleProposed } from '@/features/scheduling.slice';
-import {
-  applyDemandProposed,
-  applyDemandAssigned,
-  applyDemandCompleted,
-  applyDemandAssignmentCancelled,
-  applyDemandProposalCancelled,
-  applyDemandAssignRejected,
-} from '@/features/scheduling.slice';
 import { onTagEvent } from '@/features/shared-kernel';
 import { applySkillXpAdded, applySkillXpDeducted } from '@/features/skill-xp.slice';
 import {
@@ -44,10 +36,19 @@ import {
   handleTagDeletedForPool,
 } from '@/features/skill-xp.slice';
 import type { WorkspaceEventBus } from '@/features/workspace.slice';
+import { updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { upsertProjectionVersion } from './_registry';
 import { appendAuditEntry } from './account-audit';
 import { applyScheduleAssigned, applyScheduleCompleted } from './account-schedule';
+import {
+  applyDemandProposed,
+  applyDemandAssigned,
+  applyDemandCompleted,
+  applyDemandAssignmentCancelled,
+  applyDemandProposalCancelled,
+  applyDemandAssignRejected,
+} from './demand-board';
 import {
   applyOrgMemberSkillXp,
   initOrgMemberEntry,
@@ -61,6 +62,19 @@ import {
   applyTagDeprecated,
   applyTagDeleted,
 } from './tag-snapshot';
+
+/** Execute a WriteOp returned by an aggregate function. [D3] */
+async function executeAggregateWriteOp(op: {
+  path: string;
+  data: Record<string, unknown>;
+  arrayUnionFields?: Record<string, string[]>;
+}): Promise<void> {
+  const data: Record<string, unknown> = { ...op.data };
+  for (const [field, values] of Object.entries(op.arrayUnionFields ?? {})) {
+    data[field] = arrayUnion(...values);
+  }
+  await updateDocument(op.path, data);
+}
 
 
 /**
@@ -135,7 +149,9 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
   // WORKSPACE_OUTBOX →|ScheduleProposed（跨層事件）| ORGANIZATION_SCHEDULE
   unsubscribers.push(
     bus.subscribe('workspace:schedule:proposed', async (payload) => {
-      await handleScheduleProposed(payload);
+      // [D3] handleScheduleProposed returns WriteOp — execute it here in the funnel.
+      const writeOp = handleScheduleProposed(payload);
+      await executeAggregateWriteOp(writeOp);
       // Demand Board: create open demand entry. FR-W0.
       await applyDemandProposed(payload);
       await upsertProjectionVersion('org-schedule-proposals', Date.now(), new Date().toISOString());

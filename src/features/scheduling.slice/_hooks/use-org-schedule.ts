@@ -14,7 +14,7 @@
 
 import { useState, useEffect } from 'react';
 
-import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
+import type { ScheduleItem, ScheduleStatus } from '@/features/shared-kernel';
 
 import { subscribeToOrgScheduleProposals, subscribeToPendingProposals, subscribeToConfirmedProposals } from '../_queries';
 

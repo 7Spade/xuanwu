@@ -1,210 +1,40 @@
-/**
- * Repomix Configuration
- *
- * This is the primary configuration file for Repomix.
- * Note: repomix.config.ts is excluded from the app's tsconfig.json so that
- * this file can freely use repomix types when repomix is installed locally,
- * without breaking the application typecheck when it is not.
- *
- * All ignore patterns and configuration are centralized here.
- * Optimized for Copilot Browser Agent to reduce noise and improve context quality.
- */
-const repomixConfig = {
-  $schema: 'https://repomix.com/schemas/latest/schema.json',
+import { defineConfig } from "repomix";
 
-  input: {
-    maxFileSize: 10485760, // 10MB - skip very large files
-  },
-
+export default defineConfig({
   output: {
-    filePath: 'repo-context.xml',
-    style: 'xml',
-    parsableStyle: false,
-    fileSummary: true,
-    directoryStructure: true,
-    files: true,
-    removeComments: false, // Keep comments for context
-    removeEmptyLines: false, // Keep structure for readability
-    compress: true, // Full content for accurate understanding
-    topFilesLength: 10, // Show top 10 files by size
-    showLineNumbers: true, // Essential for debugging
-    truncateBase64: true, // Reduce noise from embedded data
-    copyToClipboard: false,
-    includeFullDirectoryStructure: true,
-    tokenCountTree: true, // Useful for token optimization
-    git: {
-      sortByChanges: false,
-      sortByChangesMaxCommits: 100,
-      includeDiffs: false, // Diffs add noise
-      includeLogs: false, // Logs add noise
-      includeLogsCount: 50,
-    },
+    // 輸出檔案路徑
+    filePath: "repomix-output.context.md",
+    // 輸出格式：'markdown' 對 Copilot 的代碼塊識別效果最好
+    style: "markdown",
+    // 移除代碼註解，大幅節省 Token
+    removeComments: true,
+    // 移除空行，進一步壓縮體積
+    removeEmptyLines: true,
+    // 顯示行號（可選，Copilot 有時能更精準定位行數）
+    showLineNumbers: false,
+    // 顯示前 N 個大檔案路徑
+    topFilesLength: 10,
+    // **核心壓縮功能**：使用 Tree-sitter 智能提取結構並移除細節（顯著降低 Token 使用量）
+    compress: true,
   },
-
-  include: [],
-
+  include: ["**/*"],
   ignore: {
-    useGitignore: true, // Respect .gitignore
-    useDotIgnore: false, // We're deprecating .repomixignore
-    useDefaultPatterns: true, // Use repomix defaults
-
-    /**
-     * Custom ignore patterns optimized for Copilot Browser Agent.
-     * Organized by category to reduce cognitive load.
-     */
+    // 排除不必要的路徑
     customPatterns: [
-      // ==================== Dataconnect ====================
-      'dataconnect-generated/',
-      'documentai-templates/',
-      'schematics/',
-      'src/assets/i18n/data/',
-      // ==================== Dependencies ====================
-      'node_modules/',
-      '.pnpm-store/',
-      '.yarn/',
-      '.yarn-cache/',
-
-      // ==================== Build Artifacts ====================
-      'dist/',
-      'build/',
-      'out/',
-      'coverage/',
-      '.angular/',
-      '.angular/cache/',
-      'playwright-report/',
-      '.playwright/',
-
-      // ==================== Firebase / Cloud ====================
-      '.firebase/',
-      '.firebaserc',
-      '.emulators/',
-      'dataconnect/', // Firebase Data Connect generated code
-
-      // ==================== Cache / Temporary ====================
-      '.cache/',
-      '.tmp/',
-      'temp/',
-      '*.log',
-      '*.tmp',
-
-      // ==================== IDE / Editor ====================
-      '.vscode/',
-      '.idea/',
-      '*.swp',
-      '*.swo',
-      '*~',
-
-      // ==================== Operating System ====================
-      '.DS_Store',
-      'Thumbs.db',
-      'desktop.ini',
-
-      // ==================== Generated Files ====================
-      '*.map', // Source maps
-      '*.d.ts.map', // TypeScript declaration maps
-      '*.tsbuildinfo', // TypeScript build info
-
-      // ==================== Lock Files ====================
-      'package-lock.json',
-      'pnpm-lock.yaml',
-      'yarn.lock',
-      'bun.lockb',
-
-      // ==================== Images & Media (Binary) ====================
-      '*.png',
-      '*.jpg',
-      '*.jpeg',
-      '*.gif',
-      '*.ico',
-      '*.svg',
-      '*.webp',
-      '*.avif',
-      '*.mp4',
-      '*.webm',
-      '*.ogg',
-      '*.mp3',
-      '*.wav',
-      '*.pdf',
-
-      // ==================== Fonts (Binary) ====================
-      '*.woff',
-      '*.woff2',
-      '*.ttf',
-      '*.eot',
-      '*.otf',
-
-      // ==================== Test Files ====================
-      '*.spec.ts', // Unit tests
-      '*.spec.js',
-      '*.test.ts',
-      '*.test.js',
-      'e2e/', // E2E tests
-      'tests/',
-      '__tests__/',
-      'playwright.config.ts', // Already documented elsewhere
-
-      // ==================== Git Internals ====================
-      '.git/',
-      '.gitignore',
-      '.gitkeep',
-      '.gitattributes',
-
-      // ==================== GitHub / CI ====================
-      '.github/', // GitHub Actions, templates, etc.
-      '.husky/', // Git hooks
-      '.codacy/',
-
-      // ==================== Documentation Archives ====================
-      '.github/instructions/archive/', // Archived instruction files
-      'docs/archive/', // Archived documentation
-      'docs/',
-
-      // ==================== Configuration Files (Non-Code) ====================
-      '.editorconfig',
-      '.npmignore',
-      '.npmrc',
-      '.nvmrc',
-      '.prettierignore',
-      '.prettierrc',
-      '.prettierrc.js',
-      '.prettierrc.json',
-      '.yarnrc.yml',
-      'apphosting.yaml',
-      'stylelint.config.mjs',
-      'firebase.json',
-
-      // ==================== Scripts & Tooling ====================
-      'scripts/', // Build/deploy scripts (not core code)
-
-      // ==================== Documentation (Text) ====================
-      'LICENSE',
-      'CHANGELOG.md', // History, not current state
-      '*.txt', // Generic text files
-
-      // ==================== Temporary Asset Folders ====================
-      'src/assets/tmp/',
-      'public/tmp/',
-
-      // ==================== Repomix Output ====================
-      'repo-context.xml', // Our own output
-      'repo-context.md',
-      'repo-context.txt',
-      'repo-context.json',
-
-      // ==================== Claude Skills Output ====================
-      // Keep SKILL.md but exclude large generated files if needed
-      // '.claude/skills/*/references/files.md', // Uncomment if too large
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.git/**",
+      "package-lock.json",
+      "repomix-output.md",
     ],
+    // 繼承 .gitignore 設定
+    useGitignore: true,
+    // 使用 Repomix 內建的預設排除清單
+    useDefaultPatterns: true,
   },
-
   security: {
-    enableSecurityCheck: true, // Prevent accidental exposure of secrets
+    // 啟用安全性掃描，防止 Secret 洩露給 AI
+    enableSecurityCheck: true,
   },
-
-  tokenCount: {
-    encoding: 'o200k_base', // OpenAI's encoding for GPT-4 and newer
-  },
-};
-
-export default repomixConfig;
-
+});

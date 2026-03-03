@@ -23,6 +23,7 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/features/shared-kernel';
+import type { ScheduleItem } from '@/features/shared-kernel';
 import {
   assignMemberToScheduleItem,
   unassignMemberFromScheduleItem,
@@ -31,9 +32,25 @@ import {
   assignMemberAndApprove,
 } from '@/shared/infra/firestore/firestore.facade';
 import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { ScheduleItem } from '@/shared/types';
+import { updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
 
-import { approveOrgScheduleProposal, cancelOrgScheduleProposal, completeOrgSchedule } from './_aggregate';
+import {
+  approveOrgScheduleProposal,
+  cancelOrgScheduleProposal,
+  completeOrgSchedule,
+  type WriteOp,
+} from './_aggregate';
+
+// ---------------------------------------------------------------------------
+// Internal: executes a WriteOp returned by an aggregate function. [D3]
+// ---------------------------------------------------------------------------
+async function executeWriteOp(op: WriteOp): Promise<void> {
+  const data: Record<string, unknown> = { ...op.data };
+  for (const [field, values] of Object.entries(op.arrayUnionFields ?? {})) {
+    data[field] = arrayUnion(...values);
+  }
+  await updateDocument(op.path, data);
+}
 
 // =================================================================
 // A. Workspace-level mutations
@@ -169,6 +186,8 @@ export async function manualAssignScheduleMember(
       opts,
       skillRequirements
     );
+    // [D3] Execute the write returned by the aggregate.
+    await executeWriteOp(result.writeOp);
     if (result.outcome === 'confirmed') {
       return commandSuccess(result.scheduleItemId, Date.now());
     }
@@ -191,7 +210,9 @@ export async function cancelScheduleProposalAction(
   traceId?: string
 ): Promise<CommandResult> {
   try {
-    await cancelOrgScheduleProposal(scheduleItemId, orgId, workspaceId, cancelledBy, reason, traceId);
+    const writeOp = await cancelOrgScheduleProposal(scheduleItemId, orgId, workspaceId, cancelledBy, reason, traceId);
+    // [D3] Execute the write returned by the aggregate.
+    await executeWriteOp(writeOp);
     return commandSuccess(scheduleItemId, Date.now());
   } catch (err) {
     return commandFailureFrom('SCHEDULE_PROPOSAL_CANCEL_FAILED', err instanceof Error ? err.message : String(err));
@@ -212,7 +233,9 @@ export async function completeOrgScheduleAction(
   traceId?: string
 ): Promise<CommandResult> {
   try {
-    await completeOrgSchedule(scheduleItemId, orgId, workspaceId, targetAccountId, completedBy, traceId);
+    const writeOp = await completeOrgSchedule(scheduleItemId, orgId, workspaceId, targetAccountId, completedBy, traceId);
+    // [D3] Execute the write returned by the aggregate.
+    await executeWriteOp(writeOp);
     return commandSuccess(scheduleItemId, Date.now());
   } catch (err) {
     return commandFailureFrom('SCHEDULE_COMPLETE_FAILED', err instanceof Error ? err.message : String(err));

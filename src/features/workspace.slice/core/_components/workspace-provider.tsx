@@ -9,9 +9,9 @@ import { initTagChangedSubscriber } from '@/features/notification-hub.slice';
 import {
   createScheduleItem as createScheduleItemAction,
 } from '@/features/scheduling.slice'
-import type { CommandResult } from '@/features/shared-kernel';
+import type { CommandResult, ScheduleItem } from '@/features/shared-kernel';
 import { firestoreTimestampToISO } from '@/shared/lib';
-import { type Workspace, type AuditLog, type WorkspaceTask, type WorkspaceRole, type Capability, type WorkspaceLifecycleState, type ScheduleItem } from '@/shared/types';
+import { type Workspace, type AuditLog, type WorkspaceTask, type WorkspaceRole, type Capability, type WorkspaceLifecycleState } from '@/shared/types';
 
 import { registerOrgPolicyCache, runTransaction } from '../../application';
 import {

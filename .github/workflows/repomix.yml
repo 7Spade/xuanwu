@@ -1,0 +1,41 @@
+name: Repomix Skill & Context Update
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  repomix-process:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 步驟 1：執行你的 Skill 生成命令
+      - name: Generate Xuanwu Skill
+        run: |
+          mkdir -p ./skills
+          npx repomix --remote 7Spade/xuanwu --skill-generate xuanwu-skill --skill-output ./skills --force
+
+      # 步驟 2：執行全專案打包 (會讀取你的 repomix.config.ts)
+      - name: Run Repomix Pack
+        run: npx repomix
+
+      # 步驟 3：將產出的 md 與 skills 目錄一併提交回倉庫
+      - name: Commit and Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update skills and context [skip ci]"
+          # 關鍵：確保包含 skills 資料夾與 output 檔案
+          file_pattern: 'repomix-output.md ./skills/*'

@@ -21,7 +21,7 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/features/shared-kernel';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import { addDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 // ---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ async function emitPolicyChangedRefreshSignal(accountId: string, traceId?: strin
   await updateDocument(`tokenRefreshSignals/${accountId}`, {
     accountId,
     reason: 'policy:changed',
-    issuedAt: new Date().toISOString(),
+    issuedAt: Timestamp.now().toDate().toISOString(),
     ...(traceId ? { traceId } : {}),
   });
 }
@@ -95,7 +95,7 @@ export interface UpdatePolicyInput {
  */
 export async function createAccountPolicy(input: CreatePolicyInput): Promise<CommandResult> {
   try {
-    const now = new Date().toISOString();
+    const now = Timestamp.now().toDate().toISOString();
     const ref = await addDocument<Omit<AccountPolicy, 'id'>>(
       `accountPolicies`,
       {
@@ -129,7 +129,7 @@ export async function updateAccountPolicy(
     const { traceId, accountId, ...fields } = input;
     await updateDocument(`accountPolicies/${policyId}`, {
       ...fields,
-      updatedAt: new Date().toISOString(),
+      updatedAt: Timestamp.now().toDate().toISOString(),
       ...(traceId ? { traceId } : {}),
     });
 

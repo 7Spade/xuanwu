@@ -27,6 +27,7 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/features/shared-kernel';
+import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import type { OrganizationRole } from '@/shared/types';
 
@@ -63,7 +64,7 @@ export async function assignAccountRole(input: AssignRoleInput): Promise<Command
       orgId: input.orgId,
       role: input.role,
       grantedBy: input.grantedBy,
-      grantedAt: new Date().toISOString(),
+      grantedAt: Timestamp.now().toDate().toISOString(),
       isActive: true,
       ...(input.traceId ? { traceId: input.traceId } : {}),
     };
@@ -111,7 +112,7 @@ export async function revokeAccountRole(
   try {
     await updateDocument(`accountRoles/${orgId}_${accountId}`, {
       isActive: false,
-      revokedAt: new Date().toISOString(),
+      revokedAt: Timestamp.now().toDate().toISOString(),
       ...(traceId ? { traceId } : {}),
     });
 
@@ -180,7 +181,7 @@ async function emitTokenRefreshSignal(
   const signal: TokenRefreshSignal = {
     accountId,
     reason,
-    issuedAt: new Date().toISOString(),
+    issuedAt: Timestamp.now().toDate().toISOString(),
     ...(traceId ? { traceId } : {}),
   };
   await setDocument(`tokenRefreshSignals/${accountId}`, signal);

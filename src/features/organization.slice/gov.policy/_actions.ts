@@ -20,6 +20,7 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/features/shared-kernel';
+import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import { addDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { publishOrgEvent } from '../core.event-bus';
@@ -65,7 +66,7 @@ export interface UpdateOrgPolicyInput {
  */
 export async function createOrgPolicy(input: CreateOrgPolicyInput): Promise<CommandResult> {
   try {
-    const now = new Date().toISOString();
+    const now = Timestamp.now().toDate().toISOString();
     const ref = await addDocument<Omit<OrgPolicy, 'id'>>(
       `orgPolicies`,
       {
@@ -107,7 +108,7 @@ export async function updateOrgPolicy(
   try {
     await updateDocument(`orgPolicies/${policyId}`, {
       ...input,
-      updatedAt: new Date().toISOString(),
+      updatedAt: Timestamp.now().toDate().toISOString(),
     });
 
     await publishOrgEvent('organization:policy:changed', {
