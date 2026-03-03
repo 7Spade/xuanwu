@@ -1,5 +1,5 @@
-import { UserSettingsView } from "@/features/account.slice"
+import { AccountSettingsRouter } from "@/features/account.slice"
 
 export default function AccountSettingsPage() {
-  return <UserSettingsView />
+  return <AccountSettingsRouter />
 }

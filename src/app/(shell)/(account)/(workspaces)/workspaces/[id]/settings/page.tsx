@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { WorkspaceSettingsDialog , useWorkspace } from "@/features/workspace.slice"
-import type { WorkspaceLifecycleState, Address } from "@/shared/types"
+import type { WorkspaceLifecycleState, Address, WorkspacePersonnel } from "@/shared/types"
 
 export default function WorkspaceSettingsPage() {
   const router = useRouter()
@@ -17,6 +17,7 @@ export default function WorkspaceSettingsPage() {
     visibility: "visible" | "hidden"
     lifecycleState: WorkspaceLifecycleState
     address?: Address
+    personnel?: WorkspacePersonnel
   }) => {
     setLoading(true)
     await updateWorkspaceSettings(settings)

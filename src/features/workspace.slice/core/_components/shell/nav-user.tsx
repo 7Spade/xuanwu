@@ -86,7 +86,9 @@ export function NavUser({ user, accounts, activeAccount, logout, t }: NavUserPro
             <DropdownMenuItem asChild>
               <Link href={ROUTES.ACCOUNT_SETTINGS} className="flex cursor-pointer items-center gap-2 py-2">
                 <UserCircle className="size-4 text-muted-foreground" />
-                <span className="text-xs font-medium">{t('sidebar.userSettings')}</span>
+                <span className="text-xs font-medium">
+                  {activeAccount?.accountType === "organization" ? t("sidebar.orgSettings") : t("sidebar.userSettings")}
+                </span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

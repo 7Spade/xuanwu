@@ -19,7 +19,8 @@
     "visible": "Visible",
     "hidden": "Hidden",
     "filter": "Filter",
-    "confirmCreation": "Confirm Creation"
+    "confirmCreation": "Confirm Creation",
+    "saving": "Saving..."
   },
   "auth": {
     "login": "Login",
@@ -57,7 +58,8 @@
     "quickAccess": "Quick Access",
     "userSettings": "User Settings",
     "owner": "Owner",
-    "guest": "Guest"
+    "guest": "Guest",
+    "orgSettings": "Organization Settings"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -146,7 +148,9 @@
     "dimensionDestroyed": "Organization Deleted",
     "failedToDestroyDimension": "Failed to delete organization",
     "personalDimensionDescription": "This is your personal workspace. Projects created here are owned by you.",
-    "dimensionManagementDescription": "Manage organization settings and member access."
+    "dimensionManagementDescription": "Manage organization settings and member access.",
+    "userSettingsTitle": "User Settings",
+    "userSettingsDescription": "Manage your personal profile, preferences, and account security."
   },
   "dashboard": {
     "welcome": "Welcome to Dashboard",

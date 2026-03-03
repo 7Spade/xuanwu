@@ -54,7 +54,7 @@ export const handleCreateWorkspace = async (
 
 export const handleUpdateWorkspaceSettings = async (
   workspaceId: string,
-  settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState; address?: Address },
+  settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState; address?: Address; personnel?: WorkspacePersonnel },
   onSuccess: () => void
 ) => {
   const result = await updateWorkspaceSettings(workspaceId, settings);
