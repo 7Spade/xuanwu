@@ -18,16 +18,14 @@
  * workspace context and must be accessible to Subject Center slices.
  */
 
-import { collection, query, where, onSnapshot, type QuerySnapshot } from 'firebase/firestore'
 import type React from 'react'
 import { type ReactNode, createContext, useReducer, useEffect } from 'react'
 import { useContext } from 'react'
 
-import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils'
 import { type Account, type CapabilitySpec, type Notification } from '@/shared/types'
 
 import { useAuth } from './auth-provider'
-import { useFirebase } from './firebase-provider'
+import { subscribeToAccountsForUser } from './_queries'
 
 // ---------------------------------------------------------------------------
 // State shape
@@ -42,7 +40,7 @@ export interface AppState {
 }
 
 export type AppAction =
-  | { type: 'SET_ACCOUNTS'; payload: { snapshot: QuerySnapshot; user: Account } }
+  | { type: 'SET_ACCOUNTS'; payload: { accounts: Record<string, Account>; user: Account } }
   | { type: 'SET_ACTIVE_ACCOUNT'; payload: Account | null }
   | { type: 'RESET_STATE' }
   | { type: 'ADD_NOTIFICATION'; payload: Omit<Notification, 'id' | 'timestamp' | 'read'> }
@@ -90,15 +88,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return initialState
 
     case 'SET_ACCOUNTS': {
-      const { snapshot, user } = action.payload
-      if (!snapshot?.docs) return state
-      const newAccounts = snapshotToRecord<Account>(snapshot)
+      const { accounts, user } = action.payload
       let newActiveAccount = state.activeAccount
-      const availableAccountIds = [user.id, ...Object.keys(newAccounts)]
+      const availableAccountIds = [user.id, ...Object.keys(accounts)]
       if (!newActiveAccount || !availableAccountIds.includes(newActiveAccount.id)) {
         newActiveAccount = user
       }
-      return { ...state, accounts: newAccounts, activeAccount: newActiveAccount }
+      return { ...state, accounts, activeAccount: newActiveAccount }
     }
 
     case 'ADD_NOTIFICATION': {
@@ -138,7 +134,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
 export const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<AppAction> } | null>(null)
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const { db } = useFirebase()
   const { state: authState } = useAuth()
   const { user, authInitialized } = authState
   const [state, dispatch] = useReducer(appReducer, initialState)
@@ -148,10 +143,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     let unsubscribe: (() => void) | null = null
 
-    if (user?.id && db) {
-      const accountQuery = query(collection(db, 'accounts'), where('memberIds', 'array-contains', user.id))
-      unsubscribe = onSnapshot(accountQuery, (snap) =>
-        dispatch({ type: 'SET_ACCOUNTS', payload: { snapshot: snap, user } })
+    if (user?.id) {
+      unsubscribe = subscribeToAccountsForUser(user.id, (accounts) =>
+        dispatch({ type: 'SET_ACCOUNTS', payload: { accounts, user } }),
       )
     } else {
       dispatch({ type: 'RESET_STATE' })
@@ -160,7 +154,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       if (unsubscribe) unsubscribe()
     }
-  }, [authInitialized, user, db])
+  }, [authInitialized, user])
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

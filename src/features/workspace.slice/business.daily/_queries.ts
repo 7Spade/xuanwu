@@ -6,6 +6,7 @@
  * Per logic-overview.md [R4]: read queries must NOT live in _actions.ts.
  */
 
+import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDailyLogs as getDailyLogsFacade } from "@/shared/infra/firestore/firestore.facade";
 import {
   collection,
@@ -14,7 +15,6 @@ import {
   query,
   type Unsubscribe,
 } from "@/shared/infra/firestore/firestore.read.adapter";
-import { db } from '@/shared/infra/firestore/firestore.client';
 import type { DailyLog, DailyLogComment } from "@/shared/types";
 
 /**
@@ -49,4 +49,24 @@ export function subscribeToDailyLogComments(
     }) as DailyLogComment);
     onUpdate(comments);
   });
+}
+
+/**
+ * Opens a real-time listener on a user's bookmarks subcollection.
+ * Calls `onUpdate` with a Set of bookmarked log IDs on every change.
+ * Calls `onError` on subscription errors.
+ */
+export function subscribeToBookmarks(
+  userId: string,
+  onUpdate: (bookmarkedIds: Set<string>) => void,
+  onError?: (error: Error) => void,
+): Unsubscribe {
+  const q = query(collection(db, `accounts/${userId}/bookmarks`));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onUpdate(new Set(snapshot.docs.map((doc) => doc.id)));
+    },
+    onError,
+  );
 }

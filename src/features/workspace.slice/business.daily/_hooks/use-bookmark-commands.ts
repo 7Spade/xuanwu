@@ -6,44 +6,44 @@
  */
 "use client";
 
-import { collection, onSnapshot, query } from '@/shared/infra/firestore/firestore.read.adapter';
 import { useState, useEffect, useCallback } from 'react';
 
 import { useAuth } from '@/shared/app-providers/auth-provider';
-import { useFirebase } from '@/shared/app-providers/firebase-provider';
 import { toast } from '@/shared/utility-hooks/use-toast';
 
 import { toggleBookmark as toggleBookmarkAction } from '../_bookmark-actions';
+import { subscribeToBookmarks } from '../_queries';
 
 
 export function useBookmarkActions() {
     const { state: authState } = useAuth();
-    const { db } = useFirebase();
     const { user } = authState;
     
     const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!user || !db) {
+        if (!user) {
             setLoading(false);
             setBookmarks(new Set());
             return;
         };
 
         setLoading(true);
-        const bookmarksQuery = query(collection(db, `accounts/${user.id}/bookmarks`));
-        const unsubscribe = onSnapshot(bookmarksQuery, (snapshot) => {
-            const bookmarkedIds = new Set(snapshot.docs.map(doc => doc.id));
-            setBookmarks(bookmarkedIds);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching bookmarks:", error);
-            setLoading(false);
-        });
+        const unsubscribe = subscribeToBookmarks(
+            user.id,
+            (bookmarkedIds) => {
+                setBookmarks(bookmarkedIds);
+                setLoading(false);
+            },
+            (error) => {
+                console.error("Error fetching bookmarks:", error);
+                setLoading(false);
+            },
+        );
 
         return () => unsubscribe();
-    }, [user, db]);
+    }, [user]);
 
     const toggleBookmark = useCallback(async (logId: string, shouldBookmark: boolean) => {
         if (!user) return;
