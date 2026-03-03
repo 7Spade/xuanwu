@@ -26,7 +26,6 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { ROUTES } from "@/shared/constants/routes";
 import { cn } from "@/shared/lib";
-import { formatBytes } from "../_format-bytes";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import {
@@ -52,7 +51,7 @@ import {
   TableRow,
 } from "@/shared/shadcn-ui/table";
 import type { WorkspaceFile, WorkspaceFileVersion } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { useWorkspace } from '../../core';
 import {
@@ -66,6 +65,14 @@ import { uploadRawFile } from '../_storage-actions';
 
 const getErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
+
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return "0 Bytes"
+  const k = 1024
+  const sizes = ["Bytes", "KB", "MB", "GB"]
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+}
 
 /**
  * WorkspaceFiles - High-sensory file version governance center.

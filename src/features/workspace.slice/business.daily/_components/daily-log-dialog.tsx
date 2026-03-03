@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/shadc
 import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
 import { type DailyLog, type DailyLogComment, type Account } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { addDailyLogComment } from "../_actions";
 import { subscribeToDailyLogComments } from '../_queries';

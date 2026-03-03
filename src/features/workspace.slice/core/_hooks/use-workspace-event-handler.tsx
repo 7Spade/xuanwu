@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { handleScheduleProposed } from "@/features/scheduling.slice";
 import { ToastAction } from "@/shared/shadcn-ui/toast";
 import type { WorkspaceTask } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { markParsingIntentImported } from "../../business.document-parser";
 import { createIssue } from "../../business.issues";

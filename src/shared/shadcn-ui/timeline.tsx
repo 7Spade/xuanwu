@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/shared/utils/utils";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
 
 interface TimelineProps extends React.HTMLAttributes<HTMLOListElement> {
   children: React.ReactNode;

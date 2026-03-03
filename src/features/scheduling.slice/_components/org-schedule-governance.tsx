@@ -51,7 +51,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/shared/shadcn-ui/tooltip';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 
 import {
   assignMember,

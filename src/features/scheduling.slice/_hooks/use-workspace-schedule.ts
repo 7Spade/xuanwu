@@ -21,7 +21,7 @@ import { useState, useEffect, useMemo } from "react";
 import type { ScheduleItem } from '@/features/shared-kernel';
 import { useWorkspace } from "@/features/workspace.slice";
 import { useApp } from "@/shared/app-providers/app-context";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { subscribeToWorkspaceScheduleItems } from '../_queries';
 

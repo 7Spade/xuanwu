@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import type { SkillRequirement } from "@/features/shared-kernel"
 import { useWorkspace } from "@/features/workspace.slice"
 import type { Location } from "@/shared/types"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 
 import { ProposalDialog } from "./proposal-dialog"
 

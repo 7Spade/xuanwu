@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { cn } from "@/shared/utils/utils"
+import { cn } from "@/shared/shadcn-ui/utils/utils"
 
 const Textarea = React.forwardRef<
   HTMLTextAreaElement,
