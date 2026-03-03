@@ -19,7 +19,8 @@
     "visible": "Visible",
     "hidden": "Hidden",
     "filter": "Filter",
-    "confirmCreation": "Confirm Creation"
+    "confirmCreation": "Confirm Creation",
+    "saving": "Saving..."
   },
   "auth": {
     "login": "Login",

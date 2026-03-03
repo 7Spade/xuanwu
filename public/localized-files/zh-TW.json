@@ -19,7 +19,8 @@
     "visible": "可見",
     "hidden": "隱藏",
     "filter": "篩選",
-    "confirmCreation": "確認建立"
+    "confirmCreation": "確認建立",
+    "saving": "儲存中..."
   },
   "auth": {
     "login": "登入",
