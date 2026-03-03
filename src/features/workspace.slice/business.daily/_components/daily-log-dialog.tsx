@@ -12,12 +12,10 @@
  */
 "use client";
 
-import { collection, onSnapshot, orderBy, query } from "@/shared/infra/firestore/firestore.read.adapter";
 import { CornerUpLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/shared/app-providers/auth-provider";
-import { useFirebase } from "@/shared/app-providers/firebase-provider";
 import type { Timestamp } from "@/shared/ports";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -28,6 +26,7 @@ import { type DailyLog, type DailyLogComment, type Account } from "@/shared/type
 import { toast } from "@/shared/utility-hooks/use-toast";
 
 import { addDailyLogComment } from "../_actions";
+import { subscribeToDailyLogComments } from '../_queries';
 
 import { BookmarkButton } from "./actions/bookmark-button";
 import { CommentButton } from './actions/comment-button';
@@ -87,31 +86,22 @@ function TimeAgo({ date }: { date: Timestamp | Date | null | undefined }) {
 }
 
 export function DailyLogDialog({ log, currentUser, isOpen, onOpenChange }: DailyLogDialogProps) {
-  const { db } = useFirebase();
   const { state: authState } = useAuth();
   const [comments, setComments] = useState<DailyLogComment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isPosting, setIsPosting] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !log || !db) {
+    if (!isOpen || !log) {
         setComments([]);
         return;
     }
 
-    const commentsQuery = query(
-        collection(db, `accounts/${log.accountId}/dailyLogs/${log.id}/comments`),
-        orderBy("createdAt", "asc")
-    );
-
-    const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
-        const fetchedComments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DailyLogComment));
-        setComments(fetchedComments);
-    });
+    const unsubscribe = subscribeToDailyLogComments(log.accountId, log.id, setComments);
 
     return () => unsubscribe();
 
-  }, [isOpen, log, db]);
+  }, [isOpen, log]);
 
   const handlePostComment = async () => {
       if (!newComment.trim() || !log || !authState.user) return;

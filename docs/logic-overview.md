@@ -6,22 +6,29 @@
 %%  ║    ③ Firebase 邊界明確：FIREBASE_ACL 為唯一 SDK 呼叫點                   ║
 %%  ║    ④ 三道閘道職責分離：CMD（寫）/ IER（事件）/ QGWAY（讀）               ║
 %%  ║    ⑤ 所有不變量以 [#N] / [SN] / [RN] 行內索引，完整定義於文末            ║
+%%  ║    ⑥ Everything as a Tag：所有領域概念以語義標籤建模，由 VS8 統一治理      ║
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  SSOT Mapping:
 %%    Architecture rules   → docs/logic-overview.md  ← THIS FILE
 %%    Semantic relations   → docs/knowledge-graph.json
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  QUICK REFERENCE（快速索引 — 最速取得上下文）
-%%  ── Vertical Slice（業務域 · VS0–VS7 only）──
+%%  ── Vertical Slice（業務域 · VS0–VS8）──
 %%    VS0=SharedKernel  VS1=Identity   VS2=Account      VS3=Skill
 %%    VS4=Organization  VS5=Workspace  VS6=Scheduling   VS7=Notification
+%%    VS8=SemanticGraph(The Brain)
 %%    ※ L5(ProjectionBus) 與 L9(Observability) 為 Infrastructure，不佔用 VS 編號
+%%  ── Cross-cutting Authorities（跨切片權威）──
+%%    global-search.slice  = 語義門戶（唯一跨域搜尋權威 · 對接 VS8 語義索引）
+%%    notification-hub     = 反應中樞（VS7 增強 · 唯一副作用出口 · 標籤感知路由）
+%%    ※ 兩者皆須擁有自己的 _actions.ts / _services.ts，不得寄生於 shared-kernel [D3 D8]
 %%  ── Layer（系統層）──
 %%    L0=ExternalTriggers   L1=SharedKernel       L2=CommandGateway
 %%    L3=DomainSlices       L4=IER                L5=ProjectionBus
 %%    L6=QueryGateway       L7=FirebaseACL         L8=FirebaseInfra      L9=Observability
 %%    ※ L3 Domain Slices = VS1(Identity) · VS2(Account) · VS3(Skill) ·
-%%                          VS4(Organization) · VS5(Workspace) · VS6(Scheduling) · VS7(Notification)
+%%                          VS4(Organization) · VS5(Workspace) · VS6(Scheduling) ·
+%%                          VS7(Notification) · VS8(SemanticGraph)
 %%  ── Hard Invariants（不可違反）: R · S · A · # ──
 %%    R1=relay-lag-metrics   R5=DLQ-failure-rule   R6=workflow-state-rule
 %%    R7=aggVersion-relay    R8=traceId-readonly
@@ -29,8 +36,10 @@
 %%    S4=Staleness-SLA       S5=Resilience         S6=TokenRefresh
 %%    A3=workflow-blockedBy  A5=scheduling-saga    A8=1cmd-1agg
 %%    A9=scope-guard         A10=notification-stateless
+%%    A12=global-search-authority   A13=notification-hub-authority
 %%  ── Governance Rules（可演化治理）: D · P · T · E ──
 %%    D7=cross-slice-index-only   D21=tag-centralized    D24=no-firebase-import
+%%    D26=cross-cutting-authority
 %%    P1=IER-lane-priority        P4=eligibility-query   P5=projection-funnel
 %%    T1=tag-lifecycle-sub        T3=eligible-tag-logic  T5=tag-snapshot-readonly
 %%    E2=OrgContextProvisioned    E3=ScheduleAssigned    E5=ws-event-flow   E6=claims-refresh
@@ -40,14 +49,19 @@
 %%    [S2]  所有 Projection 寫入前必須呼叫 applyVersionGuard()
 %%    [S4]  SLA 數值只能引用 SK_STALENESS_CONTRACT，禁止硬寫
 %%    [D7]  跨切片引用只能透過 {slice}/index.ts 公開 API
-%%    [D21] 新 tag 類別只在 TAG_AUTH（Tag Authority Center）定義
+%%    [D21] 新 tag 類別只在 VS8（Semantic Graph）定義
 %%    [D24] Feature slice 禁止直接 import firebase/*，必須走 SK_PORTS
+%%    [D26] global-search = 唯一搜尋權威；notification-hub = 唯一副作用出口
+%%    [#A12] Global Search = 唯一跨域搜尋出口，禁止各 Slice 自建搜尋邏輯
+%%    [#A13] Notification Hub = 唯一副作用出口，業務 Slice 只產生事件不決定通知策略
 %%  FORBIDDEN:
 %%    BC_X 禁止直接寫入 BC_Y aggregate → 必須透過 IER Domain Event
 %%    TX Runner 禁止產生 Domain Event → 只有 Aggregate 可以 [#4b]
 %%    SECURITY_BLOCK DLQ → 禁止自動 Replay，必須人工審查
 %%    B-track 禁止回呼 A-track → 只能透過 Domain Event 溝通
 %%    Feature slice 禁止直接 import firebase/* [D24]
+%%    Feature slice 禁止自建搜尋邏輯，必須透過 Global Search [D26 #A12]
+%%    Feature slice 禁止直接 call sendEmail/push/SMS，必須透過 Notification Hub [D26 #A13]
 %%  ╚══════════════════════════════════════════════════════════════════════════╝
 
 flowchart TD
@@ -104,10 +118,11 @@ subgraph SK["🔷 L1 · Shared Kernel — 全域契約中心（VS0）"]
     end
 end
 
-%% ─── Tag Authority Center（跨域語義權威 · 獨立於 Shared Kernel 之外）
-%% ─── centralized-tag.aggregate 具備 lifecycle，為 domain authority，
-%% ─── 不屬被動契約層 → 從 Shared Kernel 獨立出來 [#A6 #17]
-subgraph TAG_AUTH["🏷️ Tag Authority Center [#A6 #17]（跨域語義權威）"]
+%% ─── VS8 Semantic Graph（語義中樞 · The Brain）
+%% ─── 前身為 TAG_AUTH (Tag Authority Center)，升級為正式業務垂直切片
+%% ─── 職責：標籤分類學 (Taxonomy)、因果追蹤 (Causality)、排班衝突語義檢測
+%% ─── centralized-tag.aggregate 具備 lifecycle，為 domain authority [#A6 #17]
+subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（語義中樞）"]
     direction TB
     CTA["centralized-tag.aggregate\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule"]
 
@@ -157,9 +172,10 @@ subgraph GW_CMD["🔵 L2 · Command Gateway（統一寫入入口）"]
 end
 
 %% ═══════════════════════════════════════════════════════════════
-%% LAYER 3 ── L3 · Domain Slices（領域切片 · VS1–VS7）
+%% LAYER 3 ── L3 · Domain Slices（領域切片 · VS1–VS8）
 %% ── VS1=Identity · VS2=Account · VS3=Skill · VS4=Organization
 %% ── VS5=Workspace · VS6=Scheduling · VS7=Notification
+%% ── VS8=Semantic Graph (The Brain)
 %% ═══════════════════════════════════════════════════════════════
 
 %% ── VS1 Identity ──
@@ -411,11 +427,12 @@ subgraph VS6["🟨 VS6 · Scheduling Slice（排班協作）"]
     SCH_SAGA -.->|"協調 handleScheduleProposed"| ORG_SCH
 end
 
-%% ── VS7 Notification ──
-subgraph VS7["🩷 VS7 · Notification Slice（通知交付）"]
+%% ── VS7 Notification（Cross-cutting Authority · 反應中樞）──
+subgraph VS7["🩷 VS7 · Notification Hub（通知交付 · 跨切片權威）"]
     direction TB
 
     NOTIF_R["notification-router\n無狀態路由 [#A10]\n消費 IER STANDARD_LANE\nScheduleAssigned [E3]\n從 envelope 讀取 traceId [R8]"]
+    NOTIF_HUB_SVC["notification-hub._services.ts\n唯一副作用出口\n標籤感知路由策略\n對接 VS8 語義索引\n#channel:slack → Slack\n#urgency:high → 電話"]
 
     subgraph VS7_DEL["📤 Delivery"]
         USER_NOTIF["account-user.notification\n個人推播"]
@@ -423,12 +440,14 @@ subgraph VS7["🩷 VS7 · Notification Slice（通知交付）"]
         USER_NOTIF --> USER_DEV
     end
 
-    NOTIF_R -->|TargetAccountID 匹配| USER_NOTIF
+    NOTIF_R -->|TargetAccountID 匹配| NOTIF_HUB_SVC
+    NOTIF_HUB_SVC -->|路由策略決定| USER_NOTIF
     PROFILE -.->|"FCM Token（唯讀）"| USER_NOTIF
     USER_NOTIF -.->|"[#6] 投影"| QGWAY_NOTIF
 end
 
 USER_NOTIF -.->|"uses IMessaging [R8]"| I_MSG
+NOTIF_HUB_SVC -.->|"標籤感知路由"| VS8
 
 %% ═══════════════════════════════════════════════════════════════
 %% LAYER 4 ── INTEGRATION EVENT ROUTER（事件路由總線）
@@ -555,15 +574,26 @@ subgraph GW_QUERY["🟢 L6 · Query Gateway（統一讀取出口）[S2 S3]"]
     QGWAY_NOTIF["→ .account-view\n[#6] FCM Token"]
     QGWAY_SCOPE["→ .workspace-scope-guard-view\n[#A9]"]
     QGWAY_WALLET["→ .wallet-balance\n[S3] 顯示 → Projection\n精確交易 → STRONG_READ"]
-    QGWAY --> QGWAY_SCHED & QGWAY_NOTIF & QGWAY_SCOPE & QGWAY_WALLET
+    QGWAY_SEARCH["→ .tag-snapshot\n語義化索引檢索"]
+    QGWAY --> QGWAY_SCHED & QGWAY_NOTIF & QGWAY_SCOPE & QGWAY_WALLET & QGWAY_SEARCH
 end
 
 ORG_ELIG_V -.-> QGWAY_SCHED
 ACC_PROJ_V -.-> QGWAY_NOTIF
 WS_SCOPE_V -.-> QGWAY_SCOPE
 WALLET_V -.-> QGWAY_WALLET
+TAG_SNAP -.-> QGWAY_SEARCH
 ACTIVE_CTX -->|"查詢鍵"| QGWAY_SCOPE
 QGWAY_SCOPE --> CBG_AUTH
+
+%% ── Global Search（Cross-cutting Authority · 語義門戶）──
+GLOBAL_SEARCH["🔍 Global Search（跨切片權威）\nL6 Query Gateway 核心消費者\n語義化索引檢索\n唯一跨域搜尋權威\n對接 VS8 語義索引\nCmd+K 唯一服務提供者\n_actions.ts / _services.ts [D26]"]
+GLOBAL_SEARCH -->|"語義化索引檢索"| QGWAY_SEARCH
+GLOBAL_SEARCH -.->|"queries VS8 semantic index [D26]"| VS8
+
+%% ── VS8 Semantic Graph 跨切片語義提供 ──
+VS8 -.->|"排班組合匹配"| VS6
+VS8 -.->|"任務語義標籤"| VS5
 
 %% ═══════════════════════════════════════════════════════════════
 %% LAYER 7 ── FIREBASE ACL（防腐層）
@@ -690,6 +720,8 @@ classDef talent fill:#fff1f2,stroke:#f43f5e,color:#000
 classDef serverAct fill:#fed7aa,stroke:#f97316,color:#000
 classDef aclAdapter fill:#fce4ec,stroke:#ad1457,color:#000,font-weight:bold
 classDef firebaseExt fill:#fff9c4,stroke:#f9a825,color:#000,font-weight:bold
+classDef semanticGraph fill:#e0e7ff,stroke:#4f46e5,color:#000,font-weight:bold
+classDef crossCutAuth fill:#fde68a,stroke:#b45309,color:#000,font-weight:bold,stroke-width:3px
 
 class SK,SK_ENV,SK_AUTH_SNAP,SK_SKILL_TIER,SK_SKILL_REQ,SK_CMD_RESULT sk
 class SK_OUTBOX,SK_VERSION,SK_READ,SK_STALE,SK_RESILIENCE skInfra
@@ -730,7 +762,7 @@ class DLQ dlqNode
 class DLQ_S dlqSafe
 class DLQ_R dlqReview
 class DLQ_B dlqBlock
-class GW_QUERY,QGWAY,QGWAY_SCHED,QGWAY_NOTIF,QGWAY_SCOPE,QGWAY_WALLET qgway
+class GW_QUERY,QGWAY,QGWAY_SCHED,QGWAY_NOTIF,QGWAY_SCOPE,QGWAY_WALLET,QGWAY_SEARCH qgway
 class PROJ_BUS,FUNNEL,PROJ_VER,READ_REG stdProj
 class CRIT_PROJ,WS_SCOPE_V,ORG_ELIG_V,WALLET_V critProj
 class STD_PROJ,WS_PROJ,ACC_SCHED_V,ACC_PROJ_V,ORG_PROJ_V,SKILL_V stdProj
@@ -742,6 +774,9 @@ class OBS_LAYER,TRACE_ID,DOMAIN_METRICS,DOMAIN_ERRORS obs
 class FIREBASE_ACL,AUTH_ADP,FSTORE_ADP,FCM_ADP,STORE_ADP aclAdapter
 class FIREBASE_EXT,F_AUTH,F_DB,F_FCM,F_STORE firebaseExt
 class EXT_CLIENT,EXT_AUTH,EXT_WEBHOOK serverAct
+class VS8 semanticGraph
+class GLOBAL_SEARCH crossCutAuth
+class NOTIF_HUB_SVC crossCutAuth
 
 %%  ╔══════════════════════════════════════════════════════════════════════════╗
 %%  ║  CONSISTENCY INVARIANTS 完整索引                                         ║
@@ -779,8 +814,10 @@ class EXT_CLIENT,EXT_AUTH,EXT_WEBHOOK serverAct
 %%  #A9  Scope Guard 快路徑；高風險回源 aggregate
 %%  #A10 Notification Router 無狀態路由
 %%  #A11 eligible = 「無衝突排班」快照，非靜態狀態
+%%  #A12 Global Search = 跨切片權威（語義門戶），唯一跨域搜尋出口，禁止各 Slice 自建搜尋邏輯
+%%  #A13 Notification Hub = 跨切片權威（反應中樞），唯一副作用出口，業務 Slice 只產生事件不決定通知策略
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  TAG AUTHORITY 擴展規則（TAG_AUTH · 跨域語義權威 · 獨立於 Shared Kernel）
+%%  TAG SEMANTICS 擴展規則（VS8 · Semantic Graph — The Brain）
 %%  T1  新切片訂閱 TagLifecycleEvent（BACKGROUND_LANE）即可擴展
 %%  T2  SKILL_TAG_POOL = Tag Authority 組織作用域唯讀投影
 %%  T3  ORG_ELIGIBLE_MEMBER_VIEW.skills{tagSlug→xp} 交叉快照
@@ -803,14 +840,11 @@ class EXT_CLIENT,EXT_AUTH,EXT_WEBHOOK serverAct
 %%  S5  SK_RESILIENCE_CONTRACT 外部入口最低防護規格（rate-limit/circuit-break/bulkhead）
 %%  S6  SK_TOKEN_REFRESH_CONTRACT Claims 刷新三方握手（VS1 ↔ IER ↔ 前端）
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  FIREBASE 隔離規則 [D24~D25]
-%%  D24 feature slice / shared/types / app 層禁止直接 import firebase/*
-%%      所有 Firebase SDK 呼叫必須透過 FIREBASE_ACL 對應 Adapter
-%%      Adapter 路徑：src/shared/infra/{auth|firestore|messaging|storage}
-%%  D25 新增 Firebase 功能必須在 FIREBASE_ACL 新增 Adapter 實作對應 SK_PORTS Port
+%%  FIREBASE 隔離規則 與 Cross-cutting Authority 治理 [D24~D26]
+%%  （詳見 UNIFIED DEVELOPMENT RULES 完整定義）
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  UNIFIED DEVELOPMENT RULES [D1~D25]
-%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Governance Rules (D21~D25 語義治理) ──
+%%  UNIFIED DEVELOPMENT RULES [D1~D26]
+%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance (D21~D23) / Infrastructure (D24~D25) / Authority Governance (D26) ──
 %%  ── 基礎路徑約束（D1~D12）──
 %%  D1  事件傳遞只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
 %%  D2  跨切片引用：import from '@/features/{slice}/index' only；_*.ts 為私有
@@ -834,7 +868,17 @@ class EXT_CLIENT,EXT_AUTH,EXT_WEBHOOK serverAct
 %%  D19 型別歸屬規則：跨 BC 契約優先放 shared.kernel.*；shared/types 僅為 legacy fallback
 %%  D20 匯入優先序：shared.kernel.* > feature slice index.ts > shared/types
 %%  ── 語義 Tag 守則（D21~D23）──
-%%  D21 新增 tag 語義類別：必須在 TAG_AUTH（Tag Authority Center）CTA TAG_ENTITIES 定義，禁止各 slice 自行創建
+%%  D21 新增 tag 語義類別：必須在 VS8（Semantic Graph）CTA TAG_ENTITIES 定義，禁止各 slice 自行創建
 %%  D22 跨切片 tag 語義引用：必須指向 TE1~TE6 實體節點，禁止隱式 tagSlug 字串引用
 %%  D23 tag 語義標注格式：節點內 → tag::{category}；邊 → -.->|"{dim} tag 語義"|
+%%  ── Firebase 隔離守則（D24~D25）──
+%%  D24 feature slice / shared/types / app 層禁止直接 import firebase/*
+%%      所有 Firebase SDK 呼叫必須透過 FIREBASE_ACL 對應 Adapter
+%%      Adapter 路徑：src/shared/infra/{auth|firestore|messaging|storage}
+%%  D25 新增 Firebase 功能必須在 FIREBASE_ACL 新增 Adapter 實作對應 SK_PORTS Port
+%%  ── Cross-cutting Authority 守則（D26）──
+%%  D26 Cross-cutting Authority 治理：
+%%      global-search.slice 為唯一跨域搜尋權威，各業務 Slice 禁止自建搜尋邏輯
+%%      notification-hub (VS7) 為唯一副作用出口，業務 Slice 禁止直接調用 sendEmail/push/SMS
+%%      兩者須擁有自己的 _actions.ts / _services.ts [D3]，不得寄生於 shared-kernel [D8]
 %%  ╚══════════════════════════════════════════════════════════════════════════╝

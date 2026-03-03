@@ -5,13 +5,11 @@ import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { createContext, useContext, useMemo, useCallback, useEffect, useState } from 'react';
 
-import { registerNotificationRouter } from '@/features/notification.slice';
+import { initTagChangedSubscriber } from '@/features/notification-hub.slice';
 import {
   createScheduleItem as createScheduleItemAction,
 } from '@/features/scheduling.slice'
 import type { CommandResult } from '@/features/shared-kernel';
-import { addDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import { serverTimestamp, type FieldValue } from '@/shared/infra/firestore/firestore.write.adapter';
 import { firestoreTimestampToISO } from '@/shared/lib';
 import { type Workspace, type AuditLog, type WorkspaceTask, type WorkspaceRole, type Capability, type WorkspaceLifecycleState, type ScheduleItem } from '@/shared/types';
 
@@ -28,6 +26,7 @@ import {
   getWorkspaceTask as getWorkspaceTaskAction,
 } from '../../business.tasks'
 import { WorkspaceEventBus , WorkspaceEventContext, registerWorkspaceFunnel, registerOrganizationFunnel, type WorkspaceEventName, type FileSendToParserPayload } from '../../core.event-bus';
+import { writeAuditLog } from '../../gov.audit/_actions';
 import {
   authorizeWorkspaceTeam as authorizeWorkspaceTeamAction,
   revokeWorkspaceTeam as revokeWorkspaceTeamAction,
@@ -71,12 +70,18 @@ interface WorkspaceContextType {
   /** Resolves a B-track issue via the Transaction Runner + Outbox pipeline. */
   resolveIssue: (issueId: string, issueTitle: string, resolvedBy: string, sourceTaskId?: string) => Promise<void>;
   // Schedule Management
-  createScheduleItem: (itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>) => Promise<CommandResult>;
+  createScheduleItem: (itemData: CreateScheduleItemInput) => Promise<CommandResult>;
   // Pending parse file — set by files-view when "Parse with AI" is clicked;
   // read by document-parser on mount to auto-trigger parsing cross-tab.
   pendingParseFile: FileSendToParserPayload | null;
   setPendingParseFile: (payload: FileSendToParserPayload | null) => void;
 }
+
+/** Input type for createScheduleItem — accepts plain Date objects; the action converts to Timestamp internally. */
+export type CreateScheduleItemInput = Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'endDate'> & {
+  startDate?: Date | null;
+  endDate?: Date | null;
+};
 
 const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 
@@ -99,7 +104,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   useEffect(() => {
     const unsubWorkspace = registerWorkspaceFunnel(eventBus);
     const unsubOrg = registerOrganizationFunnel();
-    const { unsubscribe: unsubNotif } = registerNotificationRouter();
+    const unsubNotif = initTagChangedSubscriber();
     const unsubPolicy = registerOrgPolicyCache();
     return () => {
       unsubWorkspace();
@@ -116,16 +121,14 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   
   const logAuditEvent = useCallback(async (action: string, detail: string, type: 'create' | 'update' | 'delete') => {
     if (!activeAccount || activeAccount.accountType !== 'organization') return;
-    const eventData: Omit<AuditLog, 'id' | 'recordedAt'> & { recordedAt: FieldValue } = {
+    await writeAuditLog({
+      accountId: activeAccount.id,
       actor: activeAccount.name,
       action,
       target: detail,
       type,
-      recordedAt: serverTimestamp(),
-      accountId: activeAccount.id,
       workspaceId,
-    };
-    await addDocument(`accounts/${activeAccount.id}/auditLogs`, eventData);
+    });
   }, [activeAccount, workspaceId]);
 
   const createTask = useCallback(async (task: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>) => createTaskAction(workspaceId, task), [workspaceId]);
@@ -142,6 +145,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
         assigneeId: updates.assigneeId,
         workspaceId,
         sourceIntentId: taskData?.sourceIntentId,
+        requiredSkills: taskData?.requiredSkills,
       });
     }
   }, [workspaceId, eventBus]);
@@ -172,7 +176,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
     }
   }, [workspaceId, eventBus]);
 
-  const createScheduleItem = useCallback(async (itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createScheduleItem = useCallback(async (itemData: CreateScheduleItemInput) => {
     const result = await createScheduleItemAction(itemData);
     // Cross-layer Outbox event: WORKSPACE_OUTBOX →|workspace:schedule:proposed| ORGANIZATION_SCHEDULE
     // Per logic-overview.md: W_B_SCHEDULE publishes this event so scheduling.slice

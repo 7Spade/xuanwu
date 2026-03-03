@@ -4,10 +4,10 @@
  * Read-side queries for the account audit projection.
  */
 
-import { collection, query, orderBy, limit } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { createConverter } from '@/shared/infra/firestore/firestore.converter';
+import { collection, query, orderBy, limit } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocuments } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import type { AuditProjectionEntry } from './_projector';

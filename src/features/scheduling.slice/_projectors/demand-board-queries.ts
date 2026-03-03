@@ -10,6 +10,9 @@
  * Staleness: PROJ_STALE_DEMAND_BOARD ≤ 5s (SK_STALENESS_CONTRACT).
  */
 
+
+import type { ImplementsStalenessContract } from '@/features/shared-kernel';
+import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
   query,
@@ -20,9 +23,6 @@ import {
   type QueryDocumentSnapshot,
   type QuerySnapshot,
 } from '@/shared/infra/firestore/firestore.read.adapter';
-
-import type { ImplementsStalenessContract } from '@/features/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
 import type { ScheduleItem } from '@/shared/types';
 
 /** Demand Board staleness declaration. [S4] */

@@ -28,18 +28,21 @@ import type { SkillRequirement } from '@/features/shared-kernel';
 import { tierSatisfies } from '@/features/shared-kernel';
 import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
+import { findSkill } from '@/shared/constants/skills';
 import type { Timestamp } from '@/shared/ports';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
-import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/shadcn-ui/select';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/shared/shadcn-ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/shadcn-ui/popover';
+import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import type { ScheduleItem } from '@/shared/types';
 import { toast } from '@/shared/utility-hooks/use-toast';
 
@@ -51,6 +54,11 @@ import {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** Returns the human-readable display name for a skill slug. */
+function getSkillName(slug: string): string {
+  return findSkill(slug)?.name ?? slug;
+}
 
 function formatTimestamp(ts: Timestamp | string | undefined): string {
   if (!ts) return '';
@@ -65,6 +73,10 @@ function formatTimestamp(ts: Timestamp | string | undefined): string {
 // FR-W2 — Skill match helper
 // ---------------------------------------------------------------------------
 
+/**
+ * Returns [matchedCount, totalRequired].
+ * A skill is "matched" when the member holds it at the required tier or above.
+ */
 function computeSkillMatch(
   member: OrgEligibleMemberView,
   skillRequirements?: SkillRequirement[]
@@ -93,6 +105,7 @@ interface ProposalRowProps {
 function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }: ProposalRowProps) {
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [memberSearchOpen, setMemberSearchOpen] = useState(false);
 
   const handleApprove = useCallback(async () => {
     if (!selectedMemberId) return;
@@ -135,6 +148,37 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
     return computeSkillMatch(view, item.requiredSkills);
   }, [selectedMemberId, eligibleMembers, item.requiredSkills]);
 
+  /**
+   * Pre-compute skill match for every org member so we can group the dropdown
+   * into "全部符合" → "部分符合" → "其他成員" without re-computing per render.
+   */
+  const { fullMatch, partialMatch, noMatch } = useMemo(() => {
+    const hasRequirements = (item.requiredSkills?.length ?? 0) > 0;
+    const full: Array<{ id: string; name: string }> = [];
+    const partial: Array<{ id: string; name: string; matched: number; total: number }> = [];
+    const none: Array<{ id: string; name: string }> = [];
+
+    for (const m of orgMembers) {
+      if (!hasRequirements) {
+        none.push(m);
+        continue;
+      }
+      // Members absent from eligibleMembers cannot be matched — treat as noMatch.
+      const view = eligibleMembers.find((e) => e.accountId === m.id);
+      if (!view) {
+        none.push(m);
+        continue;
+      }
+      const [matched, total] = computeSkillMatch(view, item.requiredSkills);
+      if (matched === total) full.push(m);
+      else if (matched > 0) partial.push({ ...m, matched, total });
+      else none.push(m);
+    }
+    return { fullMatch: full, partialMatch: partial, noMatch: none };
+  }, [orgMembers, eligibleMembers, item.requiredSkills]);
+
+  const hasRequirements = (item.requiredSkills?.length ?? 0) > 0;
+
   return (
     <div className="space-y-3 rounded-lg border bg-background p-4">
       <div className="flex items-start justify-between gap-2">
@@ -152,45 +196,104 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
         </Badge>
       </div>
 
-      {item.requiredSkills && item.requiredSkills.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {item.requiredSkills.map((req: SkillRequirement) => (
-            <Badge key={req.tagSlug} variant="secondary" className="text-[10px]">
-              {req.tagSlug} ≥ {req.minimumTier} × {req.quantity}
-            </Badge>
-          ))}
+      {hasRequirements && (
+        <div className="space-y-1" role="group" aria-label="所需技能">
+          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground" aria-hidden="true">
+            所需技能
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {item.requiredSkills?.map((req: SkillRequirement) => (
+              <Badge key={req.tagSlug} variant="secondary" className="text-[10px]">
+                {getSkillName(req.tagSlug)} × {req.quantity}
+              </Badge>
+            ))}
+          </div>
         </div>
       )}
 
       <div className="flex items-center gap-2">
-        <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
-          <SelectTrigger className="h-8 flex-1 text-xs">
-            <Users className="mr-1 size-3 shrink-0 text-muted-foreground" />
-            <SelectValue placeholder="選擇指派成員" />
-          </SelectTrigger>
-          <SelectContent>
-            {orgMembers.map((m) => {
-              const view = eligibleMembers.find((e) => e.accountId === m.id);
-              const [matched, total] = view
-                ? computeSkillMatch(view, item.requiredSkills)
-                : [0, 0];
-              const isEligible = view?.eligible ?? false;
-              return (
-                <SelectItem key={m.id} value={m.id} className="text-xs">
-                  <span className="flex items-center gap-1.5">
-                    <span className={`size-1.5 rounded-full ${isEligible ? 'bg-green-500' : 'bg-muted'}`} />
-                    {m.name}
-                    {total > 0 && (
-                      <span className={`ml-1 text-[9px] font-bold ${matched === total ? 'text-green-600' : 'text-amber-500'}`}>
-                        {matched}/{total}
-                      </span>
+        <Popover open={memberSearchOpen} onOpenChange={setMemberSearchOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" role="combobox" aria-expanded={memberSearchOpen} className="h-8 flex-1 justify-start text-xs">
+              <Users className="mr-1 size-3 shrink-0 text-muted-foreground" />
+              {selectedMemberId
+                ? orgMembers.find(m => m.id === selectedMemberId)?.name ?? '選擇指派成員'
+                : '選擇指派成員'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-0" align="start">
+            <Command>
+              <CommandInput placeholder="搜尋成員..." />
+              <CommandList>
+                <CommandEmpty>無符合成員</CommandEmpty>
+                {hasRequirements ? (
+                  <>
+                    {fullMatch.length > 0 && (
+                      <CommandGroup heading={`✓ 全部符合技能（${fullMatch.length}）`}>
+                        {fullMatch.map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={m.name}
+                            onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
+                            className="text-xs"
+                          >
+                            <span className="mr-1 text-green-600">●</span>
+                            {m.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
                     )}
-                  </span>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+                    {partialMatch.length > 0 && (
+                      <CommandGroup heading={`◑ 部分符合（${partialMatch.length}）`}>
+                        {partialMatch.map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={m.name}
+                            onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
+                            className="text-xs"
+                          >
+                            <span className="mr-1 text-amber-500">●</span>
+                            {m.name}
+                            <span className="ml-auto text-[9px] font-bold text-amber-500">
+                              {m.matched}/{m.total}
+                            </span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                    {noMatch.length > 0 && (
+                      <CommandGroup heading={`其他成員（${noMatch.length}）`}>
+                        {noMatch.map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={m.name}
+                            onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
+                            className="text-xs text-muted-foreground"
+                          >
+                            {m.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                  </>
+                ) : (
+                  <CommandGroup>
+                    {orgMembers.map((m) => (
+                      <CommandItem
+                        key={m.id}
+                        value={m.name}
+                        onSelect={() => { setSelectedMemberId(m.id); setMemberSearchOpen(false); }}
+                        className="text-xs"
+                      >
+                        {m.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
         {selectedMemberMatch && (
           <Badge

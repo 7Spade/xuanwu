@@ -9,9 +9,8 @@
  *   blockedBy is an array (Firestore serialization of a Set; no duplicates enforced by domain).
  */
 
-import { collection, getDocs, query, type QueryDocumentSnapshot, type DocumentData, where } from '@/shared/infra/firestore/firestore.read.adapter';
-
 import { db } from '@/shared/infra/firestore/firestore.client';
+import { collection, getDocs, query, type QueryDocumentSnapshot, type DocumentData, where } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 

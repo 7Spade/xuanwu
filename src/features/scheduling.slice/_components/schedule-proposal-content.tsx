@@ -2,12 +2,11 @@
 "use client"
 
 import { parseISO } from "date-fns"
-import { Timestamp } from "@/shared/infra/firestore/firestore.read.adapter"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import type { SkillRequirement } from "@/features/shared-kernel"
 import { useWorkspace } from "@/features/workspace.slice"
-import type { ScheduleItem, Location } from "@/shared/types"
+import type { Location } from "@/shared/types"
 import { toast } from "@/shared/utility-hooks/use-toast"
 
 import { ProposalDialog } from "./proposal-dialog"
@@ -39,8 +38,8 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
       workspaceId: workspace.id,
       workspaceName: workspace.name,
       title: data.title.trim(),
-      startDate: data.startDate ? Timestamp.fromDate(data.startDate) : Timestamp.now(),
-      endDate: data.endDate ? Timestamp.fromDate(data.endDate) : Timestamp.now(),
+      startDate: data.startDate ?? null,
+      endDate: data.endDate ?? null,
       location: data.location,
       status: "PROPOSAL",
       originType: "MANUAL",
@@ -48,7 +47,7 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
       // Omit optional fields rather than passing undefined — Firestore rejects undefined values.
       ...(data.description?.trim() ? { description: data.description.trim() } : {}),
       ...(data.requiredSkills.length > 0 ? { requiredSkills: data.requiredSkills } : {}),
-    } as Omit<ScheduleItem, "id" | "createdAt" | "updatedAt">)
+    })
     toast({
       title: "排程提案已送出",
       description: "您的申請已送至組織審核。",

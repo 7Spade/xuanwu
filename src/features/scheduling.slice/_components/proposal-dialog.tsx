@@ -1,18 +1,25 @@
 "use client";
 
 import { format } from "date-fns";
-import { CalendarIcon, MapPin, Plus, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { CalendarIcon, ChevronsUpDown, MapPin, Plus, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { type DateRange } from "react-day-picker";
 
 import type { SkillRequirement } from "@/features/shared-kernel";
-import { TIER_DEFINITIONS } from "@/features/shared-kernel";
 import { getOrgSkillTags } from "@/features/skill-xp.slice";
-import { SKILLS } from "@/shared/constants/skills";
+import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills";
 import { cn } from "@/shared/lib";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Calendar } from "@/shared/shadcn-ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/shared/shadcn-ui/command";
 import {
   Dialog,
   DialogContent,
@@ -24,9 +31,8 @@ import {
 import { Input } from "@/shared/shadcn-ui/input";
 import { Label } from "@/shared/shadcn-ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/shadcn-ui/select";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
-import { type Location, type SkillTier } from "@/shared/types";
+import { type Location } from "@/shared/types";
 import { toast } from "@/shared/utility-hooks/use-toast";
 
 const MAX_SKILL_REQUIREMENT_QUANTITY = 99;
@@ -69,7 +75,7 @@ export function ProposalDialog({
   const [location, setLocation] = useState<Location>({ description: '' });
   const [requiredSkills, setRequiredSkills] = useState<SkillRequirement[]>([]);
   const [selectedSkillSlug, setSelectedSkillSlug] = useState("");
-  const [selectedTier, setSelectedTier] = useState<SkillTier>("apprentice");
+  const [skillPickerOpen, setSkillPickerOpen] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState<string>("1");
 
   // FR-K5: Org skill tag pool — loaded once per dialog open when orgId is provided.
@@ -83,7 +89,7 @@ export function ProposalDialog({
     setLocation({ description: '' });
     setRequiredSkills([]);
     setSelectedSkillSlug("");
-    setSelectedTier("apprentice");
+    setSkillPickerOpen(false);
     setSelectedQuantity("1");
 
     if (orgId) {
@@ -102,6 +108,34 @@ export function ProposalDialog({
     }
   }, [isOpen, initialDate, orgId]);
 
+  // Pre-compute a slug → SkillDefinition map for O(1) lookups in the grouped picker.
+  const skillBySlug = useMemo(
+    () => new Map(SKILLS.map(s => [s.slug, s])),
+    []
+  );
+
+  // Pre-compute grouped structure: group → subCategory → skillOptions entries.
+  const groupedSkillOptions = useMemo(() => {
+    return SKILL_GROUPS.map(group => {
+      const subCategoryEntries = group.subCategories.flatMap(subCatKey => {
+        const subCatMeta = SKILL_SUB_CATEGORY_BY_KEY.get(subCatKey);
+        const subSkills = skillOptions.filter(s => {
+          const def = skillBySlug.get(s.slug);
+          return def?.group === group.group && def?.subCategory === subCatKey;
+        });
+        return subSkills.map(skill => ({
+          slug: skill.slug,
+          name: skill.name,
+          subCatZhLabel: subCatMeta?.zhLabel ?? '',
+          subCatEnLabel: subCatMeta?.enLabel ?? '',
+          /** Value string for cmdk filtering — covers zh + en + sub-category labels. */
+          searchValue: `${skill.name} ${subCatMeta?.zhLabel ?? ''} ${subCatMeta?.enLabel ?? ''} ${group.zhLabel} ${group.enLabel}`,
+        }));
+      });
+      return { group, subCategoryEntries };
+    }).filter(g => g.subCategoryEntries.length > 0);
+  }, [skillOptions, skillBySlug]);
+
   const handleLocationChange = (field: keyof Location, value: string) => {
     setLocation(prev => ({
         ...prev,
@@ -119,7 +153,7 @@ export function ProposalDialog({
     }
     const requirement: SkillRequirement = {
       tagSlug: selectedSkillSlug,
-      minimumTier: selectedTier,
+      minimumTier: 'apprentice',
       quantity: Math.max(1, parseInt(selectedQuantity) || 1),
     };
     setRequiredSkills(prev => [...prev, requirement]);
@@ -134,6 +168,10 @@ export function ProposalDialog({
   const handleSubmit = async () => {
     if (!title.trim()) {
       toast({ variant: 'destructive', title: 'Title is required' });
+      return;
+    }
+    if (requiredSkills.length === 0) {
+      toast({ variant: 'destructive', title: 'At least one skill requirement is needed' });
       return;
     }
     setIsAdding(true);
@@ -207,15 +245,15 @@ export function ProposalDialog({
                 />
             </div>
           <div className="space-y-2">
-            <Label>Required Skills (Optional)</Label>
-            <p className="text-xs text-muted-foreground">Specify staffing requirements so the organization can match available members.</p>
+            <Label>Required Skills</Label>
+            <p className="text-xs text-muted-foreground">Specify at least one staffing requirement so the organization can match available members.</p>
             {requiredSkills.length > 0 && (
               <div className="flex flex-wrap gap-2 py-1">
                 {requiredSkills.map(req => {
                   const skillName = skillOptions.find(s => s.slug === req.tagSlug)?.name ?? req.tagSlug;
                   return (
                     <Badge key={req.tagSlug} variant="secondary" className="gap-1 pr-1">
-                      {skillName} · {req.minimumTier} · ×{req.quantity}
+                      {skillName} · ×{req.quantity}
                       <button
                         type="button"
                         onClick={() => handleRemoveSkillRequirement(req.tagSlug)}
@@ -230,32 +268,56 @@ export function ProposalDialog({
             )}
             <div className="flex items-end gap-2">
               <div className="flex-1">
-                <Select value={selectedSkillSlug} onValueChange={setSelectedSkillSlug}>
-                  <SelectTrigger className="h-9 text-xs">
-                    <SelectValue placeholder="Select skill..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {skillOptions.map(skill => (
-                      <SelectItem key={skill.slug} value={skill.slug} className="text-xs">
-                        {skill.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-32">
-                <Select value={selectedTier} onValueChange={(v) => setSelectedTier(v as SkillTier)}>
-                  <SelectTrigger className="h-9 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TIER_DEFINITIONS.map(def => (
-                      <SelectItem key={def.tier} value={def.tier} className="text-xs">
-                        {def.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={skillPickerOpen} onOpenChange={setSkillPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={skillPickerOpen}
+                      className="h-9 w-full justify-between text-xs font-normal"
+                    >
+                      <span className="truncate">
+                        {selectedSkillSlug
+                          ? (skillOptions.find(s => s.slug === selectedSkillSlug)?.name ?? selectedSkillSlug)
+                          : 'Select skill...'}
+                      </span>
+                      <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-72 p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search skills..." className="h-9 text-xs" />
+                      <CommandList>
+                        <CommandEmpty className="text-xs">No skill found.</CommandEmpty>
+                        {groupedSkillOptions.map(({ group, subCategoryEntries }) => (
+                          <CommandGroup
+                            key={group.group}
+                            heading={`${group.zhLabel} — ${group.enLabel}`}
+                          >
+                            {subCategoryEntries.map(skill => (
+                              <CommandItem
+                                key={skill.slug}
+                                value={skill.searchValue}
+                                onSelect={() => {
+                                  setSelectedSkillSlug(skill.slug);
+                                  setSkillPickerOpen(false);
+                                }}
+                                className="text-xs"
+                              >
+                                <span className="flex-1">{skill.name}</span>
+                                {skill.subCatZhLabel && (
+                                  <span className="ml-2 text-[10px] text-muted-foreground">
+                                    {skill.subCatZhLabel}
+                                  </span>
+                                )}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        ))}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <Input
                 type="number"

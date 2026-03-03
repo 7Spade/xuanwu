@@ -1,61 +1,51 @@
 
 "use client";
 
-import { serverTimestamp, type FieldValue } from "@/shared/infra/firestore/firestore.write.adapter";
 import { useCallback } from "react";
 
 import { useApp } from "@/shared/app-providers/app-context";
-import { useFirebase } from "@/shared/app-providers/firebase-provider";
-import { addDocument } from "@/shared/infra/firestore/firestore.write.adapter";
 import type { AuditLog, Account } from "@/shared/types";
+
+import { writeDailyLog, writeAuditLog } from '../_actions';
 
 /**
  * useLogger - Zero-cognition logging interface.
  * Automatically handles the physical separation of Daily and Audit logs.
- * REFACTORED: Now uses the official write adapter instead of direct SDK calls,
- * respecting architectural boundaries.
+ * [D3][D5] All Firestore writes delegated to _actions.ts — no infra imports here.
  */
 export function useLogger(workspaceId?: string, workspaceName?: string) {
-  const { db } = useFirebase();
   const { state: appState } = useApp();
   const { activeAccount } = appState;
 
   const logDaily = useCallback(async (content: string, photoURLs: string[] | undefined, user: Account) => {
-    if (!activeAccount || activeAccount.accountType !== 'organization' || !user || !db) return;
+    if (!activeAccount || activeAccount.accountType !== 'organization' || !user) return;
 
-    const dailyData = {
+    return writeDailyLog({
+      accountId: activeAccount.id,
       content,
       author: {
         uid: user.id,
         name: user.name,
-        avatarUrl: '', // You might want to get this from user profile
+        avatarUrl: '', // populated at display time from the user's profile photo URL
       },
-      recordedAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
-      accountId: activeAccount.id,
-      workspaceId: workspaceId || "",
-      workspaceName: workspaceName || "Dimension Level",
-      photoURLs: photoURLs || [],
-    };
-
-    return addDocument(`accounts/${activeAccount.id}/dailyLogs`, dailyData);
-  }, [db, activeAccount, workspaceId, workspaceName]);
+      workspaceId: workspaceId,
+      workspaceName: workspaceName,
+      photoURLs: photoURLs ?? [],
+    });
+  }, [activeAccount, workspaceId, workspaceName]);
 
   const logAudit = useCallback(async (action: string, target: string, type: AuditLog['type']) => {
-    if (!activeAccount || activeAccount.accountType !== 'organization' || !db) return;
+    if (!activeAccount || activeAccount.accountType !== 'organization') return;
 
-    const eventData: Omit<AuditLog, 'id'| 'recordedAt'> & { recordedAt: FieldValue } = {
+    return writeAuditLog({
+      accountId: activeAccount.id,
       actor: activeAccount.name,
       action,
       target,
       type,
-      recordedAt: serverTimestamp(),
-      accountId: activeAccount.id,
-      workspaceId: workspaceId || undefined
-    };
-
-    return addDocument(`accounts/${activeAccount.id}/auditLogs`, eventData);
-  }, [db, activeAccount, workspaceId]);
+      workspaceId: workspaceId,
+    });
+  }, [activeAccount, workspaceId]);
 
   return { logDaily, logAudit };
 }

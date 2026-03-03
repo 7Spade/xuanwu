@@ -20,7 +20,6 @@
  *   — the ScheduleItem SSOT. It does NOT write to any other BC's aggregate.
  */
 
-import { arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import type {
   ScheduleAssignedPayload,
@@ -32,6 +31,7 @@ import type {
 import { versionGuardAllows } from '@/features/shared-kernel';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
 import { updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
 

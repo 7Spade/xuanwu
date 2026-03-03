@@ -1,15 +1,19 @@
 "use client";
 
-import { collection, query, where, onSnapshot, type QuerySnapshot, orderBy, limit } from "@/shared/infra/firestore/firestore.read.adapter";
 import type React from 'react';
 import {type ReactNode} from 'react';
 import { createContext, useReducer, useEffect } from 'react';
 
-import { useFirebase } from "@/shared/app-providers/firebase-provider";
-import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils';
 import { type Workspace, type DailyLog, type AuditLog, type PartnerInvite, type ScheduleItem } from '@/shared/types';
 
 import { useApp } from '../_hooks/use-app';
+import {
+  subscribeToDailyLogsForAccount,
+  subscribeToAuditLogsForAccount,
+  subscribeToInvitesForAccount,
+  subscribeToScheduleItemsForAccount,
+  subscribeToWorkspacesForAccount,
+} from '../_queries';
 
 // State and Action Types
 interface AccountState {
@@ -21,11 +25,11 @@ interface AccountState {
 }
 
 type Action =
-  | { type: 'SET_WORKSPACES'; payload: QuerySnapshot }
-  | { type: 'SET_DAILY_LOGS'; payload: QuerySnapshot }
-  | { type: 'SET_AUDIT_LOGS'; payload: QuerySnapshot }
-  | { type: 'SET_INVITES'; payload: QuerySnapshot }
-  | { type: 'SET_SCHEDULE_ITEMS'; payload: QuerySnapshot }
+  | { type: 'SET_WORKSPACES'; payload: Record<string, Workspace> }
+  | { type: 'SET_DAILY_LOGS'; payload: Record<string, DailyLog> }
+  | { type: 'SET_AUDIT_LOGS'; payload: Record<string, AuditLog> }
+  | { type: 'SET_INVITES'; payload: Record<string, PartnerInvite> }
+  | { type: 'SET_SCHEDULE_ITEMS'; payload: Record<string, ScheduleItem> }
   | { type: 'RESET_STATE' };
 
 // Initial State
@@ -44,8 +48,7 @@ const accountReducer = (state: AccountState, action: Action): AccountState => {
         return initialState;
 
     case 'SET_WORKSPACES': {
-        if (!action.payload?.docs) return { ...state, workspaces: {} };
-        const newWorkspaces = snapshotToRecord<Workspace>(action.payload);
+        const newWorkspaces = action.payload;
         // Preserve subcollections from old state when workspace list is updated
         // This is important because subcollection listeners are in WorkspaceProvider now
         const updatedWorkspaces = { ...state.workspaces };
@@ -65,20 +68,16 @@ const accountReducer = (state: AccountState, action: Action): AccountState => {
     }
     
     case 'SET_DAILY_LOGS':
-        if (!action.payload?.docs) return state;
-        return { ...state, dailyLogs: snapshotToRecord(action.payload) };
+        return { ...state, dailyLogs: action.payload };
 
     case 'SET_AUDIT_LOGS':
-        if (!action.payload?.docs) return state;
-        return { ...state, auditLogs: snapshotToRecord(action.payload) };
+        return { ...state, auditLogs: action.payload };
         
     case 'SET_INVITES':
-        if (!action.payload?.docs) return state;
-        return { ...state, invites: snapshotToRecord(action.payload) };
+        return { ...state, invites: action.payload };
     
     case 'SET_SCHEDULE_ITEMS':
-        if (!action.payload?.docs) return { ...state, schedule_items: {} };
-        return { ...state, schedule_items: snapshotToRecord<ScheduleItem>(action.payload) };
+        return { ...state, schedule_items: action.payload };
 
     default:
       return state;
@@ -91,13 +90,12 @@ export const AccountContext = createContext<{ state: AccountState; dispatch: Rea
 
 // Provider
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
-    const { db } = useFirebase();
     const { state: appState } = useApp();
     const { activeAccount } = appState;
     const [state, dispatch] = useReducer(accountReducer, initialState);
 
     useEffect(() => {
-        if (!activeAccount?.id || !db) {
+        if (!activeAccount?.id) {
             dispatch({ type: 'RESET_STATE' })
             return
         };
@@ -106,27 +104,27 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
         // 1. Listen to top-level collections for the active account
         if (activeAccount.accountType === 'organization') {
-            const dailyLogsQuery = query(collection(db, "accounts", activeAccount.id, "dailyLogs"), orderBy("recordedAt", "desc"), limit(50))
-            unsubs.push(onSnapshot(dailyLogsQuery, (snap) => dispatch({ type: 'SET_DAILY_LOGS', payload: snap })))
+            unsubs.push(subscribeToDailyLogsForAccount(activeAccount.id, (logs) =>
+              dispatch({ type: 'SET_DAILY_LOGS', payload: logs })))
 
-            const auditLogsQuery = query(collection(db, "accounts", activeAccount.id, "auditLogs"), orderBy("recordedAt", "desc"), limit(50))
-            unsubs.push(onSnapshot(auditLogsQuery, (snap) => dispatch({ type: 'SET_AUDIT_LOGS', payload: snap })))
+            unsubs.push(subscribeToAuditLogsForAccount(activeAccount.id, (logs) =>
+              dispatch({ type: 'SET_AUDIT_LOGS', payload: logs })))
             
-            const invitesQuery = query(collection(db, "accounts", activeAccount.id, "invites"), orderBy("invitedAt", "desc"))
-            unsubs.push(onSnapshot(invitesQuery, (snap) => dispatch({ type: 'SET_INVITES', payload: snap })))
+            unsubs.push(subscribeToInvitesForAccount(activeAccount.id, (invites) =>
+              dispatch({ type: 'SET_INVITES', payload: invites })))
 
-            const scheduleQuery = query(collection(db, "accounts", activeAccount.id, "schedule_items"), orderBy("createdAt", "desc"))
-            unsubs.push(onSnapshot(scheduleQuery, (snap) => dispatch({ type: 'SET_SCHEDULE_ITEMS', payload: snap })))
+            unsubs.push(subscribeToScheduleItemsForAccount(activeAccount.id, (items) =>
+              dispatch({ type: 'SET_SCHEDULE_ITEMS', payload: items })))
         }
         
-        const wsQuery = query(collection(db, "workspaces"), where("dimensionId", "==", activeAccount.id))
-        unsubs.push(onSnapshot(wsQuery, (snap) => dispatch({ type: 'SET_WORKSPACES', payload: snap })))
+        unsubs.push(subscribeToWorkspacesForAccount(activeAccount.id, (workspaces) =>
+          dispatch({ type: 'SET_WORKSPACES', payload: workspaces })))
         
         return () => {
             unsubs.forEach(unsub => unsub())
         }
 
-    }, [activeAccount, db])
+    }, [activeAccount])
 
     return (
         <AccountContext.Provider value={{ state, dispatch }}>

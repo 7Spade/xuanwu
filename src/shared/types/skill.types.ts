@@ -14,55 +14,15 @@
  *   - XP and skill grants belong to the PERSON, not the organisation.
  *   - `tagSlug` is the portable cross-org identifier (matches SkillSlug in constants/skills).
  * Naming is intentionally industry-semantic to support future AI-agent scheduling.
+ *
+ * [D19] SkillTier, TierDefinition, SkillRequirement canonical definitions live in
+ *       @/features/shared-kernel/skill-tier; re-exported here as legacy fallback barrel.
  */
 
-import type { Timestamp } from '@/shared/ports'
+import type { SkillTier } from '@/features/shared-kernel/skill-tier';
+import type { Timestamp } from '@/shared/ports';
 
-// ---------------------------------------------------------------------------
-// Skill tier & requirement — canonical type definitions
-// (runtime functions live in @/features/shared-kernel/skill-tier)
-// ---------------------------------------------------------------------------
-
-/**
- * Seven-tier proficiency scale.
- * Values are stable identifiers (safe for Firestore storage & AI prompts).
- */
-export type SkillTier =
-  | 'apprentice'    // Tier 1 — 0–75 XP
-  | 'journeyman'    // Tier 2 — 75–150 XP
-  | 'expert'        // Tier 3 — 150–225 XP
-  | 'artisan'       // Tier 4 — 225–300 XP
-  | 'grandmaster'   // Tier 5 — 300–375 XP  (core colour)
-  | 'legendary'     // Tier 6 — 375–450 XP
-  | 'titan';        // Tier 7 — 450–525 XP
-
-/** Static metadata for a single tier. Used by UI and shared/lib. */
-export interface TierDefinition {
-  tier: SkillTier;
-  /** Ordinal position (1 = lowest). Used for tier comparison without importing runtime functions. */
-  rank: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  /** Display name shown in UI badges (e.g. "Apprentice", "Grandmaster"). */
-  label: string;
-  /** Inclusive lower XP bound for this tier. */
-  minXp: number;
-  /** Exclusive upper XP bound (last tier uses Number.MAX_SAFE_INTEGER as sentinel). */
-  maxXp: number;
-  /** Hex colour used for the badge background / ring (e.g. `"#9333ea"`). */
-  color: string;
-  /** CSS custom property name for theming (e.g. `"--tier-grandmaster"`). */
-  cssVar: string;
-}
-
-/**
- * Expresses a staffing need inside a ScheduleItem proposal.
- * Flows from Workspace BC → Organization BC via WORKSPACE_OUTBOX events.
- */
-export interface SkillRequirement {
-  tagSlug: string;
-  tagId?: string;
-  minimumTier: SkillTier;
-  quantity: number;
-}
+export type { SkillTier, TierDefinition, SkillRequirement } from '@/features/shared-kernel/skill-tier';
 
 // ---------------------------------------------------------------------------
 // Global skill-tag library (static reference type)

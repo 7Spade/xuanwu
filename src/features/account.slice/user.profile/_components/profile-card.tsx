@@ -3,7 +3,7 @@
 import { User, Loader2, Upload } from "lucide-react";
 import type React from "react"
 
-import { SKILLS, type SkillCategory } from "@/shared/constants/skills"
+import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/shadcn-ui/avatar";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -14,11 +14,6 @@ import { Label } from "@/shared/shadcn-ui/label";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
 import { type SkillGrant, type Account } from "@/shared/types"
 
-
-const SKILL_CATEGORIES: SkillCategory[] = [
-  'Civil', 'Electrical', 'Mechanical', 'Finishing',
-  'HeavyEquipment', 'Safety', 'Engineering', 'Management',
-]
 
 interface ProfileCardProps {
   account: Account | null
@@ -95,33 +90,53 @@ export function ProfileCard({
         <div className="grid gap-2">
           <Label>Skills</Label>
           <p className="text-sm text-muted-foreground">Select your skills. These are used for schedule staffing matching.</p>
-          <div className="space-y-4 pt-2">
-            {SKILL_CATEGORIES.map(category => {
-              const categorySkills = SKILLS.filter(s => s.category === category)
+          <div className="space-y-6 pt-2">
+            {SKILL_GROUPS.map(({ group, zhLabel, enLabel, subCategories }) => {
+              const groupSkills = SKILLS.filter(s => s.group === group)
+              if (!groupSkills.length) return null
               return (
-                <div key={category}>
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{category}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {categorySkills.map(skill => {
-                      const granted = grantedSlugs.has(skill.slug)
+                <div key={group}>
+                  {/* 大項目 */}
+                  <p className="mb-3 text-xs font-bold text-foreground">
+                    {zhLabel}
+                    <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">{enLabel}</span>
+                  </p>
+                  <div className="space-y-3 pl-2">
+                    {subCategories.map(subCat => {
+                      const subSkills = SKILLS.filter(s => s.group === group && s.subCategory === subCat)
+                      if (!subSkills.length) return null
+                      const subMeta = SKILL_SUB_CATEGORY_BY_KEY.get(subCat)
                       return (
-                        <div key={skill.slug} className="flex items-center gap-1.5">
-                          <Checkbox
-                            id={`skill-${skill.slug}`}
-                            checked={granted}
-                            onCheckedChange={() => onSkillToggle(skill.slug)}
-                          />
-                          <label
-                            htmlFor={`skill-${skill.slug}`}
-                            className="cursor-pointer text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {skill.name}
-                          </label>
-                          {granted && (
-                            <Badge variant="outline" className="h-4 px-1 text-[9px] font-semibold">
-                              {grantsBySlug.get(skill.slug)?.tier ?? 'apprentice'}
-                            </Badge>
-                          )}
+                        <div key={subCat}>
+                          {/* 子項目 */}
+                          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                            {subMeta?.zhLabel ?? subCat}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {subSkills.map(skill => {
+                              const granted = grantedSlugs.has(skill.slug)
+                              return (
+                                <div key={skill.slug} className="flex items-center gap-1.5">
+                                  <Checkbox
+                                    id={`skill-${skill.slug}`}
+                                    checked={granted}
+                                    onCheckedChange={() => onSkillToggle(skill.slug)}
+                                  />
+                                  <label
+                                    htmlFor={`skill-${skill.slug}`}
+                                    className="cursor-pointer text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                  >
+                                    {skill.name}
+                                  </label>
+                                  {granted && (
+                                    <Badge variant="outline" className="h-4 px-1 text-[9px] font-semibold">
+                                      {grantsBySlug.get(skill.slug)?.tier ?? 'apprentice'}
+                                    </Badge>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
                       )
                     })}

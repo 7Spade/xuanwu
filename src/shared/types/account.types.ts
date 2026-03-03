@@ -4,6 +4,9 @@ import type { SkillGrant } from './skill.types'
 
 export type AccountType = 'user' | 'organization'
 export type OrganizationRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
+export type Presence = 'active' | 'away' | 'offline';
+export type InviteState = 'pending' | 'accepted' | 'expired';
+export type NotificationType = 'info' | 'alert' | 'success';
 
 export interface Account {
   id: string
@@ -44,7 +47,7 @@ export interface MemberReference {
   name: string;
   email: string;
   role: OrganizationRole;
-  presence: 'active' | 'away' | 'offline';
+  presence: Presence;
   isExternal?: boolean;
   expiryDate?: Timestamp;
   /**
@@ -96,7 +99,7 @@ export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: 'info' | 'alert' | 'success';
+  type: NotificationType;
   read: boolean;
   timestamp: number;
 }
@@ -106,7 +109,7 @@ export interface PartnerInvite {
   email: string;
   teamId: string;
   role: OrganizationRole;
-  inviteState: 'pending' | 'accepted' | 'expired';
+  inviteState: InviteState;
   invitedAt: Timestamp; // Event Timestamp
   protocol: string;
 }

@@ -22,7 +22,6 @@
  */
 
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { appendXpLedgerEntry } from './_ledger';
 
@@ -84,14 +83,15 @@ function aggregatePath(accountId: string, skillId: string): string {
  * @param opts.orgId   Organization context (passed through to caller for event payload).
  * @param opts.reason  Human-readable reason for the ledger entry.
  * @param opts.sourceId  Optional source object ID (e.g. taskId, scheduleItemId).
- * @returns The new XP value, the actual applied delta (after clamping), and the new aggregate version.
+ * @returns The new XP value, the actual applied delta (after clamping), the new aggregate version,
+ *          and the record to persist — caller (_actions.ts) is responsible for the setDocument write (D3).
  */
 export async function addXp(
   accountId: string,
   skillId: string,
   delta: number,
   opts: { orgId: string; reason?: string; sourceId?: string }
-): Promise<{ newXp: number; xpDelta: number; version: number }> {
+): Promise<{ newXp: number; xpDelta: number; version: number; record: AccountSkillRecord; path: string }> {
   const existing = await getDocument<AccountSkillRecord>(
     aggregatePath(accountId, skillId)
   );
@@ -108,28 +108,21 @@ export async function addXp(
     sourceId: opts.sourceId,
   });
 
-  await setDocument(aggregatePath(accountId, skillId), {
-    accountId,
-    skillId,
-    xp: newXp,
-    version: newVersion,
-  } satisfies AccountSkillRecord);
-
-  return { newXp, xpDelta: actualDelta, version: newVersion };
+  const record: AccountSkillRecord = { accountId, skillId, xp: newXp, version: newVersion };
+  return { newXp, xpDelta: actualDelta, version: newVersion, record, path: aggregatePath(accountId, skillId) };
 }
 
 /**
  * Mirrors addXp; delta should be positive (the deduction amount).
  * Net XP is clamped at SKILL_XP_MIN (0).
- * Returns { newXp, xpDelta, version } — caller (_actions.ts) publishes SkillXpDeducted
- * to the org event bus (E1 — not the aggregate's concern).
+ * Returns { newXp, xpDelta, version, record, path } — caller (_actions.ts) persists via setDocument (D3).
  */
 export async function deductXp(
   accountId: string,
   skillId: string,
   delta: number,
   opts: { orgId: string; reason?: string; sourceId?: string }
-): Promise<{ newXp: number; xpDelta: number; version: number }> {
+): Promise<{ newXp: number; xpDelta: number; version: number; record: AccountSkillRecord; path: string }> {
   const existing = await getDocument<AccountSkillRecord>(
     aggregatePath(accountId, skillId)
   );
@@ -146,14 +139,8 @@ export async function deductXp(
     sourceId: opts.sourceId,
   });
 
-  await setDocument(aggregatePath(accountId, skillId), {
-    accountId,
-    skillId,
-    xp: newXp,
-    version: newVersion,
-  } satisfies AccountSkillRecord);
-
-  return { newXp, xpDelta: actualDelta, version: newVersion };
+  const record: AccountSkillRecord = { accountId, skillId, xp: newXp, version: newVersion };
+  return { newXp, xpDelta: actualDelta, version: newVersion, record, path: aggregatePath(accountId, skillId) };
 }
 
 /**

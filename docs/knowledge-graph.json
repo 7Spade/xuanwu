@@ -4,8 +4,10 @@
       "name": "VS_Category",
       "entityType": "Domain_Category",
       "observations": [
-        "VS mapping: VS0=SharedKernel foundation (not a business vertical slice); VS1=Identity; VS2=Account; VS3=SkillXP; VS4=Organization; VS5=Workspace; VS6=Scheduling; VS7=Notification.",
-        "Cross-slice rule: each slice mutates only its own aggregate; collaboration via contracts/events/projections."
+        "VS mapping: VS0=SharedKernel foundation (not a business vertical slice); VS1=Identity; VS2=Account; VS3=SkillXP; VS4=Organization; VS5=Workspace; VS6=Scheduling; VS7=Notification; VS8=SemanticGraph (The Brain).",
+        "VS8 replaces the former TAG_AUTH (Tag Authority Center) and elevates it to a first-class business vertical slice with taxonomy, causality tracking, and scheduling conflict semantic detection.",
+        "Cross-slice rule: each slice mutates only its own aggregate; collaboration via contracts/events/projections.",
+        "Tag write rule [#A6 D21]: all business slices (VS1–VS7) must write tag changes through L2 Command Gateway into VS8; direct tag mutation is forbidden."
       ]
     },
     {
@@ -44,16 +46,17 @@
         "Critical retained references: #9 replay rebuildability, #12 getTier(xp) purity, #14 scheduling reads ORG_ELIGIBLE_MEMBER_VIEW, #19 monotonic aggregateVersion guard, A8 one-command-one-aggregate TX, A9 scope-guard re-source.",
         "SSOT fallback: use docs/logic-overview.md for full definitions and implementation details.",
         "A11 Occam's Razor: Simplicity is a hard constraint. Do not multiply entities or abstractions beyond necessity. Use 'sequential-thinking mcp' to validate the simplest path before implementation.",
-        "A12 Unified IO: All state mutations must pass through L2 Command Gateway; all data reads via L6 Query Gateway. Direct infrastructure access (L8) is strictly forbidden."
+        "A12 Global Search Authority: Global Search = cross-slice authority (語義門戶). Sole cross-domain search outlet; all slices are forbidden from building their own search logic.",
+        "A13 Notification Hub Authority: Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy."
       ]
     },
     {
       "name": "D_Category",
       "entityType": "Design_Rule",
       "observations": [
-        "Design rules D1-D25 are all mandatory governance constraints.",
+        "Design rules D1-D26 are all mandatory governance constraints.",
         "Enforcement hotspots: D7 public slice boundary via {slice}/index.ts; D24 no direct firebase/* import in feature slices; D25 new Firebase capability must enter through FIREBASE_ACL + SK_PORTS.",
-        "D26 Style Consistency: Adhere strictly to project .prettierrc and ESLint rules. Use 'ESLint mcp' for style-rule validation.",
+        "D26 Cross-cutting Authority: global-search.slice = sole cross-domain search authority [#A12]; notification-hub = sole side-effect outlet [#A13]. Both must own _actions.ts / _services.ts per D3; must not parasitize shared-kernel per D8.",
         "UI component source consistency: use 'shadcn mcp' as the primary source for generated UI components.",
         "D27 Type Truth: All domain entities must be defined in L1 Shared Kernel (SK_DATA). No duplicate type definitions allowed in local feature slices. Trace type origins and contracts using 'software-planning mcp'."
       ]
@@ -70,7 +73,7 @@
       "name": "T_Category",
       "entityType": "Tag_Semantics",
       "observations": [
-        "Tag semantics source: standalone TAG_AUTH authority (outside SharedKernel) under D21 governance.",
+        "Tag semantics source: VS8 Semantic Graph (formerly TAG_AUTH) is the sole domain authority under D21 governance.",
         "Critical retained references: T4 scheduling demand uses SK_SKILL_REQ × tagSlug; T5 TAG_SNAPSHOT is read-only to consumers.",
         "Tooling MCP governance is modeled via dedicated Tooling_MCP entities and relations.",
         "Relation note: T_Category → A_Category (validates) denotes tooling-assisted conformance checks against architecture invariants and applies to all Tooling_MCP entities unless a narrower relation overrides it."
@@ -84,17 +87,17 @@
       ]
     },
     {
-      "name": "A12 Unified IO",
+      "name": "A12 Global Search Authority",
       "entityType": "Architecture_Invariant",
       "observations": [
-        "Writes pass through L2 Command Gateway and reads pass through L6 Query Gateway; direct L8 access is forbidden."
+        "Global Search = cross-slice authority (語義門戶). Sole cross-domain search outlet; all slices are forbidden from building their own search logic."
       ]
     },
     {
-      "name": "D26 Style Consistency",
+      "name": "D26 Cross-cutting Authority",
       "entityType": "Design_Rule",
       "observations": [
-        "Enforce project Prettier and ESLint baselines with MCP-assisted validation."
+        "global-search.slice = sole cross-domain search authority [#A12]; notification-hub = sole side-effect outlet [#A13]. Both must own _actions.ts / _services.ts per D3; must not parasitize shared-kernel per D8."
       ]
     },
     {
@@ -161,11 +164,73 @@
       ]
     },
     {
+      "name": "VS8 Semantic Graph",
+      "entityType": "Domain_Slice",
+      "observations": [
+        "VS8 Semantic Graph (The Brain): the system's semantic hub, elevated from the former TAG_AUTH (Tag Authority Center) to a first-class vertical slice.",
+        "Responsibilities: Tag Taxonomy (tagSlug / label / category lifecycle), Causality Tracking (cross-slice tag event provenance), Scheduling Conflict Semantic Detection (semantic matching for VS6 scheduling combinations).",
+        "All business slices (VS1–VS7) register semantic changes through L2 Command Gateway into VS8; VS8 provides semantic data outward to consumers via L6 Query Gateway.",
+        "Invariant #17 and A6 still apply: VS8 is the sole authority for tagSlug uniqueness and deletion rules."
+      ]
+    },
+    {
+      "name": "Global Search",
+      "entityType": "Cross_Cutting_Authority",
+      "observations": [
+        "Global Search (global-search.slice) is the system's sole cross-domain semantic portal (語義門戶) and a Cross-cutting Authority (跨切片權威).",
+        "Queries VS8 Semantic Graph for semantic-index lookups, enabling unified search across all tagged domain entities — no direct Firestore collection reads.",
+        "Eliminates duplicate search logic (DRY): all slices delegate search to global-search.slice instead of implementing their own search/filter logic.",
+        "Supports multi-dimensional intersection queries: cross-slice compound queries (e.g., Organization × Skill × Availability × Partner).",
+        "Sole provider for global shortcut (Cmd+K) UI authority.",
+        "Must own its own _actions.ts and _services.ts per D26 (which enforces D3/D8 compliance); must not parasitize shared-kernel."
+      ]
+    },
+    {
+      "name": "Notification Hub",
+      "entityType": "Cross_Cutting_Authority",
+      "observations": [
+        "Notification Hub (notification-hub.slice / VS7 enhanced) is the system's sole side-effect outlet (反應中樞) and a Cross-cutting Authority (跨切片權威).",
+        "Per D3, business slices (e.g., Scheduling) only produce Events; Notification Hub decides 'how to notify' — decoupling business logic from delivery infrastructure.",
+        "Tag-Aware routing: Hub consults VS8 Semantic Graph tags to determine notification strategy (e.g., #channel:slack → Slack, #urgency:high → phone call).",
+        "Causality consistency: notification delivery is traceable (traceId from EventEnvelope [R8]) and replayable (idempotency-key).",
+        "Replaces scattered sendEmail()/push() calls across _actions.ts files; all notification side-effects route through this hub.",
+        "Must own its own _actions.ts and _services.ts per D26 (which enforces D3/D8 compliance); must not parasitize shared-kernel."
+      ]
+    },
+    {
+      "name": "A13 Notification Hub Authority",
+      "entityType": "Architecture_Invariant",
+      "observations": [
+        "Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy."
+      ]
+    },
+    {
       "name": "E_Category",
       "entityType": "Event_Semantics",
       "observations": [
         "Event semantics flow: Aggregate → Outbox → IER → ProjectionBus (no side-channel delivery).",
         "Trace semantics: EventEnvelope requires causationId + correlationId for cross-slice tracking and replay determinism."
+      ]
+    },
+    {
+      "name": "VS5 Workspace",
+      "entityType": "Vertical_Slice",
+      "observations": [
+        "VS5 = Workspace business vertical slice. Full autonomy achieved [2026-03-02].",
+        "IFileStore port (D25): StorageAdapter in shared/infra/storage implements IFileStore — no direct firebase/storage imports in feature code.",
+        "document-parser ParsingIntent carries SkillRequirement[] (tag::skill) per [T4] for downstream VS6 eligibility gate.",
+        "IntentDeltaProposedPayload emitted to event bus + ws-outbox on every saveParsingIntent [#A4][S1].",
+        "D24/D7 compliance verified: no direct firebase/* imports; no cross-slice coupling to scheduling internals."
+      ]
+    },
+    {
+      "name": "VS6 Scheduling",
+      "entityType": "Vertical_Slice",
+      "observations": [
+        "VS6 = Scheduling business vertical slice. Full autonomy achieved [2026-03-02].",
+        "QGWAY_SCHED [#14 #15 #16]: scheduling.slice/_queries.ts exposes getEligibleMembersForSchedule + getEligibleMemberForSchedule that route through projection.org-eligible-member-view via projection.bus. No direct Firestore reads for member eligibility.",
+        "A5 Saga [WorkspaceScheduleProposed → OrgEligibilityCheck → ScheduleAssigned] uses getOrgEligibleMembersWithTier from projection.bus, now also accessible via the typed QGWAY_SCHED wrappers in _queries.ts.",
+        "D7 compliance verified: no imports from workspace.slice internals."
       ]
     }
   ],
@@ -262,18 +327,133 @@
     },
     {
       "from": "ESLint mcp",
-      "to": "D26 Style Consistency",
-      "relationType": "guarantees"
+      "to": "D26 Cross-cutting Authority",
+      "relationType": "enforces",
+      "description": "ESLint rules (D24 no-restricted-imports) enforce parts of cross-cutting authority boundaries."
     },
     {
       "from": "software-planning mcp",
-      "to": "A12 Unified IO",
+      "to": "A12 Global Search Authority",
       "relationType": "plans"
     },
     {
       "from": "E_Category",
       "to": "S_Category",
       "relationType": "bounded_by"
+    },
+    {
+      "from": "VS8 Semantic Graph",
+      "to": "VS_Category",
+      "relationType": "provides_scheduling_match_to_VS6",
+      "description": "VS8 provides scheduling combination matching to VS6 (Scheduling). Target is VS_Category because VS6 is modeled as a member of VS_Category, not a standalone entity."
+    },
+    {
+      "from": "VS8 Semantic Graph",
+      "to": "VS_Category",
+      "relationType": "provides_semantic_tags_to_VS5",
+      "description": "VS8 provides semantic tags to VS5 (Workspace) for task tagging. Target is VS_Category because VS5 is modeled as a member of VS_Category, not a standalone entity."
+    },
+    {
+      "from": "Global Search",
+      "to": "VS8 Semantic Graph",
+      "relationType": "queries_semantic_index"
+    },
+    {
+      "from": "Global Search",
+      "to": "L_Category",
+      "relationType": "consumes_query_gateway"
+    },
+    {
+      "from": "Global Search",
+      "to": "D_Category",
+      "relationType": "governed_by"
+    },
+    {
+      "from": "Global Search",
+      "to": "A_Category",
+      "relationType": "constrained_by"
+    },
+    {
+      "from": "Global Search",
+      "to": "VS_Category",
+      "relationType": "provides_cross_slice_search",
+      "description": "Global Search is the sole cross-slice search authority. All slices delegate search to global-search.slice instead of implementing local search logic."
+    },
+    {
+      "from": "Notification Hub",
+      "to": "VS8 Semantic Graph",
+      "relationType": "queries_tag_routing_strategy",
+      "description": "Notification Hub consults VS8 semantic tags to determine notification strategy (channel, urgency, recipient scope)."
+    },
+    {
+      "from": "Notification Hub",
+      "to": "L_Category",
+      "relationType": "consumes_ier_events",
+      "description": "Notification Hub consumes domain events via IER STANDARD_LANE (e.g., ScheduleAssigned [E3]) to decide how and whom to notify."
+    },
+    {
+      "from": "Notification Hub",
+      "to": "D_Category",
+      "relationType": "governed_by"
+    },
+    {
+      "from": "Notification Hub",
+      "to": "A_Category",
+      "relationType": "constrained_by"
+    },
+    {
+      "from": "Notification Hub",
+      "to": "E_Category",
+      "relationType": "sole_side_effect_outlet",
+      "description": "Notification Hub is the system's only side-effect outlet for notifications. Business slices produce events; Notification Hub decides delivery strategy."
+    },
+    {
+      "from": "Notification Hub",
+      "to": "VS_Category",
+      "relationType": "decouples_notification_from_business",
+      "description": "Business slices (VS1-VS6, VS8) must not directly call sendEmail/push/SMS. All notification side-effects route through Notification Hub."
+    },
+    {
+      "from": "VS8 Semantic Graph",
+      "to": "D_Category",
+      "relationType": "governed_by"
+    },
+    {
+      "from": "VS8 Semantic Graph",
+      "to": "A_Category",
+      "relationType": "constrained_by"
+    },
+    {
+      "from": "VS5 Workspace",
+      "to": "VS_Category",
+      "relationType": "member_of"
+    },
+    {
+      "from": "VS5 Workspace",
+      "to": "D_Category",
+      "relationType": "governed_by"
+    },
+    {
+      "from": "VS5 Workspace",
+      "to": "VS6 Scheduling",
+      "relationType": "emits_IntentDeltaProposed_to",
+      "description": "[A5] workspace.slice emits IntentDeltaProposedPayload (with SkillRequirement[]) to event bus. scheduling.slice consumes via WorkspaceScheduleProposed saga — no direct coupling."
+    },
+    {
+      "from": "VS6 Scheduling",
+      "to": "VS_Category",
+      "relationType": "member_of"
+    },
+    {
+      "from": "VS6 Scheduling",
+      "to": "D_Category",
+      "relationType": "governed_by"
+    },
+    {
+      "from": "VS6 Scheduling",
+      "to": "L_Category",
+      "relationType": "reads_via_QGWAY_SCHED",
+      "description": "VS6 eligible-member reads route through QGWAY_SCHED (projection.org-eligible-member-view). Direct Firestore member-eligibility queries are forbidden per D7."
     }
   ]
 }

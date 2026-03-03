@@ -4,14 +4,16 @@
 import { useState, useEffect, useCallback } from 'react'
 
 import { useAuth } from '@/shared/app-providers/auth-provider'
-import { subscribeToDocument } from '@/shared/infra/firestore/firestore.read.adapter'
-import { uploadProfilePicture } from '@/shared/infra/storage/storage.facade'
 import type { Account } from '@/shared/types'
 
 import {
   updateUserProfile as updateUserProfileAction,
+  uploadUserAvatar,
 } from '../_actions'
-import { getUserProfile as getUserProfileQuery } from '../_queries'
+import {
+  getUserProfile as getUserProfileQuery,
+  subscribeToUserProfile,
+} from '../_queries'
 
 /**
  * @fileoverview A hook for managing the current user's profile data.
@@ -32,8 +34,8 @@ export function useUser() {
       return
     }
 
-    // Set up a real-time listener for the user's profile document via FIREBASE_ACL adapter.
-    const unsub = subscribeToDocument<Account>(`accounts/${user.id}`, (data) => {
+    // Set up a real-time listener for the user's profile document.
+    const unsub = subscribeToUserProfile(user.id, (data) => {
       if (data) {
         setProfile(data)
       } else {
@@ -59,7 +61,7 @@ export function useUser() {
   const uploadAvatar = useCallback(
     async (file: File) => {
       if (!user) throw new Error('User not authenticated.')
-      const photoURL = await uploadProfilePicture(user.id, file)
+      const photoURL = await uploadUserAvatar(user.id, file)
       await updateProfile({ photoURL })
       return photoURL
     },

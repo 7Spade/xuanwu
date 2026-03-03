@@ -7,10 +7,10 @@
  * Fed by EVENT_FUNNEL_INPUT from workspace domain events.
  */
 
-import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import type { Workspace } from '@/shared/types';
 

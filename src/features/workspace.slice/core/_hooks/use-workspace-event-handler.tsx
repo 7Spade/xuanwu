@@ -1,6 +1,5 @@
 // [職責] 監聽事件並執行副作用 (The Orchestrator)
 "use client";
-import { Timestamp } from "@/shared/infra/firestore/firestore.read.adapter";
 import { useEffect } from "react";
 
 import { handleScheduleProposed } from "@/features/scheduling.slice";
@@ -121,6 +120,9 @@ export function useWorkspaceEventHandler() {
             priority: "medium",
             progressState: "todo",
             sourceIntentId: payload.intentId,
+            // [TE_SK] ParsingIntent uses `skillRequirements`; WorkspaceTask uses `requiredSkills`
+            // to align with ScheduleItem's field name — intentional cross-model mapping.
+            ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
           }));
 
         batchImportTasks(workspace.id, items)
@@ -194,8 +196,8 @@ export function useWorkspaceEventHandler() {
             workspaceId: workspace.id,
             workspaceName: workspace.name,
             title: `Review: ${payload.task.name}`,
-            startDate: Timestamp.fromDate(new Date()),
-            endDate: Timestamp.fromDate(new Date()),
+            startDate: new Date(),
+            endDate: new Date(),
             status: "PROPOSAL",
             originType: "TASK_AUTOMATION",
             originTaskId: payload.task.id,
@@ -238,12 +240,15 @@ export function useWorkspaceEventHandler() {
             workspaceId: workspace.id,
             workspaceName: workspace.name,
             title: `Assignment: ${payload.taskName}`,
-            startDate: Timestamp.fromDate(new Date()),
-            endDate: Timestamp.fromDate(new Date()),
+            startDate: new Date(),
+            endDate: new Date(),
             status: "PROPOSAL",
             originType: "TASK_AUTOMATION",
             originTaskId: payload.taskId,
             assigneeIds: [payload.assigneeId],
+            // [TE_SK] Forward skill requirements so the scheduling saga can run
+            // eligibility checks (SK_SKILL_REQ) without knowing task details [D7].
+            ...(payload.requiredSkills?.length ? { requiredSkills: payload.requiredSkills } : {}),
           });
           logAuditEvent(
             "Auto-Generated Assignment Proposal",

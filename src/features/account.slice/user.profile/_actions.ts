@@ -17,6 +17,7 @@ import {
   createUserAccount as createUserAccountFacade,
   updateUserProfile as updateUserProfileFacade,
 } from "@/shared/infra/firestore/firestore.facade";
+import { uploadProfilePicture as uploadProfilePictureFacade } from "@/shared/infra/storage/storage.facade";
 import type { Account } from "@/shared/types";
 
 export async function createUserAccount(
@@ -48,4 +49,14 @@ export async function updateUserProfile(
       err instanceof Error ? err.message : "Failed to update user profile"
     );
   }
+}
+
+/**
+ * Uploads a profile picture for the given user and returns the download URL.
+ */
+export async function uploadUserAvatar(
+  userId: string,
+  file: File,
+): Promise<string> {
+  return uploadProfilePictureFacade(userId, file);
 }

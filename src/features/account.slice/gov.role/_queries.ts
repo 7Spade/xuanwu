@@ -4,9 +4,8 @@
  * Read queries for account role management.
  */
 
-import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
-
 import { db } from '@/shared/infra/firestore/firestore.client';
+import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import type { AccountRoleRecord } from './_actions';

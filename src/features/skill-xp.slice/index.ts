@@ -24,6 +24,11 @@ export { addSkillXp, deductSkillXp } from './_actions';
 export type { AddXpInput, DeductXpInput } from './_actions';
 
 // ---------------------------------------------------------------------------
+// Org Skill Tag Pool — Server Actions (Invariant T2)
+// ---------------------------------------------------------------------------
+export { addOrgSkillTagAction, removeOrgSkillTagAction } from './_actions';
+
+// ---------------------------------------------------------------------------
 // Account XP Aggregate — domain operations (for other server-side slices)
 // ---------------------------------------------------------------------------
 export { addXp, deductXp, getSkillXp, SKILL_XP_MAX, SKILL_XP_MIN } from './_aggregate';

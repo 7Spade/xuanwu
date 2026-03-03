@@ -1,3 +1,5 @@
+import type { SkillRequirement } from '@/features/shared-kernel';
+
 export type ParsingIntentStatus = 'pending' | 'imported' | 'superseded';
 
 export interface ParsingIntentContract {
@@ -6,7 +8,7 @@ export interface ParsingIntentContract {
   sourceFileId: string;
   sourceVersionId: string;
   taskDraftCount: number;
-  skillRequirements: string[];
+  skillRequirements: SkillRequirement[];
   status: ParsingIntentStatus;
   supersedesIntentId?: string;
   createdAt: number;
@@ -19,7 +21,7 @@ export interface CreateParsingIntentInput {
   sourceFileId: string;
   sourceVersionId: string;
   taskDraftCount: number;
-  skillRequirements?: string[];
+  skillRequirements?: SkillRequirement[];
 }
 
 export function createParsingIntentContract(

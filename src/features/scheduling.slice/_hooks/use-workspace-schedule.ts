@@ -15,21 +15,20 @@
 "use client";
 
 import { addMonths, subMonths, format } from "date-fns";
-import { collection, query, where, orderBy, onSnapshot } from "@/shared/infra/firestore/firestore.read.adapter";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 
 import { useWorkspace } from "@/features/workspace.slice";
 import { useApp } from "@/shared/app-providers/app-context";
-import { useFirebase } from "@/shared/app-providers/firebase-provider";
 import type { ScheduleItem } from "@/shared/types";
 import { toast } from "@/shared/utility-hooks/use-toast";
+
+import { subscribeToWorkspaceScheduleItems } from '../_queries';
 
 export function useWorkspaceSchedule() {
   const { workspace } = useWorkspace();
   const { state: appState, dispatch: appDispatch } = useApp();
   const { accounts, activeAccount, scheduleTaskRequest } = appState;
-  const { db } = useFirebase();
   const router = useRouter();
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -51,22 +50,14 @@ export function useWorkspaceSchedule() {
   // Workspace members on a personal account would therefore see an empty calendar
   // even after submitting a proposal. This direct subscription fixes that gap.
   useEffect(() => {
-    if (!db || !workspace.dimensionId) return;
-    const q = query(
-      collection(db, "accounts", workspace.dimensionId, "schedule_items"),
-      where("workspaceId", "==", workspace.id),
-      orderBy("createdAt", "desc")
+    if (!workspace.dimensionId) return;
+    return subscribeToWorkspaceScheduleItems(
+      workspace.dimensionId,
+      workspace.id,
+      setLocalItems,
+      (err) => console.error("[useWorkspaceSchedule] schedule_items subscription failed:", err),
     );
-    return onSnapshot(
-      q,
-      (snap) => {
-        setLocalItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as ScheduleItem)));
-      },
-      (err) => {
-        console.error("[useWorkspaceSchedule] schedule_items subscription failed:", err);
-      }
-    );
-  }, [db, workspace.dimensionId, workspace.id]);
+  }, [workspace.dimensionId, workspace.id]);
 
   const activeOrganization = useMemo(() =>
     activeAccount?.accountType === "organization" ? accounts[activeAccount.id] : null,

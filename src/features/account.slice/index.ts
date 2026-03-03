@@ -9,7 +9,7 @@
  * Org Teams, Org Core, Org Event Bus) have been migrated to
  * @/features/organization.slice (VS4).
  *
- * Notification delivery (VS7) has been moved to notification.slice.
+ * Notification delivery (VS7) has been moved to notification-hub.slice.
  *
  * External consumers import exclusively from this file.
  */

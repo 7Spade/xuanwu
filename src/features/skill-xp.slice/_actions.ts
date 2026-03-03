@@ -11,6 +11,10 @@
  *
  * Per Invariant #3: Application Layer (actions) coordinates cross-BC routing;
  * the Aggregate only enforces domain invariants (#11 #12 #13).
+ *
+ * Org Skill Tag Pool management actions:
+ *   addOrgSkillTagAction  — activate a global skill into the org's pool (Invariant T2)
+ *   removeOrgSkillTagAction — deactivate a skill from the org's pool
  */
 
 'use server';
@@ -21,8 +25,10 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/features/shared-kernel';
+import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { addXp, deductXp } from './_aggregate';
+import { addSkillTagToPool, removeSkillTagFromPool } from './_tag-pool';
 
 export interface AddXpInput {
   accountId: string;
@@ -50,6 +56,8 @@ export async function addSkillXp(input: AddXpInput): Promise<CommandResult> {
       reason: input.reason,
       sourceId: input.sourceId,
     });
+    // D3: aggregate returns computed state; _actions.ts owns the persistence write.
+    await setDocument(result.path, result.record);
     // Application coordinator publishes cross-BC skill event (E1 — not from aggregate)
     await publishOrgEvent('organization:skill:xpAdded', {
       accountId: input.accountId,
@@ -93,6 +101,8 @@ export async function deductSkillXp(input: DeductXpInput): Promise<CommandResult
       reason: input.reason,
       sourceId: input.sourceId,
     });
+    // D3: aggregate returns computed state; _actions.ts owns the persistence write.
+    await setDocument(result.path, result.record);
     // Application coordinator publishes cross-BC skill event (E1 — not from aggregate)
     await publishOrgEvent('organization:skill:xpDeducted', {
       accountId: input.accountId,
@@ -108,5 +118,47 @@ export async function deductSkillXp(input: DeductXpInput): Promise<CommandResult
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return commandFailureFrom('SKILL_XP_DEDUCT_FAILED', message);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Org Skill Tag Pool — server action wrappers (Invariant T2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Server Action: activate a skill from the global dictionary into the org's pool.
+ * The tagSlug MUST already exist in the global centralized-tag dictionary (Invariant T2).
+ * Idempotent: calling this when the tag already exists in the pool is a no-op.
+ */
+export async function addOrgSkillTagAction(
+  orgId: string,
+  tagSlug: string,
+  tagName: string,
+  actorId: string
+): Promise<CommandResult> {
+  try {
+    await addSkillTagToPool(orgId, tagSlug, tagName, actorId);
+    return commandSuccess(tagSlug, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('ADD_ORG_SKILL_TAG_FAILED', message);
+  }
+}
+
+/**
+ * Server Action: remove a skill from the org's pool.
+ * Blocked when refCount > 0 (active member/partner references exist — Invariant A6).
+ * Idempotent: calling this when the tag is absent is a no-op.
+ */
+export async function removeOrgSkillTagAction(
+  orgId: string,
+  tagSlug: string
+): Promise<CommandResult> {
+  try {
+    await removeSkillTagFromPool(orgId, tagSlug);
+    return commandSuccess(tagSlug, Date.now());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('REMOVE_ORG_SKILL_TAG_FAILED', message);
   }
 }

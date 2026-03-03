@@ -1,13 +1,15 @@
 "use client";
 
 import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from "date-fns";
-import type { Timestamp } from "@/shared/infra/firestore/firestore.read.adapter";
 import { Plus, Check, X, Layers, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
+import type { Timestamp } from "@/features/shared-kernel";
+import { findSkill } from "@/shared/constants/skills";
 import { cn } from "@/shared/lib";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
+import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
 import {
@@ -172,6 +174,17 @@ export function UnifiedCalendarGrid({
                                     </Tooltip>
                                 </TooltipProvider>
                             </div>
+
+                            {/* Section 2.5: Required Skills */}
+                            {item.requiredSkills && item.requiredSkills.length > 0 && (
+                              <div className="flex flex-wrap gap-0.5 px-2 pb-1">
+                                {item.requiredSkills.map((req) => (
+                                  <Badge key={req.tagSlug} variant="secondary" className="h-4 px-1 text-[8px] font-medium leading-none">
+                                    {findSkill(req.tagSlug)?.name ?? req.tagSlug}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
 
                             {/* Section 3: Assignees & Actions */}
                             <div className="mt-1 flex items-center justify-between border-t p-2">

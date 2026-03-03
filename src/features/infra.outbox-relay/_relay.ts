@@ -19,6 +19,10 @@
  *   D9  — traceId is read from the envelope and forwarded; never overwritten.
  */
 
+
+import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
+import { logDomainError } from '@/features/observability';
+import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
   query,
@@ -31,10 +35,6 @@ import {
   type DocumentChange,
 } from '@/shared/infra/firestore/firestore.read.adapter';
 import { updateDoc, setDoc, type serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
-
-import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
-import { logDomainError } from '@/features/observability';
-import { db } from '@/shared/infra/firestore/firestore.client';
 
 /** Delivery status of an outbox entry. */
 export type OutboxStatus = 'pending' | 'delivered' | 'dlq';

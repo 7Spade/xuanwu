@@ -17,31 +17,87 @@
 "use client";
 
 import { addMonths, subMonths } from "date-fns";
-import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users } from "lucide-react";
+import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users, BookOpen, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 
 import { useApp } from "@/shared/app-providers/app-context";
+import { cn } from "@/shared/lib";
 import { Button } from "@/shared/shadcn-ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/shared/shadcn-ui/dropdown-menu";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/shared/shadcn-ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
-import type { ScheduleItem } from "@/shared/types";
+import type { MemberReference, ScheduleItem } from "@/shared/types";
 
 import { useGlobalSchedule } from "../_hooks/use-global-schedule";
 import { useScheduleActions } from "../_hooks/use-schedule-commands";
 
 import { decisionHistoryColumns } from "./decision-history-columns";
 import { OrgScheduleGovernance } from "./org-schedule-governance";
+import { OrgSkillPoolManager } from "./org-skill-pool-manager";
 import { ScheduleDataTable } from "./schedule-data-table";
 import { UnifiedCalendarGrid } from "./unified-calendar-grid";
 import { upcomingEventsColumns } from "./upcoming-events-columns";
+
+// ---------------------------------------------------------------------------
+// Searchable member-assign popover (replaces plain DropdownMenu)
+// ---------------------------------------------------------------------------
+
+interface MemberAssignPopoverProps {
+  item: ScheduleItem;
+  members: MemberReference[];
+  onAssign: (item: ScheduleItem, memberId: string) => void;
+  onUnassign: (item: ScheduleItem, memberId: string) => void;
+}
+
+function MemberAssignPopover({ item, members, onAssign, onUnassign }: MemberAssignPopoverProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="size-5 text-muted-foreground hover:text-primary">
+          <UserPlus className="size-3" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-60 p-0" align="end">
+        <Command>
+          <CommandInput placeholder="搜尋成員..." />
+          <CommandList>
+            <CommandEmpty>無符合成員</CommandEmpty>
+            <CommandGroup heading="Assign Member">
+              {members.map(member => {
+                const isAssigned = item.assigneeIds.includes(member.id);
+                return (
+                  <CommandItem
+                    key={member.id}
+                    value={member.name}
+                    onSelect={() => {
+                      if (isAssigned) {
+                        onUnassign(item, member.id);
+                      } else {
+                        onAssign(item, member.id);
+                      }
+                    }}
+                  >
+                    <Check className={cn("mr-2 size-3", isAssigned ? "opacity-100" : "opacity-0")} />
+                    {member.name}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function AccountScheduleSection() {
   const { state } = useApp();
@@ -61,33 +117,12 @@ export function AccountScheduleSection() {
   };
 
   const renderItemActions = useCallback((item: ScheduleItem) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-5 text-muted-foreground hover:text-primary">
-          <UserPlus className="size-3" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-60">
-        <DropdownMenuLabel>Assign Member</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {organizationMembers.map(member => (
-          <DropdownMenuCheckboxItem
-            key={member.id}
-            checked={item.assigneeIds.includes(member.id)}
-            onSelect={(e) => e.preventDefault()}
-            onCheckedChange={() => {
-              if (item.assigneeIds.includes(member.id)) {
-                unassignMember(item, member.id);
-              } else {
-                assignMember(item, member.id);
-              }
-            }}
-          >
-            {member.name}
-          </DropdownMenuCheckboxItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <MemberAssignPopover
+      item={item}
+      members={organizationMembers}
+      onAssign={assignMember}
+      onUnassign={unassignMember}
+    />
   ), [organizationMembers, assignMember, unassignMember]);
 
   if (activeAccount?.accountType !== "organization") {
@@ -122,6 +157,10 @@ export function AccountScheduleSection() {
           <TabsTrigger value="hr-management" className="gap-2">
             <Users className="size-4" />
             人力管理
+          </TabsTrigger>
+          <TabsTrigger value="skill-pool" className="gap-2">
+            <BookOpen className="size-4" />
+            技能庫
           </TabsTrigger>
         </TabsList>
 
@@ -170,6 +209,13 @@ export function AccountScheduleSection() {
             (approve-only, no assignment) that previously lived in the Calendar tab. */}
         <TabsContent value="hr-management">
           <OrgScheduleGovernance />
+        </TabsContent>
+
+        {/* Tab 3: 技能庫 — manage which global skills apply to this organization.
+            Activated skills appear in ProposalDialog's picker instead of the full
+            global library, reducing browsing burden for HR (FR-K5). */}
+        <TabsContent value="skill-pool" className="flex-1">
+          <OrgSkillPoolManager />
         </TabsContent>
       </Tabs>
     </div>

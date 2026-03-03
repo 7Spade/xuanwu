@@ -1,7 +1,6 @@
 
 "use client";
 
-import { serverTimestamp, type FieldValue } from "@/shared/infra/firestore/firestore.write.adapter";
 import { 
   FileText, 
   UploadCloud, 
@@ -26,11 +25,6 @@ import { useState, useRef, useEffect } from "react";
 
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { ROUTES } from "@/shared/constants/routes";
-import {
-  createWorkspaceFile,
-  addWorkspaceFileVersion,
-  restoreWorkspaceFileVersion,
-} from '@/shared/infra/firestore/firestore.facade';
 import { cn, formatBytes } from "@/shared/lib";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -60,6 +54,11 @@ import type { WorkspaceFile, WorkspaceFileVersion } from "@/shared/types";
 import { toast } from "@/shared/utility-hooks/use-toast";
 
 import { useWorkspace } from '../../core';
+import {
+  createWorkspaceFile,
+  addWorkspaceFileVersion,
+  restoreWorkspaceFileVersion,
+} from '../_actions';
 import { subscribeToWorkspaceFiles } from '../_queries';
 import { uploadRawFile } from '../_storage-actions';
 
@@ -130,7 +129,11 @@ export function WorkspaceFiles() {
           downloadURL: downloadURL
         };
 
-        await addWorkspaceFileVersion(workspace.id, existingFile.id, newVersion, versionId);
+        const result = await addWorkspaceFileVersion(workspace.id, existingFile.id, newVersion, versionId);
+        if (!result.success) {
+          toast({ variant: "destructive", title: "Failed to Upload File", description: result.error.message });
+          return;
+        }
         
         logAuditEvent("File Version Iterated", `${file.name} (v${nextVer})`, 'update');
         toast({ title: "Version Iterated", description: `${file.name} has been upgraded to v${nextVer}.` });
@@ -142,11 +145,10 @@ export function WorkspaceFiles() {
 
         const downloadURL = await uploadRawFile(workspace.id, fileId, versionId, file);
 
-        const newFileData: Omit<WorkspaceFile, 'id' | 'updatedAt'> & { updatedAt: FieldValue } = {
+        const newFileData: Omit<WorkspaceFile, 'id' | 'updatedAt'> = {
           name: file.name,
           type: file.type,
           currentVersionId: versionId,
-          updatedAt: serverTimestamp(),
           versions: [{
             versionId: versionId,
             versionNumber: 1,
@@ -158,7 +160,11 @@ export function WorkspaceFiles() {
           }]
         };
 
-        await createWorkspaceFile(workspace.id, newFileData);
+        const result = await createWorkspaceFile(workspace.id, newFileData);
+        if (!result.success) {
+          toast({ variant: "destructive", title: "Failed to Upload File", description: result.error.message });
+          return;
+        }
         logAuditEvent("Mounted New Document", file.name, 'create');
         toast({ title: "Document Uploaded", description: `${file.name} has been mounted to the space.` });
       }
@@ -177,19 +183,19 @@ export function WorkspaceFiles() {
   };
 
   const handleRestore = async (file: WorkspaceFile, versionId: string) => {
-    try {
-      await restoreWorkspaceFileVersion(workspace.id, file.id, versionId);
-      logAuditEvent("Restored File State", `${file.name} to a previous version`, 'update');
-      toast({ title: "Version Restored", description: "File sovereignty has been restored to the specified point in time." });
-      setHistoryFile(null);
-    } catch(error: unknown) {
-        console.error("Error restoring version:", error);
-        toast({
-          variant: "destructive",
-          title: "Failed to Restore Version",
-          description: getErrorMessage(error, "An unknown error occurred."),
-        });
+    const result = await restoreWorkspaceFileVersion(workspace.id, file.id, versionId);
+    if (!result.success) {
+      console.error("Error restoring version:", result.error.message);
+      toast({
+        variant: "destructive",
+        title: "Failed to Restore Version",
+        description: result.error.message,
+      });
+      return;
     }
+    logAuditEvent("Restored File State", `${file.name} to a previous version`, 'update');
+    toast({ title: "Version Restored", description: "File sovereignty has been restored to the specified point in time." });
+    setHistoryFile(null);
   };
 
   return (

@@ -21,6 +21,7 @@ import {
   limit,
   Timestamp,
   type CollectionReference,
+  type DocumentChange,
   type DocumentData,
   type DocumentSnapshot,
   type FieldPath,
@@ -54,6 +55,7 @@ export {
 };
 export type {
   CollectionReference,
+  DocumentChange,
   DocumentData,
   DocumentSnapshot,
   FieldPath,

@@ -18,10 +18,10 @@
  *   organization:member:left      → removeOrgMemberEntry
  */
 
-import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 import { setDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 /**

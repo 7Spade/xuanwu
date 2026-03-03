@@ -30,6 +30,7 @@ import {
   updateScheduleItemStatus as updateScheduleItemStatusFacade,
   assignMemberAndApprove,
 } from '@/shared/infra/firestore/firestore.facade';
+import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { ScheduleItem } from '@/shared/types';
 
 import { approveOrgScheduleProposal, cancelOrgScheduleProposal, completeOrgSchedule } from './_aggregate';
@@ -39,10 +40,19 @@ import { approveOrgScheduleProposal, cancelOrgScheduleProposal, completeOrgSched
 // =================================================================
 
 export async function createScheduleItem(
-  itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>
+  itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'endDate'> & {
+    startDate?: Date | null;
+    endDate?: Date | null;
+  }
 ): Promise<CommandResult> {
   try {
-    const id = await createScheduleItemFacade(itemData);
+    const now = Timestamp.now();
+    const data: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'> = {
+      ...itemData,
+      startDate: itemData.startDate ? Timestamp.fromDate(itemData.startDate) : now,
+      endDate: itemData.endDate ? Timestamp.fromDate(itemData.endDate) : now,
+    };
+    const id = await createScheduleItemFacade(data);
     return commandSuccess(id, Date.now());
   } catch (err) {
     return commandFailureFrom(

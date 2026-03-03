@@ -24,6 +24,7 @@ import {
   handleScheduleProposed,
   approveOrgScheduleProposal,
 } from './_aggregate';
+import { findEligibleCandidatesForRequirements } from './_eligibility';
 
 
 // ---------------------------------------------------------------------------
@@ -62,18 +63,6 @@ export interface SagaState {
 
 const SAGA_COLLECTION = 'sagaStates';
 
-const TIER_ORDER = [
-  'apprentice',
-  'journeyman',
-  'expert',
-  'artisan',
-  'grandmaster',
-  'legendary',
-  'titan',
-] as const;
-
-type Tier = (typeof TIER_ORDER)[number];
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -96,15 +85,6 @@ async function updateSagaStatus(
   >
 ): Promise<void> {
   await updateDocument(sagaPath(sagaId), { ...patch, updatedAt: new Date().toISOString() });
-}
-
-function tierIndex(tier: string): number {
-  const idx = TIER_ORDER.indexOf(tier as Tier);
-  if (idx === -1) {
-    console.warn(`[scheduling-saga] Unknown tier value "${tier}", defaulting to 0 (apprentice).`);
-    return 0;
-  }
-  return idx;
 }
 
 // ---------------------------------------------------------------------------
@@ -169,20 +149,14 @@ export async function startSchedulingSaga(
   // requirements = [] means "any eligible member can be assigned" (no skill filtering)
   const requirements = event.skillRequirements ?? [];
 
-  const candidate = eligibleMembers.find((member) => {
-    if (!member.eligible) return false;
-    return requirements.every((req) => {
-      const skill = member.skills.find((s) => s.skillId === req.tagSlug);
-      if (!skill) return false;
-      return tierIndex(skill.tier) >= tierIndex(req.minimumTier);
-    });
-  });
+  const assignments = findEligibleCandidatesForRequirements(eligibleMembers, requirements);
 
   // Step 3 — assign or compensate [A5]
-  if (!candidate) {
+  if (!assignments || assignments.length === 0) {
+    const totalNeeded = requirements.reduce((sum, r) => sum + r.quantity, 0);
     const reason =
       requirements.length > 0
-        ? `No eligible member found matching skills: ${requirements.map((r) => r.tagSlug).join(', ')}`
+        ? `Could not find enough eligible members for requirements: ${requirements.map((r) => `${r.quantity}× ${r.tagSlug}@${r.minimumTier}`).join(', ')} (needed ${totalNeeded} total)`
         : 'No eligible members found in org-eligible-member-view.';
     const completedAt = new Date().toISOString();
     await updateSagaStatus(sagaId, {
@@ -194,23 +168,37 @@ export async function startSchedulingSaga(
     return { ...initialState, status: 'compensated', currentStep: 'compensate', compensationReason: reason, completedAt, updatedAt: completedAt };
   }
 
-  const approvalResult = await approveOrgScheduleProposal(
-    event.scheduleItemId,
-    candidate.accountId,
-    event.proposedBy,
-    {
-      workspaceId: event.workspaceId,
-      orgId: event.orgId,
-      title: event.title,
-      startDate: event.startDate,
-      endDate: event.endDate,
-      // [R8] Forward traceId from event to the approval step so published events carry the trace.
-      ...(event.traceId ? { traceId: event.traceId } : {}),
-    },
-    requirements.length > 0 ? requirements : undefined
-  );
+  // Approve each candidate sequentially [A5].
+  // NOTE: if an approval fails mid-loop, earlier assignments are NOT rolled back.
+  // This is an accepted saga limitation — partial compensation requires a dedicated
+  // undo command that is out of scope for this fix.
+  let compensationReason: string | undefined;
+  for (const { candidate, requirement } of assignments) {
+    // Pass only this candidate's specific requirement so downstream validation
+    // checks them against their assigned skill slot, not all requirements.
+    const approvalResult = await approveOrgScheduleProposal(
+      event.scheduleItemId,
+      candidate.accountId,
+      event.proposedBy,
+      {
+        workspaceId: event.workspaceId,
+        orgId: event.orgId,
+        title: event.title,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        // [R8] Forward traceId from event to the approval step so published events carry the trace.
+        ...(event.traceId ? { traceId: event.traceId } : {}),
+      },
+      requirement ? [requirement] : undefined
+    );
 
-  if (approvalResult.outcome === 'confirmed') {
+    if (approvalResult.outcome !== 'confirmed') {
+      compensationReason = approvalResult.reason;
+      break;
+    }
+  }
+
+  if (!compensationReason) {
     const completedAt = new Date().toISOString();
     await updateSagaStatus(sagaId, {
       status: 'assigned',
@@ -224,14 +212,14 @@ export async function startSchedulingSaga(
   await updateSagaStatus(sagaId, {
     status: 'compensated',
     currentStep: 'compensate',
-    compensationReason: approvalResult.reason,
+    compensationReason,
     completedAt,
   });
   return {
     ...initialState,
     status: 'compensated',
     currentStep: 'compensate',
-    compensationReason: approvalResult.reason,
+    compensationReason,
     completedAt,
     updatedAt: completedAt,
   };
