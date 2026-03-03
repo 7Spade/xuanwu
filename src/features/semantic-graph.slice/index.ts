@@ -74,3 +74,16 @@ export {
   querySemanticIndex,
   getIndexStats,
 } from './_services';
+
+// =================================================================
+// CTA Operations — Centralized Tag Aggregate [D3][D8]
+// Firestore-backed CRUD for tagDictionary; D8-compliant (not in shared-kernel).
+// =================================================================
+export {
+  createTag,
+  updateTag,
+  deprecateTag,
+  deleteTag,
+  getTag,
+} from './centralized-tag/_actions';
+export type { CentralizedTagEntry, TagDeleteRule } from '@/features/shared-kernel/centralized-tag';

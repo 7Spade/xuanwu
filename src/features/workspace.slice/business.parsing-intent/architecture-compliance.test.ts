@@ -412,4 +412,79 @@ describe('[Architecture] VS5×VS6 integration compliance', () => {
       expect(violations).toHaveLength(0);
     });
   });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // [D8] Shared-kernel purity — no async functions, Firestore calls, or side effects
+  // CTA (centralized-tag) Firestore operations must live in semantic-graph.slice
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('[D8] Shared-kernel purity — no Firestore calls or async functions', () => {
+    /** Returns shared-kernel source files that import from @/shared/infra. */
+    function findInfraImportsInSharedKernel(): string[] {
+      const skRoot = path.join(SRC_ROOT, 'features', 'shared-kernel');
+      return collectSourceFiles(skRoot).filter((file) => {
+        const content = fs.readFileSync(file, 'utf8');
+        return /from ['"]@\/shared\/infra/.test(content) || /from ['"]\.\.\/\.\.\/infra/.test(content);
+      });
+    }
+
+    it('shared-kernel/centralized-tag/_aggregate.ts has no Firestore imports [D8]', () => {
+      const aggPath = path.join(
+        SRC_ROOT, 'features', 'shared-kernel', 'centralized-tag', '_aggregate.ts'
+      );
+      const content = fs.readFileSync(aggPath, 'utf8');
+      expect(content).not.toMatch(/from ['"]@\/shared\/infra/);
+      expect(content).not.toMatch(/firestore/);
+    });
+
+    it('shared-kernel/centralized-tag/_aggregate.ts has no async functions [D8]', () => {
+      const aggPath = path.join(
+        SRC_ROOT, 'features', 'shared-kernel', 'centralized-tag', '_aggregate.ts'
+      );
+      const content = fs.readFileSync(aggPath, 'utf8');
+      expect(content).not.toMatch(/^export async function/m);
+      expect(content).not.toMatch(/^async function/m);
+    });
+
+    it('shared-kernel/centralized-tag/_bus.ts publishTagEvent is synchronous [D8]', () => {
+      const busPath = path.join(
+        SRC_ROOT, 'features', 'shared-kernel', 'centralized-tag', '_bus.ts'
+      );
+      const content = fs.readFileSync(busPath, 'utf8');
+      // Must not be `async function publishTagEvent`
+      expect(content).not.toMatch(/async function publishTagEvent/);
+      // Must still export publishTagEvent
+      expect(content).toMatch(/export function publishTagEvent/);
+    });
+
+    it('no shared-kernel source file imports from @/shared/infra [D8]', () => {
+      const violations = findInfraImportsInSharedKernel();
+      if (violations.length > 0) {
+        console.error('[D8 violation] shared-kernel files import from infra:\n', violations.join('\n'));
+      }
+      expect(violations).toHaveLength(0);
+    });
+
+    it('CTA Firestore operations live in semantic-graph.slice/centralized-tag/_actions.ts [D3+D8]', () => {
+      const actionsPath = path.join(
+        SRC_ROOT, 'features', 'semantic-graph.slice', 'centralized-tag', '_actions.ts'
+      );
+      expect(fs.existsSync(actionsPath)).toBe(true);
+      const content = fs.readFileSync(actionsPath, 'utf8');
+      expect(content).toMatch(/export async function createTag/);
+      expect(content).toMatch(/export async function updateTag/);
+      expect(content).toMatch(/export async function deprecateTag/);
+      expect(content).toMatch(/export async function deleteTag/);
+      expect(content).toMatch(/export async function getTag/);
+    });
+
+    it('semantic-graph.slice/index.ts re-exports CTA operations [D3+D8]', () => {
+      const indexPath = path.join(SRC_ROOT, 'features', 'semantic-graph.slice', 'index.ts');
+      const content = fs.readFileSync(indexPath, 'utf8');
+      expect(content).toMatch(/createTag/);
+      expect(content).toMatch(/updateTag/);
+      expect(content).toMatch(/deprecateTag/);
+      expect(content).toMatch(/deleteTag/);
+      expect(content).toMatch(/getTag/);
+    });
+  });
 });
