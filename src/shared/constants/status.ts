@@ -2,11 +2,11 @@
  * @fileoverview shared/constants/status.ts — Domain status / lifecycle state metadata.
  *
  * Centralises the labelled, coloured descriptors for every status / state string union
- * used across the domain model.  The canonical types remain in `@/shared/types/`; this
- * file adds the runtime metadata needed for dropdowns, badges, and filtering chips.
+ * used across the domain model.  Note: ScheduleStatus is now canonical in
+ * `@/features/shared-kernel`; other types remain in `@/shared/types/` as legacy.
  *
  * Covered union types:
- *   - ScheduleStatus          (schedule.types.ts)
+ *   - ScheduleStatus          (→ @/features/shared-kernel/schedule-contract [D19])
  *   - WorkspaceLifecycleState (workspace.types.ts)
  *   - AuditLogType            (audit.types.ts)
  *   - InviteState             (account.types.ts → PartnerInvite.inviteState)
@@ -20,7 +20,7 @@ import type {
   Presence,
 } from '@/shared/types/account.types';
 import type { AuditLogType } from '@/shared/types/audit.types';
-import type { ScheduleStatus } from '@/shared/types/schedule.types';
+import type { ScheduleStatus } from '@/features/shared-kernel';
 import type { WorkspaceLifecycleState } from '@/shared/types/workspace.types';
 
 // ---------------------------------------------------------------------------

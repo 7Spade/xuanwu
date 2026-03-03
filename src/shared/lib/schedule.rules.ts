@@ -3,7 +3,7 @@
  * No async, no I/O, no React, no Firebase.
  */
 
-import type { ScheduleStatus } from "@/shared/types"
+import type { ScheduleStatus } from '@/features/shared-kernel'
 
 // ---------------------------------------------------------------------------
 // Valid status transitions

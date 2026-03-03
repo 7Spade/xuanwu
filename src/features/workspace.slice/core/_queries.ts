@@ -24,9 +24,9 @@ import type {
   AuditLog,
   DailyLog,
   PartnerInvite,
-  ScheduleItem,
   Workspace,
 } from '@/shared/types';
+import type { ScheduleItem } from '@/features/shared-kernel';
 
 // ---------------------------------------------------------------------------
 // Account-scoped subscriptions

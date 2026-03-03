@@ -18,7 +18,18 @@
 
 import type { Timestamp } from '@/shared/ports';
 import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
-import type { Location } from '@/shared/types/workspace.types';
+
+/**
+ * Physical location for a scheduled event.
+ * Inlined here so schedule-contract has zero deps on @/shared/types (D8/D19).
+ * TypeScript structural typing ensures compatibility with workspace.types.Location.
+ */
+export interface Location {
+  building?: string; // 棟
+  floor?: string;    // 樓
+  room?: string;     // 室
+  description: string;
+}
 
 /**
  * Lifecycle status of a ScheduleItem.

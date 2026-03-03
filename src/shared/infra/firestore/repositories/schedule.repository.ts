@@ -17,7 +17,7 @@ import {
   where,
 } from 'firebase/firestore'
 
-import type { ScheduleItem } from '@/shared/types'
+import type { ScheduleItem } from '@/features/shared-kernel'
 
 import { db } from '../firestore.client'
 import { createConverter } from '../firestore.converter'
