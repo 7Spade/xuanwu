@@ -130,17 +130,17 @@ describe('supersedeParsingIntent', () => {
     expect(superseded.status).toBe('superseded');
   });
 
-  it('records the next intent ID in supersedesIntentId', () => {
+  it('records the next intent ID in supersededByIntentId', () => {
     const contract = createParsingIntentContract(BASE_INPUT);
     const superseded = supersedeParsingIntent(contract, 'intent-002');
-    expect(superseded.supersedesIntentId).toBe('intent-002');
+    expect(superseded.supersededByIntentId).toBe('intent-002');
   });
 
   it('does not mutate the original contract (immutability)', () => {
     const contract = createParsingIntentContract(BASE_INPUT);
     supersedeParsingIntent(contract, 'intent-002');
     expect(contract.status).toBe('pending');
-    expect(contract.supersedesIntentId).toBeUndefined();
+    expect(contract.supersededByIntentId).toBeUndefined();
   });
 
   it('preserves all other fields through supersession', () => {
@@ -159,7 +159,7 @@ describe('supersedeParsingIntent', () => {
     const v1imported = markParsingIntentImported(v1);
     const v1superseded = supersedeParsingIntent(v1imported, 'intent-002');
     expect(v1superseded.status).toBe('superseded');
-    expect(v1superseded.supersedesIntentId).toBe('intent-002');
+    expect(v1superseded.supersededByIntentId).toBe('intent-002');
     // Original v1 still pending (not mutated)
     expect(v1.status).toBe('pending');
   });

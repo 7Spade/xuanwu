@@ -10,7 +10,7 @@ export interface ParsingIntentContract {
   taskDraftCount: number;
   skillRequirements: SkillRequirement[];
   status: ParsingIntentStatus;
-  supersedesIntentId?: string;
+  supersededByIntentId?: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -58,7 +58,7 @@ export function supersedeParsingIntent(
   return {
     ...current,
     status: 'superseded',
-    supersedesIntentId: nextIntentId,
+    supersededByIntentId: nextIntentId,
     updatedAt: Date.now(),
   };
 }
