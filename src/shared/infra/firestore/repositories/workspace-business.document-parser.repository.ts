@@ -30,9 +30,24 @@ export const createParsingIntent = async (
   workspaceId: string,
   intentData: Omit<ParsingIntent, 'id' | 'createdAt'>
 ): Promise<string> => {
+  // Build the Firestore document explicitly.
+  // Firestore rejects documents containing `undefined` field values, so optional
+  // fields are only included when they carry a meaningful value.
+  const data = {
+    workspaceId: intentData.workspaceId,
+    sourceFileName: intentData.sourceFileName,
+    intentVersion: intentData.intentVersion,
+    lineItems: intentData.lineItems,
+    skillRequirements: intentData.skillRequirements ?? [],
+    status: intentData.status,
+    createdAt: serverTimestamp(),
+    // Optional fields — omitted when undefined so Firestore never sees undefined.
+    ...(intentData.sourceFileDownloadURL !== undefined ? { sourceFileDownloadURL: intentData.sourceFileDownloadURL } : {}),
+    ...(intentData.sourceFileId !== undefined ? { sourceFileId: intentData.sourceFileId } : {}),
+  };
   const ref = await addDocument(
     `workspaces/${workspaceId}/parsingIntents`,
-    { ...intentData, createdAt: serverTimestamp() }
+    data
   );
   return ref.id;
 };
