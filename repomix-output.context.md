@@ -30,7 +30,7 @@ The content is organized as follows:
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
 - Only files matching these patterns are included: **/*
-- Files matching these patterns are excluded: .codacy/**, .firebase/**, .github/**, .idx/**, .next/**, docs/**, public/**, skills/**, .aiexclude, .firebaserc, .gitattributes, .gitignore, .modified, .prettierrc, apphosting.yaml, components.json, eslint.config.mts, next.config.ts, package.json, postcss.config.mjs, README.md, repomix.config.ts, **/node_modules/**, **/dist/**, **/build/**, **/.git/**, package-lock.json, repomix-output.md
+- Files matching these patterns are excluded: **/*.md, **/*.test.ts, **/*.svg, **/types/generated.ts, **/*.md, .codacy/**, .firebase/**, .github/**, .idx/**, .next/**, docs/**, public/**, skills/**, .aiexclude, .firebaserc, .gitattributes, .gitignore, .modified, .prettierrc, apphosting.yaml, components.json, eslint.config.mts, next.config.ts, postcss.config.mjs, README.md, repomix.config.ts, **/node_modules/**, **/dist/**, **/build/**, **/.git/**, package-lock.json, repomix-output.md
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Code comments have been removed from supported file types
@@ -40,7 +40,7 @@ The content is organized as follows:
 
 # Directory Structure
 ```
-AGENTS.md
+package.json
 src/app-runtime/ai/dev.ts
 src/app-runtime/ai/flows/adapt-ui-color-to-account-context.ts
 src/app-runtime/ai/flows/extract-invoice-items.ts
@@ -150,7 +150,6 @@ src/features/account.slice/user.wallet/_queries.ts
 src/features/account.slice/user.wallet/index.ts
 src/features/global-search.slice/_actions.ts
 src/features/global-search.slice/_components/global-search-dialog.tsx
-src/features/global-search.slice/_search.test.ts
 src/features/global-search.slice/_services.ts
 src/features/global-search.slice/_types.ts
 src/features/global-search.slice/index.ts
@@ -178,7 +177,6 @@ src/features/infra.gateway-query/index.ts
 src/features/infra.outbox-relay/_relay.ts
 src/features/infra.outbox-relay/index.ts
 src/features/notification-hub.slice/_actions.ts
-src/features/notification-hub.slice/_notification-hub.test.ts
 src/features/notification-hub.slice/_services.ts
 src/features/notification-hub.slice/_types.ts
 src/features/notification-hub.slice/gov.notification-router/_router.ts
@@ -288,14 +286,10 @@ src/features/scheduling.slice/_projectors/account-schedule.ts
 src/features/scheduling.slice/_projectors/demand-board-queries.ts
 src/features/scheduling.slice/_projectors/demand-board.ts
 src/features/scheduling.slice/_queries.ts
-src/features/scheduling.slice/_saga.eligibility.test.ts
-src/features/scheduling.slice/_saga.test.ts
 src/features/scheduling.slice/_saga.ts
 src/features/scheduling.slice/index.ts
 src/features/semantic-graph.slice/_actions.ts
-src/features/semantic-graph.slice/_aggregate.test.ts
 src/features/semantic-graph.slice/_aggregate.ts
-src/features/semantic-graph.slice/_services.test.ts
 src/features/semantic-graph.slice/_services.ts
 src/features/semantic-graph.slice/_types.ts
 src/features/semantic-graph.slice/centralized-tag/_actions.ts
@@ -316,7 +310,6 @@ src/features/shared-kernel/resilience-contract/index.ts
 src/features/shared-kernel/schedule-contract/index.ts
 src/features/shared-kernel/semantic-primitives/index.ts
 src/features/shared-kernel/skill-tier/index.ts
-src/features/shared-kernel/skill-tier/skill-tier.test.ts
 src/features/shared-kernel/staleness-contract/index.ts
 src/features/shared-kernel/tag-authority/index.ts
 src/features/shared-kernel/token-refresh-contract/index.ts
@@ -377,9 +370,7 @@ src/features/workspace.slice/business.finance/index.ts
 src/features/workspace.slice/business.issues/_actions.ts
 src/features/workspace.slice/business.issues/_components/issues-view.tsx
 src/features/workspace.slice/business.issues/index.ts
-src/features/workspace.slice/business.parsing-intent/_contract.test.ts
 src/features/workspace.slice/business.parsing-intent/_contract.ts
-src/features/workspace.slice/business.parsing-intent/architecture-compliance.test.ts
 src/features/workspace.slice/business.parsing-intent/index.ts
 src/features/workspace.slice/business.quality-assurance/_components/quality-assurance-view.tsx
 src/features/workspace.slice/business.quality-assurance/index.ts
@@ -503,14 +494,12 @@ src/shared/app-providers/auth-provider.tsx
 src/shared/app-providers/firebase-provider.tsx
 src/shared/app-providers/theme-provider.tsx
 src/shared/constants/location-units.ts
-src/shared/constants/README.md
 src/shared/constants/roles.ts
 src/shared/constants/routes.ts
 src/shared/constants/settings.ts
 src/shared/constants/skills.ts
 src/shared/constants/status.ts
 src/shared/constants/taiwan-address.ts
-src/shared/enums/README.md
 src/shared/infra/analytics/analytics.adapter.ts
 src/shared/infra/analytics/analytics.client.ts
 src/shared/infra/app.client.ts
@@ -646,100 +635,13 @@ vitest.config.ts
 
 # Files
 
-## File: AGENTS.md
-````markdown
-# Agent Setup Instructions
-
-This file is read by AI coding agents (GitHub Copilot Coding Agent, Codex, etc.) at the
-start of every session. Follow these steps **before** running any validation commands.
-
-## Environment Bootstrap (MANDATORY — run once per session)
-
-```bash
-npm install
-```
-
-> **Why this is required**: The sandbox starts without `node_modules`. Running
-> `npm run lint` or `npm run typecheck` without installing dependencies produces
-> thousands of false-positive "Cannot find module" errors that make quality reports
-> completely untrustworthy. Always install first.
-
-## Validation Commands
-
-Run these **only after** `npm install` has completed successfully:
-
-| Command | What it checks | Trustworthy only if |
-|---------|---------------|---------------------|
-| `npm run lint` | ESLint architecture rules (D1–D25) | `node_modules/.bin/eslint` exists |
-| `npm run typecheck` | TypeScript types | `node_modules/.bin/tsc` exists |
-| `npm run check` | Both in one pass | `node_modules` installed |
-
-## Interpreting Results
-
-- **`npm run lint`** — zero errors (warnings about existing D24 SDK calls are expected and tracked — see below)
-- **`npm run typecheck`** — zero errors
-- If you see `Cannot find module 'react'` or similar: **deps are not installed**, output is noise, do not report these as code errors
-
-## Dev Server
-
-```bash
-npm run dev   # starts on http://localhost:9002
-```
-
-## Known Baseline (after `npm install`)
-
-| Check | Expected result |
-|-------|----------------|
-| `npm run lint` | 0 errors, ~1390 warnings |
-| `npm run typecheck` | 67 errors — ALL in `firebase/functions/` (separate sub-package, not the Next.js app) |
-
-> `firebase/functions/` has its own `package.json`. Its 67 TypeScript errors require
-> `npm install --prefix firebase/functions` and are unrelated to the Next.js application.
-> Do NOT report them as app errors.
-
-## Known D24 Architectural Debt (Tracked Warnings)
-
-The `~1390 lint warnings` include **43 D24 warnings** — direct `firebase/firestore` imports in feature slices.
-These are **tracked migration targets**, not regressions. Per `docs/logic-overview.md` [D24]:
-
-> Feature slices must not import `firebase/*` directly. All SDK calls must go through `FIREBASE_ACL`
-> adapters at `src/shared/infra/{auth,firestore,messaging,storage}/`, accessed via `SK_PORTS` interfaces.
-
-Current D24 violation files (43 total):
-- `src/features/account.slice/` — gov.policy, gov.role, user.profile, user.wallet (4 files)
-- `src/features/identity.slice/` — `_token-refresh-listener.ts` (1 file)
-- `src/features/notification.slice/` — user.notification delivery + queries (2 files)
-- `src/features/organization.slice/` — core, gov.members, gov.partners, gov.policy, gov.teams (5 files)
-- `src/features/projection.bus/` — account-audit, account-view, org-eligible-member-view, organization-view, tag-snapshot, workspace-scope-guard, workspace-view (9 files)
-- `src/features/scheduling.slice/` — aggregate, components, hooks, projectors, queries (9 files)
-- `src/features/skill-xp.slice/` — projector, queries, tag-lifecycle (3 files)
-- `src/features/workspace.slice/` — business.daily, business.document-parser, business.files, business.workflow, core, gov.audit (10 files)
-
-**Any new code must NOT add to this list.** D24 migration requires a dedicated PR.
-
-## Workflow for Architecture Alignment
-
-Before making changes, always follow the GEMINI.md workflow:
-
-1. **`.github/prompts/GEMINI.md`** — master agent orchestration index
-2. **`compliance-audit.prompt.md`** — run before PR to verify docs alignment
-3. **`iterative-alignment-refactor.prompt.md`** — for fixing D-rule violations
-
-## Key Files
-
-- `docs/logic-overview.md` — **SSOT** architecture rules (D1–D25, invariants #1–#19)
-- `eslint.config.mts` — enforces D1–D25 as ESLint rules
-- `.github/copilot-instructions.md` — agent workflow instructions
-- `.github/prompts/GEMINI.md` — AI prompt orchestration index
-````
-
 ## File: src/app-runtime/ai/dev.ts
-````typescript
+```typescript
 import { config } from 'dotenv';
-````
+```
 
 ## File: src/app-runtime/ai/flows/adapt-ui-color-to-account-context.ts
-````typescript
+```typescript
 import {z} from 'genkit';
 import {ai} from '@/app-runtime/ai/genkit';
 ⋮----
@@ -753,10 +655,10 @@ export type AdaptUIColorToAccountContextOutput = z.infer<
 export async function adaptUIColorToAccountContext(
   input: AdaptUIColorToAccountContextInput
 ): Promise<AdaptUIColorToAccountContextOutput>
-````
+```
 
 ## File: src/app-runtime/ai/flows/extract-invoice-items.ts
-````typescript
+```typescript
 import { type z } from 'genkit';
 import { ai } from '@/app-runtime/ai/genkit';
 import {
@@ -766,56 +668,56 @@ import {
 export async function extractInvoiceItems(
   input: z.infer<typeof ExtractInvoiceItemsInputSchema>
 ): Promise<z.infer<typeof ExtractInvoiceItemsOutputSchema>>
-````
+```
 
 ## File: src/app-runtime/ai/genkit.ts
-````typescript
+```typescript
 import {googleAI} from '@genkit-ai/google-genai';
 import {genkit} from 'genkit';
-````
+```
 
 ## File: src/app-runtime/ai/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/app-runtime/ai/schemas/docu-parse.ts
-````typescript
+```typescript
 import { z } from 'genkit';
 ⋮----
 export type WorkItem = z.infer<typeof WorkItemSchema>;
-````
+```
 
 ## File: src/app-runtime/contexts/README.MD
-````markdown
+```markdown
 # contexts
 
 Context defines shared state shape only.
 It contains types and React contexts without runtime logic.
 Context must not initialize services or contain side effects.
-````
+```
 
 ## File: src/app-runtime/providers/README.MD
-````markdown
+```markdown
 # providers
 
 Providers implement runtime behavior.
 They initialize services and inject values into React Context.
 Providers may depend on config, shared, and shared-infra — never features.
-````
+```
 
 ## File: src/app-runtime/README.MD
-````markdown
+```markdown
 放置運行時組合與平台啟動代碼（Providers、服務組件）。
 只允許向下依賴；向上 import 為架構違規。
 
 app-runtime is the runtime wiring layer.
 It initializes providers and connects config, shared, and infrastructure.
 No business logic or feature code is allowed here.
-````
+```
 
 ## File: src/app/(public)/@modal/(.)reset-password/page.tsx
-````typescript
+```typescript
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { useI18n } from "@/config/i18n/i18n-provider"
@@ -835,15 +737,15 @@ onSuccess=
 onCancel=
 ⋮----
 export default function ResetPasswordModalPage()
-````
+```
 
 ## File: src/app/(public)/@modal/default.tsx
-````typescript
+```typescript
 export default function AuthModalDefault()
-````
+```
 
 ## File: src/app/(public)/layout.tsx
-````typescript
+```typescript
 import type { ReactNode } from "react"
 export default function AuthLayout({
   children,
@@ -852,32 +754,32 @@ export default function AuthLayout({
   children: ReactNode
   modal: ReactNode
 })
-````
+```
 
 ## File: src/app/(public)/login/page.tsx
-````typescript
+```typescript
 import { LoginView } from "@/features/identity.slice"
 export default function LoginPage()
-````
+```
 
 ## File: src/app/(public)/reset-password/page.tsx
-````typescript
+```typescript
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { useI18n } from "@/config/i18n/i18n-provider"
 import { ResetPasswordForm } from "@/features/identity.slice"
 ⋮----
 onCancel=
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/@header/default.tsx
-````typescript
+```typescript
 import { Header } from "@/features/workspace.slice";
 export default function HeaderSlot()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/@modal/(.)account/new/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { useI18n } from "@/config/i18n/i18n-provider"
 import { AccountNewForm } from "@/features/organization.slice"
@@ -892,131 +794,131 @@ import {
 <Dialog open onOpenChange=
 ⋮----
 onCancel=
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/@modal/default.tsx
-````typescript
+```typescript
 export default function DashboardModalDefault()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/matrix/page.tsx
-````typescript
+```typescript
 import { PermissionMatrixView } from "@/features/account.slice"
 export default function PermissionMatrixPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/members/page.tsx
-````typescript
+```typescript
 import { MembersView } from "@/features/organization.slice"
 export default function AccountMembersPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/new/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { useI18n } from "@/config/i18n/i18n-provider"
 import { AccountNewForm } from "@/features/organization.slice"
 ⋮----
 onSuccess=
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/partners/[id]/page.tsx
-````typescript
+```typescript
 import { PartnerDetailView } from "@/features/organization.slice"
 export default function PartnerTeamDetailPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/partners/page.tsx
-````typescript
+```typescript
 import { PartnersView } from "@/features/organization.slice"
 export default function PartnersPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/schedule/page.tsx
-````typescript
+```typescript
 import { AccountScheduleSection } from "@/features/scheduling.slice";
 export default function AccountSchedulePage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/settings/page.tsx
-````typescript
+```typescript
 import { UserSettingsView } from "@/features/account.slice"
 export default function AccountSettingsPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/skills/page.tsx
-````typescript
+```typescript
 import { PersonalSkillPanel } from '@/features/skill-xp.slice';
 export default function AccountSkillsPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/teams/[id]/page.tsx
-````typescript
+```typescript
 import { TeamDetailView } from "@/features/organization.slice"
 export default function AccountTeamDetailPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/teams/page.tsx
-````typescript
+```typescript
 import { TeamsView } from "@/features/organization.slice"
 export default function AccountTeamsPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/page.tsx
-````typescript
+```typescript
 import { DashboardView } from "@/features/workspace.slice"
 export default function DashboardPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/acceptance/page.tsx
-````typescript
+```typescript
 import { WorkspaceAcceptance } from "@/features/workspace.slice"
 export default function AcceptanceCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/audit/loading.tsx
-````typescript
+```typescript
 import { Skeleton } from "@/shared/shadcn-ui/skeleton"
 export default function Loading()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/audit/page.tsx
-````typescript
+```typescript
 import { WorkspaceAudit } from "@/features/workspace.slice"
 export default function AuditCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/capabilities/page.tsx
-````typescript
+```typescript
 import { WorkspaceCapabilities } from "@/features/workspace.slice"
 export default function CapabilitiesPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/daily/loading.tsx
-````typescript
+```typescript
 import { Skeleton } from "@/shared/shadcn-ui/skeleton"
 export default function Loading()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/daily/page.tsx
-````typescript
+```typescript
 import { WorkspaceDaily } from "@/features/workspace.slice"
 export default function DailyCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/default.tsx
-````typescript
+```typescript
 export default function DefaultBusinessTab()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/document-parser/page.tsx
-````typescript
+```typescript
 import { WorkspaceDocumentParser } from "@/features/workspace.slice"
 export default function DocumentParserCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/error.tsx
-````typescript
+```typescript
 import { AlertCircle } from "lucide-react"
 import { useEffect } from "react"
 import { Button } from "@/shared/shadcn-ui/button"
@@ -1027,70 +929,70 @@ export default function BusinessTabError({
   error: Error & { digest?: string }
   reset: () => void
 })
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/files/page.tsx
-````typescript
+```typescript
 import { WorkspaceFiles } from "@/features/workspace.slice"
 export default function FilesCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/finance/page.tsx
-````typescript
+```typescript
 import { WorkspaceFinance } from "@/features/workspace.slice"
 export default function FinanceCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/issues/page.tsx
-````typescript
+```typescript
 import { WorkspaceIssues } from "@/features/workspace.slice"
 export default function IssuesCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/loading.tsx
-````typescript
+```typescript
 import { Skeleton } from "@/shared/shadcn-ui/skeleton"
 export default function Loading()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/members/page.tsx
-````typescript
+```typescript
 import { WorkspaceMembers } from "@/features/workspace.slice"
 export default function MembersCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/quality-assurance/page.tsx
-````typescript
+```typescript
 import { WorkspaceQualityAssurance } from "@/features/workspace.slice"
 export default function QualityAssuranceCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/schedule/loading.tsx
-````typescript
+```typescript
 import { Skeleton } from "@/shared/shadcn-ui/skeleton"
 export default function Loading()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/schedule/page.tsx
-````typescript
+```typescript
 import { WorkspaceSchedule } from "@/features/scheduling.slice"
 export default function ScheduleCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/tasks/loading.tsx
-````typescript
+```typescript
 import { Skeleton } from "@/shared/shadcn-ui/skeleton"
 export default function Loading()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@businesstab/tasks/page.tsx
-````typescript
+```typescript
 import { WorkspaceTasks } from "@/features/workspace.slice"
 export default function TasksCapabilityPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@modal/(.)daily-log/[logId]/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { use } from "react"
 import { DailyLogDialog } from "@/features/workspace.slice"
@@ -1100,10 +1002,10 @@ interface PageProps {
   params: Promise<{ id: string; logId: string }>
 }
 export default function DailyLogModalPage(
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@modal/(.)settings/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { WorkspaceSettingsDialog , useWorkspace } from "@/features/workspace.slice"
@@ -1118,15 +1020,15 @@ const onSave = async (settings: {
 }) =>
 ⋮----
 onOpenChange=
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@modal/default.tsx
-````typescript
+```typescript
 export default function DefaultModal()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@panel/(.)governance/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { useMemo } from "react"
 import { GovernanceSidebar , useScheduleActions } from "@/features/scheduling.slice"
@@ -1135,15 +1037,15 @@ import { useAccount } from "@/features/workspace.slice"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/shadcn-ui/sheet"
 import type { ScheduleItem } from "@/shared/types"
 export default function GovernancePanelPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@panel/default.tsx
-````typescript
+```typescript
 export default function DefaultPanel()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/daily-log/[logId]/page.tsx
-````typescript
+```typescript
 import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { use } from "react"
@@ -1167,10 +1069,10 @@ onClick={() => router.push(`/workspaces/${workspaceId}/daily`)}
 onOpenChange=
 ⋮----
 onOpenChange=
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/governance/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { useMemo } from "react"
 import { GovernanceSidebar , useScheduleActions } from "@/features/scheduling.slice"
@@ -1180,10 +1082,10 @@ import type { ScheduleItem } from "@/shared/types"
 export default function GovernancePage()
 ⋮----
 onClick=
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/layout.tsx
-````typescript
+```typescript
 import { ArrowLeft, Settings, Trash2, ChevronRight, MapPin } from "lucide-react";
 import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, use } from "react";
@@ -1200,10 +1102,10 @@ import {
 import { PageHeader } from "@/shared/ui/page-header";
 ⋮----
 const onDeleteWorkspace = async () =>
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/locations/page.tsx
-````typescript
+```typescript
 import { useRouter } from 'next/navigation';
 import { useWorkspace } from '@/features/workspace.slice';
 import { WorkspaceLocationsPanel } from '@/features/workspace.slice';
@@ -1212,26 +1114,26 @@ import { Button } from '@/shared/shadcn-ui/button';
 export default function WorkspaceLocationsPage()
 ⋮----
 onClick=
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/page.tsx
-````typescript
+```typescript
 import { redirect } from "next/navigation"
 export default async function WorkspaceDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
 })
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/schedule-proposal/page.tsx
-````typescript
+```typescript
 import { ScheduleProposalContent } from "@/features/scheduling.slice"
 export default function ScheduleProposalPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/settings/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { WorkspaceSettingsDialog , useWorkspace } from "@/features/workspace.slice"
@@ -1246,58 +1148,58 @@ const onSave = async (settings: {
 }) =>
 ⋮----
 onOpenChange=
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/@header/default.tsx
-````typescript
+```typescript
 import { Header } from "@/features/workspace.slice";
 export default function HeaderSlot()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/@modal/(.)new/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { CreateWorkspaceDialog } from "@/features/workspace.slice"
 export default function NewWorkspaceModalPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/@modal/default.tsx
-````typescript
+```typescript
 export default function DefaultModal()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/new/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { CreateWorkspaceDialog } from "@/features/workspace.slice"
 export default function NewWorkspacePage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/page.tsx
-````typescript
+```typescript
 import { WorkspacesView } from "@/features/workspace.slice";
 export default function WorkspacesPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/layout.tsx
-````typescript
+```typescript
 import type { ReactNode } from "react";
 export default function AccountLayout(
-````
+```
 
 ## File: src/app/(shell)/@modal/default.tsx
-````typescript
+```typescript
 export default function ShellModalDefault()
-````
+```
 
 ## File: src/app/(shell)/@sidebar/default.tsx
-````typescript
+```typescript
 import { DashboardSidebar } from "@/features/workspace.slice";
 export default function SidebarSlot()
-````
+```
 
 ## File: src/app/(shell)/layout.tsx
-````typescript
+```typescript
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, type ReactNode } from "react";
@@ -1311,19 +1213,19 @@ type ShellLayoutProps = {
   modal: ReactNode;
 };
 export default function ShellLayout(
-````
+```
 
 ## File: src/app/(shell)/page.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useI18n } from "@/config/i18n/i18n-provider";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { Button } from "@/shared/shadcn-ui/button";
-````
+```
 
 ## File: src/app/globals.css
-````css
+```css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1342,10 +1244,10 @@ body {
 .gpu-accelerated {
 .glass-card {
 .dimension-glow {
-````
+```
 
 ## File: src/app/layout.tsx
-````typescript
+```typescript
 import type {Metadata} from 'next';
 ⋮----
 import { I18nProvider } from '@/config/i18n/i18n-provider';
@@ -1361,16 +1263,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>)
-````
+```
 
 ## File: src/app/README.MD
-````markdown
+```markdown
 放置框架入口：路由、layouts 與全域配置。
 只允許向下依賴；向上 import 為架構違規。
-````
+```
 
 ## File: src/config/i18n/i18n-provider.tsx
-````typescript
+```typescript
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { getPreferredLocale, setLocalePreference, loadMessages, i18nConfig } from '@/config/i18n/i18n';
 import { type Locale, type TranslationMessages } from '@/config/i18n/i18n-types';
@@ -1390,20 +1292,20 @@ const setLocale = (newLocale: Locale) =>
 const t = (key: string, params?: Record<string, string | number>): string =>
 ⋮----
 export function useI18n()
-````
+```
 
 ## File: src/config/i18n/i18n-types.ts
-````typescript
+```typescript
 import type { TranslationMessages } from './i18n.schema';
 export type Locale = 'en' | 'zh-TW';
 export interface I18nConfig {
   defaultLocale: Locale;
   locales: Locale[];
 }
-````
+```
 
 ## File: src/config/i18n/i18n.schema.ts
-````typescript
+```typescript
 export interface TranslationMessages {
   common: {
     appName: string;
@@ -1640,38 +1542,38 @@ export interface TranslationMessages {
     budgetConflict: string;
   };
 }
-````
+```
 
 ## File: src/config/i18n/i18n.ts
-````typescript
+```typescript
 import { type Locale, type I18nConfig } from "@/config/i18n/i18n-types"
 ⋮----
 export function getPreferredLocale(): Locale
 export function setLocalePreference(locale: Locale): void
 export async function loadMessages(locale: Locale)
-````
+```
 
 ## File: src/config/README.MD
-````markdown
+```markdown
 放置專案配置與說明：環境變數範例與設定檔參考。
 只允許向下依賴；向上 import 為架構違規。
-````
+```
 
 ## File: src/features/account.slice/gov.policy/_hooks/use-account-policy.ts
-````typescript
+```typescript
 import { useState, useEffect } from 'react';
 import type { AccountPolicy } from '../_actions';
 import { subscribeToAccountPolicies } from '../_queries';
 export function useAccountPolicy(accountId: string | null)
-````
+```
 
 ## File: src/features/account.slice/gov.policy/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/account.slice/gov.role/_components/permission-matrix-view.tsx
-````typescript
+```typescript
 import { ShieldCheck, ShieldAlert, Users, AlertCircle } from "lucide-react"
 import { useState, useEffect, useMemo } from "react"
 import { useAccount } from "@/features/workspace.slice"
@@ -1679,10 +1581,10 @@ import { useApp } from "@/shared/app-providers/app-context"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/shadcn-ui/table"
 ⋮----
 const hasAccess = (teamId: string, workspaceId: string) =>
-````
+```
 
 ## File: src/features/account.slice/gov.role/_components/permission-tree.tsx
-````typescript
+```typescript
 import { Shield } from "lucide-react";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Card, CardContent } from "@/shared/shadcn-ui/card";
@@ -1694,33 +1596,33 @@ interface PermissionTreeProps {
 function PermissionTier(
 ⋮----
 name=
-````
+```
 
 ## File: src/features/account.slice/gov.role/_hooks/use-account-role.ts
-````typescript
+```typescript
 import { useState, useEffect } from 'react';
 import type { AccountRoleRecord } from '../_actions';
 import { subscribeToAccountRoles } from '../_queries';
 export function useAccountRole(accountId: string | null)
-````
+```
 
 ## File: src/features/account.slice/gov.role/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/account.slice/user.profile/_components/preferences-card.tsx
-````typescript
+```typescript
 import { Bell } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/shadcn-ui/card";
 import { Label } from "@/shared/shadcn-ui/label";
 import { Separator } from "@/shared/shadcn-ui/separator";
 import { Switch } from "@/shared/shadcn-ui/switch";
 export function PreferencesCard()
-````
+```
 
 ## File: src/features/account.slice/user.profile/_components/profile-card.tsx
-````typescript
+```typescript
 import { User, Loader2, Upload } from "lucide-react";
 import type React from "react"
 import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills"
@@ -1749,10 +1651,10 @@ interface ProfileCardProps {
 }
 ⋮----
 <Button onClick=
-````
+```
 
 ## File: src/features/account.slice/user.profile/_components/security-card.tsx
-````typescript
+```typescript
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/shadcn-ui/card";
@@ -1760,20 +1662,20 @@ interface SecurityCardProps {
   onWithdraw: () => void;
   t: (key: string) => string;
 }
-````
+```
 
 ## File: src/features/account.slice/user.profile/_components/user-settings-view.tsx
-````typescript
+```typescript
 import { useI18n } from "@/config/i18n/i18n-provider"
 import { PageHeader } from "@/shared/ui/page-header"
 import { UserSettings } from "./user-settings"
 export function UserSettingsView()
 ⋮----
 title=
-````
+```
 
 ## File: src/features/account.slice/user.profile/_components/user-settings.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { useI18n } from "@/config/i18n/i18n-provider";
@@ -1791,15 +1693,15 @@ const handleSaveProfile = async () =>
 const handleWithdraw = () =>
 const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) =>
 const handleSkillToggle = (slug: string) =>
-````
+```
 
 ## File: src/features/account.slice/user.profile/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/account.slice/user.wallet/_hooks/use-wallet.ts
-````typescript
+```typescript
 import { useState, useEffect } from 'react';
 import type { Wallet } from '@/shared/types';
 import { subscribeToWalletBalance, subscribeToWalletTransactions } from '../_queries';
@@ -1807,15 +1709,15 @@ import type { WalletTransactionRecord } from '../_queries';
 export function useWallet(accountId: string | null)
 ⋮----
 const checkReady = () =>
-````
+```
 
 ## File: src/features/account.slice/user.wallet/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/identity.slice/_actions.ts
-````typescript
+```typescript
 import { createUserAccount } from '@/features/account.slice'
 import {
   type CommandResult,
@@ -1837,10 +1739,10 @@ export async function completeRegistration(
   password: string,
   name: string
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/identity.slice/_claims-handler.ts
-````typescript
+```typescript
 import { logDomainError } from '@/features/observability';
 import type { EventEnvelope } from '@/features/shared-kernel';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -1853,15 +1755,15 @@ export type ClaimsSubscriberRegistrar = (
   lane: IerLane
 ) => () => void;
 export function registerClaimsHandler(registerFn: ClaimsSubscriberRegistrar): () => void
-````
+```
 
 ## File: src/features/identity.slice/_components/auth-background.tsx
-````typescript
+```typescript
 export function AuthBackground()
-````
+```
 
 ## File: src/features/identity.slice/_components/auth-tabs-root.tsx
-````typescript
+```typescript
 import { Ghost, Loader2 } from "lucide-react";
 import { useI18n } from "@/config/i18n/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -1884,10 +1786,10 @@ interface AuthTabsRootProps {
 }
 ⋮----
 handleRegister=
-````
+```
 
 ## File: src/features/identity.slice/_components/login-form.tsx
-````typescript
+```typescript
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { useI18n } from "@/config/i18n/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -1904,10 +1806,10 @@ interface LoginFormProps {
 }
 ⋮----
 <form className="flex flex-1 flex-col space-y-4" onSubmit=
-````
+```
 
 ## File: src/features/identity.slice/_components/login-view.tsx
-````typescript
+```typescript
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useI18n } from "@/config/i18n/i18n-provider"
@@ -1919,10 +1821,10 @@ export function LoginView()
 ⋮----
 const handleAuth = async (type: "login" | "register") =>
 const handleAnonymous = async () =>
-````
+```
 
 ## File: src/features/identity.slice/_components/register-form.tsx
-````typescript
+```typescript
 import { Mail, User, Lock, Loader2 } from "lucide-react";
 import { useI18n } from "@/config/i18n/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -1942,10 +1844,10 @@ interface RegisterFormProps {
 <form className="flex flex-1 flex-col space-y-4" onSubmit=
 ⋮----
 <InputGroupInput id="r-name" autoComplete="name" value=
-````
+```
 
 ## File: src/features/identity.slice/_components/reset-password-dialog.tsx
-````typescript
+```typescript
 import { Mail } from "lucide-react";
 import { useI18n } from "@/config/i18n/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -1959,10 +1861,10 @@ interface ResetPasswordDialogProps {
   setEmail: (value: string) => void;
   handleSendResetEmail: () => void;
 }
-````
+```
 
 ## File: src/features/identity.slice/_components/reset-password-form.tsx
-````typescript
+```typescript
 import { Mail } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "@/config/i18n/i18n-provider";
@@ -1978,15 +1880,15 @@ interface ResetPasswordFormProps {
 }
 ⋮----
 const handleSend = async () =>
-````
+```
 
 ## File: src/features/identity.slice/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/infra.dlq-manager/_dlq.ts
-````typescript
+```typescript
 export type DlqLevel = 'SAFE_AUTO' | 'REVIEW_REQUIRED' | 'SECURITY_BLOCK';
 export interface DlqEntry {
   readonly dlqId: string;
@@ -1999,15 +1901,15 @@ export interface DlqEntry {
 }
 ⋮----
 export function getDlqLevel(eventType: string): DlqLevel
-````
+```
 
 ## File: src/features/infra.dlq-manager/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/infra.event-router/_router.ts
-````typescript
+```typescript
 import type { EventEnvelope } from '@/features/shared-kernel';
 export type IerLane = 'CRITICAL_LANE' | 'STANDARD_LANE' | 'BACKGROUND_LANE';
 type EventHandler = (envelope: EventEnvelope) => Promise<void>;
@@ -2027,15 +1929,15 @@ export async function publishToLane(
   lane: IerLane,
   envelope: unknown
 ): Promise<void>
-````
+```
 
 ## File: src/features/infra.event-router/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/infra.external-triggers/_guard.ts
-````typescript
+```typescript
 import type {
   RateLimitConfig,
   CircuitBreakerConfig,
@@ -2100,15 +2002,15 @@ async withGuard<T>(
       caller: CallerContext,
       handler: () => Promise<T>
 ): Promise<T | GuardCheckResult>
-````
+```
 
 ## File: src/features/infra.external-triggers/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/infra.gateway-command/_gateway.ts
-````typescript
+```typescript
 import type { AuthoritySnapshot, CommandResult } from '@/features/shared-kernel';
 import { commandFailureFrom } from '@/features/shared-kernel';
 export interface GatewayCommand {
@@ -2141,15 +2043,15 @@ export async function dispatchCommand<TCmd extends GatewayCommand>(
   command: TCmd,
   opts?: DispatchOptions
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/infra.gateway-command/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/infra.gateway-query/_registry.ts
-````typescript
+```typescript
 type QueryHandler<TParams = unknown, TResult = unknown> = (
   params: TParams
 ) => Promise<TResult>;
@@ -2170,20 +2072,20 @@ export async function executeQuery<TParams, TResult>(
 export function listRegisteredQueries(): ReadonlyArray<
 ⋮----
 export type QueryRouteName = (typeof QUERY_ROUTES)[keyof typeof QUERY_ROUTES];
-````
+```
 
 ## File: src/features/infra.gateway-query/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/infra.outbox-relay/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/observability/_error-log.ts
-````typescript
+```typescript
 export interface DomainErrorEntry {
   readonly occurredAt: string;
   readonly traceId: string;
@@ -2192,17 +2094,17 @@ export interface DomainErrorEntry {
   readonly detail?: string;
 }
 export function logDomainError(entry: DomainErrorEntry): void
-````
+```
 
 ## File: src/features/observability/_metrics.ts
-````typescript
+```typescript
 export function recordEventPublished(eventType: string): void
 export function getEventCounters(): Readonly<Record<string, number>>
 export function resetEventCounters(): void
-````
+```
 
 ## File: src/features/observability/_trace.ts
-````typescript
+```typescript
 export function generateTraceId(): string
 export interface TraceContext {
   readonly traceId: string;
@@ -2210,15 +2112,15 @@ export interface TraceContext {
   readonly source?: string;
 }
 export function createTraceContext(source?: string): TraceContext
-````
+```
 
 ## File: src/features/observability/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/organization.slice/core.event-bus/_bus.ts
-````typescript
+```typescript
 import type { ImplementsEventEnvelopeContract } from '@/features/shared-kernel';
 import type { OrganizationEventPayloadMap, OrganizationEventKey } from './_events';
 type OrgEventHandler<K extends OrganizationEventKey> = (
@@ -2236,10 +2138,10 @@ export async function publishOrgEvent<K extends OrganizationEventKey>(
   eventKey: K,
   payload: OrganizationEventPayloadMap[K]
 ): Promise<void>
-````
+```
 
 ## File: src/features/organization.slice/core.event-bus/_events.ts
-````typescript
+```typescript
 export interface ScheduleAssignedPayload {
   scheduleItemId: string;
   workspaceId: string;
@@ -2366,15 +2268,15 @@ export interface OrganizationEventPayloadMap {
   'organization:skill:recognitionRevoked': SkillRecognitionRevokedPayload;
 }
 export type OrganizationEventKey = keyof OrganizationEventPayloadMap;
-````
+```
 
 ## File: src/features/organization.slice/core.event-bus/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/organization.slice/core/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -2402,10 +2304,10 @@ export async function setupOrganizationWithTeam(
   teamName: string,
   teamType: "internal" | "external" = "internal"
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/organization.slice/core/_components/account-grid.tsx
-````typescript
+```typescript
 import { Globe, MoreVertical, Users, ArrowUpRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useApp } from "@/shared/app-providers/app-context"
@@ -2425,10 +2327,10 @@ interface AccountGridProps {
 function AccountCard(
 ⋮----
 const handleClick = () =>
-````
+```
 
 ## File: src/features/organization.slice/core/_components/account-new-form.tsx
-````typescript
+```typescript
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useI18n } from "@/config/i18n/i18n-provider";
@@ -2445,10 +2347,10 @@ interface AccountNewFormProps {
 ⋮----
 const handleCreate = async () =>
 ⋮----
-````
+```
 
 ## File: src/features/organization.slice/core/_hooks/use-organization-management.ts
-````typescript
+```typescript
 import { useCallback } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
 import { useAuth } from '@/shared/app-providers/auth-provider';
@@ -2459,15 +2361,15 @@ import {
   deleteOrganization as deleteOrganizationAction,
 } from '../_actions';
 export function useOrganizationManagement()
-````
+```
 
 ## File: src/features/organization.slice/core/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/organization.slice/gov.members/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -2488,10 +2390,10 @@ export async function dismissMember(
   organizationId: string,
   member: MemberReference
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/organization.slice/gov.members/_components/members-view.tsx
-````typescript
+```typescript
 import { UserPlus, Trash2, Mail, AlertCircle, Sparkles } from "lucide-react"
 import { useState, useEffect, useMemo } from "react"
 import { useI18n } from "@/config/i18n/i18n-provider"
@@ -2507,10 +2409,10 @@ import { toast } from "@/shared/utility-hooks/use-toast"
 import { useMemberManagement } from '../_hooks/use-member-management'
 ⋮----
 title=
-````
+```
 
 ## File: src/features/organization.slice/gov.members/_hooks/use-member-management.ts
-````typescript
+```typescript
 import { useCallback } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
 import type { MemberReference } from '@/shared/types';
@@ -2519,15 +2421,15 @@ import {
   dismissMember as dismissMemberAction,
 } from '../_actions';
 export function useMemberManagement()
-````
+```
 
 ## File: src/features/organization.slice/gov.members/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/organization.slice/gov.partners/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -2553,10 +2455,10 @@ export async function dismissPartnerMember(
   teamId: string,
   member: MemberReference
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/organization.slice/gov.partners/_components/partner-detail-view.tsx
-````typescript
+```typescript
 import {
   ArrowLeft,
   MailPlus,
@@ -2593,10 +2495,10 @@ import { subscribeToOrgPartnerInvites } from "../_queries"
 ⋮----
 const handleSendInvite = async () =>
 const handleDismissMember = async (member: MemberReference) =>
-````
+```
 
 ## File: src/features/organization.slice/gov.partners/_components/partners-view.tsx
-````typescript
+```typescript
 import { Handshake, Plus, ArrowRight, Globe, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useMemo } from "react"
@@ -2623,10 +2525,10 @@ import { usePartnerManagement } from "../_hooks/use-partner-management"
 title=
 ⋮----
 <span className="font-mono text-[9px] text-muted-foreground">TID:
-````
+```
 
 ## File: src/features/organization.slice/gov.partners/_hooks/use-partner-management.ts
-````typescript
+```typescript
 import { useCallback } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
 import type { MemberReference } from '@/shared/types';
@@ -2636,28 +2538,28 @@ import {
   dismissPartnerMember as dismissPartnerMemberAction,
 } from '../_actions';
 export function usePartnerManagement()
-````
+```
 
 ## File: src/features/organization.slice/gov.partners/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/organization.slice/gov.policy/_hooks/use-org-policy.ts
-````typescript
+```typescript
 import { useState, useEffect } from 'react';
 import type { OrgPolicy } from '../_actions';
 import { subscribeToOrgPolicies } from '../_queries';
 export function useOrgPolicy(orgId: string | null)
-````
+```
 
 ## File: src/features/organization.slice/gov.policy/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/organization.slice/gov.teams/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -2678,10 +2580,10 @@ export async function updateTeamMembers(
   memberId: string,
   action: "add" | "remove"
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/organization.slice/gov.teams/_components/team-detail-view.tsx
-````typescript
+```typescript
 import { ArrowLeft, UserPlus, Trash2, Users } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect, useMemo } from "react"
@@ -2696,10 +2598,10 @@ import { toast } from "@/shared/utility-hooks/use-toast"
 const handleMemberToggle = async (memberId: string, action: 'add' | 'remove') =>
 ⋮----
 <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold uppercase text-primary" onClick=
-````
+```
 
 ## File: src/features/organization.slice/gov.teams/_components/teams-view.tsx
-````typescript
+```typescript
 import { Users, Plus, FolderTree, ArrowRight, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useMemo } from "react"
@@ -2725,10 +2627,10 @@ import { toast } from "@/shared/utility-hooks/use-toast"
 title=
 ⋮----
 <span className="font-mono text-[9px] text-muted-foreground">ID:
-````
+```
 
 ## File: src/features/organization.slice/gov.teams/_hooks/use-team-management.ts
-````typescript
+```typescript
 import { useCallback } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
 import {
@@ -2736,30 +2638,30 @@ import {
   updateTeamMembers as updateTeamMembersAction,
 } from '../_actions';
 export function useTeamManagement()
-````
+```
 
 ## File: src/features/organization.slice/gov.teams/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/organization.slice/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/_query-registration.ts
-````typescript
+```typescript
 import { registerQuery, QUERY_ROUTES } from '@/features/infra.gateway-query';
 import { getAccountView } from './account-view';
 import { getOrgEligibleMembersWithTier } from './org-eligible-member-view';
 import { getDisplayWalletBalance } from './wallet-balance';
 import { queryWorkspaceAccess } from './workspace-scope-guard';
 export function registerAllQueryHandlers(): Array<() => void>
-````
+```
 
 ## File: src/features/projection.bus/_registry.ts
-````typescript
+```typescript
 import {
   getProjectionVersion as getProjectionVersionRepo,
   upsertProjectionVersion as upsertProjectionVersionRepo,
@@ -2774,15 +2676,15 @@ export async function upsertProjectionVersion(
   lastEventOffset: number,
   readModelVersion: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/account-audit/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/account-schedule/_queries.ts
-````typescript
+```typescript
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { AccountScheduleProjection, AccountScheduleAssignment } from './_projector';
 export async function getAccountScheduleProjection(
@@ -2791,15 +2693,15 @@ export async function getAccountScheduleProjection(
 export async function getAccountActiveAssignments(
   accountId: string
 ): Promise<AccountScheduleAssignment[]>
-````
+```
 
 ## File: src/features/projection.bus/account-schedule/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/account-view/_queries.ts
-````typescript
+```typescript
 import type { AuthoritySnapshot } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { AccountViewRecord } from './_projector';
@@ -2810,15 +2712,15 @@ export async function getAccountAuthoritySnapshot(
 export async function getAccountMembershipTag(
   accountId: string
 ): Promise<'internal' | 'external' | null>
-````
+```
 
 ## File: src/features/projection.bus/account-view/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/global-audit-view/_projector.ts
-````typescript
+```typescript
 import type { EventEnvelope } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { doc } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -2842,38 +2744,38 @@ export async function applyAuditEvent(
   payload: Record<string, unknown>,
   context: { accountId: string; workspaceId?: string }
 ): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/global-audit-view/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/org-eligible-member-view/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/organization-view/_queries.ts
-````typescript
+```typescript
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { OrganizationViewRecord } from './_projector';
 export async function getOrganizationView(orgId: string): Promise<OrganizationViewRecord | null>
 export async function getOrganizationMemberIds(orgId: string): Promise<string[]>
-````
+```
 
 ## File: src/features/projection.bus/organization-view/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/tag-snapshot/_projector.ts
-````typescript
+```typescript
 import { versionGuardAllows } from '@/features/shared-kernel';
 import type { TagCreatedPayload, TagUpdatedPayload, TagDeprecatedPayload, TagDeletedPayload } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -2900,30 +2802,30 @@ export async function applyTagDeprecated(
   traceId?: string
 ): Promise<void>
 export async function applyTagDeleted(payload: TagDeletedPayload): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/tag-snapshot/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/wallet-balance/_queries.ts
-````typescript
+```typescript
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { WalletBalanceView } from './_projector';
 export async function getWalletBalanceView(
   accountId: string
 ): Promise<WalletBalanceView | null>
 export async function getDisplayWalletBalance(accountId: string): Promise<number>
-````
+```
 
 ## File: src/features/projection.bus/wallet-balance/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/workspace-scope-guard/_queries.ts
-````typescript
+```typescript
 import type { AuthoritySnapshot } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { WorkspaceScopeGuardView } from './_read-model';
@@ -2935,10 +2837,10 @@ export async function queryWorkspaceAccess(
   workspaceId: string,
   userId: string
 ): Promise<
-````
+```
 
 ## File: src/features/projection.bus/workspace-scope-guard/_read-model.ts
-````typescript
+```typescript
 import type { AuthoritySnapshot } from '@/features/shared-kernel';
 import type { Timestamp } from '@/shared/ports';
 export interface WorkspaceScopeGuardView {
@@ -2961,34 +2863,34 @@ export function buildAuthoritySnapshot(
   userId: string
 ): AuthoritySnapshot
 function derivePermissions(roles: string[]): string[]
-````
+```
 
 ## File: src/features/projection.bus/workspace-scope-guard/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/workspace-view/_queries.ts
-````typescript
+```typescript
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { WorkspaceViewRecord } from './_projector';
 export async function getWorkspaceView(workspaceId: string): Promise<WorkspaceViewRecord | null>
 export async function getWorkspaceCapabilities(workspaceId: string): Promise<string[]>
-````
+```
 
 ## File: src/features/projection.bus/workspace-view/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/README.MD
-````markdown
+```markdown
 放置領域切片與系統能力：業務邏輯、use-cases、Server Actions 等。
 只允許向下依賴；向上 import 為架構違規。
-````
+```
 
 ## File: src/features/scheduling.slice/_components/org-skill-pool-manager.tsx
-````typescript
+```typescript
 import { BookOpen, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useOptimistic, useState, useTransition } from 'react';
 import { addOrgSkillTagAction, removeOrgSkillTagAction } from '@/features/skill-xp.slice';
@@ -3006,10 +2908,10 @@ import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import { toast } from '@/shared/utility-hooks/use-toast';
-````
+```
 
 ## File: src/features/scheduling.slice/_components/schedule-data-table.tsx
-````typescript
+```typescript
 import {
   type ColumnDef,
   flexRender,
@@ -3046,10 +2948,10 @@ interface DataTableProps<TData, TValue> {
 }
 ⋮----
 column.toggleVisibility(!!value)
-````
+```
 
 ## File: src/features/scheduling.slice/_components/schedule.workspace-view.tsx
-````typescript
+```typescript
 import { Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/features/workspace.slice";
@@ -3059,32 +2961,32 @@ import { UnifiedCalendarGrid } from "./unified-calendar-grid";
 export function WorkspaceSchedule()
 ⋮----
 onClick=
-````
+```
 
 ## File: src/features/scheduling.slice/_hooks/use-global-schedule.ts
-````typescript
+```typescript
 import { subDays, isFuture, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { useMemo } from "react";
 import { useAccount } from "@/features/workspace.slice";
 import { useApp } from "@/shared/app-providers/app-context";
 export function useGlobalSchedule()
-````
+```
 
 ## File: src/features/scheduling.slice/_hooks/use-schedule-event-handler.ts
-````typescript
+```typescript
 import { useEffect } from "react";
 import { useWorkspace } from "@/features/workspace.slice";
 import { toast } from "@/shared/utility-hooks/use-toast";
 export function useScheduleEventHandler()
-````
+```
 
 ## File: src/features/scheduling.slice/_projectors/account-schedule-queries.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/scheduling.slice/_projectors/account-schedule.ts
-````typescript
+```typescript
 import type { FieldValue } from '@/shared/infra/firestore/firestore.write.adapter';
 export interface AccountScheduleProjection {
   accountId: string;
@@ -3102,10 +3004,10 @@ export interface AccountScheduleAssignment {
   endDate: string;
   status: 'upcoming' | 'active' | 'completed';
 }
-````
+```
 
 ## File: src/features/shared-kernel/authority-snapshot/index.ts
-````typescript
+```typescript
 export interface AuthoritySnapshot {
   readonly subjectId: string;
   readonly roles: readonly string[];
@@ -3116,15 +3018,15 @@ export interface AuthoritySnapshot {
 export interface ImplementsAuthoritySnapshotContract {
   readonly implementsAuthoritySnapshot: true;
 }
-````
+```
 
 ## File: src/features/shared-kernel/centralized-tag/_events.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/shared-kernel/command-result-contract/index.ts
-````typescript
+```typescript
 export interface DomainError {
   readonly code: string;
   readonly message: string;
@@ -3147,17 +3049,17 @@ export function commandFailureFrom(
   message: string,
   context?: Record<string, unknown>,
 ): CommandFailure
-````
+```
 
 ## File: src/features/shared-kernel/constants/index.ts
-````typescript
+```typescript
 export type WorkflowStatus = (typeof WorkflowStatusValues)[number];
 ⋮----
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
-````
+```
 
 ## File: src/features/shared-kernel/event-envelope/index.ts
-````typescript
+```typescript
 export interface EventEnvelope<TPayload = unknown> {
   readonly eventId: string;
   readonly eventType: string;
@@ -3173,15 +3075,15 @@ export interface EventEnvelope<TPayload = unknown> {
 export interface ImplementsEventEnvelopeContract {
   readonly implementsEventEnvelope: true;
 }
-````
+```
 
 ## File: src/features/shared-kernel/infrastructure-ports/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/shared-kernel/outbox-contract/index.ts
-````typescript
+```typescript
 export type DlqTier = 'SAFE_AUTO' | 'REVIEW_REQUIRED' | 'SECURITY_BLOCK';
 export type OutboxStatus = 'pending' | 'relayed' | 'dlq';
 export interface OutboxRecord {
@@ -3200,10 +3102,10 @@ export function buildIdempotencyKey(
 export interface ImplementsOutboxContract {
   readonly implementsOutboxContract: true;
 }
-````
+```
 
 ## File: src/features/shared-kernel/read-consistency/index.ts
-````typescript
+```typescript
 export type ReadConsistencyMode = 'STRONG_READ' | 'EVENTUAL_READ';
 export interface ReadConsistencyContext {
   readonly isFinancial: boolean;
@@ -3214,10 +3116,10 @@ export function resolveReadConsistency(ctx: ReadConsistencyContext): ReadConsist
 export interface ImplementsReadConsistency {
   readonly readConsistencyMode: ReadConsistencyMode;
 }
-````
+```
 
 ## File: src/features/shared-kernel/resilience-contract/index.ts
-````typescript
+```typescript
 export interface RateLimitConfig {
   readonly perUserLimit: number;
   readonly perOrgLimit: number;
@@ -3240,20 +3142,20 @@ export interface ResilienceContract {
 export interface ImplementsResilienceContract {
   readonly implementsResilienceContract: true;
 }
-````
+```
 
 ## File: src/features/shared-kernel/staleness-contract/index.ts
-````typescript
+```typescript
 export type StalenessTier = 'TAG' | 'CRITICAL' | 'STANDARD' | 'DEMAND_BOARD';
 export function getSlaMs(tier: StalenessTier): number
 export function isStale(ageMs: number, tier: StalenessTier): boolean
 export interface ImplementsStalenessContract {
   readonly stalenessTier: StalenessTier;
 }
-````
+```
 
 ## File: src/features/shared-kernel/tag-authority/index.ts
-````typescript
+```typescript
 export type TagCategory = (typeof TAG_CATEGORIES)[number];
 export type TagDeleteRule = 'block' | 'archive' | 'cascade';
 export type TagSlugRef = string & { readonly _brand: 'TagSlugRef' };
@@ -3304,10 +3206,10 @@ export interface ImplementsTagStaleGuard {
   readonly implementsTagStaleGuard: true;
   readonly maxStalenessMs: number;
 }
-````
+```
 
 ## File: src/features/shared-kernel/token-refresh-contract/index.ts
-````typescript
+```typescript
 export type ClaimsRefreshTrigger = 'RoleChanged' | 'PolicyChanged';
 ⋮----
 export type TokenRefreshSignal = typeof TOKEN_REFRESH_SIGNAL;
@@ -3327,10 +3229,10 @@ export interface ClientTokenRefreshObligation {
 export interface ImplementsTokenRefreshContract {
   readonly implementsTokenRefreshContract: true;
 }
-````
+```
 
 ## File: src/features/shared-kernel/version-guard/index.ts
-````typescript
+```typescript
 export interface VersionGuardInput {
   readonly eventVersion: number;
   readonly viewLastProcessedVersion: number;
@@ -3341,10 +3243,10 @@ export function versionGuardAllows(input: VersionGuardInput): boolean
 export interface ImplementsVersionGuard {
   readonly implementsVersionGuard: true;
 }
-````
+```
 
 ## File: src/features/skill-xp.slice/_components/personal-skill-panel.tsx
-````typescript
+```typescript
 import { Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { resolveSkillTier, TIER_DEFINITIONS } from '@/features/shared-kernel';
@@ -3366,10 +3268,10 @@ interface SkillRow {
 }
 function buildRows(entries: AccountSkillEntry[]): SkillRow[]
 export function PersonalSkillPanel()
-````
+```
 
 ## File: src/features/skill-xp.slice/_ledger.ts
-````typescript
+```typescript
 import { addDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 export interface XpLedgerEntry {
   accountId: string;
@@ -3383,10 +3285,10 @@ export async function appendXpLedgerEntry(
   accountId: string,
   entry: Omit<XpLedgerEntry, 'accountId' | 'timestamp'>
 ): Promise<string>
-````
+```
 
 ## File: src/features/skill-xp.slice/_org-recognition.ts
-````typescript
+```typescript
 import { publishOrgEvent } from '@/features/organization.slice';
 import { findSkill } from '@/shared/constants/skills';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -3418,10 +3320,10 @@ export async function revokeSkillRecognition(
   skillId: string,
   revokedBy: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/skill-xp.slice/_tag-pool.ts
-````typescript
+```typescript
 import type { TagUpdatedPayload, TagDeprecatedPayload, TagDeletedPayload } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import {
@@ -3468,15 +3370,15 @@ export async function syncTagDeletionToPool(
   orgId: string,
   payload: TagDeletedPayload
 ): Promise<void>
-````
+```
 
 ## File: src/features/skill-xp.slice/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/application/_command-handler.ts
-````typescript
+```typescript
 import { createTraceContext, logDomainError } from '@/features/observability';
 import { evaluatePolicy, type WorkspaceRole } from './_policy-engine';
 import { checkWorkspaceAccess } from './_scope-guard';
@@ -3496,10 +3398,10 @@ export async function executeCommand<T>(
   handler: (ctx: TransactionContext) => Promise<T>,
   publish?: (type: string, payload: unknown) => void
 ): Promise<WorkspaceExecutorResult<T>>
-````
+```
 
 ## File: src/features/workspace.slice/application/_org-policy-cache.ts
-````typescript
+```typescript
 import type { OrgPolicyChangedPayload } from '@/features/organization.slice';
 import { onOrgEvent } from '@/features/organization.slice';
 import { upsertProjectionVersion } from '@/features/projection.bus';
@@ -3515,10 +3417,10 @@ export function getCachedOrgPolicy(policyId: string): OrgPolicyEntry | undefined
 export function getAllCachedPolicies(): OrgPolicyEntry[]
 export function registerOrgPolicyCache(): () => void
 export function clearOrgPolicyCache(): void
-````
+```
 
 ## File: src/features/workspace.slice/application/_policy-engine.ts
-````typescript
+```typescript
 export type WorkspaceRole = 'Manager' | 'Contributor' | 'Viewer';
 export interface PolicyDecision {
   permitted: boolean;
@@ -3526,10 +3428,10 @@ export interface PolicyDecision {
 }
 ⋮----
 export function evaluatePolicy(role: WorkspaceRole, action: string): PolicyDecision
-````
+```
 
 ## File: src/features/workspace.slice/application/_scope-guard.ts
-````typescript
+```typescript
 import { queryWorkspaceAccess } from '@/features/projection.bus';
 export interface ScopeGuardResult {
   allowed: boolean;
@@ -3540,15 +3442,15 @@ export async function checkWorkspaceAccess(
   workspaceId: string,
   userId: string
 ): Promise<ScopeGuardResult>
-````
+```
 
 ## File: src/features/workspace.slice/application/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.acceptance/_components/acceptance-view.tsx
-````typescript
+```typescript
 import { Trophy, CheckCircle2, Search, XCircle, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/shared/app-providers/auth-provider";
@@ -3562,15 +3464,15 @@ export function WorkspaceAcceptance()
 ⋮----
 const handleAccept = async (task: WorkspaceTask) =>
 const handleFail = async (task: WorkspaceTask) =>
-````
+```
 
 ## File: src/features/workspace.slice/business.acceptance/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -3591,10 +3493,10 @@ export async function addDailyLogComment(
   author: { uid: string; name: string; avatarUrl?: string },
   content: string
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_bookmark-actions.ts
-````typescript
+```typescript
 import {
   addBookmark,
   removeBookmark,
@@ -3604,10 +3506,10 @@ export async function toggleBookmark(
   logId: string,
   shouldBookmark: boolean
 ): Promise<void>
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/actions/bookmark-button.tsx
-````typescript
+```typescript
 import { Bookmark, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from 'react';
 import { cn } from "@/shared/lib";
@@ -3616,20 +3518,20 @@ import { useBookmarkActions } from '../../_hooks/use-bookmark-commands';
 interface BookmarkButtonProps {
   logId: string;
 }
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/actions/comment-button.tsx
-````typescript
+```typescript
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/shared/shadcn-ui/button";
 interface CommentButtonProps {
   count?: number;
   onClick: () => void;
 }
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/actions/like-button.tsx
-````typescript
+```typescript
 import { Heart } from "lucide-react";
 import { useState, useEffect, useCallback } from 'react';
 import { cn } from "@/shared/lib";
@@ -3642,10 +3544,10 @@ interface LikeButtonProps {
 }
 ⋮----
 className=
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/actions/share-button.tsx
-````typescript
+```typescript
 import { Share2 } from "lucide-react";
 import { Button } from "@/shared/shadcn-ui/button";
 import {
@@ -3665,10 +3567,10 @@ export function ShareButton(
 const handleForward = (target: "tasks") =>
 ⋮----
 <DropdownMenuItem onSelect=
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/composer.tsx
-````typescript
+```typescript
 import { ImagePlusIcon, Send, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -3690,10 +3592,10 @@ const handleRemovePhoto = (index: number) =>
 <Image src=
 ⋮----
 onClick=
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/daily-log-card.tsx
-````typescript
+```typescript
 import { useEffect, useState } from "react";
 import type { Timestamp } from "@/shared/ports";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
@@ -3713,10 +3615,10 @@ interface DailyLogCardProps {
   currentUser: Account | null;
   onOpen: () => void;
 }
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/daily.account-view.tsx
-````typescript
+```typescript
 import { AlertCircle, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/shared/app-providers/app-context";
@@ -3728,16 +3630,16 @@ import { DailyLogCard } from "./daily-log-card";
 import { DailyLogDialog } from "./daily-log-dialog";
 ⋮----
 onOpen=
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/daily.view.tsx
-````typescript
+```typescript
 import { AccountDailyComponent } from "./daily.account-view";
 export default function AccountDailyView()
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/daily.workspace-view.tsx
-````typescript
+```typescript
 import { MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useWorkspace } from "../../core";
@@ -3746,10 +3648,10 @@ import { DailyLogComposer } from "./composer";
 import { DailyLogCard } from "./daily-log-card";
 ⋮----
 router.push(
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/image-carousel.tsx
-````typescript
+```typescript
 import Image from "next/image";
 import { Card, CardContent } from "@/shared/shadcn-ui/card";
 import {
@@ -3762,36 +3664,36 @@ import {
 interface ImageCarouselProps {
     images: string[];
 }
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_hooks/use-aggregated-logs.ts
-````typescript
+```typescript
 import { useMemo } from "react";
 import type { DailyLog } from "@/shared/types";
 import { useAccount } from "../../core";
 export function useAggregatedLogs()
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_hooks/use-daily-commands.ts
-````typescript
+```typescript
 import { useCallback } from "react";
 import { useApp } from "@/shared/app-providers/app-context";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { toast } from "@/shared/utility-hooks/use-toast";
 import { toggleLike as toggleLikeAction } from "../_actions";
 export function useDailyActions()
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_hooks/use-daily-upload.ts
-````typescript
+```typescript
 import { useState, useCallback } from "react";
 import { useStorage } from "../../business.files";
 import { useWorkspace } from "../../core";
 export function useDailyUpload()
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_hooks/use-workspace-daily.ts
-````typescript
+```typescript
 import { useState, useMemo } from "react";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { type DailyLog } from "@/shared/types";
@@ -3804,15 +3706,15 @@ const getErrorMessage = (error: unknown, fallback: string)
 export function useWorkspaceDailyLog()
 ⋮----
 const handlePost = async () =>
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.document-parser/_form-actions.ts
-````typescript
+```typescript
 import { z } from 'zod';
 import { extractInvoiceItems } from '@/app-runtime/ai/flows/extract-invoice-items';
 import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
@@ -3836,10 +3738,10 @@ const toNum = (v: unknown, fallback: number): number =>
 ⋮----
 // [SEC-1] Log a safe message only — do not log the raw error object which
 // may expose internal AI model details or stack traces to server logs.
-````
+```
 
 ## File: src/features/workspace.slice/business.document-parser/_intent-actions.ts
-````typescript
+```typescript
 import type { SkillRequirement } from '@/features/shared-kernel'
 import {
   createParsingIntent as createParsingIntentFacade,
@@ -3860,15 +3762,15 @@ export async function markParsingIntentImported(
   workspaceId: string,
   intentId: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/workspace.slice/business.document-parser/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.files/_hooks/use-storage.ts
-````typescript
+```typescript
 import { useCallback } from 'react';
 import { useApp } from '@/shared/app-providers/app-context';
 import {
@@ -3876,20 +3778,20 @@ import {
   uploadTaskAttachment as uploadTaskAttachmentAction,
 } from '../_storage-actions';
 export function useStorage(workspaceId: string)
-````
+```
 
 ## File: src/features/workspace.slice/business.files/_hooks/use-workspace-filters.ts
-````typescript
+```typescript
 import { useMemo, useDeferredValue } from "react";
 import type { Workspace } from "@/shared/types";
 export function useWorkspaceFilters(
   workspaces: Workspace[],
   searchQuery: string
 )
-````
+```
 
 ## File: src/features/workspace.slice/business.files/_storage-actions.ts
-````typescript
+```typescript
 import {
   uploadDailyPhoto as uploadDailyPhotoFacade,
   uploadTaskAttachment as uploadTaskAttachmentFacade,
@@ -3915,10 +3817,10 @@ export async function uploadRawFile(
   versionId: string,
   file: File
 ): Promise<string>
-````
+```
 
 ## File: src/features/workspace.slice/business.finance/_components/finance-view.tsx
-````typescript
+```typescript
 import { Wallet, Landmark, TrendingUp, CheckCircle2, AlertCircle, ArrowUpRight, FileSearch } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { Badge } from "@/shared/shadcn-ui/badge";
@@ -3937,15 +3839,15 @@ type ParsedFinanceItem = {
 };
 ⋮----
 const handleDisburse = async (task: WorkspaceTask) =>
-````
+```
 
 ## File: src/features/workspace.slice/business.finance/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.issues/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -3973,10 +3875,10 @@ export async function resolveIssue(
   workspaceId: string,
   issueId: string
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/workspace.slice/business.issues/_components/issues-view.tsx
-````typescript
+```typescript
 import { format } from "date-fns";
 import { AlertCircle, Plus, ArrowRight, ShieldAlert, DollarSign, PenTool, MessageSquare, CornerUpLeft, CheckCircle2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -4000,15 +3902,15 @@ const handleAddIssue = async () =>
 const handleAddComment = async () =>
 const handleResolveIssue = async (issue: WorkspaceIssue) =>
 const getIssueIcon = (type: string) =>
-````
+```
 
 ## File: src/features/workspace.slice/business.issues/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.parsing-intent/_contract.ts
-````typescript
+```typescript
 import type { SkillRequirement } from '@/features/shared-kernel';
 export type ParsingIntentStatus = 'pending' | 'imported' | 'superseded';
 export interface ParsingIntentContract {
@@ -4041,15 +3943,15 @@ export function supersedeParsingIntent(
   current: ParsingIntentContract,
   nextIntentId: string
 ): ParsingIntentContract
-````
+```
 
 ## File: src/features/workspace.slice/business.parsing-intent/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.quality-assurance/_components/quality-assurance-view.tsx
-````typescript
+```typescript
 import { ShieldCheck, XCircle, CheckCircle, Search, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/shared/app-providers/auth-provider";
@@ -4063,15 +3965,15 @@ export function WorkspaceQualityAssurance()
 ⋮----
 const handleApprove = async (task: WorkspaceTask) =>
 const handleReject = async (task: WorkspaceTask) =>
-````
+```
 
 ## File: src/features/workspace.slice/business.quality-assurance/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.tasks/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -4100,10 +4002,10 @@ export async function batchImportTasks(
   workspaceId: string,
   items: Omit<WorkspaceTask, "id" | "createdAt" | "updatedAt">[]
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/workspace.slice/business.tasks/_components/tasks-view.tsx
-````typescript
+```typescript
 import {
   Plus,
   ChevronRight,
@@ -4186,10 +4088,10 @@ const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) =>
 const handleRemovePhoto = (index: number) =>
 ⋮----
 className=
-````
+```
 
 ## File: src/features/workspace.slice/business.tasks/_queries.ts
-````typescript
+```typescript
 import {
   getWorkspaceTasks as getWorkspaceTasksFacade,
   getWorkspaceTask as getWorkspaceTaskFacade,
@@ -4202,15 +4104,15 @@ export async function getWorkspaceTask(
   workspaceId: string,
   taskId: string
 ): Promise<WorkspaceTask | null>
-````
+```
 
 ## File: src/features/workspace.slice/business.tasks/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.workflow/_aggregate.ts
-````typescript
+```typescript
 export type WorkflowStage =
   | 'draft'
   | 'in-progress'
@@ -4248,25 +4150,25 @@ export function unblockWorkflow(
   resolvedIssueId: string
 ): WorkflowAggregateState
 export function isWorkflowUnblocked(state: WorkflowAggregateState): boolean
-````
+```
 
 ## File: src/features/workspace.slice/business.workflow/_issue-handler.ts
-````typescript
+```typescript
 import { unblockWorkflow } from './_aggregate';
 import { findWorkflowsBlockedByIssue, saveWorkflowState } from './_persistence';
 export async function handleIssueResolvedForWorkflow(
   workspaceId: string,
   issueId: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/workspace.slice/business.workflow/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core.event-bus/_context.ts
-````typescript
+```typescript
 import { createContext, useContext } from "react"
 import type {
   PublishFn,
@@ -4278,15 +4180,15 @@ export interface WorkspaceEventContextType {
 }
 ⋮----
 export function useWorkspaceEvents(): WorkspaceEventContextType
-````
+```
 
 ## File: src/features/workspace.slice/core.event-bus/_event-funnel.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core.event-store/_store.ts
-````typescript
+```typescript
 import {
   appendDomainEvent as appendDomainEventRepo,
   getDomainEvents as getDomainEventsRepo,
@@ -4300,15 +4202,15 @@ export async function appendDomainEvent(
 export async function getDomainEvents(
   workspaceId: string
 ): Promise<StoredWorkspaceEvent[]>
-````
+```
 
 ## File: src/features/workspace.slice/core.event-store/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -4381,15 +4283,15 @@ export async function deleteWorkspaceLocation(
   workspaceId: string,
   locationId: string
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/app-provider.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/create-workspace-dialog.tsx
-````typescript
+```typescript
 import { useState } from "react";
 import { useI18n } from "@/config/i18n/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -4411,10 +4313,10 @@ interface CreateWorkspaceDialogProps {
 }
 ⋮----
 const onCreate = async () =>
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/dashboard-view.tsx
-````typescript
+```typescript
 import { User as UserIcon } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useI18n } from "@/config/i18n/i18n-provider"
@@ -4427,10 +4329,10 @@ import { useApp } from "../_hooks/use-app"
 import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces"
 import { StatCards } from "./stat-cards"
 import { WorkspaceList } from "./workspace-list"
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/stat-cards.tsx
-````typescript
+```typescript
 import { ShieldCheck, Activity, Layers, Zap } from "lucide-react";
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/shadcn-ui/card";
@@ -4438,10 +4340,10 @@ import { Progress } from "@/shared/shadcn-ui/progress";
 import { useAccount } from "../_hooks/use-account";
 import { useApp } from "../_hooks/use-app";
 export function StatCards()
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-capabilities.tsx
-````typescript
+```typescript
 import {
   Box,
   Trash2,
@@ -4496,10 +4398,10 @@ const getSpecIcon = (type: string) =>
 ⋮----
 <Dialog open=
 ⋮----
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-card.tsx
-````typescript
+```typescript
 import { MoreVertical, Eye, EyeOff, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/config/i18n/i18n-provider";
@@ -4520,20 +4422,20 @@ interface WorkspaceCardProps {
 export function WorkspaceCard(
 ⋮----
 const handleClick = () =>
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-grid-view.tsx
-````typescript
+```typescript
 import type { Workspace } from "@/shared/types";
 import { WorkspaceCard } from "./workspace-card";
 interface WorkspaceGridViewProps {
   workspaces: Workspace[];
 }
 export function WorkspaceGridView(
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-list-header.tsx
-````typescript
+```typescript
 import {
   Plus,
   Search,
@@ -4560,10 +4462,10 @@ title=
 placeholder=
 ⋮----
 onChange=
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-list.tsx
-````typescript
+```typescript
 import { Eye, EyeOff, Shield, Trash2, ArrowUpRight, Terminal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
@@ -4579,10 +4481,10 @@ interface WorkspaceListItemProps {
 <span className="text-[10px] text-muted-foreground">ID:
 ⋮----
 onClick=
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-locations-panel.tsx
-````typescript
+```typescript
 import { Plus, Pencil, Trash2, MapPin } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { Button } from '@/shared/shadcn-ui/button';
@@ -4612,10 +4514,10 @@ interface LocationFormDialogProps {
 onChange=
 ⋮----
 onClick=
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-nav-tabs.tsx
-````typescript
+```typescript
 import Link from "next/link"
 import { useSelectedLayoutSegment } from "next/navigation"
 import { useMemo } from "react"
@@ -4626,10 +4528,10 @@ import { useWorkspace } from "./workspace-provider";
 interface WorkspaceNavTabsProps {
   workspaceId: string
 }
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-settings.tsx
-````typescript
+```typescript
 import { useState, useEffect } from "react";
 import { Button } from "@/shared/shadcn-ui/button";
 import {
@@ -4723,20 +4625,20 @@ onChange={(e) => setName(e.target.value)}
             <Select
               value={lifecycleState}
 onValueChange=
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-status-bar.tsx
-````typescript
+```typescript
 import { Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { useWorkspace } from "./workspace-provider";
 export function WorkspaceStatusBar()
 ⋮----
 ID:
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-table-view.tsx
-````typescript
+```typescript
 import { Eye, EyeOff, Shield, ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/config/i18n/i18n-provider";
@@ -4748,10 +4650,10 @@ interface WorkspaceListItemProps {
 }
 ⋮----
 ID:
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspaces-view.tsx
-````typescript
+```typescript
 import { Terminal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -4764,40 +4666,40 @@ import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces";
 import { WorkspaceGridView } from "./workspace-grid-view";
 import { WorkspaceListHeader } from "./workspace-list-header";
 import { WorkspaceTableView } from "./workspace-table-view";
-````
+```
 
 ## File: src/features/workspace.slice/core/_hooks/use-account.ts
-````typescript
+```typescript
 import { useContext } from 'react';
 import { AccountContext } from '../_components/account-provider';
 export const useAccount = () =>
-````
+```
 
 ## File: src/features/workspace.slice/core/_hooks/use-app.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_hooks/use-visible-workspaces.ts
-````typescript
+```typescript
 import { useMemo } from 'react'
 import { useAuth } from '@/shared/app-providers/auth-provider'
 import { filterVisibleWorkspaces } from '@/shared/lib'
 import { useAccount } from './use-account'
 import { useApp } from './use-app'
 export function useVisibleWorkspaces()
-````
+```
 
 ## File: src/features/workspace.slice/core/_hooks/use-workspace-commands.ts
-````typescript
+```typescript
 import { useCallback } from "react";
 import { toast } from "@/shared/utility-hooks/use-toast";
 import { deleteWorkspace } from "../_actions";
 export function useWorkspaceCommands()
-````
+```
 
 ## File: src/features/workspace.slice/core/_use-cases.ts
-````typescript
+```typescript
 import type { CommandResult } from '@/features/shared-kernel';
 import type { Account, Capability, WorkspaceLifecycleState, Address } from "@/shared/types";
 import { toast } from "@/shared/utility-hooks/use-toast";
@@ -4819,10 +4721,10 @@ export const handleUpdateWorkspaceSettings = async (
   onSuccess: () => void
 ) =>
 export const handleDeleteWorkspace = async (workspaceId: string, onSuccess: () => void) =>
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit-convergence/_bridge.ts
-````typescript
+```typescript
 export interface AuditConvergenceInput {
   accountId: string;
   workspaceId?: string;
@@ -4838,15 +4740,15 @@ function normalizeAuditLimit(limit?: number): number
 export function toAuditProjectionQuery(
   input: AuditConvergenceInput
 ): AuditProjectionQuery
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit-convergence/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_components/audit-detail-sheet.tsx
-````typescript
+```typescript
 import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/shared/shadcn-ui/sheet";
 import { type AuditLog } from "@/shared/types";
@@ -4856,10 +4758,10 @@ interface AuditDetailSheetProps {
     onOpenChange: (open: boolean) => void;
 }
 export function AuditDetailSheet(
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_components/audit-event-item.tsx
-````typescript
+```typescript
 import { format } from "date-fns";
 import { cn } from "@/shared/lib";
 import { Badge } from "@/shared/shadcn-ui/badge";
@@ -4872,10 +4774,10 @@ interface AuditEventItemProps {
 }
 ⋮----
 <span className=
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_components/audit-timeline.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/lib";
 interface AuditTimelineProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -4888,35 +4790,35 @@ interface AuditEventItemProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
 }
 export function AuditEventItemContainer(
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_components/audit-type-icon.tsx
-````typescript
+```typescript
 import { Zap, Shield, Activity, Terminal } from "lucide-react";
 import { type AuditLog } from "@/shared/types";
 interface AuditTypeIconProps {
     type: AuditLog['type'];
 }
 export function AuditTypeIcon(
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_components/audit.account-view.tsx
-````typescript
+```typescript
 import { AlertCircle, Terminal } from "lucide-react";
 import { useAccountAudit } from "../_hooks/use-account-audit";
 import { AuditDetailSheet } from "./audit-detail-sheet";
 import { AuditEventItem } from "./audit-event-item";
 import { AuditTimeline } from "./audit-timeline";
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_components/audit.view.tsx
-````typescript
+```typescript
 import { AccountAuditComponent } from "./audit.account-view";
 export default function AccountAuditView()
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_components/audit.workspace-view.tsx
-````typescript
+```typescript
 import { format } from "date-fns";
 import { Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/shadcn-ui/card";
@@ -4929,27 +4831,27 @@ onOpenChange={(open) => { if (!open) clearSelection(); }}
       />
     </div>
   );
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_hooks/use-account-audit.ts
-````typescript
+```typescript
 import { useMemo, useState } from "react";
 import { useApp } from "@/shared/app-providers/app-context";
 import { type AuditLog } from "@/shared/types";
 import { useAccount } from "../../core";
 export function useAccountAudit()
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_hooks/use-workspace-audit.ts
-````typescript
+```typescript
 import { useState } from "react";
 import { type AuditLog } from "@/shared/types";
 import { useWorkspace } from "../../core";
 export function useWorkspaceAudit()
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_queries.ts
-````typescript
+```typescript
 import {
   getAuditLogs as getAuditLogsFacade,
 } from "@/shared/infra/firestore/firestore.facade"
@@ -4959,10 +4861,10 @@ export async function getAuditLogs(
   workspaceId?: string,
   limit = 50
 ): Promise<AuditLog[]>
-````
+```
 
 ## File: src/features/workspace.slice/gov.members/_components/members-panel.tsx
-````typescript
+```typescript
 import {
   Users,
   Trash2,
@@ -4995,10 +4897,10 @@ const handleConfirmGrant = async () =>
 const handleRevokeGrant = async (grantId: string) =>
 ⋮----
 <DropdownMenuItem onClick=
-````
+```
 
 ## File: src/features/workspace.slice/gov.members/_queries.ts
-````typescript
+```typescript
 import {
   getWorkspaceGrants as getWorkspaceGrantsFacade,
 } from "@/shared/infra/firestore/firestore.facade"
@@ -5006,20 +4908,20 @@ import type { WorkspaceGrant } from "@/shared/types"
 export async function getWorkspaceGrants(
   workspaceId: string
 ): Promise<WorkspaceGrant[]>
-````
+```
 
 ## File: src/features/workspace.slice/gov.members/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/gov.partners/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/gov.role/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -5042,18 +4944,18 @@ export interface RevokeWorkspaceRoleInput {
 }
 export async function assignWorkspaceRole(input: AssignWorkspaceRoleInput): Promise<CommandResult>
 export async function revokeWorkspaceRole(input: RevokeWorkspaceRoleInput): Promise<CommandResult>
-````
+```
 
 ## File: src/features/workspace.slice/gov.role/_hooks/use-workspace-role.ts
-````typescript
+```typescript
 import { useState, useEffect } from 'react';
 import type { WorkspaceGrant } from '@/shared/types';
 import { getWorkspaceGrant } from '../_queries';
 export function useWorkspaceRole(workspaceId: string | null, userId: string | null)
-````
+```
 
 ## File: src/features/workspace.slice/gov.role/_queries.ts
-````typescript
+```typescript
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { Workspace, WorkspaceGrant } from '@/shared/types';
 export async function getWorkspaceGrant(
@@ -5061,29 +4963,29 @@ export async function getWorkspaceGrant(
   userId: string
 ): Promise<WorkspaceGrant | null>
 export async function getWorkspaceGrants(workspaceId: string): Promise<WorkspaceGrant[]>
-````
+```
 
 ## File: src/features/workspace.slice/gov.role/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/gov.teams/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared-infra/firebase/.firebaserc
-````
+```
 {
   "projects": {
     "default": "xuanwu-i-00708880-4e2d8"
   }
 }
-````
+```
 
 ## File: src/shared-infra/firebase/firebase.json
-````json
+```json
 {
   "firestore": {
     "database": "(default)",
@@ -5130,10 +5032,10 @@ export async function getWorkspaceGrants(workspaceId: string): Promise<Workspace
     }
   ]
 }
-````
+```
 
 ## File: src/shared-infra/firebase/firestore/firestore.indexes.json
-````json
+```json
 {
   "indexes": [
     {
@@ -5169,10 +5071,10 @@ export async function getWorkspaceGrants(workspaceId: string): Promise<Workspace
   ],
   "fieldOverrides": []
 }
-````
+```
 
 ## File: src/shared-infra/firebase/firestore/firestore.rules
-````
+```
 rules_version = '2';
 
 service cloud.firestore {
@@ -5182,15 +5084,15 @@ service cloud.firestore {
     }
   }
 }
-````
+```
 
 ## File: src/shared-infra/firebase/functions/.eslintrc.js
-````javascript
+```javascript
 
-````
+```
 
 ## File: src/shared-infra/firebase/functions/.gitignore
-````
+```
 # Compiled JavaScript files
 lib/**/*.js
 lib/**/*.js.map
@@ -5201,10 +5103,10 @@ typings/
 # Node.js dependency directory
 node_modules/
 *.local
-````
+```
 
 ## File: src/shared-infra/firebase/functions/package.json
-````json
+```json
 {
   "name": "functions",
   "scripts": {
@@ -5236,10 +5138,10 @@ node_modules/
   },
   "private": true
 }
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/claims/claims-refresh.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getAuth } from "firebase-admin/auth";
@@ -5253,10 +5155,10 @@ interface ClaimsRefreshPayload {
   readonly roles?: string[];
   readonly scopes?: string[];
 }
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/dlq/dlq-block.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -5269,10 +5171,10 @@ interface DlqBlockRecord {
   readonly traceId: string;
   readonly [key: string]: unknown;
 }
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/dlq/dlq-review.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -5286,10 +5188,10 @@ interface DlqReviewRecord {
   readonly idempotencyKey: string;
   readonly [key: string]: unknown;
 }
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/dlq/dlq-safe.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -5303,10 +5205,10 @@ interface DlqSafeRecord {
 }
 ⋮----
 function sleep(ms: number): Promise<void>
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/gateway/command-gateway.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { randomUUID } from "crypto";
@@ -5327,31 +5229,31 @@ interface CommandFailure {
 type CommandResult = CommandSuccess | CommandFailure;
 ⋮----
 function checkRateLimit(key: string): boolean
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/gateway/webhook.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { randomUUID } from "crypto";
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/ier/background.lane.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import type { EventEnvelope } from "../types.js";
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/ier/critical.lane.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import type { EventEnvelope } from "../types.js";
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/ier/ier.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import type { EventEnvelope } from "../types.js";
@@ -5359,23 +5261,23 @@ import type { EventEnvelope } from "../types.js";
 export function resolveLane(
   eventType: string
 ): "CRITICAL" | "STANDARD" | "BACKGROUND"
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/ier/standard.lane.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import type { EventEnvelope } from "../types.js";
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/index.ts
-````typescript
+```typescript
 import { initializeApp, getApps } from "firebase-admin/app";
 import { setGlobalOptions } from "firebase-functions/v2";
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/observability/domain-errors.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -5398,10 +5300,10 @@ interface DomainErrorEvent {
   readonly message: string;
   readonly details?: unknown;
 }
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/observability/domain-metrics.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getFirestore, Timestamp, FieldValue } from "firebase-admin/firestore";
@@ -5422,10 +5324,10 @@ interface MetricEvent {
   readonly valueMs?: number;
   readonly labels?: Record<string, string>;
 }
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/projection/critical-proj.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -5434,10 +5336,10 @@ import type { EventEnvelope } from "../types.js";
 import {
   PROJ_STALE_CRITICAL_MS,
 } from "../staleness-contract.js";
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/projection/event-funnel.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -5462,10 +5364,10 @@ interface ProjectionTarget {
 function resolveProjectionTarget(eventType: string): ProjectionTarget | null
 function buildProjectionUpdate(envelope: EventEnvelope): Record<string, unknown>
 function checkSla(lane: "CRITICAL" | "STANDARD", processingMs: number): boolean
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/projection/standard-proj.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -5474,10 +5376,10 @@ import type { EventEnvelope } from "../types.js";
 import {
   PROJ_STALE_STANDARD_MS,
 } from "../staleness-contract.js";
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/relay/outbox-relay.fn.ts
-````typescript
+```typescript
 import { onRequest } from "firebase-functions/v2/https";
 ⋮----
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -5499,15 +5401,15 @@ async function moveToDlq(
 ): Promise<void>
 function getDlqProcessorUrl(dlqTier: string): string | null
 function sleep(ms: number): Promise<void>
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/staleness-contract.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared-infra/firebase/functions/src/types.ts
-````typescript
+```typescript
 import { Timestamp } from "firebase-admin/firestore";
 export interface EventEnvelope {
   readonly eventId: string;
@@ -5523,19 +5425,19 @@ export interface EventEnvelope {
 }
 export type DlqTier = "SAFE_AUTO" | "REVIEW_REQUIRED" | "SECURITY_BLOCK";
 export function dlqCollectionName(tier: DlqTier): string
-````
+```
 
 ## File: src/shared-infra/firebase/functions/tsconfig.dev.json
-````json
+```json
 {
   "include": [
     ".eslintrc.js"
   ]
 }
-````
+```
 
 ## File: src/shared-infra/firebase/functions/tsconfig.json
-````json
+```json
 {
   "compilerOptions": {
     "module": "NodeNext",
@@ -5554,10 +5456,10 @@ export function dlqCollectionName(tier: DlqTier): string
     "src"
   ]
 }
-````
+```
 
 ## File: src/shared-infra/firebase/storage/storage.rules
-````
+```
 rules_version = '2';
 
 // Craft rules based on data in your Firestore database
@@ -5570,16 +5472,16 @@ service firebase.storage {
     }
   }
 }
-````
+```
 
 ## File: src/shared-infra/README.MD
-````markdown
+```markdown
 放置外部基礎設施適配器：資料庫、第三方 SDK、網路存取層，需透過 ports 封裝。
 只允許向下依賴；向上 import 為架構違規。
-````
+```
 
 ## File: src/shared/app-providers/auth-provider.tsx
-````typescript
+```typescript
 import { type User as FirebaseUser } from "firebase/auth";
 import type React from 'react';
 import {type ReactNode} from 'react';
@@ -5600,10 +5502,10 @@ export const AuthProvider = (
 const logout = async () =>
 ⋮----
 export const useAuth = () =>
-````
+```
 
 ## File: src/shared/app-providers/firebase-provider.tsx
-````typescript
+```typescript
 import { type FirebaseApp } from 'firebase/app';
 import { type Auth } from 'firebase/auth';
 import { type Firestore } from 'firebase/firestore';
@@ -5622,17 +5524,17 @@ interface FirebaseContextType {
 ⋮----
 export function FirebaseClientProvider(
 export const useFirebase = () =>
-````
+```
 
 ## File: src/shared/app-providers/theme-provider.tsx
-````typescript
+```typescript
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { type ThemeProviderProps } from "next-themes";
 export function ThemeProvider(
-````
+```
 
 ## File: src/shared/constants/location-units.ts
-````typescript
+```typescript
 export type LocationUnitKey =
   | 'dong'
   | 'lou'
@@ -5654,43 +5556,10 @@ export interface LocationUnitMeta {
 }
 ⋮----
 export function findLocationUnit(key: string): LocationUnitMeta | undefined
-````
-
-## File: src/shared/constants/README.md
-````markdown
-# shared/constants
-
-Stateless, infrastructure-free constant definitions shared across the entire app.
-
-## Rules
-
-- No Firebase / React imports — pure TypeScript only.
-- No async code or side effects.
-- Use `as const` and mapped meta objects; avoid the `enum` keyword (see `../enums/README.md`).
-- Slugs and status strings that are stored in Firestore must **never be renamed** once shipped.
-
-## Files
-
-| File | Purpose |
-|---|---|
-| `location-units.ts` | 棟/樓/區/室/號/廠/倉/期/座/基地/柱 — spatial position designators for tech parks & construction sites |
-| `roles.ts` | OrganizationRole & WorkspaceRole metadata (labels, ranks, display info) |
-| `routes.ts` | Application route path constants |
-| `settings.ts` | App-wide configuration defaults (pagination, file upload limits, XP bounds, feature flags) |
-| `skills.ts` | Global skill taxonomy: 6 大項目 × 17 子項目 × 40 individual skill definitions |
-| `status.ts` | Domain status / lifecycle state metadata (ScheduleStatus, WorkspaceLifecycleState, AuditLogType, InviteState, Presence, NotificationType) |
-| `taiwan-address.ts` | Taiwan county/district registry with zip codes and English names (22 administrative divisions) |
-
-## Adding a new constants file
-
-1. Create `src/shared/constants/<name>.ts`.
-2. Export at minimum one `as const` object or array.
-3. For O(1) lookups export a `Map` alongside the array (see `location-units.ts` for the pattern).
-4. Add an entry to the table above.
-````
+```
 
 ## File: src/shared/constants/roles.ts
-````typescript
+```typescript
 import type { OrganizationRole } from '@/shared/types/account.types';
 import type { WorkspaceRole } from '@/shared/types/workspace.types';
 ⋮----
@@ -5719,20 +5588,20 @@ export function workspaceRoleAtLeast(
   actorRole: WorkspaceRole,
   requiredRole: WorkspaceRole,
 ): boolean
-````
+```
 
 ## File: src/shared/constants/routes.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/constants/settings.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/constants/taiwan-address.ts
-````typescript
+```typescript
 export type TwCountyType =
   | 'municipality'
   | 'city'
@@ -5751,71 +5620,29 @@ export interface TwCountyMeta {
 export type TwCountyName = (typeof TW_COUNTIES)[number]['name'];
 ⋮----
 export function getTwDistricts(countyName: string): readonly TwDistrictMeta[]
-````
-
-## File: src/shared/enums/README.md
-````markdown
-# shared/enums
-
-Runtime-iterable representations of the string-union types defined in `src/shared/types/`.
-
-## Why not TypeScript `enum`?
-
-This project deliberately avoids the `enum` keyword. Reasons:
-
-- Regular `enum` values compile to an IIFE object and don't tree-shake cleanly in all bundlers.
-- `const enum` is inlined at compile time, which breaks across module boundaries in Next.js (transpile-only pipeline).
-- String union types (`'active' | 'away' | 'offline'`) are more readable, type-safe, and JSON-compatible.
-
-## Convention
-
-```ts
-// ✅ Preferred pattern — union type + const array
-//    type lives in src/shared/types/
-//    array lives here in src/shared/enums/ (or in src/shared/constants/ when metadata is rich)
-
-// src/shared/types/account.types.ts
-export type Presence = 'active' | 'away' | 'offline';
-
-// src/shared/enums/presence.ts
-import type { Presence } from '@/shared/types/account.types';
-export const PRESENCES: readonly Presence[] = ['active', 'away', 'offline'] as const;
 ```
 
-## When to put metadata-rich descriptors in `constants/` instead
-
-If a value needs a display label, colour, rank, or other metadata, place the descriptor array
-in `src/shared/constants/` (e.g. `roles.ts`, `status.ts`) and only keep the plain ordered array
-here for iteration / validation use-cases.
-
-## Files
-
-| File | Covered union types |
-|---|---|
-| _(add files as needed)_ | |
-````
-
 ## File: src/shared/infra/analytics/analytics.adapter.ts
-````typescript
+```typescript
 import { logEvent } from 'firebase/analytics';
 import { analytics } from './analytics.client';
 export const logAnalyticsEvent = (eventName: string, eventParams?: Record<string, unknown>) =>
-````
+```
 
 ## File: src/shared/infra/analytics/analytics.client.ts
-````typescript
+```typescript
 import { getAnalytics, type Analytics } from 'firebase/analytics';
 import { app } from '../app.client';
-````
+```
 
 ## File: src/shared/infra/app.client.ts
-````typescript
+```typescript
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { firebaseConfig } from "./firebase.config";
-````
+```
 
 ## File: src/shared/infra/auth/auth.adapter.ts
-````typescript
+```typescript
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -5827,45 +5654,45 @@ import {
   type User as FirebaseUser,
 } from 'firebase/auth';
 import { auth } from './auth.client';
-````
+```
 
 ## File: src/shared/infra/auth/auth.client.ts
-````typescript
+```typescript
 import { getAuth, type Auth } from 'firebase/auth';
 import { app } from '../app.client';
-````
+```
 
 ## File: src/shared/infra/auth/auth.types.ts
-````typescript
+```typescript
 import type { User as FirebaseUser, UserCredential } from 'firebase/auth';
 import type { AuthUser } from '@/shared/ports/i-auth.service';
 ⋮----
 export function mapFirebaseUser(user: FirebaseUser): AuthUser
-````
+```
 
 ## File: src/shared/infra/auth/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/firebase.config.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/firestore/collection-paths.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/firestore/firestore.client.ts
-````typescript
+```typescript
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { app } from '../app.client';
-````
+```
 
 ## File: src/shared/infra/firestore/firestore.converter.ts
-````typescript
+```typescript
 import {
   type DocumentData,
   type FirestoreDataConverter,
@@ -5880,15 +5707,15 @@ fromFirestore(
     snapshot: QueryDocumentSnapshot<DocumentData>,
     options?: SnapshotOptions
 ): T
-````
+```
 
 ## File: src/shared/infra/firestore/firestore.facade.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/firestore/firestore.read.adapter.ts
-````typescript
+```typescript
 import {
   collection,
   collectionGroup,
@@ -5930,10 +5757,10 @@ export const subscribeToDocument = <T extends object>(
   path: string,
   onUpdate: (data: (T & { id: string }) | null) => void
 ): Unsubscribe =>
-````
+```
 
 ## File: src/shared/infra/firestore/firestore.types.ts
-````typescript
+```typescript
 import type {
   DocumentData,
   QuerySnapshot,
@@ -5951,16 +5778,16 @@ export interface VersionedProjectionDoc extends FirestoreTimestampedDoc {
   readonly lastProcessedVersion: number;
   readonly traceId?: string;
 }
-````
+```
 
 ## File: src/shared/infra/firestore/firestore.utils.ts
-````typescript
+```typescript
 import type { QuerySnapshot } from "firebase/firestore"
 export function snapshotToRecord<T extends
-````
+```
 
 ## File: src/shared/infra/firestore/firestore.write.adapter.ts
-````typescript
+```typescript
 import {
   arrayRemove,
   arrayUnion,
@@ -5992,15 +5819,15 @@ export const setDocument = <T>(
 ) =>
 export const updateDocument = (path: string, data: DocumentData) =>
 export const deleteDocument = (path: string) =>
-````
+```
 
 ## File: src/shared/infra/firestore/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/account.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   arrayUnion,
@@ -6027,10 +5854,10 @@ export const sendPartnerInvite = async (organizationId: string, teamId: string, 
 export const dismissPartnerMember = async (organizationId: string, teamId: string, member: MemberReference): Promise<void> =>
 export const updateOrganizationSettings = async (organizationId: string, settings:
 export const deleteOrganization = async (organizationId: string): Promise<void> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/audit.repository.ts
-````typescript
+```typescript
 import {
   collection,
   query,
@@ -6047,10 +5874,10 @@ export const getAuditLogs = async (
   workspaceId?: string,
   limitCount = 50
 ): Promise<AuditLog[]> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/daily.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   arrayUnion,
@@ -6084,15 +5911,15 @@ export const getDailyLogs = async (
   accountId: string,
   limitCount = 30
 ): Promise<DailyLog[]> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/projection.registry.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   doc,
@@ -6115,10 +5942,10 @@ export const upsertProjectionVersion = async (
   lastEventOffset: number,
   readModelVersion: string
 ): Promise<void> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/user.repository.ts
-````typescript
+```typescript
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore'
 import type { Account } from '@/shared/types'
 import { db } from '../firestore.client'
@@ -6138,10 +5965,10 @@ export const removeBookmark = async (
   userId: string,
   logId: string
 ): Promise<void> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/workspace-business.document-parser.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   collection,
@@ -6168,10 +5995,10 @@ export const updateParsingIntentStatus = async (
 export const getParsingIntents = async (
   workspaceId: string
 ): Promise<ParsingIntent[]> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/workspace-business.files.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   collection,
@@ -6203,10 +6030,10 @@ export const restoreWorkspaceFileVersion = async (
 export const getWorkspaceFilesFromSubcollection = async (
   workspaceId: string
 ): Promise<WorkspaceFile[]> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/workspace-business.issues.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   arrayUnion,
@@ -6243,10 +6070,10 @@ export const resolveIssue = async (
 export const getWorkspaceIssues = async (
   workspaceId: string
 ): Promise<WorkspaceIssue[]> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/workspace-business.tasks.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   collection,
@@ -6284,10 +6111,10 @@ export const getWorkspaceTask = async (
   workspaceId: string,
   taskId: string
 ): Promise<WorkspaceTask | null> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/workspace-core.event-store.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   collection,
@@ -6315,10 +6142,10 @@ export const appendDomainEvent = async (
 export const getDomainEvents = async (
   workspaceId: string
 ): Promise<StoredWorkspaceEvent[]> =>
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/workspace-core.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   arrayUnion,
@@ -6402,10 +6229,10 @@ export const deleteWorkspaceLocation = async (
   workspaceId: string,
   locationId: string
 ): Promise<void> =>
-````
+```
 
 ## File: src/shared/infra/firestore/version-guard.middleware.ts
-````typescript
+```typescript
 export type VersionGuardResult = 'allow' | 'discard';
 export function applyFirestoreVersionGuard(
   eventVersion: number,
@@ -6415,31 +6242,31 @@ export function allowFirestoreWrite(
   eventVersion: number,
   viewLastProcessedVersion: number
 ): boolean
-````
+```
 
 ## File: src/shared/infra/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/messaging/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/messaging/messaging.adapter.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/messaging/messaging.client.ts
-````typescript
+```typescript
 import { getMessaging, type Messaging } from 'firebase/messaging';
 import { app } from '../app.client';
-````
+```
 
 ## File: src/shared/infra/messaging/messaging.types.ts
-````typescript
+```typescript
 export interface FcmData {
   readonly [key: string]: string;
 }
@@ -6451,24 +6278,24 @@ export interface FcmMessage {
   };
   readonly data: FcmData & { readonly traceId: string };
 }
-````
+```
 
 ## File: src/shared/infra/storage/storage-path.resolver.ts
-````typescript
+```typescript
 dailyPhoto(accountId: string, workspaceId: string, fileId: string, fileName: string): string
 taskAttachment(workspaceId: string, fileId: string, fileName: string): string
 userAvatar(userId: string): string
 workspaceDocument(workspaceId: string, fileId: string, versionId: string, fileName: string): string
-````
+```
 
 ## File: src/shared/infra/storage/storage.client.ts
-````typescript
+```typescript
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import { app } from '../app.client';
-````
+```
 
 ## File: src/shared/infra/storage/storage.facade.ts
-````typescript
+```typescript
 import { getFileDownloadURL } from './storage.read.adapter';
 import { uploadFile } from './storage.write.adapter';
 export const uploadDailyPhoto = async (
@@ -6490,18 +6317,18 @@ export const uploadWorkspaceDocument = async (
   versionId: string,
   file: File
 ): Promise<string> =>
-````
+```
 
 ## File: src/shared/infra/storage/storage.read.adapter.ts
-````typescript
+```typescript
 import { ref, getDownloadURL, listAll, type ListResult } from 'firebase/storage';
 import { storage } from './storage.client';
 export const getFileDownloadURL = (path: string): Promise<string> =>
 export const listFiles = (path: string): Promise<ListResult> =>
-````
+```
 
 ## File: src/shared/infra/storage/storage.types.ts
-````typescript
+```typescript
 import type {
   StorageReference,
   UploadMetadata,
@@ -6512,10 +6339,10 @@ export interface UploadTaskResult {
   readonly downloadURL: string;
   readonly storagePath: string;
 }
-````
+```
 
 ## File: src/shared/infra/storage/storage.write.adapter.ts
-````typescript
+```typescript
 import {
   ref,
   uploadBytes,
@@ -6530,10 +6357,10 @@ export const uploadFile = (
   metadata?: UploadMetadata
 ): Promise<UploadResult> =>
 export const deleteFile = (path: string): Promise<void> =>
-````
+```
 
 ## File: src/shared/lib/account.rules.ts
-````typescript
+```typescript
 import type { Account, OrganizationRole, Team, MemberReference } from "@/shared/types"
 export function isOrganization(account: Account): boolean
 export function isPersonalAccount(account: Account): boolean
@@ -6544,30 +6371,30 @@ export function getMemberRole(
 ): OrganizationRole | undefined
 export function getUserTeams(account: Account, userId: string): Team[]
 export function getUserTeamIds(account: Account, userId: string): Set<string>
-````
+```
 
 ## File: src/shared/lib/format-bytes.ts
-````typescript
+```typescript
 export const formatBytes = (bytes: number): string =>
-````
+```
 
 ## File: src/shared/lib/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/lib/skill.rules.ts
-````typescript
+```typescript
 import type { SkillGrant, SkillTier, SkillRequirement } from '@/shared/types'
 ⋮----
 export function grantSatisfiesRequirement(
   grants: SkillGrant[],
   requirement: SkillRequirement
 ): boolean
-````
+```
 
 ## File: src/shared/lib/task.rules.ts
-````typescript
+```typescript
 import type { WorkspaceTask, TaskWithChildren } from "@/shared/types";
 ⋮----
 export const buildTaskTree = (tasks: WorkspaceTask[]): TaskWithChildren[] =>
@@ -6578,25 +6405,25 @@ const build = (
     index: number,
     path: Set<string>
 ) =>
-````
+```
 
 ## File: src/shared/lib/user.rules.ts
-````typescript
+```typescript
 import type { Account } from "@/shared/types"
 export function isAnonymousUser(account: Account): boolean
-````
+```
 
 ## File: src/shared/lib/utils.ts
-````typescript
+```typescript
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[])
 export function firestoreTimestampToISO(ts: unknown): string
 export function hexToHsl(hex: string): string
-````
+```
 
 ## File: src/shared/lib/workspace.rules.ts
-````typescript
+```typescript
 import { isOwner, getUserTeamIds } from "@/shared/lib/account.rules"
 import type { Workspace, Account } from "@/shared/types"
 export function hasWorkspaceAccess(
@@ -6615,10 +6442,10 @@ export function filterVisibleWorkspaces(
   activeAccount: Account,
   allAccounts: Record<string, Account>
 ): Workspace[]
-````
+```
 
 ## File: src/shared/ports/i-auth.service.ts
-````typescript
+```typescript
 export interface AuthUser {
   readonly uid: string;
   readonly email: string | null;
@@ -6644,10 +6471,10 @@ updateProfile(user: AuthUser, profile:
 signOut(): Promise<void>;
 onAuthStateChanged(callback: (user: AuthUser | null)
 getCurrentUser(): AuthUser | null;
-````
+```
 
 ## File: src/shared/ports/i-file-store.ts
-````typescript
+```typescript
 export interface UploadOptions {
   readonly contentType?: string;
 }
@@ -6660,10 +6487,10 @@ export interface IFileStore {
 upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>;
 getDownloadURL(path: string): Promise<string>;
 deleteFile(path: string): Promise<void>;
-````
+```
 
 ## File: src/shared/ports/i-firestore.repo.ts
-````typescript
+```typescript
 export interface Timestamp {
   readonly seconds: number;
   readonly nanoseconds: number;
@@ -6701,10 +6528,10 @@ onSnapshot<T>(
     collectionPath: string,
     callback: (docs: FirestoreDoc<T>[]) => void
 ): ()
-````
+```
 
 ## File: src/shared/ports/i-messaging.ts
-````typescript
+```typescript
 export interface PushNotificationPayload {
   readonly title: string;
   readonly body: string;
@@ -6731,53 +6558,53 @@ getToken(): Promise<string | null>;
 onForegroundMessage(
     callback: (payload: PushNotificationPayload) => void
 ): ()
-````
+```
 
 ## File: src/shared/ports/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/README.MD
-````markdown
+```markdown
 放置無狀態共用程式庫：UI 元件、helpers、types 與工具函式。
 只允許向下依賴；向上 import 為架構違規。
-````
+```
 
 ## File: src/shared/shadcn-ui/accordion.tsx
-````typescript
+```typescript
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/alert-dialog.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
 import { buttonVariants } from "@/shared/shadcn-ui/button"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/alert.tsx
-````typescript
+```typescript
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/aspect-ratio.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/shadcn-ui/avatar.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/badge.tsx
-````typescript
+```typescript
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
 ⋮----
@@ -6787,29 +6614,29 @@ export interface BadgeProps
 function Badge(
 ⋮----
 <div className=
-````
+```
 
 ## File: src/shared/shadcn-ui/breadcrumb.tsx
-````typescript
+```typescript
 import { Slot } from "@radix-ui/react-slot"
 import { ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/button-group.tsx
-````typescript
+```typescript
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
 import { Separator } from "@/shared/shadcn-ui/separator"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/button.tsx
-````typescript
+```typescript
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/lib/utils"
@@ -6821,10 +6648,10 @@ export interface ButtonProps
 }
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/calendar.tsx
-````typescript
+```typescript
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -6835,15 +6662,15 @@ import { cn } from "@/shared/utils/utils"
 import { Button, buttonVariants } from "@/shared/shadcn-ui/button"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/card.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/carousel.tsx
-````typescript
+```typescript
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"
@@ -6872,10 +6699,10 @@ type CarouselContextProps = {
 function useCarousel()
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/chart.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
 ⋮----
 export type ChartConfig = {
@@ -6898,21 +6725,21 @@ className=
 <div className=
 ⋮----
 return <div className=
-````
+```
 
 ## File: src/shared/shadcn-ui/checkbox.tsx
-````typescript
+```typescript
 import { Check } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/collapsible.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/shadcn-ui/command.tsx
-````typescript
+```typescript
 import { type DialogProps } from "@radix-ui/react-dialog"
 import { Command as CommandPrimitive } from "cmdk"
 import { Search } from "lucide-react"
@@ -6920,42 +6747,42 @@ import { cn } from "@/shared/utils/utils"
 import { Dialog, DialogContent } from "@/shared/shadcn-ui/dialog"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/context-menu.tsx
-````typescript
+```typescript
 import { Check, ChevronRight, Circle } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/dialog.tsx
-````typescript
+```typescript
 import { X } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/drawer.tsx
-````typescript
+```typescript
 import { Drawer as DrawerPrimitive } from "vaul"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/dropdown-menu.tsx
-````typescript
+```typescript
 import { Check, ChevronRight, Circle } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/empty.tsx
-````typescript
+```typescript
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
 ⋮----
@@ -6967,10 +6794,10 @@ className={cn(emptyMediaVariants({ variant, className }))}
   )
 }
 function EmptyTitle(
-````
+```
 
 ## File: src/shared/shadcn-ui/field.tsx
-````typescript
+```typescript
 import { useMemo } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
@@ -6978,10 +6805,10 @@ import { Label } from "@/shared/shadcn-ui/label"
 import { Separator } from "@/shared/shadcn-ui/separator"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/form.tsx
-````typescript
+```typescript
 import { Slot } from "@radix-ui/react-slot"
 import {
   Controller,
@@ -7013,15 +6840,15 @@ type FormItemContextValue = {
 }
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/hover-card.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/input-group.tsx
-````typescript
+```typescript
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
 import { Button } from "@/shared/shadcn-ui/button"
@@ -7031,24 +6858,24 @@ import { Textarea } from "@/shared/shadcn-ui/textarea"
 className=
 ⋮----
 if ((e.target as HTMLElement).closest("button"))
-````
+```
 
 ## File: src/shared/shadcn-ui/input-otp.tsx
-````typescript
+```typescript
 import { OTPInput, OTPInputContext } from "input-otp"
 import { Dot } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/input.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/item.tsx
-````typescript
+```typescript
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
@@ -7060,31 +6887,31 @@ function ItemSeparator({
 }: React.ComponentProps<typeof Separator>)
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/kbd.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/label.tsx
-````typescript
+```typescript
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/menubar.tsx
-````typescript
+```typescript
 import { Check, ChevronRight, Circle } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/navigation-menu.tsx
-````typescript
+```typescript
 import { cva } from "class-variance-authority"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
@@ -7092,10 +6919,10 @@ import { cn } from "@/shared/utils/utils"
 <div className=
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/pagination.tsx
-````typescript
+```typescript
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 import { ButtonProps, buttonVariants } from "@/shared/shadcn-ui/button"
@@ -7110,55 +6937,55 @@ const PaginationLink = (
 className=
 ⋮----
 const PaginationPrevious = (
-````
+```
 
 ## File: src/shared/shadcn-ui/popover.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/progress.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/radio-group.tsx
-````typescript
+```typescript
 import { Circle } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/scroll-area.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/select.tsx
-````typescript
+```typescript
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/separator.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/sheet.tsx
-````typescript
+```typescript
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/sidebar.tsx
-````typescript
+```typescript
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
@@ -7202,10 +7029,10 @@ className=
 ⋮----
 onClick?.(event)
 toggleSidebar()
-````
+```
 
 ## File: src/shared/shadcn-ui/skeleton.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
 function Skeleton({
   className,
@@ -7213,15 +7040,15 @@ function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>)
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/slider.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/sonner.tsx
-````typescript
+```typescript
 import {
   CircleCheck,
   Info,
@@ -7232,43 +7059,43 @@ import {
 import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner"
 type ToasterProps = React.ComponentProps<typeof Sonner>
-````
+```
 
 ## File: src/shared/shadcn-ui/spinner.tsx
-````typescript
+```typescript
 import { Loader2Icon } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 function Spinner(
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/switch.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/table.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/tabs.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/textarea.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/timeline.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils";
 interface TimelineProps extends React.HTMLAttributes<HTMLOListElement> {
   children: React.ReactNode;
@@ -7280,17 +7107,17 @@ interface TimelineItemProps extends React.LiHTMLAttributes<HTMLLIElement> {
 }
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/shadcn-ui/toast.tsx
-````typescript
+```typescript
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/toaster.tsx
-````typescript
+```typescript
 import { useToast } from "@/shared/utility-hooks/use-toast"
 import {
   Toast,
@@ -7300,30 +7127,30 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/shared/shadcn-ui/toast"
-````
+```
 
 ## File: src/shared/shadcn-ui/toggle-group.tsx
-````typescript
+```typescript
 import { type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
 import { toggleVariants } from "@/shared/shadcn-ui/toggle"
-````
+```
 
 ## File: src/shared/shadcn-ui/toggle.tsx
-````typescript
+```typescript
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/shared/utils/utils"
-````
+```
 
 ## File: src/shared/shadcn-ui/tooltip.tsx
-````typescript
+```typescript
 import { cn } from "@/shared/utils/utils"
 ⋮----
 className=
-````
+```
 
 ## File: src/shared/types/account.types.ts
-````typescript
+```typescript
 import type { Timestamp } from '@/shared/ports'
 import type { SkillGrant } from './skill.types'
 export type AccountType = 'user' | 'organization'
@@ -7398,10 +7225,10 @@ export interface PartnerInvite {
   invitedAt: Timestamp;
   protocol: string;
 }
-````
+```
 
 ## File: src/shared/types/audit.types.ts
-````typescript
+```typescript
 import type { Timestamp } from '@/shared/ports'
 export type AuditLogType = 'create' | 'update' | 'delete' | 'security';
 export interface AuditLog {
@@ -7421,10 +7248,10 @@ export interface AuditLog {
     ip?: string;
   };
 }
-````
+```
 
 ## File: src/shared/types/daily.types.ts
-````typescript
+```typescript
 import type { Timestamp } from '@/shared/ports'
 export interface DailyLogComment {
   id: string;
@@ -7455,15 +7282,15 @@ export interface DailyLog {
   commentCount?: number;
   comments?: DailyLogComment[];
 }
-````
+```
 
 ## File: src/shared/types/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/types/task.types.ts
-````typescript
+```typescript
 import type { WorkspaceTask } from './workspace.types'
 export type TaskWithChildren = WorkspaceTask & {
   children: TaskWithChildren[];
@@ -7471,10 +7298,10 @@ export type TaskWithChildren = WorkspaceTask & {
   wbsNo: string;
   progress: number;
 }
-````
+```
 
 ## File: src/shared/types/workspace.types.ts
-````typescript
+```typescript
 export type WorkspaceRole = 'Manager' | 'Contributor' | 'Viewer';
 export type WorkspaceLifecycleState = 'preparatory' | 'active' | 'stopped';
 import type { Timestamp } from '@/shared/ports'
@@ -7618,10 +7445,10 @@ export interface ParsingIntent {
   createdAt: Timestamp;
   importedAt?: Timestamp;
 }
-````
+```
 
 ## File: src/shared/ui/language-switcher.tsx
-````typescript
+```typescript
 import { Globe } from "lucide-react"
 import { useI18n } from "@/config/i18n/i18n-provider"
 import { type Locale } from "@/config/i18n/i18n-types"
@@ -7636,10 +7463,10 @@ import {
 export function LanguageSwitcher()
 ⋮----
 onClick=
-````
+```
 
 ## File: src/shared/ui/page-header.tsx
-````typescript
+```typescript
 import type { ReactNode } from "react";
 interface PageHeaderProps {
   title: string;
@@ -7648,17 +7475,17 @@ interface PageHeaderProps {
   children?: ReactNode;
 }
 export function PageHeader(
-````
+```
 
 ## File: src/shared/utility-hooks/use-mobile.tsx
-````typescript
+```typescript
 export function useIsMobile()
 ⋮----
 const onChange = () =>
-````
+```
 
 ## File: src/shared/utility-hooks/use-toast.ts
-````typescript
+```typescript
 import type {
   ToastActionElement,
   ToastProps,
@@ -7705,28 +7532,28 @@ const update = (props: ToasterToast)
 const dismiss = () => dispatch(
 ⋮----
 function useToast()
-````
+```
 
 ## File: src/shared/utils/format-bytes.ts
-````typescript
+```typescript
 export const formatBytes = (bytes: number): string =>
-````
+```
 
 ## File: src/shared/utils/utils.ts
-````typescript
+```typescript
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[])
 export function hexToHsl(hex: string): string
-````
+```
 
 ## File: tailwind.config.ts
-````typescript
+```typescript
 import type {Config} from 'tailwindcss';
-````
+```
 
 ## File: tsconfig.json
-````json
+```json
 {
   "compilerOptions": {
     "target": "ES2017",
@@ -7759,20 +7586,20 @@ import type {Config} from 'tailwindcss';
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/audit/page.tsx
-````typescript
+```typescript
 import { AccountAuditView } from '@/features/workspace.slice';
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/daily/page.tsx
-````typescript
+```typescript
 import { AccountDailyView } from '@/features/workspace.slice';
-````
+```
 
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/layout.tsx
-````typescript
+```typescript
 import type { ReactNode } from "react";
 import { ThemeAdapter } from "@/features/workspace.slice";
 import { SidebarInset } from "@/shared/shadcn-ui/sidebar";
@@ -7782,16 +7609,16 @@ type DashboardLayoutProps = {
   modal: ReactNode;
 };
 export default function DashboardLayout(
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@modal/(.)schedule-proposal/page.tsx
-````typescript
+```typescript
 import { ScheduleProposalContent } from "@/features/scheduling.slice"
 export default function ScheduleProposalModalPage()
-````
+```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/layout.tsx
-````typescript
+```typescript
 import type { ReactNode } from "react";
 import { ThemeAdapter } from "@/features/workspace.slice";
 import { SidebarInset } from "@/shared/shadcn-ui/sidebar";
@@ -7801,10 +7628,10 @@ type WorkspacesLayoutProps = {
   modal: ReactNode;
 };
 export default function WorkspacesLayout(
-````
+```
 
 ## File: src/features/account.slice/gov.policy/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -7850,10 +7677,10 @@ export async function updateAccountPolicy(
   input: UpdatePolicyInput
 ): Promise<CommandResult>
 export async function deleteAccountPolicy(policyId: string, traceId?: string): Promise<CommandResult>
-````
+```
 
 ## File: src/features/account.slice/gov.policy/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -7864,10 +7691,10 @@ export function subscribeToAccountPolicies(
   onUpdate: (policies: AccountPolicy[]) => void
 ): Unsubscribe
 export async function getActiveAccountPolicies(accountId: string): Promise<AccountPolicy[]>
-````
+```
 
 ## File: src/features/account.slice/gov.role/_actions.ts
-````typescript
+```typescript
 import { publishOrgEvent } from '@/features/organization.slice';
 import {
   type CommandResult,
@@ -7913,10 +7740,10 @@ async function emitTokenRefreshSignal(
   reason: TokenRefreshReason,
   traceId?: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/account.slice/gov.role/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -7929,15 +7756,15 @@ export function subscribeToAccountRoles(
   accountId: string,
   onUpdate: (roles: AccountRoleRecord[]) => void
 ): Unsubscribe
-````
+```
 
 ## File: src/features/account.slice/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/account.slice/user.profile/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -7962,10 +7789,10 @@ export async function uploadUserAvatar(
   userId: string,
   file: File,
 ): Promise<string>
-````
+```
 
 ## File: src/features/account.slice/user.profile/_hooks/use-user.ts
-````typescript
+```typescript
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/shared/app-providers/auth-provider'
 import type { Account } from '@/shared/types'
@@ -7978,10 +7805,10 @@ import {
   subscribeToUserProfile,
 } from '../_queries'
 export function useUser()
-````
+```
 
 ## File: src/features/account.slice/user.profile/_queries.ts
-````typescript
+```typescript
 import {
   getUserProfile as getUserProfileFacade,
 } from "@/shared/infra/firestore/firestore.facade"
@@ -7992,10 +7819,10 @@ export function subscribeToUserProfile(
   userId: string,
   onUpdate: (profile: Account | null) => void,
 ): () => void
-````
+```
 
 ## File: src/features/account.slice/user.wallet/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -8029,10 +7856,10 @@ export interface DebitInput {
 }
 export async function creditWallet(input: TopUpInput): Promise<CommandResult>
 export async function debitWallet(input: DebitInput): Promise<CommandResult>
-````
+```
 
 ## File: src/features/account.slice/user.wallet/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { doc, collection, query, orderBy, limit, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -8056,10 +7883,10 @@ export function subscribeToWalletTransactions(
   maxCount: number,
   onUpdate: (txs: WalletTransactionRecord[]) => void
 ): Unsubscribe
-````
+```
 
 ## File: src/features/global-search.slice/_components/global-search-dialog.tsx
-````typescript
+```typescript
 import { Globe, Layers, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/shared/constants/routes";
@@ -8084,10 +7911,10 @@ export interface GlobalSearchDialogProps {
 }
 ⋮----
 const handleSelect = (callback: () => void) =>
-````
+```
 
 ## File: src/features/identity.slice/_token-refresh-listener.ts
-````typescript
+```typescript
 import { useEffect } from 'react';
 import type { ImplementsTokenRefreshContract } from '@/features/shared-kernel';
 import { auth } from '@/shared/infra/auth/auth.client';
@@ -8095,10 +7922,10 @@ import { db } from '@/shared/infra/firestore/firestore.client';
 import { onSnapshot, doc } from '@/shared/infra/firestore/firestore.read.adapter';
 ⋮----
 export function useTokenRefreshListener(accountId: string | null | undefined): void
-````
+```
 
 ## File: src/features/infra.outbox-relay/_relay.ts
-````typescript
+```typescript
 import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
 import { logDomainError } from '@/features/observability';
 import { db } from '@/shared/infra/firestore/firestore.client';
@@ -8148,10 +7975,10 @@ async function routeToDlq(
   attemptCount: number,
   lastError: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/notification-hub.slice/_types.ts
-````typescript
+```typescript
 import type {
   NotificationChannel,
   NotificationPriority,
@@ -8219,25 +8046,25 @@ export interface NotificationHubStats {
   readonly activeRoutingRules: number;
   readonly lastDispatchedAt: string;
 }
-````
+```
 
 ## File: src/features/notification-hub.slice/gov.notification-router/_router.ts
-````typescript
+```typescript
 import { onOrgEvent } from '@/features/organization.slice';
 import { deliverNotification } from '../user.notification';
 export interface RouterRegistration {
   unsubscribe: () => void;
 }
 export function registerNotificationRouter(): RouterRegistration
-````
+```
 
 ## File: src/features/notification-hub.slice/gov.notification-router/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/notification-hub.slice/user.notification/_components/notification-badge.tsx
-````typescript
+```typescript
 import { Bell } from 'lucide-react';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
@@ -8246,10 +8073,10 @@ interface NotificationBadgeProps {
   onClick?: () => void;
 }
 export function NotificationBadge(
-````
+```
 
 ## File: src/features/notification-hub.slice/user.notification/_components/notification-list.tsx
-````typescript
+```typescript
 import { cn } from '@/shared/lib';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import type { Notification } from '@/shared/types';
@@ -8257,25 +8084,25 @@ interface NotificationListProps {
   notifications: Notification[];
   onMarkRead: (id: string) => void;
 }
-````
+```
 
 ## File: src/features/notification-hub.slice/user.notification/_hooks/use-user-notifications.ts
-````typescript
+```typescript
 import { useState, useEffect } from 'react';
 import type { Notification } from '@/shared/types';
 import { subscribeToNotifications, markNotificationRead } from '../_queries';
 export function useUserNotifications(accountId: string | undefined, maxCount = 20)
 ⋮----
 const markRead = async (notificationId: string) =>
-````
+```
 
 ## File: src/features/notification-hub.slice/user.notification/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/organization.slice/core/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client'
 import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter'
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter'
@@ -8285,10 +8112,10 @@ export function subscribeToOrganization(
   orgId: string,
   onUpdate: (org: Account | null) => void
 ): Unsubscribe
-````
+```
 
 ## File: src/features/organization.slice/gov.members/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client'
 import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter'
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter'
@@ -8298,10 +8125,10 @@ export function subscribeToOrgMembers(
   orgId: string,
   onUpdate: (members: MemberReference[]) => void
 ): Unsubscribe
-````
+```
 
 ## File: src/features/organization.slice/gov.partners/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, doc, onSnapshot, orderBy, query, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -8315,10 +8142,10 @@ export function subscribeToOrgPartnerInvites(
   orgId: string,
   onUpdate: (invites: PartnerInvite[]) => void
 ): Unsubscribe
-````
+```
 
 ## File: src/features/organization.slice/gov.policy/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandSuccess,
@@ -8365,10 +8192,10 @@ export async function updateOrgPolicy(
   input: UpdateOrgPolicyInput
 ): Promise<CommandResult>
 export async function deleteOrgPolicy(policyId: string, orgId: string): Promise<CommandResult>
-````
+```
 
 ## File: src/features/organization.slice/gov.policy/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -8382,10 +8209,10 @@ export async function getOrgPoliciesByScope(
   orgId: string,
   scope: OrgPolicy['scope']
 ): Promise<OrgPolicy[]>
-````
+```
 
 ## File: src/features/organization.slice/gov.teams/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -8395,10 +8222,10 @@ export function subscribeToOrgTeams(
   orgId: string,
   onUpdate: (teams: Team[]) => void
 ): Unsubscribe
-````
+```
 
 ## File: src/features/projection.bus/account-audit/_projector.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { doc, collection } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp, setDoc } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -8419,10 +8246,10 @@ export async function appendAuditEntry(
   entry: Omit<AuditProjectionEntry, 'id' | 'occurredAt'>,
   eventId?: string
 ): Promise<string>
-````
+```
 
 ## File: src/features/projection.bus/account-audit/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { createConverter } from '@/shared/infra/firestore/firestore.converter';
 import { collection, query, orderBy, limit } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -8432,10 +8259,10 @@ export async function getAccountAuditEntries(
   accountId: string,
   maxEntries = 50
 ): Promise<AuditProjectionEntry[]>
-````
+```
 
 ## File: src/features/projection.bus/account-schedule/_projector.ts
-````typescript
+```typescript
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -8469,10 +8296,10 @@ export async function applyScheduleCompleted(
   aggregateVersion?: number,
   traceId?: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/account-view/_projector.ts
-````typescript
+```typescript
 import { versionGuardAllows } from '@/features/shared-kernel';
 import type { AuthoritySnapshot } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -8513,15 +8340,15 @@ export async function applyAuthoritySnapshot(
   aggregateVersion?: number,
   traceId?: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/demand-board/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/projection.bus/global-audit-view/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, getDocs, where, limit, query as firestoreQuery } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { GlobalAuditRecord, GlobalAuditQuery } from './_projector';
@@ -8532,10 +8359,10 @@ export async function getGlobalAuditEventsByWorkspace(
   workspaceId: string,
   maxResults = 50
 ): Promise<GlobalAuditRecord[]>
-````
+```
 
 ## File: src/features/projection.bus/org-eligible-member-view/_projector.ts
-````typescript
+```typescript
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -8579,10 +8406,10 @@ export async function updateOrgMemberEligibility(
   incomingAggregateVersion: number,
   traceId?: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/organization-view/_projector.ts
-````typescript
+```typescript
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -8619,10 +8446,10 @@ export async function applyMemberLeft(
   aggregateVersion?: number,
   traceId?: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/tag-snapshot/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, getDocs, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -8630,10 +8457,10 @@ import type { TagSnapshotEntry } from './_projector';
 export async function getTagSnapshot(tagSlug: string): Promise<TagSnapshotEntry | null>
 export async function getAllTagSnapshots(): Promise<TagSnapshotEntry[]>
 export async function getActiveTagSnapshots(): Promise<TagSnapshotEntry[]>
-````
+```
 
 ## File: src/features/projection.bus/wallet-balance/_projector.ts
-````typescript
+```typescript
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -8666,10 +8493,10 @@ export async function syncWalletBalanceFromAggregate(
   accountId: string,
   authoritative: { balance: number; aggregateVersion?: number; traceId?: string }
 ): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/workspace-scope-guard/_projector.ts
-````typescript
+```typescript
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -8688,10 +8515,10 @@ export async function applyGrantEvent(
   aggregateVersion?: number,
   traceId?: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/workspace-view/_projector.ts
-````typescript
+```typescript
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -8721,10 +8548,10 @@ export async function applyCapabilityUpdate(
   aggregateVersion?: number,
   traceId?: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/scheduling.slice/_components/schedule-proposal-content.tsx
-````typescript
+```typescript
 import { parseISO } from "date-fns"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { SkillRequirement } from "@/features/shared-kernel"
@@ -8745,10 +8572,10 @@ const handleSubmit = async (data: {
     location: Location
     requiredSkills: SkillRequirement[]
 }) =>
-````
+```
 
 ## File: src/features/scheduling.slice/_hooks/use-org-schedule.ts
-````typescript
+```typescript
 import { useState, useEffect } from 'react';
 import type { ScheduleItem, ScheduleStatus } from '@/features/shared-kernel';
 import { subscribeToOrgScheduleProposals, subscribeToPendingProposals, subscribeToConfirmedProposals } from '../_queries';
@@ -8758,15 +8585,15 @@ export function useOrgSchedule(
 )
 export function usePendingScheduleProposals(orgId: string | null)
 export function useConfirmedScheduleProposals(orgId: string | null)
-````
+```
 
 ## File: src/features/scheduling.slice/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/shared-kernel/centralized-tag/_aggregate.ts
-````typescript
+```typescript
 import type { TagCategory } from '../tag-authority';
 export type TagDeleteRule = 'allow' | 'block-if-referenced';
 export interface CentralizedTagEntry {
@@ -8780,10 +8607,10 @@ export interface CentralizedTagEntry {
   createdAt: string;
   updatedAt: string;
 }
-````
+```
 
 ## File: src/features/shared-kernel/centralized-tag/_bus.ts
-````typescript
+```typescript
 import type { ImplementsEventEnvelopeContract } from '../event-envelope';
 import type { TagLifecycleEventPayloadMap, TagLifecycleEventKey } from './_events';
 type TagEventHandler<K extends TagLifecycleEventKey> = (
@@ -8801,15 +8628,15 @@ export function publishTagEvent<K extends TagLifecycleEventKey>(
   eventKey: K,
   payload: TagLifecycleEventPayloadMap[K]
 ): void
-````
+```
 
 ## File: src/features/shared-kernel/centralized-tag/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/shared-kernel/semantic-primitives/index.ts
-````typescript
+```typescript
 export type SearchDomain = (typeof SEARCH_DOMAINS)[number];
 export interface SemanticSearchQuery {
   readonly query: string;
@@ -8848,10 +8675,10 @@ export interface TaxonomyNode {
   readonly depth: number;
   readonly metadata?: Record<string, unknown>;
 }
-````
+```
 
 ## File: src/features/shared-kernel/skill-tier/index.ts
-````typescript
+```typescript
 export type SkillTier =
   | 'apprentice'
   | 'journeyman'
@@ -8897,10 +8724,10 @@ export interface WorkspaceScheduleProposedPayload {
 export interface ImplementsScheduleProposedPayloadContract {
   readonly implementsScheduleProposedPayload: true;
 }
-````
+```
 
 ## File: src/features/skill-xp.slice/_actions.ts
-````typescript
+```typescript
 import { publishOrgEvent } from '@/features/organization.slice';
 import {
   type CommandResult,
@@ -8940,10 +8767,10 @@ export async function removeOrgSkillTagAction(
   orgId: string,
   tagSlug: string
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/skill-xp.slice/_aggregate.ts
-````typescript
+```typescript
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { appendXpLedgerEntry } from './_ledger';
 ⋮----
@@ -8971,10 +8798,10 @@ export async function getSkillXp(
   accountId: string,
   skillId: string
 ): Promise<number>
-````
+```
 
 ## File: src/features/skill-xp.slice/_projector.ts
-````typescript
+```typescript
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -9003,10 +8830,10 @@ export async function applySkillXpDeducted(
   aggregateVersion?: number,
   traceId?: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/skill-xp.slice/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -9034,10 +8861,10 @@ export async function getMemberSkillRecognitions(
   organizationId: string,
   accountId: string
 ): Promise<OrgSkillRecognitionRecord[]>
-````
+```
 
 ## File: src/features/skill-xp.slice/_tag-lifecycle.ts
-````typescript
+```typescript
 import type {
   TagUpdatedPayload,
   TagDeprecatedPayload,
@@ -9067,10 +8894,10 @@ export async function handleTagDeprecatedForPool(
 export async function handleTagDeletedForPool(
   payload: TagDeletedPayload
 ): Promise<void>
-````
+```
 
 ## File: src/features/workspace.slice/application/_transaction-runner.ts
-````typescript
+```typescript
 import { generateTraceId, logDomainError } from '@/features/observability';
 import { appendDomainEvent } from '../core.event-store';
 import { createOutbox, type Outbox, type OutboxEvent } from './_outbox';
@@ -9089,10 +8916,10 @@ export async function runTransaction<T>(
   handler: (ctx: TransactionContext) => Promise<T>,
   correlationId?: string
 ): Promise<TransactionResult<T>>
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_components/daily-log-dialog.tsx
-````typescript
+```typescript
 import { CornerUpLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/shared/app-providers/auth-provider";
@@ -9123,20 +8950,20 @@ function TimeAgo(
 const update = () =>
 ⋮----
 const handlePostComment = async () =>
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_hooks/use-bookmark-commands.ts
-````typescript
+```typescript
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/shared/app-providers/auth-provider';
 import { toast } from '@/shared/utility-hooks/use-toast';
 import { toggleBookmark as toggleBookmarkAction } from '../_bookmark-actions';
 import { subscribeToBookmarks } from '../_queries';
 export function useBookmarkActions()
-````
+```
 
 ## File: src/features/workspace.slice/business.document-parser/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { ParsingIntent } from '@/shared/types';
@@ -9144,10 +8971,10 @@ export function subscribeToParsingIntents(
   workspaceId: string,
   onUpdate: (intents: ParsingIntent[]) => void
 ): Unsubscribe
-````
+```
 
 ## File: src/features/workspace.slice/business.files/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getWorkspaceFiles as getWorkspaceFilesFacade } from '@/shared/infra/firestore/firestore.facade';
 import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -9157,15 +8984,15 @@ export function subscribeToWorkspaceFiles(
   onUpdate: (files: WorkspaceFile[]) => void
 ): Unsubscribe
 export async function getWorkspaceFiles(workspaceId: string): Promise<WorkspaceFile[]>
-````
+```
 
 ## File: src/features/workspace.slice/business.files/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.workflow/_persistence.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, getDocs, query, type QueryDocumentSnapshot, type DocumentData, where } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -9191,10 +9018,10 @@ export async function findWorkflowsByStage(
   workspaceId: string,
   stage: WorkflowStage
 ): Promise<WorkflowAggregateState[]>
-````
+```
 
 ## File: src/features/workspace.slice/core.event-bus/_bus.ts
-````typescript
+```typescript
 import { recordEventPublished } from "@/features/observability"
 import type { ImplementsEventEnvelopeContract } from '@/features/shared-kernel'
 import type {
@@ -9209,10 +9036,10 @@ export class WorkspaceEventBus implements ImplementsEventEnvelopeContract
 readonly implementsEventEnvelope = true as const;
 ⋮----
 constructor()
-````
+```
 
 ## File: src/features/workspace.slice/core.event-bus/_events.ts
-````typescript
+```typescript
 import type { SkillRequirement, WorkspaceScheduleProposedPayload } from "@/features/shared-kernel"
 import type { WorkspaceTask, DailyLog } from "@/shared/types"
 ⋮----
@@ -9345,15 +9172,15 @@ export type SubscribeFn = <T extends WorkspaceEventName>(
   type: T,
   handler: WorkspaceEventHandler<T>
 ) => () => void
-````
+```
 
 ## File: src/features/workspace.slice/core.event-bus/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/shell/account-create-dialog.tsx
-````typescript
+```typescript
 import { Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/shared/shadcn-ui/button"
@@ -9381,10 +9208,10 @@ interface AccountCreateDialogProps {
 ⋮----
 const handleCreate = async () =>
 ⋮----
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/shell/account-switcher.tsx
-````typescript
+```typescript
 import { Check, ChevronsUpDown, Globe, Plus } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -9420,10 +9247,10 @@ const getAccountInitial = (name?: string)
 ⋮----
 <AvatarFallback className=
 ⋮----
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/shell/dashboard-sidebar.tsx
-````typescript
+```typescript
 import { usePathname } from 'next/navigation';
 import { useI18n } from "@/config/i18n/i18n-provider";
 import { useUser } from "@/features/account.slice";
@@ -9446,10 +9273,10 @@ import { AccountSwitcher } from "./account-switcher";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { NavWorkspaces } from "./nav-workspaces";
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/shell/header.tsx
-````typescript
+```typescript
 import { Search, Command } from "lucide-react";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -9476,10 +9303,10 @@ function usePageBreadcrumbs(pathname: string)
 const down = (e: KeyboardEvent) =>
 ⋮----
 const handleSwitchOrganization = (organization: Account) =>
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/shell/nav-main.tsx
-````typescript
+```typescript
 import {
   LayoutDashboard,
   Layers,
@@ -9521,10 +9348,10 @@ const isPartiallyActive = (path: string)
 <SidebarMenuButton asChild isActive=
 ⋮----
 <SidebarMenuSubButton asChild isActive=
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/shell/nav-user.tsx
-````typescript
+```typescript
 import { UserCircle, LogOut, ChevronsUpDown } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -9553,10 +9380,10 @@ const getAccountInitial = (name?: string)
 const handleLogout = () =>
 ⋮----
 <AvatarFallback className="rounded-lg bg-primary/10 font-bold text-primary">
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/shell/nav-workspaces.tsx
-````typescript
+```typescript
 import { Terminal } from "lucide-react";
 import Link from "next/link";
 import {
@@ -9574,10 +9401,10 @@ interface NavWorkspacesProps {
   pathname: string;
   t: (key: string) => string;
 }
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/shell/notification-center.tsx
-````typescript
+```typescript
 import { Bell, Trash2, Check } from "lucide-react";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
@@ -9588,10 +9415,10 @@ interface NotificationCenterProps {
   notifications: Notification[];
   dispatch: React.Dispatch<AppAction>;
 }
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/shell/theme-adapter.tsx
-````typescript
+```typescript
 import { useEffect, useState, useRef } from "react";
 import { hexToHsl } from "@/shared/lib";
 import { Skeleton } from "@/shared/shadcn-ui/skeleton";
@@ -9603,10 +9430,10 @@ interface ThemeAdapterProps {
 export function ThemeAdapter(
 ⋮----
 async function adaptTheme()
-````
+```
 
 ## File: src/features/workspace.slice/core/_hooks/use-workspace-event-handler.tsx
-````typescript
+```typescript
 import { useEffect } from "react";
 import { handleScheduleProposed } from "@/features/scheduling.slice";
 import { ToastAction } from "@/shared/shadcn-ui/toast";
@@ -9630,50 +9457,50 @@ const pushNotification = (
 const handleImport = (payload: DocumentParserItemsExtractedPayload) =>
 ⋮----
 const importItems = () =>
-````
+```
 
 ## File: src/features/workspace.slice/core/_shell/account-create-dialog.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_shell/account-switcher.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_shell/dashboard-sidebar.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_shell/nav-main.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_shell/nav-user.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_shell/nav-workspaces.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_shell/notification-center.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/core/_shell/theme-adapter.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_hooks/use-logger.ts
-````typescript
+```typescript
 import { useCallback } from "react";
 import { useApp } from "@/shared/app-providers/app-context";
 import type { AuditLog, Account } from "@/shared/types";
@@ -9681,15 +9508,15 @@ import { writeDailyLog, writeAuditLog } from '../_actions';
 export function useLogger(workspaceId?: string, workspaceName?: string)
 ⋮----
 avatarUrl: '', // populated at display time from the user's profile photo URL
-````
+```
 
 ## File: src/features/workspace.slice/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/infra/firestore/repositories/schedule.repository.ts
-````typescript
+```typescript
 import {
   serverTimestamp,
   arrayUnion,
@@ -9733,45 +9560,30 @@ export const getScheduleItems = async (
   accountId: string,
   workspaceId?: string
 ): Promise<ScheduleItem[]> =>
-````
+```
 
 ## File: src/shared/infra/storage/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/lib/schedule.rules.ts
-````typescript
+```typescript
 import type { ScheduleStatus } from '@/features/shared-kernel'
 ⋮----
 export function canTransitionScheduleStatus(
   from: ScheduleStatus,
   to: ScheduleStatus
 ): boolean
-````
+```
 
 ## File: src/shared/types/schedule.types.ts
-````typescript
+```typescript
 
-````
-
-## File: src/features/global-search.slice/_search.test.ts
-````typescript
-import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  indexEntity,
-  removeFromIndex,
-  querySemanticIndex,
-} from '@/features/semantic-graph.slice';
-import type { SemanticIndexEntry } from '@/features/semantic-graph.slice';
-import { executeGlobalSearch, executeSearch } from './_actions';
-import { executeSearch as executeSearchService } from './_services';
-function clearIndex(): void
-function seedIndex(): void
-````
+```
 
 ## File: src/features/global-search.slice/_services.ts
-````typescript
+```typescript
 import { querySemanticIndex } from '@/features/semantic-graph.slice';
 import type {
   ExecuteSearchInput,
@@ -9782,10 +9594,10 @@ import type {
 export function executeSearch(
   input: ExecuteSearchInput
 ): SearchResponse
-````
+```
 
 ## File: src/features/global-search.slice/_types.ts
-````typescript
+```typescript
 import type {
   SearchDomain,
   SemanticSearchQuery,
@@ -9833,10 +9645,10 @@ export interface SearchResponse {
   readonly executedAt: string;
   readonly traceId?: string;
 }
-````
+```
 
 ## File: src/features/notification-hub.slice/user.notification/_delivery.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
@@ -9885,10 +9697,10 @@ export async function deliverNotification(
  * @returns Sanitized message safe for external account delivery
  */
 function sanitizeForExternal(message: string): string
-````
+```
 
 ## File: src/features/notification-hub.slice/user.notification/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
@@ -9910,10 +9722,10 @@ export async function markNotificationRead(
   accountId: string,
   notificationId: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/projection.bus/_funnel.ts
-````typescript
+```typescript
 import { onOrgEvent } from '@/features/organization.slice';
 import { handleScheduleProposed } from '@/features/scheduling.slice';
 import { onTagEvent } from '@/features/shared-kernel';
@@ -9960,10 +9772,10 @@ export function registerTagFunnel(): () => void
 export async function replayWorkspaceProjections(
   workspaceId: string
 ): Promise<
-````
+```
 
 ## File: src/features/projection.bus/org-eligible-member-view/_queries.ts
-````typescript
+```typescript
 import { resolveSkillTier } from '@/features/shared-kernel';
 import type { SkillTier } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
@@ -9999,10 +9811,10 @@ export async function getAllOrgMembersView(
 export async function getOrgEligibleMembersWithTier(
   orgId: string
 ): Promise<OrgEligibleMemberView[]>
-````
+```
 
 ## File: src/features/scheduling.slice/_components/decision-history-columns.tsx
-````typescript
+```typescript
 import { type ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { CheckCircle, XCircle, ArrowUpDown } from "lucide-react"
@@ -10010,10 +9822,10 @@ import type { ScheduleItem } from '@/features/shared-kernel'
 import { Badge } from "@/shared/shadcn-ui/badge"
 import { Button } from "@/shared/shadcn-ui/button"
 export type DecisionHistoryItem = Pick<ScheduleItem, 'id' | 'title' | 'workspaceName' | 'status' | 'updatedAt'>
-````
+```
 
 ## File: src/features/scheduling.slice/_components/demand-board.tsx
-````typescript
+```typescript
 import { UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
 import type { SkillRequirement } from '@/features/shared-kernel';
@@ -10048,10 +9860,10 @@ interface DemandRowProps {
   orgMembers: OrgMember[];
   orgId: string;
 }
-````
+```
 
 ## File: src/features/scheduling.slice/_components/governance-sidebar.tsx
-````typescript
+```typescript
 import { Check, X } from "lucide-react";
 import type { SkillRequirement } from '@/features/shared-kernel';
 import type { ScheduleItem } from '@/features/shared-kernel';
@@ -10065,10 +9877,10 @@ interface GovernanceSidebarProps {
   onApprove: (item: ScheduleItem) => void;
   onReject: (item: ScheduleItem) => void;
 }
-````
+```
 
 ## File: src/features/scheduling.slice/_components/upcoming-events-columns.tsx
-````typescript
+```typescript
 import { type ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { ArrowUpDown } from "lucide-react"
@@ -10085,10 +9897,10 @@ import {
 } from "@/shared/shadcn-ui/tooltip"
 import { type MemberReference } from "@/shared/types"
 export type UpcomingEventItem = Pick<ScheduleItem, 'id' | 'title' | 'workspaceName' | 'startDate' | 'endDate' | 'assigneeIds' | 'requiredSkills'> & { members: MemberReference[] }
-````
+```
 
 ## File: src/features/scheduling.slice/_hooks/use-schedule-commands.ts
-````typescript
+```typescript
 import { useCallback } from "react";
 import { getOrgMemberEligibilityWithTier } from "@/features/projection.bus";
 import { tierSatisfies } from "@/features/shared-kernel";
@@ -10104,48 +9916,20 @@ import {
 } from "../_actions";
 import { getAccountActiveAssignments } from "../_queries";
 export function useScheduleActions()
-````
+```
 
 ## File: src/features/scheduling.slice/_projectors/demand-board.ts
-````typescript
+```typescript
 
-````
-
-## File: src/features/semantic-graph.slice/_aggregate.test.ts
-````typescript
-import { describe, it, expect } from 'vitest';
-import type { TaxonomyNode } from '@/features/shared-kernel/semantic-primitives';
-import {
-  detectTemporalConflicts,
-  checkTemporalConflict,
-  validateTaxonomyAssignment,
-  validateTaxonomyPath,
-} from './_aggregate';
-import type {
-  TemporalTagAssignment,
-  TaxonomyTree,
-} from './_types';
-function makeAssignment(
-  overrides: Partial<TemporalTagAssignment> = {}
-): TemporalTagAssignment
-function makeNode(overrides: Partial<TaxonomyNode> =
-````
-
-## File: src/features/semantic-graph.slice/_services.test.ts
-````typescript
-import { describe, it, expect, beforeEach } from 'vitest';
-import { indexEntity, removeFromIndex, querySemanticIndex, getIndexStats } from './_services';
-import type { SemanticIndexEntry } from './_types';
-function makeEntry(overrides: Partial<SemanticIndexEntry> =
-````
+```
 
 ## File: src/features/shared-kernel/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/business.daily/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getDailyLogs as getDailyLogsFacade } from "@/shared/infra/firestore/firestore.facade";
 import {
@@ -10170,10 +9954,10 @@ export function subscribeToBookmarks(
   onUpdate: (bookmarkedIds: Set<string>) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe
-````
+```
 
 ## File: src/features/workspace.slice/business.document-parser/_components/document-parser-view.tsx
-````typescript
+```typescript
 import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useActionState, useTransition, useRef, useEffect, useCallback, useState, type ChangeEvent } from 'react';
 import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
@@ -10213,10 +9997,10 @@ const handleUploadClick = () =>
 const handleImport = async () =>
 ⋮----
 // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
-````
+```
 
 ## File: src/features/workspace.slice/business.files/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   commandFailureFrom,
@@ -10245,10 +10029,10 @@ export async function restoreWorkspaceFileVersion(
   fileId: string,
   versionId: string
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/account-provider.tsx
-````typescript
+```typescript
 import type React from 'react';
 import {type ReactNode} from 'react';
 import { createContext, useReducer, useEffect } from 'react';
@@ -10280,20 +10064,20 @@ type Action =
 const accountReducer = (state: AccountState, action: Action): AccountState =>
 ⋮----
 export const AccountProvider = (
-````
+```
 
 ## File: src/features/workspace.slice/core/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/shared/app-providers/_queries.ts
-````typescript
+```typescript
 import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
@@ -10308,10 +10092,10 @@ export function subscribeToAccountsForUser(
   userId: string,
   onUpdate: (accounts: Record<string, Account>) => void,
 ): Unsubscribe
-````
+```
 
 ## File: src/shared/app-providers/app-context.tsx
-````typescript
+```typescript
 import type React from 'react'
 import { type ReactNode, createContext, useReducer, useEffect } from 'react'
 import { useContext } from 'react'
@@ -10336,10 +10120,10 @@ export type AppAction =
   | { type: 'CLEAR_SCHEDULE_TASK_REQUEST' }
 ⋮----
 function appReducer(state: AppState, action: AppAction): AppState
-````
+```
 
 ## File: src/shared/constants/skills.ts
-````typescript
+```typescript
 export type SkillGroup =
   | 'CivilStructural'
   | 'MEP'
@@ -10399,10 +10183,10 @@ export interface SkillDefinition {
 export type SkillSlug = (typeof SKILLS)[number]['slug'];
 ⋮----
 export function findSkill(slug: string): SkillDefinition | undefined
-````
+```
 
 ## File: src/shared/infra/storage/storage.adapter.ts
-````typescript
+```typescript
 import type { IFileStore, UploadOptions } from '@/shared/ports/i-file-store';
 import { getFileDownloadURL } from './storage.read.adapter';
 import { deleteFile, uploadFile } from './storage.write.adapter';
@@ -10411,10 +10195,10 @@ export class StorageAdapter implements IFileStore
 async upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>
 async getDownloadURL(path: string): Promise<string>
 async deleteFile(path: string): Promise<void>
-````
+```
 
 ## File: src/shared/types/skill.types.ts
-````typescript
+```typescript
 import type { SkillTier } from '@/features/shared-kernel/skill-tier';
 import type { Timestamp } from '@/shared/ports';
 ⋮----
@@ -10433,10 +10217,145 @@ export interface SkillGrant {
   earnedInOrgId?: string;
   grantedAt?: Timestamp;
 }
-````
+```
+
+## File: package.json
+```json
+{
+  "name": "nextn",
+  "version": "0.1.0",
+  "description": "x",
+  "author": "7s.i@pm.me",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/7Spade/Ac-Xuanwu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/7Spade/Ac-Xuanwu/issues"
+  },
+  "homepage": "https://Ac-Xuanwu.com",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "dev": "next dev --turbopack -p 9002",
+    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
+    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint --cache --cache-location .eslintcache --config eslint.config.mts .",
+    "lint:fix": "npm run lint -- --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm install && npm run lint && npm run typecheck",
+    "deploy:functions": "firebase deploy --only functions --config ./src/shared-infra/firebase/firebase.json",
+    "deploy:indexes": "firebase deploy --only firestore:indexes --config ./src/shared-infra/firebase/firebase.json",
+    "deploy:firestore-rules": "firebase deploy --only firestore:rules --config ./src/shared-infra/firebase/firebase.json",
+    "deploy:storage-rules": "firebase deploy --only storage --config ./src/shared-infra/firebase/firebase.json"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@genkit-ai/google-genai": "^1.20.0",
+    "@genkit-ai/next": "^1.20.0",
+    "@hookform/resolvers": "^4.1.3",
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
+    "@radix-ui/react-aspect-ratio": "^1.1.8",
+    "@radix-ui/react-avatar": "^1.1.11",
+    "@radix-ui/react-checkbox": "^1.3.3",
+    "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-context-menu": "^2.2.16",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-hover-card": "^1.1.15",
+    "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-menubar": "^1.1.16",
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-progress": "^1.1.8",
+    "@radix-ui/react-radio-group": "^1.3.8",
+    "@radix-ui/react-scroll-area": "^1.2.10",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-separator": "^1.1.8",
+    "@radix-ui/react-slider": "^1.3.6",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@radix-ui/react-toast": "^1.2.15",
+    "@radix-ui/react-toggle": "^1.1.10",
+    "@radix-ui/react-toggle-group": "^1.1.11",
+    "@radix-ui/react-tooltip": "^1.2.8",
+    "@tanstack/react-table": "^8.21.3",
+    "@xstate/react": "^6.1.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.5.0",
+    "embla-carousel-react": "^8.6.0",
+    "eslint-plugin-tailwindcss": "^3.18.2",
+    "eslint-plugin-xstate": "^3.2.1",
+    "firebase": "^11.9.1",
+    "genkit": "^1.20.0",
+    "input-otp": "^1.4.2",
+    "lucide-react": "^0.475.0",
+    "next": "^15.5.12",
+    "next-themes": "^0.4.6",
+    "patch-package": "^8.0.0",
+    "react": "^19.2.1",
+    "react-day-picker": "^9.13.2",
+    "react-dom": "^19.2.1",
+    "react-hook-form": "^7.71.2",
+    "react-resizable-panels": "^4.6.2",
+    "recharts": "^2.15.4",
+    "repomix": "^1.12.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss-animate": "^1.0.7",
+    "vaul": "^1.1.2",
+    "xstate": "^5.28.0",
+    "zod": "^3.25.76",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/eslint-plugin-jsx-a11y": "^6.10.1",
+    "@types/eslint-plugin-tailwindcss": "^3.17.0",
+    "@types/node": "^20.17.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.17.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-next": "^15.5.12",
+    "eslint-plugin-check-file": "^3.3.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "genkit-cli": "^1.20.0",
+    "globals": "^15.14.0",
+    "jiti": "^2.6.1",
+    "postcss": "^8.4.49",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.56.1",
+    "vitest": "^4.0.18"
+  },
+  "overrides": {
+    "eslint": "^9.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1"
+  }
+}
+```
 
 ## File: src/features/global-search.slice/_actions.ts
-````typescript
+```typescript
 import type { CommandResult } from '@/features/shared-kernel';
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
 import { executeSearch as executeSearchService } from './_services';
@@ -10451,15 +10370,15 @@ export async function executeGlobalSearch(
 export async function executeSearch(
   input: ExecuteSearchInput
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/global-search.slice/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/notification-hub.slice/_actions.ts
-````typescript
+```typescript
 import type { CommandResult } from '@/features/shared-kernel';
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
 import {
@@ -10488,10 +10407,10 @@ export async function unregisterRoutingRule(
 export async function triggerDispatch(
   event: NotificationSourceEvent
 ): Promise<DispatchNotificationResult>
-````
+```
 
 ## File: src/features/projection.bus/demand-board/_projector.ts
-````typescript
+```typescript
 import type {
   ScheduleAssignedPayload,
   ScheduleCompletedPayload,
@@ -10527,10 +10446,10 @@ async function _closeScheduleItem(
   aggregateVersion: number,
   traceId?: string
 ): Promise<void>
-````
+```
 
 ## File: src/features/scheduling.slice/_components/org-schedule-governance.tsx
-````typescript
+```typescript
 import { CheckCircle, XCircle, Users, Flag } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
@@ -10575,10 +10494,10 @@ interface ProposalRowProps {
 }
 ⋮----
 onSelect=
-````
+```
 
 ## File: src/features/scheduling.slice/_components/proposal-dialog.tsx
-````typescript
+```typescript
 import { format } from "date-fns";
 import { CalendarIcon, ChevronsUpDown, MapPin, Plus, X } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
@@ -10658,10 +10577,10 @@ const handleSubmit = async () =>
 ⋮----
 setSelectedSkillSlug(skill.slug);
 setSkillPickerOpen(false);
-````
+```
 
 ## File: src/features/scheduling.slice/_eligibility.ts
-````typescript
+```typescript
 import type { OrgEligibleMemberView } from '@/features/projection.bus';
 import type { SkillRequirement } from '@/features/shared-kernel';
 ⋮----
@@ -10679,10 +10598,10 @@ export function findEligibleCandidatesForRequirements(
   members: OrgEligibleMemberView[],
   requirements: SkillRequirement[]
 ): CandidateAssignment[] | undefined
-````
+```
 
 ## File: src/features/scheduling.slice/_hooks/use-workspace-schedule.ts
-````typescript
+```typescript
 import { addMonths, subMonths, format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
@@ -10695,10 +10614,10 @@ export function useWorkspaceSchedule()
 ⋮----
 const handleMonthChange = (direction: "prev" | "next") =>
 const handleOpenAddDialog = (date: Date) =>
-````
+```
 
 ## File: src/features/scheduling.slice/_projectors/demand-board-queries.ts
-````typescript
+```typescript
 import type { ImplementsStalenessContract } from '@/features/shared-kernel';
 import type { ScheduleItem } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
@@ -10719,36 +10638,10 @@ export function subscribeToDemandBoard(
   onChange: (items: ScheduleItem[]) => void
 ): Unsubscribe
 export async function getAllDemands(orgId: string): Promise<ScheduleItem[]>
-````
-
-## File: src/features/scheduling.slice/_saga.test.ts
-````typescript
-import { describe, it, expect } from 'vitest';
-import type { OrgEligibleMemberView } from '@/features/projection.bus';
-import type { SkillRequirement } from '@/features/shared-kernel';
-import { tierSatisfies, TIER_DEFINITIONS } from '@/features/shared-kernel/skill-tier';
-import {
-  SAGA_TIER_ORDER,
-  sagaTierIndex,
-  findEligibleCandidate,
-  findEligibleCandidatesForRequirements,
-} from './_eligibility';
-⋮----
-function makeMember(
-      accountId: string,
-      eligible: boolean,
-      skills: Array<{ skillId: string; tier: string }>
-): OrgEligibleMemberView
-⋮----
-function makeMember(
-    accountId: string,
-    eligible: boolean,
-    skills: Array<{ skillId: string; tier: string }>
-): OrgEligibleMemberView
-````
+```
 
 ## File: src/features/semantic-graph.slice/_services.ts
-````typescript
+```typescript
 import type { SearchDomain, SemanticSearchHit } from '@/features/shared-kernel';
 import { SEARCH_DOMAINS } from '@/features/shared-kernel';
 import type { SemanticIndexEntry, SemanticIndexStats } from './_types';
@@ -10766,10 +10659,10 @@ export function querySemanticIndex(
 export function getIndexStats(): SemanticIndexStats
 function isValidSearchDomain(domain: string): domain is SearchDomain
 function computeRelevanceScore(entry: SemanticIndexEntry, terms: string[]): number
-````
+```
 
 ## File: src/features/semantic-graph.slice/_types.ts
-````typescript
+```typescript
 import type {
   TaxonomyDimension,
   TaxonomyNode,
@@ -10837,10 +10730,10 @@ export interface SemanticIndexStats {
   readonly entriesByDomain: Record<string, number>;
   readonly lastUpdatedAt: string;
 }
-````
+```
 
 ## File: src/features/semantic-graph.slice/centralized-tag/_actions.ts
-````typescript
+```typescript
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
 import type { CommandResult } from '@/features/shared-kernel';
 import {
@@ -10891,10 +10784,10 @@ export async function deleteTag(
   traceId?: string
 ): Promise<CommandResult>
 export async function getTag(tagSlug: string): Promise<CentralizedTagEntry | null>
-````
+```
 
 ## File: src/features/shared-kernel/schedule-contract/index.ts
-````typescript
+```typescript
 import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
 import type { Timestamp } from '@/shared/ports';
 export interface Location {
@@ -10926,28 +10819,15 @@ export interface ScheduleItem {
   version?: number;
   traceId?: string;
 }
-````
-
-## File: src/features/shared-kernel/skill-tier/skill-tier.test.ts
-````typescript
-import { describe, it, expect } from 'vitest';
-import {
-  getTier,
-  getTierRank,
-  tierSatisfies,
-  resolveSkillTier,
-  getTierDefinition,
-  TIER_DEFINITIONS,
-} from '@/features/shared-kernel/skill-tier';
-````
+```
 
 ## File: src/features/workspace.slice/core/_shell/header.tsx
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/gov.audit/_actions.ts
-````typescript
+```typescript
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
 import type { CommandResult } from '@/features/shared-kernel';
 import { addDocument, serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -10970,10 +10850,10 @@ export interface WriteDailyLogInput {
   photoURLs?: string[];
 }
 export async function writeDailyLog(input: WriteDailyLogInput): Promise<CommandResult>
-````
+```
 
 ## File: src/shared/constants/status.ts
-````typescript
+```typescript
 import type { ScheduleStatus } from '@/features/shared-kernel';
 import type {
   InviteState,
@@ -11025,21 +10905,21 @@ export interface NotificationTypeMeta {
   enLabel: string;
   colorClass: string;
 }
-````
+```
 
 ## File: vitest.config.ts
-````typescript
+```typescript
 import path from 'path';
 import { defineConfig } from 'vitest/config';
-````
+```
 
 ## File: src/features/notification-hub.slice/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/scheduling.slice/_actions.ts
-````typescript
+```typescript
 import {
   type CommandResult,
   type SkillRequirement,
@@ -11119,10 +10999,10 @@ export async function completeOrgScheduleAction(
   completedBy: string,
   traceId?: string
 ): Promise<CommandResult>
-````
+```
 
 ## File: src/features/scheduling.slice/_components/schedule.account-view.tsx
-````typescript
+```typescript
 import { addMonths, subMonths } from "date-fns";
 import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users, BookOpen, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -11161,10 +11041,10 @@ onUnassign(item, member.id);
 ⋮----
 const onItemClick = (item: ScheduleItem) =>
 const handleMonthChange = (direction: 'prev' | 'next') =>
-````
+```
 
 ## File: src/features/scheduling.slice/_components/unified-calendar-grid.tsx
-````typescript
+```typescript
 import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from "date-fns";
 import { Plus, Check, X, Layers, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -11206,26 +11086,10 @@ e.stopPropagation();
 <Button size="icon" variant="ghost" className="size-6 p-0 text-destructive" onClick=
 ⋮----
 <Button size="icon" variant="ghost" className="size-6 p-0 text-green-600" onClick=
-````
-
-## File: src/features/scheduling.slice/_saga.eligibility.test.ts
-````typescript
-import { describe, it, expect } from 'vitest';
-import type { SkillTier, SkillRequirement, WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
-import { tierSatisfies } from '@/features/shared-kernel/skill-tier';
-interface MockMember {
-  accountId: string;
-  eligible: boolean;
-  skills: { skillId: string; tier: SkillTier }[];
-}
-function selectCandidate(
-  members: MockMember[],
-  requirements: SkillRequirement[]
-): MockMember | undefined
-````
+```
 
 ## File: src/features/scheduling.slice/_saga.ts
-````typescript
+```typescript
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
 import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -11277,15 +11141,15 @@ export async function startSchedulingSaga(
   event: WorkspaceScheduleProposedPayload,
   sagaId: string
 ): Promise<SagaState>
-````
+```
 
 ## File: src/features/semantic-graph.slice/index.ts
-````typescript
+```typescript
 
-````
+```
 
 ## File: src/features/workspace.slice/application/_outbox.ts
-````typescript
+```typescript
 import { logDomainError } from '@/features/observability';
 import { buildIdempotencyKey, type DlqTier } from '@/features/shared-kernel';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -11332,10 +11196,10 @@ export function createOutbox(workspaceId?: string): Outbox
 collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T])
 flush(publish: (type: string, payload: unknown) => void)
 drain()
-````
+```
 
 ## File: src/features/workspace.slice/business.files/_components/files-view.tsx
-````typescript
+```typescript
 import {
   FileText,
   UploadCloud,
@@ -11404,10 +11268,10 @@ const handleRestore = async (file: WorkspaceFile, versionId: string) =>
 <DropdownMenuItem onClick=
 ⋮----
 <div className=
-````
+```
 
 ## File: src/features/workspace.slice/core/_components/workspace-provider.tsx
-````typescript
+```typescript
 import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { createContext, useContext, useMemo, useCallback, useEffect, useState } from 'react';
@@ -11476,10 +11340,10 @@ export type CreateScheduleItemInput = Omit<ScheduleItem, 'id' | 'createdAt' | 'u
 ⋮----
 export function WorkspaceProvider(
 export function useWorkspace()
-````
+```
 
 ## File: src/features/workspace.slice/core/_queries.ts
-````typescript
+```typescript
 import type { ScheduleItem } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import {
@@ -11518,38 +11382,10 @@ export function subscribeToWorkspacesForAccount(
   dimensionId: string,
   onUpdate: (workspaces: Record<string, Workspace>) => void,
 ): Unsubscribe
-````
-
-## File: src/features/notification-hub.slice/_notification-hub.test.ts
-````typescript
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-  dispatchNotification,
-  registerRoutingRule,
-  unregisterRoutingRule,
-  triggerDispatch,
-} from './_actions';
-import {
-  evaluateTagRouting,
-  registerRoutingRule as registerRuleService,
-  unregisterRoutingRule as unregisterRuleService,
-  getRoutingRules,
-  subscribeToProjectionBus,
-  emitProjectionBusEvent,
-  initTagChangedSubscriber,
-  TAG_CHANGED_EVENT_KEY,
-  getHubStats,
-} from './_services';
-import type {
-  TagRoutingRule,
-  NotificationSourceEvent,
-} from './_types';
-function makeRule(overrides: Partial<TagRoutingRule> =
-function makeEvent(overrides: Partial<NotificationSourceEvent> =
-````
+```
 
 ## File: src/features/scheduling.slice/_aggregate.ts
-````typescript
+```typescript
 import { z } from 'zod';
 import { publishOrgEvent } from '@/features/organization.slice';
 import { getOrgMemberEligibility } from '@/features/projection.bus';
@@ -11618,10 +11454,10 @@ export async function cancelOrgScheduleAssignment(
   reason?: string,
   traceId?: string
 ): Promise<WriteOp>
-````
+```
 
 ## File: src/features/scheduling.slice/_queries.ts
-````typescript
+```typescript
 import {
   getOrgMemberEligibilityWithTier,
   getOrgEligibleMembersWithTier,
@@ -11695,10 +11531,10 @@ export function subscribeToWorkspaceScheduleItems(
   onUpdate: (items: ScheduleItem[]) => void,
   onError?: (err: Error) => void,
 ): Unsubscribe
-````
+```
 
 ## File: src/features/semantic-graph.slice/_aggregate.ts
-````typescript
+```typescript
 import { TAXONOMY_DIMENSIONS } from '@/features/shared-kernel';
 import type { TaxonomyDimension, TaxonomyNode } from '@/features/shared-kernel';
 import type {
@@ -11741,10 +11577,10 @@ function makeError(
   message: string,
   dimension?: TaxonomyDimension
 ): TaxonomyValidationError
-````
+```
 
 ## File: src/features/notification-hub.slice/_services.ts
-````typescript
+```typescript
 import type { NotificationPriority } from '@/features/shared-kernel';
 import type {
   TagRoutingRule,
@@ -11790,10 +11626,10 @@ export function initTagChangedSubscriber(): () => void
 export function getHubStats(): NotificationHubStats
 ⋮----
 function generateDispatchId(): string
-````
+```
 
 ## File: src/features/semantic-graph.slice/_actions.ts
-````typescript
+```typescript
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
 import type { CommandResult } from '@/features/shared-kernel';
 import type { TaxonomyNode } from '@/features/shared-kernel';
@@ -11816,64 +11652,4 @@ export async function assignSemanticTag(
   existingNodes: readonly TaxonomyNode[],
   existingAssignments: readonly TemporalTagAssignment[]
 ): Promise<CommandResult>
-````
-
-## File: src/features/workspace.slice/business.parsing-intent/_contract.test.ts
-````typescript
-import { describe, it, expect } from 'vitest';
-import type { SkillRequirement } from '@/features/shared-kernel';
-import {
-  createParsingIntentContract,
-  markParsingIntentImported,
-  supersedeParsingIntent,
-} from '@/features/workspace.slice/business.parsing-intent/_contract';
-import type { IntentDeltaProposedPayload } from '@/features/workspace.slice/core.event-bus';
-⋮----
-const simulatedDispatch = (
-      intentId: string,
-      workspaceId: string,
-      sourceFileName: string,
-      taskDraftCount: number,
-): IntentDeltaProposedPayload => (
-````
-
-## File: src/features/workspace.slice/business.parsing-intent/architecture-compliance.test.ts
-````typescript
-import { describe, it, expect } from 'vitest';
-import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
-import type { SkillRequirement } from '@/features/shared-kernel';
-import type { ParsingIntentContract } from '@/features/workspace.slice/business.parsing-intent/_contract';
-import { createParsingIntentContract } from '@/features/workspace.slice/business.parsing-intent/_contract';
-import type {
-  IntentDeltaProposedPayload,
-  WorkspaceTaskAssignedPayload,
-} from '@/features/workspace.slice/core.event-bus/_events';
-⋮----
-function collectSourceFiles(dir: string): string[]
-function findDirectFirebaseImports(dir: string): string[]
-// ─── Tests ────────────────────────────────────────────────────────────────────
-⋮----
-// ──────────────────────────────────────────────────────────────────────────
-// [ParsingIntentContract] Type-level completeness check
-// ──────────────────────────────────────────────────────────────────────────
-⋮----
-// All fields required by the contract
-⋮----
-// ──────────────────────────────────────────────────────────────────────────
-// [D25] IFileStore Adapter — StorageAdapter implements IFileStore
-// ──────────────────────────────────────────────────────────────────────────
-⋮----
-function findCommandDialogInSlices(sliceRoot: string): string[]
-⋮----
-// The file must have been removed from workspace.slice (now owned by global-search.slice)
-⋮----
-// Allow CommandDialog only in files that import from global-search.slice
-⋮----
-// ──────────────────────────────────────────────────────────────────────────
-// [D8] Shared-kernel purity — no async functions, Firestore calls, or side effects
-// CTA (centralized-tag) Firestore operations must live in semantic-graph.slice
-// ──────────────────────────────────────────────────────────────────────────
-⋮----
-/** Returns shared-kernel source files that import from @/shared/infra. */
-function findInfraImportsInSharedKernel(): string[]
-````
+```
