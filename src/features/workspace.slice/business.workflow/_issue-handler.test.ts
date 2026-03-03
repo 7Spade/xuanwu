@@ -13,7 +13,7 @@ vi.mock('./_persistence', () => ({
   saveWorkflowState: saveWorkflowStateMock,
 }));
 
-const buildWorkflow = (overrides: Partial<WorkflowAggregateState> = {}): WorkflowAggregateState => ({
+const createMockWorkflow = (overrides: Partial<WorkflowAggregateState> = {}): WorkflowAggregateState => ({
   workflowId: 'wf-1',
   workspaceId: 'ws-1',
   stage: 'in-progress',
@@ -27,10 +27,12 @@ describe('handleIssueResolvedForWorkflow', () => {
   beforeEach(() => {
     findWorkflowsBlockedByIssueMock.mockReset();
     saveWorkflowStateMock.mockReset();
+    vi.restoreAllMocks();
   });
 
   it('persists updated workflow state when issue exists in blockedBy', async () => {
-    findWorkflowsBlockedByIssueMock.mockResolvedValue([buildWorkflow()]);
+    vi.spyOn(Date, 'now').mockReturnValue(1_000);
+    findWorkflowsBlockedByIssueMock.mockResolvedValue([createMockWorkflow()]);
 
     await handleIssueResolvedForWorkflow('ws-1', 'issue-1');
 
@@ -40,16 +42,14 @@ describe('handleIssueResolvedForWorkflow', () => {
         workflowId: 'wf-1',
         blockedBy: [],
         version: 4,
-        updatedAt: expect.any(Number),
+        updatedAt: 1_000,
       })
     );
-    const [savedState] = saveWorkflowStateMock.mock.calls[0];
-    expect(savedState.updatedAt).toBeGreaterThan(100);
   });
 
   it('skips persistence when unblock is a no-op', async () => {
     findWorkflowsBlockedByIssueMock.mockResolvedValue([
-      buildWorkflow({ workflowId: 'wf-2', blockedBy: ['another-issue'] }),
+      createMockWorkflow({ workflowId: 'wf-2', blockedBy: ['another-issue'] }),
     ]);
 
     await handleIssueResolvedForWorkflow('ws-1', 'issue-1');

@@ -128,21 +128,21 @@ export function useWorkspaceEventHandler() {
 
         batchImportTasks(workspace.id, items)
           .then(async () => {
+            let statusWritebackWarning: string | undefined;
             try {
               await markParsingIntentImported(workspace.id, payload.intentId);
             } catch (error: unknown) {
-              const message =
+              statusWritebackWarning =
                 error instanceof Error ? error.message : "Failed to update parsing intent status";
-              toast({
-                variant: "destructive",
-                title: "Import Successful with Warning",
-                description: `Tasks imported, but intent status update failed: ${message}`,
-              });
-              return;
+              console.error("Failed to mark intent imported:", error);
             }
             toast({
-              title: "Import Successful",
-              description: `${payload.items.length} tasks have been added.`,
+              title: statusWritebackWarning
+                ? "Import Successful with Warning"
+                : "Import Successful",
+              description: statusWritebackWarning
+                ? `${payload.items.length} tasks added; intent status update failed: ${statusWritebackWarning}`
+                : `${payload.items.length} tasks have been added.`,
             });
             logAuditEvent(
               "Imported Tasks",
