@@ -21,6 +21,32 @@ export default defineConfig({
   ignore: {
     // 排除不必要的路徑
     customPatterns: [
+      "**/*.md",          // 排除所有文件檔
+      "**/*.test.ts",     // 排除測試檔
+      "**/*.svg",         // 排除向量圖代碼
+      "**/types/generated.ts", // 排除自動生成的巨大類型檔
+      "**/*.md",
+      ".codacy/**",
+      ".firebase/**",
+      ".github/**",
+      ".idx/**",
+      ".next/**",
+      "docs/**",
+      "public/**",
+      "skills/**",
+      ".aiexclude",
+      ".firebaserc",
+      ".gitattributes",
+      ".gitignore",
+      ".modified",
+      ".prettierrc",
+      "apphosting.yaml",
+      "components.json",
+      "eslint.config.mts",
+      "next.config.ts",
+      "postcss.config.mjs",
+      "README.md",
+      "repomix.config.ts",
       "**/node_modules/**",
       "**/dist/**",
       "**/build/**",
