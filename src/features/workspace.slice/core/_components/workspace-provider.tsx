@@ -11,7 +11,7 @@ import {
 } from '@/features/scheduling.slice'
 import type { CommandResult, ScheduleItem } from '@/features/shared-kernel';
 import { firestoreTimestampToISO } from '@/shared/lib';
-import { type Workspace, type AuditLog, type WorkspaceTask, type WorkspaceRole, type Capability, type WorkspaceLifecycleState } from '@/shared/types';
+import { type Workspace, type AuditLog, type WorkspaceTask, type WorkspaceRole, type Capability, type WorkspaceLifecycleState, type Address, type WorkspacePersonnel } from '@/shared/types';
 
 import { registerOrgPolicyCache, runTransaction } from '../../application';
 import {
@@ -62,7 +62,7 @@ interface WorkspaceContextType {
   mountCapabilities: (capabilities: Capability[]) => Promise<CommandResult>;
   unmountCapability: (capability: Capability) => Promise<CommandResult>;
   // Workspace settings
-  updateWorkspaceSettings: (settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState }) => Promise<CommandResult>;
+  updateWorkspaceSettings: (settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState; address?: Address; personnel?: WorkspacePersonnel }) => Promise<CommandResult>;
   deleteWorkspace: () => Promise<CommandResult>;
   // Issue Management
   createIssue: (title: string, type: 'technical' | 'financial', priority: 'high' | 'medium', sourceTaskId?: string) => Promise<CommandResult>;
@@ -159,7 +159,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   const mountCapabilities = useCallback(async (capabilities: Capability[]) => mountCapabilitiesAction(workspaceId, capabilities), [workspaceId]);
   const unmountCapability = useCallback(async (capability: Capability) => unmountCapabilityAction(workspaceId, capability), [workspaceId]);
   
-  const updateWorkspaceSettings = useCallback(async (settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState }) => updateWorkspaceSettingsAction(workspaceId, settings), [workspaceId]);
+  const updateWorkspaceSettings = useCallback(async (settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState; address?: Address; personnel?: WorkspacePersonnel }) => updateWorkspaceSettingsAction(workspaceId, settings), [workspaceId]);
   const deleteWorkspace = useCallback(async () => deleteWorkspaceAction(workspaceId), [workspaceId]);
 
   const createIssue = useCallback(async (title: string, type: 'technical' | 'financial', priority: 'high' | 'medium', sourceTaskId?: string) => createIssueAction(workspaceId, title, type, priority, sourceTaskId), [workspaceId]);

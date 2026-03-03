@@ -4,7 +4,7 @@
  */
 
 import type { CommandResult } from '@/features/shared-kernel';
-import type { Account, Capability, WorkspaceLifecycleState, Address } from "@/shared/types";
+import type { Account, Capability, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "@/shared/types";
 import { toast } from "@/shared/utility-hooks/use-toast";
 
 import { createWorkspace, mountCapabilities, updateWorkspaceSettings, deleteWorkspace } from "./_actions";
@@ -54,7 +54,7 @@ export const handleCreateWorkspace = async (
 
 export const handleUpdateWorkspaceSettings = async (
   workspaceId: string,
-  settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState; address?: Address },
+  settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState; address?: Address; personnel?: WorkspacePersonnel },
   onSuccess: () => void
 ) => {
   const result = await updateWorkspaceSettings(workspaceId, settings);
