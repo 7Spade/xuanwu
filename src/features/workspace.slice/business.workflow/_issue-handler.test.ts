@@ -31,7 +31,7 @@ describe('handleIssueResolvedForWorkflow', () => {
   });
 
   it('persists updated workflow state when issue exists in blockedBy', async () => {
-    vi.spyOn(Date, 'now').mockReturnValue(1_000);
+    vi.spyOn(Date, 'now').mockReturnValue(1000);
     findWorkflowsBlockedByIssueMock.mockResolvedValue([createMockWorkflow()]);
 
     await handleIssueResolvedForWorkflow('ws-1', 'issue-1');
@@ -42,7 +42,7 @@ describe('handleIssueResolvedForWorkflow', () => {
         workflowId: 'wf-1',
         blockedBy: [],
         version: 4,
-        updatedAt: 1_000,
+        updatedAt: 1000,
       })
     );
   });
