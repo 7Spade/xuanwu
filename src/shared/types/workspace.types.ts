@@ -196,3 +196,33 @@ export interface ParsingIntent {
   createdAt: Timestamp;
   importedAt?: Timestamp;
 }
+
+/**
+ * ParsingImport tracks one intent materialization execution.
+ * status transitions: started -> applied | partial | failed.
+ */
+export type ParsingImportStatus =
+  /** Initial state when intent materialization starts. */
+  | 'started'
+  /** Terminal success state: all task writes were applied. */
+  | 'applied'
+  /** Terminal partial state: some task writes applied, some failed. */
+  | 'partial'
+  /** Terminal failure state: materialization failed. */
+  | 'failed';
+
+export interface ParsingImport {
+  id: string;
+  workspaceId: string;
+  intentId: IntentID;
+  intentVersion: number;
+  idempotencyKey: string;
+  status: ParsingImportStatus;
+  appliedTaskIds: string[];
+  startedAt: Timestamp;
+  completedAt?: Timestamp;
+  error?: {
+    code: string;
+    message: string;
+  };
+}

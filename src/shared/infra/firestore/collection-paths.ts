@@ -60,6 +60,11 @@ export const SUBCOLLECTIONS = {
    * Migration note: standardized to camelCase to match VS5 repositories/queries.
    */
   parsingIntents: 'parsingIntents',
+  /**
+   * workspaces/{workspaceId}/parsingImports
+   * Idempotency ledger for intent -> task materialization executions.
+   */
+  parsingImports: 'parsingImports',
   /** Generic outbox sub-collection (per aggregate) */
   outbox: 'outbox',
 } as const;

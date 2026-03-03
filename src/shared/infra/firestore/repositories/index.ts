@@ -10,6 +10,7 @@ export * from './workspace-business.tasks.repository'          // createTask, up
 export * from './workspace-business.files.repository'          // createWorkspaceFile, addWorkspaceFileVersion, restoreWorkspaceFileVersion, getWorkspaceFilesFromSubcollection
 export * from './workspace-business.issues.repository'         // createIssue, addCommentToIssue, resolveIssue, getWorkspaceIssues
 export * from './workspace-business.document-parser.repository'// createParsingIntent, updateParsingIntentStatus, getParsingIntents
+export * from './workspace-business.parsing-imports.repository'// createParsingImport, getParsingImportByIdempotencyKey, updateParsingImportStatus
 export * from './workspace-core.event-store.repository'        // appendDomainEvent, getDomainEvents, StoredWorkspaceEvent
 export * from './projection.registry.repository'               // getProjectionVersion, upsertProjectionVersion, ProjectionVersionRecord
 export * from './schedule.repository'                          // createScheduleItem, updateScheduleItemStatus, assignMemberToScheduleItem, assignMemberAndApprove, unassignMemberFromScheduleItem, getScheduleItems
