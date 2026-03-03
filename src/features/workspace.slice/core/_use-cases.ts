@@ -4,8 +4,14 @@
  */
 
 import type { CommandResult } from '@/features/shared-kernel';
-import type { Account, Capability, WorkspaceLifecycleState, Address } from "@/shared/types";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import type {
+  Account,
+  Capability,
+  WorkspaceLifecycleState,
+  Address,
+  WorkspacePersonnel,
+} from "@/shared/types";
 
 import { createWorkspace, mountCapabilities, updateWorkspaceSettings, deleteWorkspace } from "./_actions";
 

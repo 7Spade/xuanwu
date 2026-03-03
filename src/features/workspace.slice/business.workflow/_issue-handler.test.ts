@@ -13,7 +13,9 @@ vi.mock('./_persistence', () => ({
   saveWorkflowState: saveWorkflowStateMock,
 }));
 
-const createMockWorkflow = (overrides: Partial<WorkflowAggregateState> = {}): WorkflowAggregateState => ({
+const createMockWorkflowAggregateState = (
+  overrides: Partial<WorkflowAggregateState> = {}
+): WorkflowAggregateState => ({
   workflowId: 'wf-1',
   workspaceId: 'ws-1',
   stage: 'in-progress',
@@ -32,7 +34,7 @@ describe('handleIssueResolvedForWorkflow', () => {
 
   it('persists updated workflow state when issue exists in blockedBy', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(1000);
-    findWorkflowsBlockedByIssueMock.mockResolvedValue([createMockWorkflow()]);
+    findWorkflowsBlockedByIssueMock.mockResolvedValue([createMockWorkflowAggregateState()]);
 
     await handleIssueResolvedForWorkflow('ws-1', 'issue-1');
 
@@ -49,7 +51,7 @@ describe('handleIssueResolvedForWorkflow', () => {
 
   it('skips persistence when unblock is a no-op', async () => {
     findWorkflowsBlockedByIssueMock.mockResolvedValue([
-      createMockWorkflow({ workflowId: 'wf-2', blockedBy: ['another-issue'] }),
+      createMockWorkflowAggregateState({ workflowId: 'wf-2', blockedBy: ['another-issue'] }),
     ]);
 
     await handleIssueResolvedForWorkflow('ws-1', 'issue-1');
@@ -67,7 +69,7 @@ describe('handleIssueResolvedForWorkflow', () => {
 
   it('propagates persistence errors from saveWorkflowState', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(1000);
-    findWorkflowsBlockedByIssueMock.mockResolvedValue([createMockWorkflow()]);
+    findWorkflowsBlockedByIssueMock.mockResolvedValue([createMockWorkflowAggregateState()]);
     saveWorkflowStateMock.mockRejectedValue(new Error('save failed'));
 
     await expect(
