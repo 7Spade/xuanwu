@@ -33,8 +33,6 @@ import { getOrgMemberEligibility } from '@/features/projection.bus';
 import { resolveSkillTier, tierSatisfies } from '@/features/shared-kernel';
 import type { WorkspaceScheduleProposedPayload, SkillRequirement } from '@/features/shared-kernel';
 import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import { arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
-import { updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
 
 // =================================================================
@@ -109,6 +107,18 @@ function scheduleItemPath(orgId: string, scheduleItemId: string): string {
 }
 
 // =================================================================
+// Shared write descriptor
+// =================================================================
+
+/** A pending Firestore write that the calling layer must execute. [D3] */
+export interface WriteOp {
+  path: string;
+  data: Record<string, unknown>;
+  /** Fields that should use arrayUnion semantics when executed. */
+  arrayUnionFields?: Record<string, string[]>;
+}
+
+// =================================================================
 // Domain Service: handleScheduleProposed
 // =================================================================
 
@@ -121,17 +131,22 @@ function scheduleItemPath(orgId: string, scheduleItemId: string): string {
  *
  * Does NOT immediately assign — assignment requires explicit governance approval
  * via approveOrgScheduleProposal().
+ *
+ * [D3] Returns a WriteOp — the caller must execute `updateDocument(op.path, op.data)`.
  */
-export async function handleScheduleProposed(
+export function handleScheduleProposed(
   payload: WorkspaceScheduleProposedPayload
-): Promise<void> {
-  await updateDocument(scheduleItemPath(payload.orgId, payload.scheduleItemId), {
-    proposedBy: payload.proposedBy,
-    version: 1,
-    ...(payload.traceId ? { traceId: payload.traceId } : {}),
-    ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
-    ...(payload.locationId ? { locationId: payload.locationId } : {}),
-  });
+): WriteOp {
+  return {
+    path: scheduleItemPath(payload.orgId, payload.scheduleItemId),
+    data: {
+      proposedBy: payload.proposedBy,
+      version: 1,
+      ...(payload.traceId ? { traceId: payload.traceId } : {}),
+      ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
+      ...(payload.locationId ? { locationId: payload.locationId } : {}),
+    },
+  };
 }
 
 // =================================================================
@@ -141,10 +156,12 @@ export async function handleScheduleProposed(
 /**
  * Result type for approveOrgScheduleProposal — enables callers to handle
  * both outcomes without catching exceptions (Compensating Event pattern).
+ *
+ * [D3] Each outcome carries a `writeOp` the caller must execute via `updateDocument`.
  */
 export type ScheduleApprovalResult =
-  | { outcome: 'confirmed'; scheduleItemId: string }
-  | { outcome: 'rejected'; scheduleItemId: string; reason: string };
+  | { outcome: 'confirmed'; scheduleItemId: string; writeOp: WriteOp }
+  | { outcome: 'rejected'; scheduleItemId: string; reason: string; writeOp: WriteOp };
 
 /**
  * Called by org-layer governance when a pending proposal should be assigned.
@@ -185,8 +202,8 @@ export async function approveOrgScheduleProposal(
       const reason = memberView
         ? 'Member is marked ineligible in org-eligible-member-view.'
         : 'Member not found in org-eligible-member-view projection.';
-      await _cancelProposal(scheduleItemId, targetAccountId, opts, reason);
-      return { outcome: 'rejected', scheduleItemId, reason };
+      const writeOp = await _buildCancelWriteOp(scheduleItemId, targetAccountId, opts, reason);
+      return { outcome: 'rejected', scheduleItemId, reason, writeOp };
     }
 
     // Validate each skill requirement — tier derived via getTier(xp), never from DB (Invariant #12)
@@ -195,8 +212,8 @@ export async function approveOrgScheduleProposal(
 
       if (!skillEntry) {
         const reason = `Skill "${req.tagSlug}" is not present in the member's skill projection.`;
-        await _cancelProposal(scheduleItemId, targetAccountId, opts, reason);
-        return { outcome: 'rejected', scheduleItemId, reason };
+        const writeOp = await _buildCancelWriteOp(scheduleItemId, targetAccountId, opts, reason);
+        return { outcome: 'rejected', scheduleItemId, reason, writeOp };
       }
 
       const memberTier = resolveSkillTier(skillEntry.xp);
@@ -205,8 +222,8 @@ export async function approveOrgScheduleProposal(
         const reason =
           `Skill "${req.tagSlug}" requires tier "${req.minimumTier}" ` +
           `but member has tier "${memberTier}" (xp=${skillEntry.xp}).`;
-        await _cancelProposal(scheduleItemId, targetAccountId, opts, reason);
-        return { outcome: 'rejected', scheduleItemId, reason };
+        const writeOp = await _buildCancelWriteOp(scheduleItemId, targetAccountId, opts, reason);
+        return { outcome: 'rejected', scheduleItemId, reason, writeOp };
       }
     }
   }
@@ -216,11 +233,15 @@ export async function approveOrgScheduleProposal(
   const existing = await getDocument<ScheduleItem>(scheduleItemPath(opts.orgId, scheduleItemId));
   const nextVersion = (existing?.version ?? 1) + 1;
 
-  await updateDocument(scheduleItemPath(opts.orgId, scheduleItemId), {
-    status: 'OFFICIAL' satisfies ScheduleStatus,
-    assigneeIds: arrayUnion(targetAccountId),
-    version: nextVersion,
-  });
+  // [D3] Return WriteOp — caller executes updateDocument(writeOp.path, writeOp.data)
+  const writeOp: WriteOp = {
+    path: scheduleItemPath(opts.orgId, scheduleItemId),
+    data: {
+      status: 'OFFICIAL' satisfies ScheduleStatus,
+      version: nextVersion,
+    },
+    arrayUnionFields: { assigneeIds: [targetAccountId] },
+  };
 
   await publishOrgEvent('organization:schedule:assigned', {
     scheduleItemId,
@@ -236,23 +257,24 @@ export async function approveOrgScheduleProposal(
     ...(opts.traceId ? { traceId: opts.traceId } : {}),
   });
 
-  return { outcome: 'confirmed', scheduleItemId };
+  return { outcome: 'confirmed', scheduleItemId, writeOp };
 }
 
 // =================================================================
 // Internal helper
 // =================================================================
 
-async function _cancelProposal(
+/**
+ * Builds the WriteOp for cancelling a proposal and publishes the compensating event.
+ *
+ * [D3] Does NOT call updateDocument — returns WriteOp for the caller to execute.
+ */
+async function _buildCancelWriteOp(
   scheduleItemId: string,
   targetAccountId: string,
   opts: { workspaceId: string; orgId: string; traceId?: string },
   reason: string
-): Promise<void> {
-  await updateDocument(scheduleItemPath(opts.orgId, scheduleItemId), {
-    status: 'REJECTED' satisfies ScheduleStatus,
-  });
-
+): Promise<WriteOp> {
   // Compensating Event (Invariant A5) — discrete recovery; B-track does NOT flow back to A-track.
   await publishOrgEvent('organization:schedule:assignRejected', {
     scheduleItemId,
@@ -264,6 +286,11 @@ async function _cancelProposal(
     // [R8] Forward traceId to compensating event for end-to-end trace propagation.
     ...(opts.traceId ? { traceId: opts.traceId } : {}),
   });
+
+  return {
+    path: scheduleItemPath(opts.orgId, scheduleItemId),
+    data: { status: 'REJECTED' satisfies ScheduleStatus },
+  };
 }
 
 // =================================================================
@@ -280,6 +307,8 @@ async function _cancelProposal(
  * Publishes `organization:schedule:proposalCancelled` (Scheduling Saga, Invariant A5).
  *
  * Invariant #1: only writes to accounts/{orgId}/schedule_items (ScheduleItem SSOT).
+ *
+ * [D3] Returns a WriteOp — the caller must execute `updateDocument(op.path, op.data)`.
  */
 export async function cancelOrgScheduleProposal(
   scheduleItemId: string,
@@ -289,11 +318,7 @@ export async function cancelOrgScheduleProposal(
   reason?: string,
   /** [R8] TraceID propagated from the originating scheduling saga. */
   traceId?: string
-): Promise<void> {
-  await updateDocument(scheduleItemPath(orgId, scheduleItemId), {
-    status: 'REJECTED' satisfies ScheduleStatus,
-  });
-
+): Promise<WriteOp> {
   await publishOrgEvent('organization:schedule:proposalCancelled', {
     scheduleItemId,
     orgId,
@@ -304,6 +329,11 @@ export async function cancelOrgScheduleProposal(
     // [R8] Forward traceId to compensating event for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
   });
+
+  return {
+    path: scheduleItemPath(orgId, scheduleItemId),
+    data: { status: 'REJECTED' satisfies ScheduleStatus },
+  };
 }
 
 // =================================================================
@@ -320,6 +350,8 @@ export async function cancelOrgScheduleProposal(
  * restore the member's eligible flag.
  *
  * Invariant #1: only writes to accounts/{orgId}/schedule_items (ScheduleItem SSOT).
+ *
+ * [D3] Returns a WriteOp — the caller must execute `updateDocument(op.path, op.data)`.
  */
 export async function completeOrgSchedule(
   scheduleItemId: string,
@@ -329,7 +361,7 @@ export async function completeOrgSchedule(
   completedBy: string,
   /** [R8] TraceID propagated from the originating command. */
   traceId?: string
-): Promise<void> {
+): Promise<WriteOp> {
   const existing = await getDocument<ScheduleItem>(scheduleItemPath(orgId, scheduleItemId));
   if (!existing || existing.status !== 'OFFICIAL') {
     throw new Error(
@@ -337,11 +369,6 @@ export async function completeOrgSchedule(
     );
   }
   const nextVersion = (existing.version ?? 1) + 1;
-
-  await updateDocument(scheduleItemPath(orgId, scheduleItemId), {
-    status: 'COMPLETED' satisfies ScheduleStatus,
-    version: nextVersion,
-  });
 
   await publishOrgEvent('organization:schedule:completed', {
     scheduleItemId,
@@ -354,6 +381,14 @@ export async function completeOrgSchedule(
     // [R8] Forward traceId for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
   });
+
+  return {
+    path: scheduleItemPath(orgId, scheduleItemId),
+    data: {
+      status: 'COMPLETED' satisfies ScheduleStatus,
+      version: nextVersion,
+    },
+  };
 }
 
 // =================================================================
@@ -372,6 +407,8 @@ export async function completeOrgSchedule(
  * funnel which calls `updateOrgMemberEligibility(orgId, accountId, true)`.
  *
  * Invariant #1: only writes to accounts/{orgId}/schedule_items (ScheduleItem SSOT).
+ *
+ * [D3] Returns a WriteOp — the caller must execute `updateDocument(op.path, op.data)`.
  */
 export async function cancelOrgScheduleAssignment(
   scheduleItemId: string,
@@ -382,7 +419,7 @@ export async function cancelOrgScheduleAssignment(
   reason?: string,
   /** [R8] TraceID propagated from the originating command. */
   traceId?: string
-): Promise<void> {
+): Promise<WriteOp> {
   const existing = await getDocument<ScheduleItem>(scheduleItemPath(orgId, scheduleItemId));
   if (!existing || existing.status !== 'OFFICIAL') {
     throw new Error(
@@ -390,11 +427,6 @@ export async function cancelOrgScheduleAssignment(
     );
   }
   const nextVersion = (existing.version ?? 1) + 1;
-
-  await updateDocument(scheduleItemPath(orgId, scheduleItemId), {
-    status: 'REJECTED' satisfies ScheduleStatus,
-    version: nextVersion,
-  });
 
   await publishOrgEvent('organization:schedule:assignmentCancelled', {
     scheduleItemId,
@@ -408,4 +440,12 @@ export async function cancelOrgScheduleAssignment(
     // [R8] Forward traceId for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
   });
+
+  return {
+    path: scheduleItemPath(orgId, scheduleItemId),
+    data: {
+      status: 'REJECTED' satisfies ScheduleStatus,
+      version: nextVersion,
+    },
+  };
 }

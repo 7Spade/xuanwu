@@ -18,11 +18,12 @@
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
 import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { setDocument, updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import {
   handleScheduleProposed,
   approveOrgScheduleProposal,
+  type WriteOp,
 } from './_aggregate';
 import { findEligibleCandidatesForRequirements } from './_eligibility';
 
@@ -87,6 +88,18 @@ async function updateSagaStatus(
   await updateDocument(sagaPath(sagaId), { ...patch, updatedAt: Timestamp.now().toDate().toISOString() });
 }
 
+/**
+ * Executes a WriteOp returned by an aggregate function. [D3]
+ * Resolves `arrayUnionFields` into Firestore FieldValue sentinels before writing.
+ */
+async function executeWriteOp(op: WriteOp): Promise<void> {
+  const data: Record<string, unknown> = { ...op.data };
+  for (const [field, values] of Object.entries(op.arrayUnionFields ?? {})) {
+    data[field] = arrayUnion(...values);
+  }
+  await updateDocument(op.path, data);
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -137,7 +150,8 @@ export async function startSchedulingSaga(
     ...(event.traceId ? { traceId: event.traceId } : {}),
   };
   await persistSaga(initialState);
-  await handleScheduleProposed(event);
+  const proposedWriteOp = handleScheduleProposed(event);
+  await executeWriteOp(proposedWriteOp);
 
   // Step 2 — eligibility_check
   await updateSagaStatus(sagaId, {
@@ -191,6 +205,9 @@ export async function startSchedulingSaga(
       },
       requirement ? [requirement] : undefined
     );
+
+    // [D3] Execute the write returned by the aggregate.
+    await executeWriteOp(approvalResult.writeOp);
 
     if (approvalResult.outcome !== 'confirmed') {
       compensationReason = approvalResult.reason;

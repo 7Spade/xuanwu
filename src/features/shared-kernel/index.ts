@@ -160,3 +160,7 @@ export type { IAuthService, AuthUser } from './infrastructure-ports';
 export type { IFirestoreRepo, FirestoreDoc, Timestamp, WriteOptions } from './infrastructure-ports';
 export type { IMessaging, PushNotificationPayload } from './infrastructure-ports';
 export type { IFileStore, UploadOptions } from './infrastructure-ports';
+
+// ─── 📅 Schedule Contract [D19] ──────────────────────────────────────────────
+
+export type { ScheduleStatus, ScheduleItem } from './schedule-contract';

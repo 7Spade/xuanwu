@@ -851,7 +851,7 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  D3  所有 mutation：src/features/{slice}/_actions.ts only
 %%  D4  所有 read：src/features/{slice}/_queries.ts only
 %%  D5  src/app/ 與 UI 元件禁止 import src/shared/infra/firestore
-%%  D6  "use client" 只在 _components/ 葉節點；layout/page server components 禁用
+%%  D6  "use client" 只在 _components/ 或 _hooks/ 葉節點；layout/page server components 禁用
 %%  D7  跨切片：import from '@/features/{other-slice}/index'；禁止 _private 引用
 %%  D8  shared.kernel.* 禁止 async functions、Firestore calls、side effects
 %%  D9  workspace-application/ TX Runner 協調 mutation；slices 不得互相 mutate
