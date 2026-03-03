@@ -1,5 +1,5 @@
 /**
- * @fileoverview shared/lib/task — Pure task domain rules.
+ * @fileoverview entities/workspace/task — Pure task domain rules.
  * No async, no I/O, no React, no Firebase.
  */
 

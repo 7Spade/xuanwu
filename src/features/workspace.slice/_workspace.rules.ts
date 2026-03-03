@@ -3,7 +3,7 @@
  * No async, no I/O, no React, no Firebase.
  */
 
-import { isOwner, getUserTeamIds } from "@/shared/lib/account.rules"
+import { isOwner, getUserTeamIds } from "@/features/account.slice"
 import type { Workspace, Account } from "@/shared/types"
 
 // ---------------------------------------------------------------------------

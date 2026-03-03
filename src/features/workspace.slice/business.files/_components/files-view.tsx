@@ -25,7 +25,8 @@ import { useState, useRef, useEffect } from "react";
 
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { ROUTES } from "@/shared/constants/routes";
-import { cn, formatBytes } from "@/shared/lib";
+import { cn } from "@/shared/lib";
+import { formatBytes } from "../_format-bytes";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import {

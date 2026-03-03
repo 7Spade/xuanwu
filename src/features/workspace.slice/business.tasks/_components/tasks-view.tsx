@@ -25,7 +25,7 @@ import Image from "next/image";
 import { useState, useMemo, useEffect } from 'react';
 
 import { cn } from '@/shared/lib';
-import { buildTaskTree } from '@/shared/lib';
+import { buildTaskTree } from '../../_task.rules';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import {

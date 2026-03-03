@@ -50,3 +50,8 @@ export { createAccountPolicy, updateAccountPolicy, deleteAccountPolicy } from '.
 export type { AccountPolicy, PolicyRule, CreatePolicyInput, UpdatePolicyInput } from './gov.policy';
 export { getAccountPolicy, subscribeToAccountPolicies, getActiveAccountPolicies } from './gov.policy';
 export { useAccountPolicy } from './gov.policy';
+
+// =================================================================
+// Domain rules (account predicates)
+// =================================================================
+export { isOwner, getUserTeams, getUserTeamIds } from './_account.rules';

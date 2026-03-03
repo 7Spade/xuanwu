@@ -270,10 +270,10 @@ export {
   resolveIssue,
 } from './business.issues'
 
-// ─── domain rules (shared/lib cohesion) ──────────────────────────────────────
+// ─── domain rules ────────────────────────────────────────────────────────────
 export {
   filterVisibleWorkspaces,
   hasWorkspaceAccess,
   isWorkspaceVisibleToUser,
-} from '@/shared/lib/workspace.rules'
-export { buildTaskTree } from '@/shared/lib/task.rules'
+} from './_workspace.rules'
+export { buildTaskTree } from './_task.rules'

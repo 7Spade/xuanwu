@@ -143,6 +143,6 @@ export { startSchedulingSaga, getSagaState } from './_saga';
 export type { SagaState, SagaStep, SagaStatus } from './_saga';
 
 // =================================================================
-// Domain rules (shared/lib cohesion)
+// Domain rules
 // =================================================================
-export { canTransitionScheduleStatus, VALID_STATUS_TRANSITIONS } from '@/shared/lib/schedule.rules';
+export { canTransitionScheduleStatus, VALID_STATUS_TRANSITIONS } from './_schedule.rules';
