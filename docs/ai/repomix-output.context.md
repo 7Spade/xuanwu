@@ -1682,7 +1682,7 @@ import { useI18n } from "@/config/i18n/i18n-provider";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { findSkill } from "@/shared/constants/skills";
 import { type SkillGrant } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useUser } from "../_hooks/use-user";
 import { PreferencesCard } from "./preferences-card";
 import { ProfileCard } from "./profile-card";
@@ -1813,7 +1813,7 @@ interface LoginFormProps {
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useI18n } from "@/config/i18n/i18n-provider"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { completeRegistration , signIn, signInAnonymously } from "../_actions"
 import { AuthBackground } from "./auth-background"
 import { AuthTabsRoot } from "./auth-tabs-root"
@@ -1871,7 +1871,7 @@ import { useI18n } from "@/config/i18n/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/shadcn-ui/input-group";
 import { Label } from "@/shared/shadcn-ui/label";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { sendPasswordResetEmail } from "../_actions";
 interface ResetPasswordFormProps {
   defaultEmail?: string;
@@ -2338,7 +2338,7 @@ import { useApp } from "@/shared/app-providers/app-context";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Input } from "@/shared/shadcn-ui/input";
 import { Label } from "@/shared/shadcn-ui/label";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useOrganizationManagement } from "../_hooks/use-organization-management";
 interface AccountNewFormProps {
   onSuccess: () => void;
@@ -2405,7 +2405,7 @@ import { Button } from "@/shared/shadcn-ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/shadcn-ui/card"
 import { type MemberReference } from "@/shared/types"
 import { PageHeader } from "@/shared/ui/page-header"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { useMemberManagement } from '../_hooks/use-member-management'
 ⋮----
 title=
@@ -2487,7 +2487,7 @@ import { Label } from "@/shared/shadcn-ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs"
 import type { PartnerInvite, MemberReference , Team } from "@/shared/types"
 import { PageHeader } from "@/shared/ui/page-header"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { usePartnerManagement } from "../_hooks/use-partner-management"
 import { subscribeToOrgPartnerInvites } from "../_queries"
 ⋮----
@@ -2519,7 +2519,7 @@ import { Input } from "@/shared/shadcn-ui/input"
 import { Label } from "@/shared/shadcn-ui/label"
 import type { Team } from "@/shared/types"
 import { PageHeader } from "@/shared/ui/page-header"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { usePartnerManagement } from "../_hooks/use-partner-management"
 ⋮----
 title=
@@ -2593,7 +2593,7 @@ import { Button } from "@/shared/shadcn-ui/button"
 import { Card, CardContent } from "@/shared/shadcn-ui/card"
 import type { MemberReference, Team } from "@/shared/types"
 import { PageHeader } from "@/shared/ui/page-header"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 ⋮----
 const handleMemberToggle = async (memberId: string, action: 'add' | 'remove') =>
 ⋮----
@@ -2622,7 +2622,7 @@ import { Input } from "@/shared/shadcn-ui/input"
 import { Label } from "@/shared/shadcn-ui/label"
 import type { Team } from "@/shared/types"
 import { PageHeader } from "@/shared/ui/page-header"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 ⋮----
 title=
 ⋮----
@@ -2907,7 +2907,7 @@ import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 ```
 
 ## File: src/features/scheduling.slice/_components/schedule-data-table.tsx
@@ -2976,7 +2976,7 @@ export function useGlobalSchedule()
 ```typescript
 import { useEffect } from "react";
 import { useWorkspace } from "@/features/workspace.slice";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 export function useScheduleEventHandler()
 ```
 
@@ -3457,7 +3457,7 @@ import { useAuth } from "@/shared/app-providers/auth-provider";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import type { WorkspaceTask } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useWorkspace } from '../../core';
 const getErrorMessage = (error: unknown, fallback: string)
 export function WorkspaceAcceptance()
@@ -3557,7 +3557,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/shadcn-ui/dropdown-menu";
 import { type DailyLog } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useWorkspace } from "../../../core";
 interface ShareButtonProps {
   log: DailyLog;
@@ -3679,7 +3679,7 @@ export function useAggregatedLogs()
 import { useCallback } from "react";
 import { useApp } from "@/shared/app-providers/app-context";
 import { useAuth } from "@/shared/app-providers/auth-provider";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { toggleLike as toggleLikeAction } from "../_actions";
 export function useDailyActions()
 ```
@@ -3697,7 +3697,7 @@ export function useDailyUpload()
 import { useState, useMemo } from "react";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { type DailyLog } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useWorkspace } from "../../core";
 import { useAccount } from "../../core";
 import { useLogger } from "../../gov.audit";
@@ -3827,7 +3827,7 @@ import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/shadcn-ui/card";
 import { type WorkspaceTask } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useWorkspace } from '../../core';
 type ParsedFinanceItem = {
   name: string;
@@ -3893,7 +3893,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/shared/shadcn-ui/sheet";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
 import { type WorkspaceIssue } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useWorkspace } from '../../core';
 const getErrorMessage = (error: unknown, fallback: string)
 export function WorkspaceIssues()
@@ -3958,7 +3958,7 @@ import { useAuth } from "@/shared/app-providers/auth-provider";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import { type WorkspaceTask } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useWorkspace } from '../../core';
 const getErrorMessage = (error: unknown, fallback: string)
 export function WorkspaceQualityAssurance()
@@ -4060,7 +4060,7 @@ import {
 } from '@/shared/shadcn-ui/select';
 import { Textarea } from '@/shared/shadcn-ui/textarea';
 import { type WorkspaceTask, type Location , type TaskWithChildren } from '@/shared/types';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 import { useStorage } from '../../business.files';
 import { useWorkspace } from '../../core';
 const getErrorMessage = (error: unknown, fallback: string)
@@ -4382,7 +4382,7 @@ import { Checkbox } from "@/shared/shadcn-ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/shared/shadcn-ui/dialog";
 import { Label } from "@/shared/shadcn-ui/label";
 import { type Capability } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useApp } from '../_hooks/use-app';
 import { useWorkspace } from './workspace-provider';
 ⋮----
@@ -4499,7 +4499,7 @@ import {
 import { Input } from '@/shared/shadcn-ui/input';
 import { Label } from '@/shared/shadcn-ui/label';
 import type { WorkspaceLocation } from '@/shared/types';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 import { createWorkspaceLocation, updateWorkspaceLocation, deleteWorkspaceLocation } from '../_actions';
 interface LocationFormDialogProps {
   open: boolean;
@@ -4693,7 +4693,7 @@ export function useVisibleWorkspaces()
 ## File: src/features/workspace.slice/core/_hooks/use-workspace-commands.ts
 ```typescript
 import { useCallback } from "react";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { deleteWorkspace } from "../_actions";
 export function useWorkspaceCommands()
 ```
@@ -4702,7 +4702,7 @@ export function useWorkspaceCommands()
 ```typescript
 import type { CommandResult } from '@/features/shared-kernel';
 import type { Account, Capability, WorkspaceLifecycleState, Address } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { createWorkspace, mountCapabilities, updateWorkspaceSettings, deleteWorkspace } from "./_actions";
 export async function createWorkspaceWithCapabilities(
   name: string,
@@ -4887,7 +4887,7 @@ import { Label } from "@/shared/shadcn-ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/shadcn-ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
 import { type Team, type WorkspaceRole, type MemberReference } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useWorkspace } from '../../core';
 const getErrorMessage = (error: unknown, fallback: string)
 export function WorkspaceMembers()
@@ -7118,7 +7118,7 @@ import { cn } from "@/shared/utils/utils"
 
 ## File: src/shared/shadcn-ui/toaster.tsx
 ```typescript
-import { useToast } from "@/shared/utility-hooks/use-toast"
+import { useToast } from "@/shared/shadcn-ui/hooks/use-toast"
 import {
   Toast,
   ToastClose,
@@ -8557,7 +8557,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import type { SkillRequirement } from "@/features/shared-kernel"
 import { useWorkspace } from "@/features/workspace.slice"
 import type { Location } from "@/shared/types"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { ProposalDialog } from "./proposal-dialog"
 interface ScheduleProposalContentProps {
   fullPage?: boolean
@@ -8930,7 +8930,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/shadc
 import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
 import { type DailyLog, type DailyLogComment, type Account } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { addDailyLogComment } from "../_actions";
 import { subscribeToDailyLogComments } from '../_queries';
 import { BookmarkButton } from "./actions/bookmark-button";
@@ -8956,7 +8956,7 @@ const handlePostComment = async () =>
 ```typescript
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/shared/app-providers/auth-provider';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 import { toggleBookmark as toggleBookmarkAction } from '../_bookmark-actions';
 import { subscribeToBookmarks } from '../_queries';
 export function useBookmarkActions()
@@ -9195,7 +9195,7 @@ import {
 import { Input } from "@/shared/shadcn-ui/input"
 import { Label } from "@/shared/shadcn-ui/label"
 import { type Account } from "@/shared/types"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import type { AppAction } from '../app-provider'
 interface AccountCreateDialogProps {
   open: boolean
@@ -9438,7 +9438,7 @@ import { useEffect } from "react";
 import { handleScheduleProposed } from "@/features/scheduling.slice";
 import { ToastAction } from "@/shared/shadcn-ui/toast";
 import type { WorkspaceTask } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { markParsingIntentImported } from "../../business.document-parser";
 import { createIssue } from "../../business.issues";
 import { batchImportTasks } from "../../business.tasks";
@@ -9845,7 +9845,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/shadcn-ui/select';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 import {
   approveScheduleItemWithMember,
   updateScheduleItemStatus,
@@ -9908,7 +9908,7 @@ import type { ScheduleItem } from '@/features/shared-kernel';
 import { useApp } from "@/shared/app-providers/app-context";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { canTransitionScheduleStatus } from "@/shared/lib";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import {
     assignMember as assignMemberAction,
     unassignMember as unassignMemberAction,
@@ -9966,7 +9966,7 @@ import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
 import type { SourcePointer, ParsingIntent } from '@/shared/types';
-import { useToast } from '@/shared/utility-hooks/use-toast';
+import { useToast } from '@/shared/shadcn-ui/hooks/use-toast';
 import { persistWorkspaceOutboxEvent } from '../../application/_outbox';
 import { useWorkspace } from '../../core';
 import {
@@ -10474,7 +10474,7 @@ import {
 } from '@/shared/shadcn-ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/shadcn-ui/popover';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 import {
   approveScheduleItemWithMember,
   updateScheduleItemStatus,
@@ -10530,7 +10530,7 @@ import { Label } from "@/shared/shadcn-ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
 import { type Location } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 ⋮----
 interface ProposalDialogProps {
   isOpen: boolean;
@@ -10608,7 +10608,7 @@ import { useState, useEffect, useMemo } from "react";
 import type { ScheduleItem } from '@/features/shared-kernel';
 import { useWorkspace } from "@/features/workspace.slice";
 import { useApp } from "@/shared/app-providers/app-context";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { subscribeToWorkspaceScheduleItems } from '../_queries';
 export function useWorkspaceSchedule()
 ⋮----
@@ -11249,7 +11249,7 @@ import {
   TableRow,
 } from "@/shared/shadcn-ui/table";
 import type { WorkspaceFile, WorkspaceFileVersion } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { useWorkspace } from '../../core';
 import {
   createWorkspaceFile,

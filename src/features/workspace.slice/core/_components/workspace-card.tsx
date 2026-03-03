@@ -42,7 +42,7 @@ import {
 } from "@/shared/shadcn-ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/shadcn-ui/tooltip";
 import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "@/shared/types";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { deleteWorkspace, updateWorkspaceSettings } from "../_actions";
 import { WorkspaceSettingsDialog } from "./workspace-settings";
