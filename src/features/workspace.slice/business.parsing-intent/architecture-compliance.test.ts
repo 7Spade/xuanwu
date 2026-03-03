@@ -342,4 +342,74 @@ describe('[Architecture] VS5×VS6 integration compliance', () => {
       expect(content).toMatch(/@\/features\/projection\.bus/);
     });
   });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // [D26] Cross-cutting Authority — global-search.slice is the sole Cmd+K owner
+  // Business slices MUST NOT implement their own cross-domain search or Cmd+K UI
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('[D26] Cross-cutting Authority — global-search.slice owns Cmd+K', () => {
+    /** Returns source files that define a CommandDialog component inside a business slice. */
+    function findCommandDialogInSlices(sliceRoot: string): string[] {
+      return collectSourceFiles(sliceRoot).filter((file) => {
+        const content = fs.readFileSync(file, 'utf8');
+        return /CommandDialog/.test(content);
+      });
+    }
+
+    it('GlobalSearchDialog component lives in global-search.slice/_components/ [D26]', () => {
+      const dialogPath = path.join(
+        SRC_ROOT, 'features', 'global-search.slice', '_components', 'global-search-dialog.tsx'
+      );
+      expect(fs.existsSync(dialogPath)).toBe(true);
+    });
+
+    it('global-search.slice/index.ts exports GlobalSearch and GlobalSearchDialog [D26]', () => {
+      const indexPath = path.join(SRC_ROOT, 'features', 'global-search.slice', 'index.ts');
+      const content = fs.readFileSync(indexPath, 'utf8');
+      expect(content).toMatch(/GlobalSearch/);
+    });
+
+    it('workspace.slice shell imports GlobalSearch from global-search.slice, not locally [D26]', () => {
+      const headerPath = path.join(
+        SRC_ROOT, 'features', 'workspace.slice', 'core', '_shell', 'header.tsx'
+      );
+      const content = fs.readFileSync(headerPath, 'utf8');
+      // MUST import from global-search.slice (path alias @/ or relative)
+      expect(content).toMatch(/from ['"](.*global-search\.slice)['"]/);
+    });
+
+    it('workspace.slice shell does NOT own its own global-search.tsx file [D26]', () => {
+      const localSearchPath = path.join(
+        SRC_ROOT, 'features', 'workspace.slice', 'core', '_shell', 'global-search.tsx'
+      );
+      // The file must have been removed from workspace.slice
+      expect(fs.existsSync(localSearchPath)).toBe(false);
+    });
+
+    it('business slices do not implement their own CommandDialog (cross-domain search) [D26]', () => {
+      const businessSliceDirs = [
+        path.join(SRC_ROOT, 'features', 'workspace.slice'),
+        path.join(SRC_ROOT, 'features', 'scheduling.slice'),
+        path.join(SRC_ROOT, 'features', 'organization.slice'),
+        path.join(SRC_ROOT, 'features', 'account.slice'),
+      ].filter(fs.existsSync);
+
+      const violations: string[] = [];
+      for (const dir of businessSliceDirs) {
+        const files = findCommandDialogInSlices(dir);
+        // Allow CommandDialog only in files that import from global-search.slice
+        for (const file of files) {
+          const content = fs.readFileSync(file, 'utf8');
+          const isGlobalSearchImport = /global-search\.slice/.test(content);
+          if (!isGlobalSearchImport) {
+            violations.push(file);
+          }
+        }
+      }
+      if (violations.length > 0) {
+        console.error('[D26 violation] Business slices implement own CommandDialog:\n', violations.join('\n'));
+      }
+      expect(violations).toHaveLength(0);
+    });
+  });
 });
