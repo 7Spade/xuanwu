@@ -32,25 +32,13 @@ import {
   assignMemberAndApprove,
 } from '@/shared/infra/firestore/firestore.facade';
 import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import { updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import {
   approveOrgScheduleProposal,
   cancelOrgScheduleProposal,
   completeOrgSchedule,
-  type WriteOp,
 } from './_aggregate';
-
-// ---------------------------------------------------------------------------
-// Internal: executes a WriteOp returned by an aggregate function. [D3]
-// ---------------------------------------------------------------------------
-async function executeWriteOp(op: WriteOp): Promise<void> {
-  const data: Record<string, unknown> = { ...op.data };
-  for (const [field, values] of Object.entries(op.arrayUnionFields ?? {})) {
-    data[field] = arrayUnion(...values);
-  }
-  await updateDocument(op.path, data);
-}
+import { executeWriteOp } from './_write-op';
 
 // =================================================================
 // A. Workspace-level mutations
