@@ -39,8 +39,12 @@ describe('handleIssueResolvedForWorkflow', () => {
       expect.objectContaining({
         workflowId: 'wf-1',
         blockedBy: [],
+        version: 4,
+        updatedAt: expect.any(Number),
       })
     );
+    const [savedState] = saveWorkflowStateMock.mock.calls[0];
+    expect(savedState.updatedAt).toBeGreaterThan(100);
   });
 
   it('skips persistence when unblock is a no-op', async () => {

@@ -135,7 +135,7 @@ export function useWorkspaceEventHandler() {
                 error instanceof Error ? error.message : "Failed to update parsing intent status";
               toast({
                 variant: "destructive",
-                title: "Import Partially Completed",
+                title: "Import Successful with Warning",
                 description: `Tasks imported, but intent status update failed: ${message}`,
               });
               return;
