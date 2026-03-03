@@ -1,7 +1,7 @@
 "use client";
 
 import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from "date-fns";
-import { Plus, Check, X, Layers, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
@@ -143,47 +143,54 @@ export function UnifiedCalendarGrid({
                                 item.status === 'PROPOSAL' ? 'border-dashed border-primary/50 bg-primary/5' : 'bg-background shadow-sm'
                             )}
                         >
-                            {/* Section 1: Workspace */}
-                            {viewMode === 'organization' && (
-                                <button
-                                    type="button"
-                                    className="flex w-full cursor-pointer items-center gap-1.5 rounded-t-md border-b p-1.5 text-left transition-colors hover:bg-muted/50"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        router.push(`/workspaces/${item.workspaceId}?capability=schedule`);
-                                    }}
-                                >
-                                    <Layers className="size-3 text-muted-foreground" />
-                                    <p className="truncate text-[9px] font-bold text-muted-foreground">{item.workspaceName}</p>
-                                </button>
-                            )}
-
-                            {/* Section 2: Title */}
-                            <div
-                                className={cn(
-                                    "p-2",
-                                    viewMode === 'workspace' && 'rounded-t-md'
-                                )}
-                            >
+                            {/* Section 1: Title — workspace name prepended in org view */}
+                            <div className="rounded-t-md p-2">
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <p className="cursor-default truncate font-bold">{item.title}</p>
+                                            <button
+                                                type="button"
+                                                className="w-full cursor-pointer text-left"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (viewMode === 'organization') {
+                                                        router.push(`/workspaces/${item.workspaceId}?capability=schedule`);
+                                                    }
+                                                }}
+                                            >
+                                                {viewMode === 'organization' && item.workspaceName ? (
+                                                    <p className="truncate font-bold">
+                                                        <span className="text-muted-foreground">{item.workspaceName}</span>
+                                                        <span className="mx-0.5 text-muted-foreground">-</span>
+                                                        {item.title}
+                                                    </p>
+                                                ) : (
+                                                    <p className="truncate font-bold">{item.title}</p>
+                                                )}
+                                            </button>
                                         </TooltipTrigger>
-                                        <TooltipContent><p>{item.title}</p></TooltipContent>
+                                        <TooltipContent>
+                                            <p>
+                                                {viewMode === 'organization' && item.workspaceName
+                                                    ? `${item.workspaceName} - ${item.title}`
+                                                    : item.title}
+                                            </p>
+                                        </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
                             </div>
 
-                            {/* Section 3: Skills + Assignees & Actions (merged row) */}
+                            {/* Section 2: Skills (one per row) + assignees + gap actions */}
                             <div className="flex items-start justify-between gap-0.5 border-t px-2 py-1.5">
-                                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-0.5">
+                                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                                   {item.requiredSkills && item.requiredSkills.length > 0 ? (
                                     item.requiredSkills.map((req) => (
-                                      <Badge key={req.tagSlug} variant="secondary" className="h-4 px-1 text-[8px] font-medium leading-none">
-                                        {findSkill(req.tagSlug)?.name ?? req.tagSlug}
-                                        {req.quantity > 1 && ` ×${req.quantity}`}
-                                      </Badge>
+                                      <div key={req.tagSlug} className="flex items-center gap-1">
+                                        <Badge variant="secondary" className="h-4 px-1 text-[8px] font-medium leading-none">
+                                          {findSkill(req.tagSlug)?.name ?? req.tagSlug}
+                                          {req.quantity > 1 && ` ×${req.quantity}`}
+                                        </Badge>
+                                      </div>
                                     ))
                                   ) : (
                                     <div className="flex -space-x-1">
@@ -202,7 +209,7 @@ export function UnifiedCalendarGrid({
                                     </div>
                                   )}
                                 </div>
-                                <div className="flex shrink-0 items-center gap-0.5">
+                                <div className="flex shrink-0 flex-col items-end gap-0.5">
                                   {item.requiredSkills && item.requiredSkills.length > 0 && (
                                     <div className="flex -space-x-1">
                                       {assignedMembers.map(m => (
@@ -219,7 +226,8 @@ export function UnifiedCalendarGrid({
                                       ))}
                                     </div>
                                   )}
-                                  {renderItemActions && renderItemActions(item)}
+                                  {/* Gap button: show assign action when item has unfilled slots */}
+                                  {item.status === 'PROPOSAL' && renderItemActions && renderItemActions(item)}
                                   {viewMode === 'organization' && item.status === 'PROPOSAL' && onApproveProposal && onRejectProposal && (
                                     <div className="flex gap-0.5">
                                         <Button size="icon" variant="ghost" className="size-6 p-0 text-destructive" onClick={(e) => { e.stopPropagation(); onRejectProposal(item); }}>

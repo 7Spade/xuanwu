@@ -190,7 +190,13 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
     <div className="space-y-3 rounded-lg border bg-background p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">{item.title}</p>
+          <p className="text-sm font-semibold">
+            {item.workspaceName ? (
+              <><span className="text-muted-foreground">{item.workspaceName}</span><span className="mx-0.5 text-muted-foreground">-</span>{item.title}</>
+            ) : (
+              item.title
+            )}
+          </p>
           <p className="text-xs text-muted-foreground">
             {formatTimestamp(item.startDate as unknown as Timestamp)} – {formatTimestamp(item.endDate as unknown as Timestamp)}
           </p>
@@ -214,11 +220,13 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
               共需 {item.requiredSkills!.reduce((s, r) => s + (r.quantity ?? 1), 0)} 人
             </Badge>
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-col gap-1.5">
             {item.requiredSkills?.map((req: SkillRequirement) => (
-              <Badge key={req.tagSlug} variant="secondary" className="text-[10px]">
-                {getSkillName(req.tagSlug)} × {req.quantity}
-              </Badge>
+              <div key={req.tagSlug} className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-[10px]">
+                  {getSkillName(req.tagSlug)} × {req.quantity}
+                </Badge>
+              </div>
             ))}
           </div>
         </div>
@@ -386,7 +394,13 @@ function ConfirmedRow({ item, orgId, orgMembers }: ConfirmedRowProps) {
     <div className="space-y-2 rounded-lg border border-green-500/20 bg-green-50/10 p-4 dark:bg-green-950/10">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">{item.title}</p>
+          <p className="text-sm font-semibold">
+            {item.workspaceName ? (
+              <><span className="text-muted-foreground">{item.workspaceName}</span><span className="mx-0.5 text-muted-foreground">-</span>{item.title}</>
+            ) : (
+              item.title
+            )}
+          </p>
           <p className="text-xs text-muted-foreground">
             {formatTimestamp(item.startDate as unknown as Timestamp)} – {formatTimestamp(item.endDate as unknown as Timestamp)}
           </p>
@@ -396,7 +410,7 @@ function ConfirmedRow({ item, orgId, orgMembers }: ConfirmedRowProps) {
         </Badge>
       </div>
 
-      {/* Skill requirement tags + assigned avatar badges in one row */}
+      {/* Skill requirement tags (one per row) + assigned avatar badges */}
       {(hasRequirements || assignedMembers.length > 0) && (
         <div className="space-y-1">
           {hasRequirements && (
@@ -409,14 +423,16 @@ function ConfirmedRow({ item, orgId, orgMembers }: ConfirmedRowProps) {
               </span>
             </div>
           )}
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex flex-col gap-1.5">
             {item.requiredSkills?.map((req: SkillRequirement) => (
-              <Badge key={req.tagSlug} variant="secondary" className="text-[10px]">
-                {getSkillName(req.tagSlug)} × {req.quantity}
-              </Badge>
+              <div key={req.tagSlug} className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-[10px]">
+                  {getSkillName(req.tagSlug)} × {req.quantity}
+                </Badge>
+              </div>
             ))}
             {assignedMembers.length > 0 && (
-              <div className="ml-1 flex -space-x-1">
+              <div className="flex -space-x-1">
                 {assignedMembers.map((m) => (
                   <TooltipProvider key={m.id}>
                     <Tooltip>

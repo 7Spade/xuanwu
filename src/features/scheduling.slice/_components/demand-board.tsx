@@ -152,7 +152,13 @@ function DemandRow({ item, orgMembers, orgId }: DemandRowProps) {
     <div className="space-y-3 rounded-lg border bg-background p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">{item.title}</p>
+          <p className="text-sm font-semibold">
+            {item.workspaceName ? (
+              <><span className="text-muted-foreground">{item.workspaceName}</span><span className="mx-0.5 text-muted-foreground">-</span>{item.title}</>
+            ) : (
+              item.title
+            )}
+          </p>
           <p className="text-xs text-muted-foreground">
             {formatTimestamp(item.startDate as unknown as Timestamp)} – {formatTimestamp(item.endDate as unknown as Timestamp)}
           </p>
@@ -164,13 +170,15 @@ function DemandRow({ item, orgMembers, orgId }: DemandRowProps) {
       </div>
 
       {item.requiredSkills && item.requiredSkills.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-col gap-1.5">
           {item.requiredSkills.map((req: SkillRequirement) => {
             const skillName = SKILLS.find((s) => s.slug === req.tagSlug)?.name ?? req.tagSlug;
             return (
-              <Badge key={req.tagSlug} variant="secondary" className="text-[10px]">
-                {skillName} ≥ {req.minimumTier} × {req.quantity}
-              </Badge>
+              <div key={req.tagSlug} className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-[10px]">
+                  {skillName} ≥ {req.minimumTier} × {req.quantity}
+                </Badge>
+              </div>
             );
           })}
         </div>
