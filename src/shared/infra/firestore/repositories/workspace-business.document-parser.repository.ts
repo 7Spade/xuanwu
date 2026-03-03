@@ -45,6 +45,7 @@ export const createParsingIntent = async (
     // Optional fields — omitted when undefined so Firestore never sees undefined.
     ...(intentData.sourceFileDownloadURL !== undefined ? { sourceFileDownloadURL: intentData.sourceFileDownloadURL } : {}),
     ...(intentData.sourceFileId !== undefined ? { sourceFileId: intentData.sourceFileId } : {}),
+    ...(intentData.supersededByIntentId !== undefined ? { supersededByIntentId: intentData.supersededByIntentId } : {}),
   };
   const ref = await addDocument(
     `workspaces/${workspaceId}/${SUBCOLLECTIONS.parsingIntents}`,

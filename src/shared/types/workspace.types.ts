@@ -187,6 +187,8 @@ export interface ParsingIntent {
   /** Reference to the WorkspaceFile document that was parsed (for full traceability). */
   sourceFileId?: string;
   intentVersion: number;
+  /** Old intent points to the newer intent that superseded it. */
+  supersededByIntentId?: IntentID;
   lineItems: ParsedLineItem[];
   /** Skill requirements extracted from the document — fed to organization.schedule proposals. */
   skillRequirements?: SkillRequirement[];
