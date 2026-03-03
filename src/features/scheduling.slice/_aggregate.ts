@@ -32,8 +32,8 @@ import { publishOrgEvent } from '@/features/organization.slice';
 import { getOrgMemberEligibility } from '@/features/projection.bus';
 import { resolveSkillTier, tierSatisfies } from '@/features/shared-kernel';
 import type { WorkspaceScheduleProposedPayload, SkillRequirement } from '@/features/shared-kernel';
-import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { ScheduleItem, ScheduleStatus } from '@/features/shared-kernel';
+import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 
 // =================================================================
 // Aggregate State (DDD state machine)

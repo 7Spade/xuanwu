@@ -12,6 +12,7 @@
 
 
 import type { ImplementsStalenessContract } from '@/features/shared-kernel';
+import type { ScheduleItem } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
@@ -23,7 +24,6 @@ import {
   type QueryDocumentSnapshot,
   type QuerySnapshot,
 } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { ScheduleItem } from '@/features/shared-kernel';
 
 /** Demand Board staleness declaration. [S4] */
 export const DEMAND_BOARD_STALENESS: ImplementsStalenessContract = {

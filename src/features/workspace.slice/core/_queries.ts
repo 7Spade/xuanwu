@@ -9,6 +9,7 @@
  * stays in this file; callbacks receive typed domain records.
  */
 
+import type { ScheduleItem } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
@@ -26,7 +27,6 @@ import type {
   PartnerInvite,
   Workspace,
 } from '@/shared/types';
-import type { ScheduleItem } from '@/features/shared-kernel';
 
 // ---------------------------------------------------------------------------
 // Account-scoped subscriptions

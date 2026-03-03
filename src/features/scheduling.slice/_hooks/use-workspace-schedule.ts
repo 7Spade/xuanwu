@@ -18,9 +18,9 @@ import { addMonths, subMonths, format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 
+import type { ScheduleItem } from '@/features/shared-kernel';
 import { useWorkspace } from "@/features/workspace.slice";
 import { useApp } from "@/shared/app-providers/app-context";
-import type { ScheduleItem } from '@/features/shared-kernel';
 import { toast } from "@/shared/utility-hooks/use-toast";
 
 import { subscribeToWorkspaceScheduleItems } from '../_queries';

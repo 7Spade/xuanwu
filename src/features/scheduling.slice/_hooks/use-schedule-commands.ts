@@ -12,10 +12,10 @@ import { useCallback } from "react";
 
 import { getOrgMemberEligibilityWithTier } from "@/features/projection.bus";
 import { tierSatisfies } from "@/features/shared-kernel";
+import type { ScheduleItem } from '@/features/shared-kernel';
 import { useApp } from "@/shared/app-providers/app-context";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { canTransitionScheduleStatus } from "@/shared/lib";
-import type { ScheduleItem } from '@/features/shared-kernel';
 import { toast } from "@/shared/utility-hooks/use-toast";
 
 import {

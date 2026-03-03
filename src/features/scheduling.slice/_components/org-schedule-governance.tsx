@@ -24,8 +24,9 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 import type { OrgEligibleMemberView } from '@/features/projection.bus';
-import type { SkillRequirement } from '@/features/shared-kernel';
 import { tierSatisfies } from '@/features/shared-kernel';
+import type { SkillRequirement } from '@/features/shared-kernel';
+import type { ScheduleItem } from '@/features/shared-kernel';
 import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
 import { findSkill } from '@/shared/constants/skills';
@@ -43,7 +44,6 @@ import {
 } from '@/shared/shadcn-ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/shadcn-ui/popover';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
-import type { ScheduleItem } from '@/features/shared-kernel';
 import { toast } from '@/shared/utility-hooks/use-toast';
 
 import {

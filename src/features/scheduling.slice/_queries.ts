@@ -17,6 +17,7 @@ import {
   type OrgMemberSkillWithTier,
 } from '@/features/projection.bus';
 import type { ImplementsStalenessContract } from '@/features/shared-kernel';
+import type { ScheduleItem, ScheduleStatus } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getScheduleItems as getScheduleItemsFacade } from '@/shared/infra/firestore/firestore.facade';
 import {
@@ -32,7 +33,6 @@ import {
   type QuerySnapshot,
 } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { ScheduleItem, ScheduleStatus } from '@/features/shared-kernel';
 
 import type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
 

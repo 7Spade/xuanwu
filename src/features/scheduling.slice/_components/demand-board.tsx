@@ -19,6 +19,7 @@ import { UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
 
 import type { SkillRequirement } from '@/features/shared-kernel';
+import type { ScheduleItem } from '@/features/shared-kernel';
 import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
 import { SKILLS } from '@/shared/constants/skills';
@@ -34,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/shadcn-ui/select';
-import type { ScheduleItem } from '@/features/shared-kernel';
 import { toast } from '@/shared/utility-hooks/use-toast';
 
 import {

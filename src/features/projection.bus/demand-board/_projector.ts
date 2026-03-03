@@ -32,9 +32,9 @@ import type {
 } from '@/features/organization.slice';
 import { versionGuardAllows } from '@/features/shared-kernel';
 import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
+import type { ScheduleItem, ScheduleStatus } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { arrayUnion, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import type { ScheduleItem, ScheduleStatus } from '@/features/shared-kernel';
 
 /** Firestore path for a schedule item (single source of truth). */
 function scheduleItemPath(orgId: string, scheduleItemId: string): string {

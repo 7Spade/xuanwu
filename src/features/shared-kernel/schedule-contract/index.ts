@@ -16,8 +16,8 @@
  * [D19] Move rule: once a type is used by more than one BC, it must live here.
  */
 
-import type { Timestamp } from '@/shared/ports';
 import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
+import type { Timestamp } from '@/shared/ports';
 
 /**
  * Physical location for a scheduled event.
