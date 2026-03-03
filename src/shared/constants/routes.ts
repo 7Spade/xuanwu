@@ -9,6 +9,7 @@ export const ROUTES = {
   WORKSPACES: "/workspaces",
   WORKSPACES_NEW: "/workspaces/new",
   WORKSPACE: (id: string) => `/workspaces/${id}` as const,
+  WORKSPACE_SETTINGS: (id: string) => `/workspaces/${id}/settings` as const,
   WORKSPACE_LOCATIONS: (id: string) => `/workspaces/${id}/locations` as const,
   ACCOUNT_NEW: "/dashboard/account/new",
   ACCOUNT_MEMBERS: "/dashboard/account/members",

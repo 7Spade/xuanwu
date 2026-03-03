@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import { useAuth } from '@/shared/app-providers/auth-provider';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 
 import { toggleBookmark as toggleBookmarkAction } from '../_bookmark-actions';
 import { subscribeToBookmarks } from '../_queries';

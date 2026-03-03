@@ -11,7 +11,7 @@
 // =================================================================
 // Core (organization-core.aggregate + lifecycle)
 // =================================================================
-export { AccountNewForm, AccountGrid, useOrganizationManagement } from './core';
+export { AccountNewForm, AccountGrid, OrgSettingsView, useOrganizationManagement } from './core';
 export {
   createOrganization,
   updateOrganizationSettings,

@@ -5,7 +5,7 @@
 
 import { useCallback } from "react";
 
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { deleteWorkspace } from "../_actions";
 

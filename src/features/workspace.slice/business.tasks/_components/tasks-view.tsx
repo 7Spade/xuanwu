@@ -56,7 +56,7 @@ import {
 } from '@/shared/shadcn-ui/select';
 import { Textarea } from '@/shared/shadcn-ui/textarea';
 import { type WorkspaceTask, type Location , type TaskWithChildren } from '@/shared/types';
-import { toast } from '@/shared/utility-hooks/use-toast';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 
 import { useStorage } from '../../business.files';
 import { useWorkspace } from '../../core';

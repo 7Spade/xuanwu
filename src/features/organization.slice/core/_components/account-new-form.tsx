@@ -8,7 +8,7 @@ import { useApp } from "@/shared/app-providers/app-context";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Input } from "@/shared/shadcn-ui/input";
 import { Label } from "@/shared/shadcn-ui/label";
-import { toast } from "@/shared/utility-hooks/use-toast";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { useOrganizationManagement } from "../_hooks/use-organization-management";
 

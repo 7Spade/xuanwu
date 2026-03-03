@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { useI18n } from "@/config/i18n/i18n-provider"
-import { toast } from "@/shared/utility-hooks/use-toast"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 
 import { completeRegistration , signIn, signInAnonymously } from "../_actions"
 

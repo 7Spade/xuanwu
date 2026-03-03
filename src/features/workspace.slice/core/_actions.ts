@@ -34,7 +34,7 @@ import {
   updateWorkspaceLocation as updateWorkspaceLocationFacade,
   deleteWorkspaceLocation as deleteWorkspaceLocationFacade,
 } from "@/shared/infra/firestore/firestore.facade"
-import type { Account, Capability, WorkspaceRole, WorkspaceLifecycleState, WorkspaceLocation } from "@/shared/types"
+import type { Account, Capability, WorkspaceRole, WorkspaceLifecycleState, WorkspaceLocation, Address, WorkspacePersonnel } from "@/shared/types"
 
 export async function createWorkspace(
   name: string,
@@ -135,6 +135,8 @@ export async function updateWorkspaceSettings(
     name: string
     visibility: "visible" | "hidden"
     lifecycleState: WorkspaceLifecycleState
+    address?: Address
+    personnel?: WorkspacePersonnel
   }
 ): Promise<CommandResult> {
   try {
