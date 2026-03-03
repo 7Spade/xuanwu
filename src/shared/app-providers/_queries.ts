@@ -9,6 +9,7 @@
  * Pattern mirrors `workspace.slice/core/_queries.ts`.
  */
 
+import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
   onSnapshot,
@@ -16,7 +17,6 @@ import {
   type Unsubscribe,
   where,
 } from '@/shared/infra/firestore/firestore.read.adapter';
-import { db } from '@/shared/infra/firestore/firestore.client';
 import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils';
 import type { Account } from '@/shared/types';
 

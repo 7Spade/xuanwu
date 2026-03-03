@@ -10,10 +10,10 @@
  * Path: workspaces/{workspaceId}/files/{fileId}
  */
 
-import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { getWorkspaceFiles as getWorkspaceFilesFacade } from '@/shared/infra/firestore/firestore.facade';
+import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { WorkspaceFile } from '@/shared/types';
 
 /**

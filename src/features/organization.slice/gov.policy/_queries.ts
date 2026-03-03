@@ -5,9 +5,8 @@
  * Used by workspace-application._org-policy-cache to subscribe to policy changes.
  */
 
-import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
-
 import { db } from '@/shared/infra/firestore/firestore.client';
+import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import type { OrgPolicy } from './_actions';

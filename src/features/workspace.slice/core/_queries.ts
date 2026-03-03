@@ -9,6 +9,7 @@
  * stays in this file; callbacks receive typed domain records.
  */
 
+import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
   limit,
@@ -18,7 +19,6 @@ import {
   type Unsubscribe,
   where,
 } from '@/shared/infra/firestore/firestore.read.adapter';
-import { db } from '@/shared/infra/firestore/firestore.client';
 import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils';
 import type {
   AuditLog,

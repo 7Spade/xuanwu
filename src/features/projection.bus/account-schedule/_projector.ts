@@ -15,10 +15,10 @@
  * [R8] traceId from the originating EventEnvelope is propagated into the record.
  */
 
-import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 
 import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 export interface AccountScheduleProjection {

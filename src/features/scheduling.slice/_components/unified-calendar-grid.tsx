@@ -5,8 +5,8 @@ import { Plus, Check, X, Layers, ChevronLeft, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
-import { findSkill } from "@/shared/constants/skills";
 import type { Timestamp } from "@/features/shared-kernel";
+import { findSkill } from "@/shared/constants/skills";
 import { cn } from "@/shared/lib";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { Badge } from "@/shared/shadcn-ui/badge";

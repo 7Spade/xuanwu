@@ -17,6 +17,7 @@
  * (financial amounts, internal workspace IDs are redacted).
  */
 
+import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
   doc,
@@ -24,7 +25,6 @@ import {
 } from '@/shared/infra/firestore/firestore.read.adapter';
 import { addDoc, serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 
-import { db } from '@/shared/infra/firestore/firestore.client';
 
 export interface NotificationDeliveryInput {
   title: string;

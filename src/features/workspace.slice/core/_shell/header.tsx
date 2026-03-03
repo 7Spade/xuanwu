@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
+import { GlobalSearch } from "@/features/global-search.slice";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,7 +23,6 @@ import type { Account } from '@/shared/types'
 import { useApp } from "../_hooks/use-app";
 import { useVisibleWorkspaces } from '../_hooks/use-visible-workspaces';
 
-import { GlobalSearch } from "@/features/global-search.slice";
 import { NotificationCenter } from "./notification-center";
 
 

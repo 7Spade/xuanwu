@@ -19,13 +19,6 @@
  * Invariant #17: centralized-tag is the sole authority for tagSlug semantics.
  */
 
-import {
-  collectionGroup,
-  query,
-  where,
-  getDocs,
-  type QueryDocumentSnapshot,
-} from '@/shared/infra/firestore/firestore.read.adapter';
 
 import type {
   TagUpdatedPayload,
@@ -33,6 +26,13 @@ import type {
   TagDeletedPayload,
 } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
+import {
+  collectionGroup,
+  query,
+  where,
+  getDocs,
+  type QueryDocumentSnapshot,
+} from '@/shared/infra/firestore/firestore.read.adapter';
 
 import {
   syncTagUpdateToPool,

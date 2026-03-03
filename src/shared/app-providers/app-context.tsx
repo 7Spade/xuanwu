@@ -24,8 +24,8 @@ import { useContext } from 'react'
 
 import { type Account, type CapabilitySpec, type Notification } from '@/shared/types'
 
-import { useAuth } from './auth-provider'
 import { subscribeToAccountsForUser } from './_queries'
+import { useAuth } from './auth-provider'
 
 // ---------------------------------------------------------------------------
 // State shape

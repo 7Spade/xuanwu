@@ -13,24 +13,22 @@
  * Note: These are structural/contract tests. They verify that the implementation
  * has the correct shape without requiring a live Firebase connection.
  */
-import { describe, it, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
+import { describe, it, expect } from 'vitest';
+
 // ─── [#A4] ParsingIntentContract structural shape ─────────────────────────────
+import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
+import type { SkillRequirement } from '@/features/shared-kernel';
 import type { ParsingIntentContract } from '@/features/workspace.slice/business.parsing-intent/_contract';
 import { createParsingIntentContract } from '@/features/workspace.slice/business.parsing-intent/_contract';
-
-// ─── Event payload contracts ──────────────────────────────────────────────────
 import type {
   IntentDeltaProposedPayload,
   WorkspaceTaskAssignedPayload,
-  DocumentParserItemsExtractedPayload,
 } from '@/features/workspace.slice/core.event-bus/_events';
 
 // ─── Cross-BC contracts ────────────────────────────────────────────────────────
-import type { WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
-import type { SkillRequirement } from '@/features/shared-kernel';
 
 const SRC_ROOT = path.resolve(process.cwd(), 'src');
 

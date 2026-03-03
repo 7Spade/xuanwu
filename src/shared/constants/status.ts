@@ -14,14 +14,14 @@
  *   - NotificationType        (account.types.ts → Notification.type)
  */
 
-import type { ScheduleStatus } from '@/shared/types/schedule.types';
-import type { WorkspaceLifecycleState } from '@/shared/types/workspace.types';
-import type { AuditLogType } from '@/shared/types/audit.types';
 import type {
   InviteState,
   NotificationType,
   Presence,
 } from '@/shared/types/account.types';
+import type { AuditLogType } from '@/shared/types/audit.types';
+import type { ScheduleStatus } from '@/shared/types/schedule.types';
+import type { WorkspaceLifecycleState } from '@/shared/types/workspace.types';
 
 // ---------------------------------------------------------------------------
 // ScheduleStatus

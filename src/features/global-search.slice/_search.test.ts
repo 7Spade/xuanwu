@@ -16,13 +16,11 @@ import {
   indexEntity,
   removeFromIndex,
   querySemanticIndex,
-  getIndexStats,
 } from '@/features/semantic-graph.slice';
 import type { SemanticIndexEntry } from '@/features/semantic-graph.slice';
 
 import { executeGlobalSearch, executeSearch } from './_actions';
 import { executeSearch as executeSearchService } from './_services';
-import type { ExecuteSearchInput } from './_types';
 
 // ─── Index seeding ────────────────────────────────────────────────────────────
 

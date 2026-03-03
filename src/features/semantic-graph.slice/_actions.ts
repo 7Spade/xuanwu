@@ -14,8 +14,8 @@
  *   [D26] semantic-graph.slice owns _actions.ts; does not parasitize shared-kernel.
  */
 
-import type { CommandResult } from '@/features/shared-kernel';
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
+import type { CommandResult } from '@/features/shared-kernel';
 import type { TaxonomyNode } from '@/features/shared-kernel';
 
 import { detectTemporalConflicts, validateTaxonomyAssignment } from './_aggregate';

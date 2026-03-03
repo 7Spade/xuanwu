@@ -14,12 +14,12 @@
 import { describe, it, expect } from 'vitest';
 
 import type { SkillRequirement } from '@/features/shared-kernel';
-import type { IntentDeltaProposedPayload } from '@/features/workspace.slice/core.event-bus';
 import {
   createParsingIntentContract,
   markParsingIntentImported,
   supersedeParsingIntent,
 } from '@/features/workspace.slice/business.parsing-intent/_contract';
+import type { IntentDeltaProposedPayload } from '@/features/workspace.slice/core.event-bus';
 
 // ---------------------------------------------------------------------------
 // Fixtures

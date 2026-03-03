@@ -16,12 +16,12 @@
  * Invariant: this listener MUST be mounted once per authenticated session in the shell layout.
  */
 
-import { onSnapshot, doc } from '@/shared/infra/firestore/firestore.read.adapter';
 import { useEffect } from 'react';
 
 import type { ImplementsTokenRefreshContract } from '@/features/shared-kernel';
 import { auth } from '@/shared/infra/auth/auth.client';
 import { db } from '@/shared/infra/firestore/firestore.client';
+import { onSnapshot, doc } from '@/shared/infra/firestore/firestore.read.adapter';
 
 // Marker — confirms this module fulfils Party 3 of the SK_TOKEN_REFRESH_CONTRACT [S6]
 const _contractConformance: ImplementsTokenRefreshContract = {

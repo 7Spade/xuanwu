@@ -16,8 +16,8 @@
 
 import type { IFileStore, UploadOptions } from '@/shared/ports/i-file-store';
 
-import { deleteFile, uploadFile } from './storage.write.adapter';
 import { getFileDownloadURL } from './storage.read.adapter';
+import { deleteFile, uploadFile } from './storage.write.adapter';
 
 /**
  * Adapter that implements the IFileStore port using Firebase Storage SDK calls.

@@ -15,15 +15,15 @@
  */
 
 import {
-  buildIdempotencyKey,
-  type DlqTier,
-} from '@/features/shared-kernel/outbox-contract';
-import type { TagCategory } from '@/features/shared-kernel/tag-authority';
-import {
   publishTagEvent,
   type CentralizedTagEntry,
   type TagDeleteRule,
 } from '@/features/shared-kernel/centralized-tag';
+import {
+  buildIdempotencyKey,
+  type DlqTier,
+} from '@/features/shared-kernel/outbox-contract';
+import type { TagCategory } from '@/features/shared-kernel/tag-authority';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import {
   setDocument,

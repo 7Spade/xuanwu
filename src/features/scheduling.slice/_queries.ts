@@ -11,6 +11,15 @@
  */
 
 import {
+  getOrgMemberEligibilityWithTier,
+  getOrgEligibleMembersWithTier,
+  type OrgEligibleMemberView,
+  type OrgMemberSkillWithTier,
+} from '@/features/projection.bus';
+import type { ImplementsStalenessContract } from '@/features/shared-kernel';
+import { db } from '@/shared/infra/firestore/firestore.client';
+import { getScheduleItems as getScheduleItemsFacade } from '@/shared/infra/firestore/firestore.facade';
+import {
   collection,
   query,
   where,
@@ -22,19 +31,9 @@ import {
   type QueryDocumentSnapshot,
   type QuerySnapshot,
 } from '@/shared/infra/firestore/firestore.read.adapter';
-
-import type { ImplementsStalenessContract } from '@/features/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
-import { getScheduleItems as getScheduleItemsFacade } from '@/shared/infra/firestore/firestore.facade';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { ScheduleItem, ScheduleStatus } from '@/shared/types';
 
-import {
-  getOrgMemberEligibilityWithTier,
-  getOrgEligibleMembersWithTier,
-  type OrgEligibleMemberView,
-  type OrgMemberSkillWithTier,
-} from '@/features/projection.bus';
 import type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
 
 // =================================================================

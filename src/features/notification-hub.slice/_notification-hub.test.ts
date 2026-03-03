@@ -17,6 +17,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import {
+  dispatchNotification,
+  registerRoutingRule,
+  unregisterRoutingRule,
+  triggerDispatch,
+} from './_actions';
+import {
   evaluateTagRouting,
   registerRoutingRule as registerRuleService,
   unregisterRoutingRule as unregisterRuleService,
@@ -27,12 +33,6 @@ import {
   TAG_CHANGED_EVENT_KEY,
   getHubStats,
 } from './_services';
-import {
-  dispatchNotification,
-  registerRoutingRule,
-  unregisterRoutingRule,
-  triggerDispatch,
-} from './_actions';
 import type {
   TagRoutingRule,
   NotificationSourceEvent,
