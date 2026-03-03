@@ -1,33 +1,41 @@
-name: Repomix Auto Update
+name: Repomix Skill & Context Update
 
 on:
   push:
-    branches: [ main ]  # 當代碼推送到 main 分支時觸發
-  workflow_dispatch:     # 支援手動觸發
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  repomix-job:
+  repomix-process:
     runs-on: ubuntu-latest
     permissions:
-      contents: write    # 必須開啟寫入權限才能將檔案 Push 回去
+      contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 取得完整歷史紀錄，對部分 git 排除邏輯有幫助
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Run Repomix
-        # 直接執行 npx repomix，它會自動抓取目錄下的 repomix.config.ts 並執行
+      # 步驟 1：執行你的 Skill 生成命令
+      - name: Generate Xuanwu Skill
+        run: |
+          mkdir -p ./skills
+          npx repomix --remote 7Spade/xuanwu --skill-generate xuanwu-skill --skill-output ./skills --force
+
+      # 步驟 2：執行全專案打包 (會讀取你的 repomix.config.ts)
+      - name: Run Repomix Pack
         run: npx repomix
 
+      # 步驟 3：將產出的 md 與 skills 目錄一併提交回倉庫
       - name: Commit and Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: update repomix context for AI [skip ci]"
-          file_pattern: 'repomix-output.md'
+          commit_message: "chore: update skills and context [skip ci]"
+          # 關鍵：確保包含 skills 資料夾與 output 檔案
+          file_pattern: 'repomix-output.md ./skills/*'
