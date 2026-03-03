@@ -6,14 +6,14 @@
 
 ---
 
-## 1. 設計目標（VS5 視角）
+## 1. 核心哲學：意圖即合約（Intent as Contract）
 
 1. **單一真相（SSOT）**：`ParsingIntent` 是「解析意圖與版本鏈」的真相；`tasks` 是「可執行工作項」的真相。
-2. **雙軌治理**：
+2. **Digital Twin（數位孿生）**：`ParsingIntent` 建立後，其行項目與財務規格（數量、單價、小計）視為不可變語義快照；允許變更的僅限 lifecycle metadata（`status`, `importedAt`, `failedAt`, `supersededByIntentId`）。
+3. **因果驅動**：`ParsingIntent` 是因、`WorkspaceTask` 是果；任務規格永遠可追溯到 `sourceIntentId`。
+4. **雙軌治理**：
    - 🟢 A-track：`files -> parsingIntents -> tasks -> qa -> acceptance -> finance`
    - 🔴 B-track：`issues` 只透過事件介入，不直接回寫 A-track 狀態。
-3. **可重放與冪等**：任何 Intent 匯入任務動作都可 replay，且不產生重複任務。
-4. **契約一致**：集合命名、狀態列舉、版本語意與 outbox 事件一致。
 
 ---
 
@@ -53,7 +53,7 @@ interface ParsingIntent {
   sourceFileId: string
   sourceVersionId: string
   intentVersion: number
-  supersedesIntentId?: string
+  supersededByIntentId?: string // 寫在舊 intent，指向取代它的新 intent（例如 intent_v1.supersededByIntentId = intent_v2.id）
   status: 'pending' | 'importing' | 'imported' | 'superseded' | 'failed'
   extractedTasks: ParsingIntentTask[]
   createdAt: string
@@ -102,48 +102,48 @@ interface WorkspaceTask {
 1. 同一 `fileId + sourceVersionId` 首次解析建立 `intentVersion = 1`。
 2. 檔案新版本重解析時建立新 intent：
    - `intentVersion = previous.intentVersion + 1`
-   - `supersedesIntentId = previous.id`
+   - 舊 intent 寫入 `supersededByIntentId = newIntent.id`
 3. 舊 intent 轉 `superseded`，不可再進入 import。
 4. 只有 `pending` intent 可進入 import pipeline。
 
 ---
 
-## 5. A/B Track 狀態機（Mermaid）
+## 5. IntentDelta 對帳算法（A/B Track）
+
+當事件 `workspace:parsing-intent:deltaProposed` 進入 handler 時，依任務狀態採取以下行為：
+
+| 任務狀態 (`progressState`) | 驅動行為 | 說明 |
+|---|---|---|
+| `todo` | 自動同步（Sync） | 就地同步任務財務欄位（`quantity / unitPrice / subtotal`）；不修改 `sourceIntentId / sourceIntentVersion / sourceFileId` |
+| `doing` / `blocked` | 衝突偵測（Conflict） | 不改任務內容，建立 `WorkspaceIssue` 並阻塞 workflow |
+| `completed` 以上 | 忽略（Ignore） | 已完工或已驗收任務不因新 Intent 改動 |
+| 新增行項目 | 增量建立（Create） | 建立新 Task，`sourceIntentId` 指向新 Intent |
+
+---
+
+## 6. 狀態機圖解（Mermaid）
 
 ```mermaid
 stateDiagram-v2
-  [*] --> PendingIntent: ParsingIntentCreated
-  PendingIntent --> Importing: ImportStarted
-  Importing --> Imported: ImportApplied
-  Importing --> ImportFailed: ImportFailed
-  Imported --> ATrack: TasksMaterialized
-
-  state ATrack {
-    [*] --> Tasks
-    Tasks --> QA
-    QA --> Acceptance
-    Acceptance --> Finance
-    Finance --> [*]
-  }
-
-  Imported --> BTrack: TaskBlockedEvent
-  state BTrack {
-    [*] --> IssueOpen
-    IssueOpen --> IssueInProgress
-    IssueInProgress --> IssueResolved
-    IssueResolved --> [*]
-  }
-
-  BTrack --> ATrack: IssueResolvedEvent
+    direction LR
+    [*] --> PendingIntent: 文件上傳/解析
+    PendingIntent --> DeltaProcessing: 發送 deltaProposed
+    DeltaProcessing --> Task_Todo: todo 自動同步
+    DeltaProcessing --> Task_Doing: doing/blocked 建立 Issue + blockWorkflow
+    DeltaProcessing --> New_Task: 新行項目建立 Task
+    Task_Todo --> ImportedIntent: 對帳完成
+    Task_Doing --> ImportedIntent: 對帳完成
+    New_Task --> ImportedIntent: 對帳完成
+    ImportedIntent --> [*]
 ```
 
 > B-track 回到 A-track 必須透過 `IssueResolvedEvent`，不能直接修改 A-track 文件（符合「事件回流」原則）。
 
 ---
 
-## 6. 事件流與實作建議（穩健更新）
+## 7. 事件流與實作建議（穩健更新）
 
-### 6.1 Import 主流程（A-track）
+### 7.1 Import 主流程（A-track）
 
 1. `saveParsingIntent`：寫入 `parsingIntents/{intentId}`（`pending`）。
 2. 發送 `workspace:parsing-intent:deltaProposed`（outbox）。
@@ -153,7 +153,7 @@ stateDiagram-v2
    - 成功後更新 `parsingImports.status=applied`
    - 將 intent 轉 `imported`
 
-### 6.2 異常流程（B-track）
+### 7.2 異常流程（B-track）
 
 - 任務阻塞發 `workspace:tasks:blocked` -> 建立 `issues`。
 - issue 解決發 `workspace:issues:resolved` -> 再由 handler 發 `workspace:tasks:unblocked`。
@@ -162,7 +162,7 @@ stateDiagram-v2
 
 ---
 
-## 7. 子集合設計準則（現代化）
+## 8. 子集合設計準則（現代化）
 
 1. **命名一致**：全域統一使用 `parsingIntents`（camelCase），並與 `files`、`tasks`、`issues` 一致。
 2. **聚合責任分離**：
@@ -176,16 +176,25 @@ stateDiagram-v2
 
 ---
 
-## 8. 推薦落地順序（最小風險）
+## 9. 推薦落地順序（最小風險）
 
 1. 先補 `parsingImports` 與對應 repository（不改現有 `tasks/issues` API）。
 2. 將 import handler 改為「先寫 import 帳本，再寫 tasks」。
-3. 補齊 `intentVersion` 遞增與 `supersedesIntentId`。
+3. 補齊 `intentVersion` 遞增與 `supersededByIntentId`。
 4. 最後做集合命名收斂（constants、repository、query 皆使用同一個 `parsingIntents` 路徑字串）。
 
 ---
 
-## 9. 驗收清單（VS5）
+## 10. 開發者檢查清單（Developer Checklist）
+
+1. **寫入限制**：`business.tasks` 更新 action 不允許手動修改 Intent 帶入欄位（`sourceIntentId/sourceIntentVersion/sourceFileId`）；IntentDelta 同步僅可更新財務欄位，不可覆寫 source pointers。若違反應回傳 validation error 並拒絕 transaction。
+2. **原子性操作**：IntentDelta 對帳以 transaction 或 writeBatch 執行，確保 Intent 狀態與 Task 更新同批提交。
+3. **事件訂閱**：`tasks` handler 訂閱 `workspace:parsing-intent:deltaProposed`，且 payload 必含 `oldIntentId`。
+4. **狀態遷移**：對帳完成後，必須將新 Intent 狀態由 `pending` 推進至 `imported`。
+
+---
+
+## 11. 驗收清單（VS5）
 
 > 測試策略建議：沿用目前已存在的 `src/features/workspace.slice/business.document-parser/` 與 `src/features/workspace.slice/business.tasks/` `*.test.ts` 結構新增對應規格（idempotency、supersede、event-only recovery、immutable source pointers、collection naming consistency）。每項驗收條件對應至少一個測試案例。
 
@@ -205,7 +214,7 @@ stateDiagram-v2
 
 ---
 
-## 10. 結論
+## 12. 結論
 
 在 VS5 中，**ParsingIntent 不應與 tasks 競爭真相**：
 
@@ -214,3 +223,5 @@ stateDiagram-v2
 - `parsingImports` 管「匯入執行與冪等證據」
 
 這樣可同時滿足：A-track 主流程穩定推進、B-track 異常可回收、以及 Firestore 子集合可演進與可審計。
+
+在長期擴展上，Intent 驅動模型具備更好的 AI 協作優勢：語義快照穩定、版本差異可機器對比、衝突決策可由人機協同處理，且事件鏈可直接支援後續自動化治理與審計。
