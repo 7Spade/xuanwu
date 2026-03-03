@@ -69,3 +69,72 @@ export function findEligibleCandidate(
     });
   });
 }
+
+// ─── Multi-member assignment ──────────────────────────────────────────────────
+
+/**
+ * Represents a single assignment slot: one eligible member assigned to fulfill
+ * one specific SkillRequirement slot. `requirement` is null when no skill filter
+ * applies (empty-requirements case — any eligible member).
+ */
+export interface CandidateAssignment {
+  candidate: OrgEligibleMemberView;
+  /** The specific requirement this candidate was selected to fulfill. Null when no skill filter applies. */
+  requirement: SkillRequirement | null;
+}
+
+/**
+ * Finds eligible members to fulfill ALL skill requirements, respecting `quantity`.
+ *
+ * For each SkillRequirement with `quantity: N`, this function selects N distinct
+ * eligible members that satisfy the requirement. A member can only be selected once
+ * across all requirements (no double-counting).
+ *
+ * For empty requirements (no skill filter):
+ *   Returns one eligible member — backward-compatible single-assignment behavior.
+ *
+ * Returns undefined if any requirement cannot be fully satisfied by the available
+ * pool → caller must trigger saga compensation [A5].
+ *
+ * @param members      Eligible member views from projection.org-eligible-member-view [#14]
+ * @param requirements Skill requirements from WorkspaceScheduleProposedPayload [TE_SK]
+ */
+export function findEligibleCandidatesForRequirements(
+  members: OrgEligibleMemberView[],
+  requirements: SkillRequirement[]
+): CandidateAssignment[] | undefined {
+  // Empty requirements: assign one eligible member (backward-compatible)
+  if (requirements.length === 0) {
+    const first = members.find((m) => m.eligible);
+    if (!first) return undefined;
+    return [{ candidate: first, requirement: null }];
+  }
+
+  const assignedIds = new Set<string>();
+  const assignments: CandidateAssignment[] = [];
+
+  for (const req of requirements) {
+    let assignedForReq = 0;
+
+    for (const member of members) {
+      if (assignedForReq >= req.quantity) break;
+      if (!member.eligible) continue;
+      if (assignedIds.has(member.accountId)) continue;
+
+      const skill = member.skills.find((s) => s.skillId === req.tagSlug);
+      if (!skill) continue;
+      if (sagaTierIndex(skill.tier) < sagaTierIndex(req.minimumTier)) continue;
+
+      assignedIds.add(member.accountId);
+      assignments.push({ candidate: member, requirement: req });
+      assignedForReq++;
+    }
+
+    if (assignedForReq < req.quantity) {
+      // Cannot fulfill this requirement — caller must compensate [A5]
+      return undefined;
+    }
+  }
+
+  return assignments;
+}
