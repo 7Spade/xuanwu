@@ -9,7 +9,8 @@ import type { PartnerInvite } from '@/features/shared-kernel';
 import type { Workspace } from '../_types';
 import type { DailyLog } from '../../business.daily/_types';
 import type { AuditLog } from '../../gov.audit/_types';
-
+import type { WorkspaceIssue } from '../../business.issues/_types';
+import type { WorkspaceTask } from '../../business.tasks/_types';
 import { useApp } from '../_hooks/use-app';
 import {
   subscribeToDailyLogsForAccount,
@@ -34,6 +35,8 @@ type Action =
   | { type: 'SET_AUDIT_LOGS'; payload: Record<string, AuditLog> }
   | { type: 'SET_INVITES'; payload: Record<string, PartnerInvite> }
   | { type: 'SET_SCHEDULE_ITEMS'; payload: Record<string, ScheduleItem> }
+  | { type: 'SET_WORKSPACE_TASKS'; payload: { workspaceId: string; tasks: Record<string, WorkspaceTask> } }
+  | { type: 'SET_WORKSPACE_ISSUES'; payload: { workspaceId: string; issues: Record<string, WorkspaceIssue> } }
   | { type: 'RESET_STATE' };
 
 // Initial State
@@ -82,6 +85,32 @@ const accountReducer = (state: AccountState, action: Action): AccountState => {
     
     case 'SET_SCHEDULE_ITEMS':
         return { ...state, schedule_items: action.payload };
+
+    case 'SET_WORKSPACE_TASKS': {
+        const { workspaceId, tasks } = action.payload;
+        const existing = state.workspaces[workspaceId];
+        if (!existing) return state;
+        return {
+            ...state,
+            workspaces: {
+                ...state.workspaces,
+                [workspaceId]: { ...existing, tasks },
+            },
+        };
+    }
+
+    case 'SET_WORKSPACE_ISSUES': {
+        const { workspaceId, issues } = action.payload;
+        const existing = state.workspaces[workspaceId];
+        if (!existing) return state;
+        return {
+            ...state,
+            workspaces: {
+                ...state.workspaces,
+                [workspaceId]: { ...existing, issues },
+            },
+        };
+    }
 
     default:
       return state;

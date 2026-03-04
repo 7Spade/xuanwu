@@ -24,6 +24,8 @@ import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils';
 import type { PartnerInvite } from '@/features/shared-kernel';
 
 import type { DailyLog } from '../business.daily/_types';
+import type { WorkspaceIssue } from '../business.issues/_types';
+import type { WorkspaceTask } from '../business.tasks/_types';
 import type { AuditLog } from '../gov.audit/_types';
 
 import type { Workspace } from './_types';
@@ -107,4 +109,43 @@ export function subscribeToWorkspacesForAccount(
     where('dimensionId', '==', dimensionId),
   );
   return onSnapshot(q, (snap) => onUpdate(snapshotToRecord<Workspace>(snap)));
+}
+
+// ---------------------------------------------------------------------------
+// Workspace subcollection subscriptions
+// ---------------------------------------------------------------------------
+
+/**
+ * Opens a real-time listener on `workspaces/{workspaceId}/tasks`.
+ * Populates the workspace.tasks record so tasks-view can read live data
+ * without polling.  The subscription is managed by WorkspaceProvider and
+ * cancelled when the workspace unmounts.
+ */
+export function subscribeToWorkspaceTasks(
+  workspaceId: string,
+  onUpdate: (tasks: Record<string, WorkspaceTask>) => void,
+): Unsubscribe {
+  // Fetch all tasks regardless of progressState — view components filter by state.
+  const q = query(
+    collection(db, 'workspaces', workspaceId, 'tasks'),
+    orderBy('createdAt', 'desc'),
+  );
+  return onSnapshot(q, (snap) => onUpdate(snapshotToRecord<WorkspaceTask>(snap)));
+}
+
+/**
+ * Opens a real-time listener on `workspaces/{workspaceId}/issues`.
+ * Populates the workspace.issues record so issues-view can read live data
+ * and the QA / Acceptance / Finance issue creation events surface immediately.
+ */
+export function subscribeToWorkspaceIssues(
+  workspaceId: string,
+  onUpdate: (issues: Record<string, WorkspaceIssue>) => void,
+): Unsubscribe {
+  // Fetch all issues regardless of issueState — view components filter by open/closed.
+  const q = query(
+    collection(db, 'workspaces', workspaceId, 'issues'),
+    orderBy('createdAt', 'desc'),
+  );
+  return onSnapshot(q, (snap) => onUpdate(snapshotToRecord<WorkspaceIssue>(snap)));
 }

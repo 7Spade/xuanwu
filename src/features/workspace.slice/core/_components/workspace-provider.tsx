@@ -43,6 +43,10 @@ import {
 } from '../_actions'
 import { useAccount } from '../_hooks/use-account';
 import { useApp } from '../_hooks/use-app';
+import {
+  subscribeToWorkspaceTasks,
+  subscribeToWorkspaceIssues,
+} from '../_queries';
 
 import {
   applyWorkflowBlocked,
@@ -100,7 +104,7 @@ export type CreateScheduleItemInput = Omit<ScheduleItem, 'id' | 'createdAt' | 'u
 const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 
 export function WorkspaceProvider({ workspaceId, children }: { workspaceId: string, children: React.ReactNode }) {
-  const { state: accountState } = useAccount();
+  const { state: accountState, dispatch: accountDispatch } = useAccount();
   const { state: appState } = useApp();
   const { workspaces, auditLogs } = accountState;
   const { activeAccount } = appState;
@@ -186,7 +190,27 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
     if (!auditLogs || !workspaceId) return [];
     return Object.values(auditLogs).filter(log => log.workspaceId === workspaceId);
   }, [auditLogs, workspaceId]);
-  
+
+  // Subscribe to workspace tasks and issues subcollections so that the live
+  // data is always available in workspace.tasks / workspace.issues without
+  // manual refreshes.  Subscriptions are cancelled when workspaceId changes.
+  useEffect(() => {
+    if (!workspaceId) return;
+
+    const unsubTasks = subscribeToWorkspaceTasks(workspaceId, (tasks) => {
+      accountDispatch({ type: 'SET_WORKSPACE_TASKS', payload: { workspaceId, tasks } });
+    });
+
+    const unsubIssues = subscribeToWorkspaceIssues(workspaceId, (issues) => {
+      accountDispatch({ type: 'SET_WORKSPACE_ISSUES', payload: { workspaceId, issues } });
+    });
+
+    return () => {
+      unsubTasks();
+      unsubIssues();
+    };
+  }, [workspaceId, accountDispatch]);
+
   const logAuditEvent = useCallback(async (action: string, detail: string, type: 'create' | 'update' | 'delete') => {
     if (!activeAccount || activeAccount.accountType !== 'organization') return;
     await writeAuditLog({
