@@ -11,6 +11,7 @@ import type { PortalState } from '../../_types';
  * All domain mutations must go through core/_actions.ts [D3].
  */
 export function usePortalState(): PortalState {
+  // Minimal prototype — setter intentionally omitted until real state is wired
   const [isInitializing] = useState(false);
 
   return { isInitializing };
