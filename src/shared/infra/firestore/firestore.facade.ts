@@ -60,6 +60,8 @@ export const updateTask = repositories.updateTask
 export const deleteTask = repositories.deleteTask
 export const getWorkspaceTask = repositories.getWorkspaceTask
 export const getTaskBySourceIntentId = repositories.getTaskBySourceIntentId
+export const getTasksBySourceIntentId = repositories.getTasksBySourceIntentId
+export const reconcileTask = repositories.reconcileTask
 
 // Schedule
 export const createScheduleItem = repositories.createScheduleItem

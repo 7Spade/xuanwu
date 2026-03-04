@@ -217,12 +217,15 @@ export function WorkspaceDocumentParser() {
     // Publish event with intentId so tasks and schedule proposals can reference the Digital Twin.
     // skillRequirements is omitted here — the current AI flow extracts invoice line items only.
     // When the AI flow is extended to extract skill requirements, pass them here.
+    // oldIntentId is forwarded when a prior intent was superseded so the import handler can
+    // reconcile existing `todo` tasks in-place rather than creating duplicates [#A4].
     eventBus.publish('workspace:document-parser:itemsExtracted', {
         sourceDocument: state.fileName || 'Unknown Document',
         intentId,
         intentVersion: INITIAL_PARSING_INTENT_VERSION,
         autoImport: true,
         items: lineItems,
+        ...(oldIntentId && { oldIntentId }),
     });
 
     // Dispatch IntentDeltaProposed [#A4] — at-least-once delivery via wsOutbox [S1][E5].

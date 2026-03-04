@@ -13,7 +13,7 @@ import {
   startParsingImport,
 } from "../../business.document-parser";
 import { createIssue } from "../../business.issues";
-import { createTask, hasTasksForSourceIntent } from "../../business.tasks";
+import { createTask, hasTasksForSourceIntent, reconcileIntentTasks } from "../../business.tasks";
 import type { WorkspaceTask } from "../../business.tasks/_types";
 import {
   handleIssueCreatedForWorkflow,
@@ -227,9 +227,33 @@ export function useWorkspaceEventHandler() {
               return;
             }
 
-            const taskResults = await Promise.all(
-              items.map((item) => createTask(workspace.id, item))
-            );
+            // [#A4] Intent-reconciliation path: when the parse superseded a prior intent,
+            // update existing `todo` tasks in-place so we don't accumulate duplicate tasks.
+            // Tasks in any other state (doing / blocked / done) keep their current doc and
+            // a new task is created for the re-parsed item instead.
+            const taskResults = payload.oldIntentId
+              ? await reconcileIntentTasks(
+                  workspace.id,
+                  payload.oldIntentId,
+                  payload.intentId,
+                  payload.intentVersion,
+                  payload.items,
+                  {
+                    progress: 0,
+                    type: "Imported",
+                    priority: "medium",
+                    progressState: "todo",
+                    ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
+                  }
+                ).then((result) =>
+                  // reconcileIntentTasks returns a single CommandResult — normalise to the
+                  // same shape the batch-createTask path produces (one result per item)
+                  // so the rest of the success/failure handling code stays unchanged.
+                  payload.items.map(() => result)
+                )
+              : await Promise.all(
+                  items.map((item) => createTask(workspace.id, item))
+                );
             const successfulTaskIds = taskResults
               .filter((result) => result.success)
               .map((result) => result.aggregateId);

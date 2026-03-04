@@ -59,6 +59,13 @@ export interface DocumentParserItemsExtractedPayload {
   }>
   /** Skill requirements extracted from the document, forwarded to schedule proposals. */
   skillRequirements?: SkillRequirement[]
+  /**
+   * When this parse supersedes a prior intent, the old intent ID is forwarded so
+   * the import handler can reconcile existing tasks instead of creating duplicates [#A4].
+   * Tasks linked to the old intent that are still in `todo` state will be updated in-place;
+   * tasks in any other state (doing / blocked / completed / …) will get a new task created.
+   */
+  oldIntentId?: string
 }
 
 /**
