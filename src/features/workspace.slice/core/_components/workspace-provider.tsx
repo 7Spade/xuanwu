@@ -131,7 +131,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
       unsubTasks();
       unsubIssues();
     };
-  }, [workspaceId]);
+  }, [workspaceId, accountDispatch]);
 
   // Register Event Funnel — routes events from both buses to the Projection Layer
   // Also register Notification Router (FCM Layer 2) and Org Policy Cache

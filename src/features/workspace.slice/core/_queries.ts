@@ -24,9 +24,9 @@ import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils';
 import type { PartnerInvite } from '@/features/shared-kernel';
 
 import type { DailyLog } from '../business.daily/_types';
-import type { AuditLog } from '../gov.audit/_types';
 import type { WorkspaceIssue } from '../business.issues/_types';
 import type { WorkspaceTask } from '../business.tasks/_types';
+import type { AuditLog } from '../gov.audit/_types';
 
 import type { Workspace } from './_types';
 
