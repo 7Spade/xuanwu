@@ -447,7 +447,7 @@ function ConfirmedRow({ item, orgId, orgMembers }: ConfirmedRowProps) {
           <div className="flex items-start justify-between gap-2">
             <div className="flex flex-col gap-1.5">
               {item.requiredSkills?.map((req: SkillRequirement) => (
-                <div key={req.tagSlug} className="flex items-center gap-2">
+                <div key={req.tagSlug} className="flex items-center gap-1">
                   <Badge variant="secondary" className="text-[10px]">
                     {getSkillName(req.tagSlug)} × {req.quantity}
                   </Badge>
