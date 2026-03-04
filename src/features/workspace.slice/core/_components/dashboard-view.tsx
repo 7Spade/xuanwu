@@ -15,7 +15,6 @@ import { PageHeader } from "@/shared/ui/page-header"
 import { useApp } from "../_hooks/use-app"
 import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces"
 
-import { StatCards } from "./stat-cards"
 import { WorkspaceList } from "./workspace-list"
 
 
@@ -99,7 +98,6 @@ export function DashboardView() {
 
       {isOrganizationContext && (
         <>
-          <StatCards />
           <AccountGrid accounts={organizationsArray.filter((o) => o.id !== activeOrganization.id).slice(0, 3)} />
         </>
       )}

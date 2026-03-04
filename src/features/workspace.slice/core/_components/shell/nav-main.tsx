@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Users,
   Globe,
-  Settings,
   Grid3X3,
   Calendar,
   MessageSquare,
@@ -61,17 +60,6 @@ export function NavMain({ pathname, isOrganizationAccount, t }: NavMainProps) {
         </SidebarMenuButton>
       </SidebarMenuItem>
 
-      {!isOrganizationAccount && (
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild isActive={isPartiallyActive(ROUTES.ACCOUNT_SETTINGS)}>
-            <Link href={ROUTES.ACCOUNT_SETTINGS}>
-              <Settings />
-              <span className="font-semibold">{t("navigation.settings")}</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      )}
-
       {isOrganizationAccount && (
         <Collapsible asChild defaultOpen className="group/collapsible">
           <SidebarMenuItem>
@@ -88,7 +76,6 @@ export function NavMain({ pathname, isOrganizationAccount, t }: NavMainProps) {
                   { path: ROUTES.ACCOUNT_MEMBERS, icon: Users, label: t('navigation.members') },
                   { path: ROUTES.ACCOUNT_TEAMS, icon: Users, label: t('navigation.internalTeams') },
                   { path: ROUTES.ACCOUNT_PARTNERS, icon: Globe, label: t('navigation.partnerTeams') },
-                  { path: ROUTES.ACCOUNT_SETTINGS, icon: Settings, label: t('navigation.settings') },
                   { path: ROUTES.ACCOUNT_MATRIX, icon: Grid3X3, label: t('navigation.permissions') },
                   { path: ROUTES.ACCOUNT_SCHEDULE, icon: Calendar, label: t('navigation.schedule') },
                   { path: ROUTES.ACCOUNT_DAILY, icon: MessageSquare, label: t('navigation.daily') },
