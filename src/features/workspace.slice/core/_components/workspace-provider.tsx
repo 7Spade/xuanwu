@@ -43,6 +43,7 @@ import {
 } from '../_actions'
 import { useAccount } from '../_hooks/use-account';
 import { useApp } from '../_hooks/use-app';
+import { subscribeToWorkspaceTasks, subscribeToWorkspaceIssues } from '../_queries';
 
 import {
   applyWorkflowBlocked,
@@ -100,7 +101,7 @@ export type CreateScheduleItemInput = Omit<ScheduleItem, 'id' | 'createdAt' | 'u
 const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 
 export function WorkspaceProvider({ workspaceId, children }: { workspaceId: string, children: React.ReactNode }) {
-  const { state: accountState } = useAccount();
+  const { state: accountState, dispatch: accountDispatch } = useAccount();
   const { state: appState } = useApp();
   const { workspaces, auditLogs } = accountState;
   const { activeAccount } = appState;
@@ -114,6 +115,23 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   const [pendingParseFile, setPendingParseFile] = useState<FileSendToParserPayload | null>(null);
   const [workflowBlockers, setWorkflowBlockers] = useState<WorkflowBlockersState>({});
   const touchedWorkflowIdsRef = useRef<Set<string>>(new Set());
+
+  // Subscribe to workspace subcollections (tasks, issues) so that all views
+  // always reflect the current Firestore state without manual refreshes.
+  // Updates are dispatched into account state so the existing merge logic in
+  // SET_WORKSPACES continues to work correctly as the single source of truth.
+  useEffect(() => {
+    const unsubTasks = subscribeToWorkspaceTasks(workspaceId, (tasks) => {
+      accountDispatch({ type: 'SET_WORKSPACE_TASKS', payload: { workspaceId, tasks } });
+    });
+    const unsubIssues = subscribeToWorkspaceIssues(workspaceId, (issues) => {
+      accountDispatch({ type: 'SET_WORKSPACE_ISSUES', payload: { workspaceId, issues } });
+    });
+    return () => {
+      unsubTasks();
+      unsubIssues();
+    };
+  }, [workspaceId, accountDispatch]);
 
   // Register Event Funnel — routes events from both buses to the Projection Layer
   // Also register Notification Router (FCM Layer 2) and Org Policy Cache
