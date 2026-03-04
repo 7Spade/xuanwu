@@ -16,6 +16,7 @@ import {
   updateParsingIntentStatus as updateParsingIntentStatusFacade,
 } from '@/shared/infra/firestore/firestore.facade'
 import type { Timestamp } from '@/shared/ports'
+
 import type {
   ParsedLineItem,
   IntentID,
@@ -24,7 +25,7 @@ import type {
   ParsingImportStatus,
   ParsingIntentReviewStatus,
   ParsingIntentSourceType,
-} from '@/shared/types'
+} from './_types'
 
 export const INITIAL_PARSING_INTENT_VERSION = 1
 

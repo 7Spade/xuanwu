@@ -33,7 +33,7 @@ import {
   saveParsingIntent,
   startParsingImport,
 } from './_intent-actions'
-import type { IntentID } from '@/shared/types'
+import type { IntentID } from './_types'
 
 describe('workspace document-parser intent actions', () => {
   beforeEach(() => {
