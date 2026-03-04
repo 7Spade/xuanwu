@@ -4,6 +4,8 @@ export default defineConfig({
   output: {
     // 輸出檔案路徑
     filePath: "docs/ai/repomix-output.context.md",
+    // AI 自訂指令檔案，嵌入於輸出開頭，讓 AI 了解架構與使用規範
+    instructionFilePath: "repomix-instruction.md",
     // 輸出格式：'markdown' 對 Copilot 的代碼塊識別效果最好
     style: "markdown",
     // 移除代碼註解，大幅節省 Token

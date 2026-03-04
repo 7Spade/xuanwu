@@ -22,20 +22,21 @@ jobs:
         with:
           node-version: '20'
 
-      # 步驟 1：執行你的 Skill 生成命令
+      # 步驟 1：執行 Skill 生成命令（使用本地 checkout，不透過 --remote）
+      # --force 在 CI 中為必要：自動覆寫舊 skills 檔案，避免互動式確認阻塞流程
       - name: Generate Xuanwu Skill
         run: |
           mkdir -p ./skills
-          npx repomix --remote 7Spade/xuanwu --skill-generate xuanwu-skill --skill-output ./skills --force
+          npx repomix --skill-generate xuanwu-skill --skill-output ./skills --force
 
-      # 步驟 2：執行全專案打包 (會讀取你的 repomix.config.ts)
+      # 步驟 2：執行全專案打包 (會讀取你的 repomix.config.ts，輸出至 docs/ai/repomix-output.context.md)
       - name: Run Repomix Pack
         run: npx repomix
 
-      # 步驟 3：將產出的 md 與 skills 目錄一併提交回倉庫
+      # 步驟 3：將產出的 context md 與 skills 目錄一併提交回倉庫
       - name: Commit and Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: update skills and context [skip ci]"
-          # 關鍵：確保包含 skills 資料夾與 output 檔案
-          file_pattern: 'repomix-output.md ./skills/*'
+          # 包含 skills 資料夾與實際輸出路徑
+          file_pattern: 'docs/ai/repomix-output.context.md skills/**'
