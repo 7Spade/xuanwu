@@ -142,7 +142,6 @@ export { TOKEN_REFRESH_SIGNAL, CLIENT_TOKEN_REFRESH_OBLIGATION } from './token-r
 export { TAG_CATEGORIES, tagSlugRef, onTagEvent } from './tag-authority';
 export type {
   TagCategory,
-  TagDeleteRule,
   TagSlugRef,
   TagCreatedPayload,
   TagUpdatedPayload,
@@ -153,6 +152,14 @@ export type {
   ITagReadPort,
   ImplementsTagStaleGuard,
 } from './tag-authority';
+
+// ─── 🏷️ Centralized Tag Aggregate [#A6][#17][D8][D21] ────────────────────────
+// CentralizedTagEntry and publishTagEvent are needed by the sole write authority
+// (semantic-graph.slice/centralized-tag/_actions.ts). Export here so consumers
+// satisfy D7 (import via slice barrel, not sub-path).
+
+export { publishTagEvent } from './centralized-tag';
+export type { CentralizedTagEntry, TagDeleteRule } from './centralized-tag';
 
 // ─── 🔍 Semantic Primitives (VS8/VS9/VS7) [D19][D21][D26] ────────────────────
 

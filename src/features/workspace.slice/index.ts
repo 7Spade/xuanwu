@@ -49,7 +49,6 @@ export {
   useAccount,
   ThemeAdapter,
   Header,
-  GlobalSearch,
   NotificationCenter,
   AccountSwitcher,
   AccountCreateDialog,

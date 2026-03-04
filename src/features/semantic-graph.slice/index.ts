@@ -86,4 +86,4 @@ export {
   deleteTag,
   getTag,
 } from './centralized-tag/_actions';
-export type { CentralizedTagEntry, TagDeleteRule } from '@/features/shared-kernel/centralized-tag';
+export type { CentralizedTagEntry, TagDeleteRule } from '@/features/shared-kernel';

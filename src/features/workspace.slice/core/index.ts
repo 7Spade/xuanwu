@@ -30,8 +30,6 @@ export { useAccount } from './_hooks/use-account'
 // Shell
 export { ThemeAdapter } from './_components/shell/theme-adapter'
 export { Header } from './_components/shell/header'
-// GlobalSearch is owned by global-search.slice [D26]; re-exported here for backward compatibility
-export { GlobalSearch } from '@/features/global-search.slice'
 export { NotificationCenter } from './_components/shell/notification-center'
 export { AccountSwitcher } from './_components/shell/account-switcher'
 export { AccountCreateDialog } from './_components/shell/account-create-dialog'

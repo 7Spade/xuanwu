@@ -21,7 +21,7 @@
 import type {
   NotificationChannel,
   NotificationPriority,
-} from '@/features/shared-kernel/semantic-primitives';
+} from '@/features/shared-kernel';
 
 // ─── Tag-Aware Routing ────────────────────────────────────────────────────────
 
