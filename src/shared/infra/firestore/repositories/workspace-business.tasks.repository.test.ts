@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { WorkspaceTask } from '@/shared/types';
+import type { WorkspaceTask } from '@/features/workspace.slice';
 
 const { mockServerTimestamp, mockUpdateDocument } = vi.hoisted(() => ({
   mockServerTimestamp: vi.fn(() => '__SERVER_TIMESTAMP__'),

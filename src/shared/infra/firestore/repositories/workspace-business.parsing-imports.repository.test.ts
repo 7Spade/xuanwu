@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ParsingImport } from '@/shared/types';
+import type { ParsingImport } from '@/features/workspace.slice';
 
 const {
   mockServerTimestamp,

@@ -11,7 +11,10 @@ import {
 } from '@/features/scheduling.slice'
 import type { CommandResult, ScheduleItem } from '@/features/shared-kernel';
 import { firestoreTimestampToISO } from '@/shared/shadcn-ui/utils/utils';
-import { type Workspace, type AuditLog, type WorkspaceTask, type WorkspaceRole, type Capability, type WorkspaceLifecycleState, type Address, type WorkspacePersonnel } from '@/shared/types';
+import { type Workspace, type Capability, type WorkspaceLifecycleState, type Address, type WorkspacePersonnel } from '../_types';
+import type { AuditLog } from '../../gov.audit/_types';
+import type { WorkspaceTask } from '../../business.tasks/_types';
+import type { WorkspaceRole } from '../../gov.role/_types';
 
 import { registerOrgPolicyCache, runTransaction } from '../../application';
 import {

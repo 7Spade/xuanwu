@@ -12,7 +12,7 @@ import { versionGuardAllows } from '@/features/shared-kernel';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import type { Workspace } from '@/shared/types';
+import type { Workspace } from '@/features/workspace.slice';
 
 export interface WorkspaceViewRecord {
   workspaceId: string;

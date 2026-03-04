@@ -13,6 +13,16 @@ export { WorkspaceListHeader } from './_components/workspace-list-header'
 export { WorkspaceProvider, useWorkspace } from './_components/workspace-provider'
 export { AppProvider, AppContext } from './_components/app-provider'
 export type { AppAction } from './_components/app-provider'
+// Types
+export type {
+  Workspace,
+  WorkspaceLifecycleState,
+  WorkspacePersonnel,
+  CapabilitySpec,
+  Capability,
+  Address,
+  WorkspaceLocation,
+} from './_types'
 export { AccountProvider, AccountContext } from './_components/account-provider'
 export { StatCards } from './_components/stat-cards'
 // Hooks

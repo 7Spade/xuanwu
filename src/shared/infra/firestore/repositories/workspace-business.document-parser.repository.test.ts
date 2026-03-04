@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-import type { IntentID, ParsingIntent } from '@/shared/types';
+import type { IntentID, ParsingIntent } from '@/features/workspace.slice';
 
 const { mockAddDocument, mockServerTimestamp } = vi.hoisted(() => ({
   mockAddDocument: vi.fn(),

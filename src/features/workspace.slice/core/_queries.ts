@@ -21,12 +21,10 @@ import {
   where,
 } from '@/shared/infra/firestore/firestore.read.adapter';
 import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils';
-import type {
-  AuditLog,
-  DailyLog,
-  PartnerInvite,
-  Workspace,
-} from '@/shared/types';
+import type { PartnerInvite } from '@/shared/types';
+import type { Workspace } from './_types';
+import type { AuditLog } from '../gov.audit/_types';
+import type { DailyLog } from '../business.daily/_types';
 
 // ---------------------------------------------------------------------------
 // Account-scoped subscriptions

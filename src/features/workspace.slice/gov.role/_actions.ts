@@ -21,7 +21,7 @@ import {
   grantIndividualWorkspaceAccess,
   revokeIndividualWorkspaceAccess,
 } from '@/shared/infra/firestore/firestore.facade';
-import type { WorkspaceRole } from '@/shared/types';
+import type { WorkspaceRole } from './_types';
 
 export interface AssignWorkspaceRoleInput {
   workspaceId: string;

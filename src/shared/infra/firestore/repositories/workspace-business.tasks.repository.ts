@@ -15,7 +15,7 @@ import {
   getDoc,
 } from 'firebase/firestore';
 
-import type { WorkspaceTask } from '@/shared/types';
+import type { WorkspaceTask } from '@/features/workspace.slice';
 
 import { db } from '../firestore.client';
 import { createConverter } from '../firestore.converter';

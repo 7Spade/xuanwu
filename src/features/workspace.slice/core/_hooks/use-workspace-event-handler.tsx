@@ -172,7 +172,7 @@ export function useWorkspaceEventHandler() {
           .then(async (startResult) => {
             if (startResult.isDuplicate) {
               const isTerminalStatus = PARSING_IMPORT_TERMINAL_STATUSES.includes(
-                startResult.status
+                startResult.status as typeof PARSING_IMPORT_TERMINAL_STATUSES[number]
               );
               if (isTerminalStatus) {
                 toast({

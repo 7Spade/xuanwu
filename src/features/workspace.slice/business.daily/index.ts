@@ -14,3 +14,5 @@ export { useDailyUpload } from './_hooks/use-daily-upload'
 export { default } from './_components/daily.view'
 // Queries (read-only)
 export { getDailyLogs } from './_queries'
+// Types
+export type { DailyLogComment, DailyLog } from './_types'

@@ -16,7 +16,7 @@ import {
   orderBy,
 } from 'firebase/firestore';
 
-import type { ParsingIntent } from '@/shared/types';
+import type { ParsingIntent } from '@/features/workspace.slice';
 
 import { SUBCOLLECTIONS } from '../collection-paths';
 import { db } from '../firestore.client';

@@ -8,7 +8,7 @@
 
 import { useState, useEffect } from 'react';
 
-import type { WorkspaceGrant } from '@/shared/types';
+import type { WorkspaceGrant } from '../_types';
 
 import { getWorkspaceGrant } from '../_queries';
 

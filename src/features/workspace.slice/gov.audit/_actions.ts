@@ -14,7 +14,7 @@
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
 import type { CommandResult } from '@/features/shared-kernel';
 import { addDocument, serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
-import type { AuditLog } from '@/shared/types';
+import type { AuditLog } from './_types';
 
 export interface WriteAuditLogInput {
   accountId: string;

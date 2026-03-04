@@ -69,6 +69,16 @@ export {
   WorkspaceLocationsPanel,
 } from './core'
 export type { AppAction } from './core'
+// Core workspace-domain types
+export type {
+  Workspace,
+  WorkspaceLifecycleState,
+  WorkspacePersonnel,
+  CapabilitySpec,
+  Capability,
+  Address,
+  WorkspaceLocation,
+} from './core'
 
 // ─── core.event-bus ──────────────────────────────────────────────────────────
 export {
@@ -143,7 +153,7 @@ export {
   getWorkspaceGrants,
   useWorkspaceRole,
 } from './gov.role'
-export type { AssignWorkspaceRoleInput, RevokeWorkspaceRoleInput } from './gov.role'
+export type { AssignWorkspaceRoleInput, RevokeWorkspaceRoleInput, WorkspaceGrant } from './gov.role'
 
 // ─── gov.audit ───────────────────────────────────────────────────────────────
 export {
@@ -160,7 +170,7 @@ export {
   useLogger,
   getAuditLogs,
 } from './gov.audit'
-export type { WriteAuditLogInput } from './gov.audit'
+export type { WriteAuditLogInput, AuditLogType, AuditLog } from './gov.audit'
 export { default as AccountAuditView } from './gov.audit'
 
 // ─── gov.audit-convergence ───────────────────────────────────────────────────
@@ -186,6 +196,7 @@ export {
   uploadRawFile,
   subscribeToWorkspaceFiles,
 } from './business.files'
+export type { WorkspaceFileVersion, WorkspaceFile } from './business.files'
 
 // ─── business.document-parser ────────────────────────────────────────────────
 export {
@@ -193,6 +204,16 @@ export {
   saveParsingIntent,
   markParsingIntentImported,
   subscribeToParsingIntents,
+} from './business.document-parser'
+export type {
+  IntentID,
+  SourcePointer,
+  ParsedLineItem,
+  ParsingIntentSourceType,
+  ParsingIntentReviewStatus,
+  ParsingIntent,
+  ParsingImportStatus,
+  ParsingImport,
 } from './business.document-parser'
 
 // ─── business.parsing-intent ─────────────────────────────────────────────────
@@ -219,6 +240,7 @@ export {
   getWorkspaceTasks,
   getWorkspaceTask,
 } from './business.tasks'
+export type { Location, WorkspaceTask, TaskWithChildren } from './business.tasks'
 
 // ─── business.daily ──────────────────────────────────────────────────────────
 export {
@@ -234,6 +256,7 @@ export {
   useDailyUpload,
   getDailyLogs,
 } from './business.daily'
+export type { DailyLogComment, DailyLog } from './business.daily'
 export { default as AccountDailyView } from './business.daily'
 
 // ─── business.workflow ───────────────────────────────────────────────────────
@@ -269,6 +292,7 @@ export {
   addCommentToIssue,
   resolveIssue,
 } from './business.issues'
+export type { IssueComment, WorkspaceIssue } from './business.issues'
 
 // ─── domain rules ────────────────────────────────────────────────────────────
 export {

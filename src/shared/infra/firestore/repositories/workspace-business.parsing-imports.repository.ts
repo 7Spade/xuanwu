@@ -15,7 +15,7 @@ import {
   limit,
 } from 'firebase/firestore';
 
-import type { ParsingImport, ParsingImportStatus } from '@/shared/types';
+import type { ParsingImport, ParsingImportStatus } from '@/features/workspace.slice';
 
 import { SUBCOLLECTIONS } from '../collection-paths';
 import { db } from '../firestore.client';

@@ -20,7 +20,7 @@ import {
   type FieldValue,
 } from 'firebase/firestore'
 
-import type { DailyLog, DailyLogComment } from '@/shared/types'
+import type { DailyLog, DailyLogComment } from '@/features/workspace.slice'
 
 import { db } from '../firestore.client'
 import { createConverter } from '../firestore.converter'

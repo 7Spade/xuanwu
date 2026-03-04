@@ -16,3 +16,5 @@ export { default } from './_components/audit.view'
 export { useLogger } from './_hooks/use-logger'
 // Queries (read-only)
 export { getAuditLogs } from './_queries'
+// Types
+export type { AuditLogType, AuditLog } from './_types'

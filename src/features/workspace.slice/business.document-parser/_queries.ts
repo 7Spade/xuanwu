@@ -11,7 +11,7 @@
 import { SUBCOLLECTIONS } from '@/shared/infra/firestore/collection-paths';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { ParsingIntent } from '@/shared/types';
+import type { ParsingIntent } from './_types';
 
 /**
  * Opens a real-time listener on the workspace parsingIntents subcollection.

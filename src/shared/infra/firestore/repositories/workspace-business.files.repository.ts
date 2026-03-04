@@ -15,7 +15,7 @@ import {
   type FieldValue,
 } from 'firebase/firestore';
 
-import type { WorkspaceFile, WorkspaceFileVersion } from '@/shared/types';
+import type { WorkspaceFile, WorkspaceFileVersion } from '@/features/workspace.slice';
 
 import { db } from '../firestore.client';
 import { createConverter } from '../firestore.converter';

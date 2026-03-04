@@ -5,7 +5,10 @@ import {type ReactNode} from 'react';
 import { createContext, useReducer, useEffect } from 'react';
 
 import type { ScheduleItem } from '@/features/shared-kernel';
-import { type Workspace, type DailyLog, type AuditLog, type PartnerInvite } from '@/shared/types';
+import { type Workspace } from '../_types';
+import type { DailyLog } from '../../business.daily/_types';
+import type { AuditLog } from '../../gov.audit/_types';
+import { type PartnerInvite } from '@/shared/types';
 
 import { useApp } from '../_hooks/use-app';
 import {

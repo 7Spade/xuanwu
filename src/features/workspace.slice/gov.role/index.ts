@@ -13,3 +13,5 @@ export type { AssignWorkspaceRoleInput, RevokeWorkspaceRoleInput } from './_acti
 export { getWorkspaceGrant, getWorkspaceGrants } from './_queries';
 
 export { useWorkspaceRole } from './_hooks/use-workspace-role';
+// Types
+export type { WorkspaceRole, WorkspaceGrant } from './_types';

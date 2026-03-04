@@ -1,12 +1,3 @@
-import type { WorkspaceTask } from './workspace.types'
-
-// ---------------------------------------------------------------------------
-// Derived / computed task types (used by buildTaskTree in shared/lib/task)
-// ---------------------------------------------------------------------------
-
-export type TaskWithChildren = WorkspaceTask & {
-  children: TaskWithChildren[];
-  descendantSum: number;
-  wbsNo: string;
-  progress: number;
-}
+// Thin re-export stub — task types have moved to @/features/workspace.slice.
+// This file is kept for backward compatibility with existing @/shared/types imports.
+export type { TaskWithChildren } from '@/features/workspace.slice'

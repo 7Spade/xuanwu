@@ -1,21 +1,3 @@
-import type { Timestamp } from '@/shared/ports'
-
-export type AuditLogType = 'create' | 'update' | 'delete' | 'security';
-
-export interface AuditLog {
-  id: string;
-  accountId: string;
-  workspaceId?: string;
-  workspaceName?: string;
-  recordedAt: Timestamp; // Event Timestamp
-  actor: string;
-  actorId?: string;
-  action: string;
-  target: string;
-  type: AuditLogType;
-  metadata?: {
-    before?: unknown;
-    after?: unknown;
-    ip?: string;
-  };
-}
+// Thin re-export stub — audit types have moved to @/features/workspace.slice.
+// This file is kept for backward compatibility with existing @/shared/types imports.
+export type { AuditLogType, AuditLog } from '@/features/workspace.slice'

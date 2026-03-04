@@ -9,7 +9,7 @@ import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
 import { useToast } from '@/shared/shadcn-ui/hooks/use-toast';
-import type { SourcePointer, ParsingIntent } from '@/shared/types';
+import type { SourcePointer, ParsingIntent } from '../_types';
 
 import { persistWorkspaceOutboxEvent } from '../../application/_outbox';
 import { useWorkspace } from '../../core';

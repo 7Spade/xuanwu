@@ -15,7 +15,7 @@ import {
   type FieldValue,
 } from 'firebase/firestore';
 
-import type { WorkspaceIssue, IssueComment } from '@/shared/types';
+import type { WorkspaceIssue, IssueComment } from '@/features/workspace.slice';
 
 import { db } from '../firestore.client';
 import { createConverter } from '../firestore.converter';

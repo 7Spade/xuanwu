@@ -19,6 +19,14 @@ export interface ParsedLineItem {
   subtotal: number;
 }
 
+export type ParsingIntentSourceType = 'ai' | 'human' | 'system';
+
+export type ParsingIntentReviewStatus =
+  | 'not_required'
+  | 'pending_review'
+  | 'approved'
+  | 'rejected';
+
 export interface ParsingIntent {
   /** Branded ID — use `IntentID` cast when constructing references. */
   id: IntentID;
@@ -31,10 +39,23 @@ export interface ParsingIntent {
   intentVersion: number;
   /** Old intent points to the newer intent that superseded it. */
   supersededByIntentId?: IntentID;
+  /** Optional lineage root for multi-version intent chains. */
+  baseIntentId?: IntentID;
   lineItems: ParsedLineItem[];
   /** Skill requirements extracted from the document — fed to organization.schedule proposals. */
   skillRequirements?: SkillRequirement[];
-  status: 'pending' | 'imported' | 'superseded' | 'failed';
+  /** Provenance metadata for AI/human/system origin tracing. */
+  parserVersion?: string;
+  modelVersion?: string;
+  sourceType: ParsingIntentSourceType;
+  /** Human-in-the-loop review metadata. */
+  reviewStatus: ParsingIntentReviewStatus;
+  reviewedBy?: string;
+  reviewedAt?: Timestamp;
+  /** SHA-256 hash for immutable semantic snapshot verification. */
+  semanticHash?: string;
+  /** Lifecycle (unidirectional): pending -> importing (import start) -> imported (all task writes succeed); importing -> failed (materialization error); any non-terminal intent -> superseded (newer intent replaces it). */
+  status: 'pending' | 'importing' | 'imported' | 'superseded' | 'failed';
   createdAt: Timestamp;
   importedAt?: Timestamp;
 }

@@ -28,7 +28,7 @@ import {
 } from '@/shared/shadcn-ui/dialog';
 import { Input } from '@/shared/shadcn-ui/input';
 import { Label } from '@/shared/shadcn-ui/label';
-import type { WorkspaceLocation } from '@/shared/types';
+import type { WorkspaceLocation } from '../_types';
 import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 
 import { createWorkspaceLocation, updateWorkspaceLocation, deleteWorkspaceLocation } from '../_actions';

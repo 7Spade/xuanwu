@@ -3,3 +3,5 @@ export { WorkspaceTasks } from './_components/tasks-view'
 export { createTask, updateTask, deleteTask, batchImportTasks } from './_actions'
 // Queries (read-only)
 export { getWorkspaceTasks, getWorkspaceTask } from './_queries'
+// Types
+export type { Location, WorkspaceTask, TaskWithChildren } from './_types'

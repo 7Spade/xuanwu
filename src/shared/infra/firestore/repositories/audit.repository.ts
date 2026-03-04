@@ -13,7 +13,7 @@ import {
   where,
 } from 'firebase/firestore'
 
-import type { AuditLog } from '@/shared/types'
+import type { AuditLog } from '@/features/workspace.slice'
 
 import { db } from '../firestore.client'
 import { createConverter } from '../firestore.converter'

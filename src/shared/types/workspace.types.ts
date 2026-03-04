@@ -1,249 +1,27 @@
-export type WorkspaceRole = 'Manager' | 'Contributor' | 'Viewer';
-export type WorkspaceLifecycleState = 'preparatory' | 'active' | 'stopped';
-
-import type { Timestamp } from '@/shared/ports'
-
-import type { SkillRequirement } from './skill.types'
-
-// =================================================================
-// Brand Types — nominal type safety for cross-module references
-// =================================================================
-
-/** Branded ID for a ParsingIntent document — prevents mixing with plain strings. */
-export type IntentID = string & { readonly _brand: 'IntentID' }
-
-/** Branded pointer to a source file download URL — immutable contract anchor. */
-export type SourcePointer = string & { readonly _brand: 'SourcePointer' }
-
-/** Designated role-holders for a workspace (經理/督導/安衛). */
-export interface WorkspacePersonnel {
-  managerId?: string;
-  supervisorId?: string;
-  safetyOfficerId?: string;
-}
-
-export interface Workspace {
-  id: string;
-  dimensionId: string; // The ID of the User or Organization this workspace belongs to.
-  name: string;
-  lifecycleState: WorkspaceLifecycleState;
-  visibility: 'visible' | 'hidden';
-  scope: string[];
-  protocol: string; // Default protocol template
-  capabilities: Capability[];
-  grants: WorkspaceGrant[];
-  teamIds: string[];
-  tasks?: Record<string, WorkspaceTask>;
-  issues?: Record<string, WorkspaceIssue>;
-  files?: Record<string, WorkspaceFile>;
-  address?: Address; // The physical address of the entire workspace.
-  /** Sub-locations within this workspace (廠區子地點). FR-L1. */
-  locations?: WorkspaceLocation[];
-  /** Designated role-holders (經理 | 督導 | 安衛). */
-  personnel?: WorkspacePersonnel;
-  createdAt: Timestamp;
-}
-
-export interface WorkspaceGrant {
-  grantId: string;
-  userId: string;
-  role: WorkspaceRole;
-  protocol: string; // Strategy Definition, immutable
-  status: 'active' | 'revoked' | 'expired';
-  grantedAt: Timestamp; // Event Timestamp
-  revokedAt?: Timestamp; // Event Timestamp
-  expiresAt?: Timestamp; // State Boundary
-}
-
-export interface CapabilitySpec {
-  id: string;
-  name: string;
-  type: 'ui' | 'api' | 'data' | 'governance' | 'monitoring';
-  status: 'stable' | 'beta';
-  description: string;
-}
-
-export interface Capability extends CapabilitySpec {
-  config?: object;
-}
-
-export interface Address {
-  street: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  details?: string;
-}
-
-/**
- * WorkspaceLocation — a sub-location within a workspace (廠區子地點).
- * Per docs/prd-schedule-workforce-skills.md FR-L1/FR-L2/FR-L3.
- * Workspace OWNER can create/edit/delete sub-locations.
- */
-export interface WorkspaceLocation {
-  locationId: string;
-  label: string;        // e.g. "A棟 2F 東北角", "主會議室"
-  description?: string;
-  capacity?: number;    // max number of people (optional)
-}
-
-export interface Location {
-  building?: string; // 棟
-  floor?: string;    // 樓
-  room?: string;     // 室
-  description: string; // 一個自由文本欄位，用於描述更精確的位置，如 "主會議室" 或 "東北角機房"
-}
-
-// Workspace sub-collection types — all stored under workspaces/{id}/...
-
-export interface WorkspaceTask {
-  id: string;
-  name: string;
-  description?: string;
-  progressState: 'todo' | 'doing' | 'blocked' | 'completed' | 'verified' | 'accepted';
-  priority: 'low' | 'medium' | 'high';
-  type?: string;
-  progress?: number;
-  quantity?: number;
-  completedQuantity?: number;
-  unitPrice?: number;
-  unit?: string;
-  discount?: number;
-  subtotal: number;
-  parentId?: string;
-  assigneeId?: string;
-  dueDate?: Timestamp; // Firestore Timestamp
-  photoURLs?: string[];
-  location?: Location; // The specific place within the workspace address.
-  sourceIntentId?: string; // SourcePointer —唯讀引用 ParsingIntent（Digital Twin）
-  /** Skill requirements for this task — [TE_SK] tag::skill anchor for VS6 eligibility checks [#A4]. */
-  requiredSkills?: SkillRequirement[];
-  /** [S2] Monotonic version counter for optimistic concurrency control. */
-  aggregateVersion?: number;
-  createdAt: Timestamp;
-  updatedAt?: Timestamp;
-  [key: string]: unknown;
-}
-
-export interface IssueComment {
-  id: string;
-  author: string;
-  content: string;
-  createdAt: Timestamp; // Firestore Timestamp
-}
-
-export interface WorkspaceIssue {
-  id: string;
-  title: string;
-  type: 'technical' | 'financial';
-  priority: 'high' | 'medium';
-  issueState: 'open' | 'closed';
-  /** SourcePointer to the A-track task that triggered this B-track issue. */
-  sourceTaskId?: string;
-  createdAt: Timestamp;
-  comments?: IssueComment[];
-}
-
-export interface WorkspaceFileVersion {
-  versionId: string;
-  versionNumber: number;
-  versionName: string;
-  size: number;
-  uploadedBy: string;
-  createdAt: Timestamp | Date; // Can be Date for client-side, becomes Timestamp on server
-  downloadURL: string;
-}
-
-export interface WorkspaceFile {
-  id: string;
-  name: string;
-  type: string;
-  currentVersionId: string;
-  updatedAt: Timestamp | Date; // Can be Date for client-side, becomes Timestamp on server
-  versions: WorkspaceFileVersion[];
-}
-
-// =================================================================
-// ParsingIntent — Digital Twin 解析合約
-// 由 workspace-business.document-parser 產出，唯讀合約供 tasks 引用
-// =================================================================
-
-export interface ParsedLineItem {
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  discount?: number;
-  subtotal: number;
-}
-
-export type ParsingIntentSourceType = 'ai' | 'human' | 'system';
-
-export type ParsingIntentReviewStatus =
-  | 'not_required'
-  | 'pending_review'
-  | 'approved'
-  | 'rejected';
-
-export interface ParsingIntent {
-  /** Branded ID — use `IntentID` cast when constructing references. */
-  id: IntentID;
-  workspaceId: string;
-  sourceFileName: string;
-  /** Immutable pointer to the original file in Firebase Storage. */
-  sourceFileDownloadURL?: SourcePointer;
-  /** Reference to the WorkspaceFile document that was parsed (for full traceability). */
-  sourceFileId?: string;
-  intentVersion: number;
-  /** Old intent points to the newer intent that superseded it. */
-  supersededByIntentId?: IntentID;
-  /** Optional lineage root for multi-version intent chains. */
-  baseIntentId?: IntentID;
-  lineItems: ParsedLineItem[];
-  /** Skill requirements extracted from the document — fed to organization.schedule proposals. */
-  skillRequirements?: SkillRequirement[];
-  /** Provenance metadata for AI/human/system origin tracing. */
-  parserVersion?: string;
-  modelVersion?: string;
-  sourceType: ParsingIntentSourceType;
-  /** Human-in-the-loop review metadata. */
-  reviewStatus: ParsingIntentReviewStatus;
-  reviewedBy?: string;
-  reviewedAt?: Timestamp;
-  /** SHA-256 hash for immutable semantic snapshot verification. */
-  semanticHash?: string;
-  /** Lifecycle (unidirectional): pending -> importing (import start) -> imported (all task writes succeed); importing -> failed (materialization error); any non-terminal intent -> superseded (newer intent replaces it). */
-  status: 'pending' | 'importing' | 'imported' | 'superseded' | 'failed';
-  createdAt: Timestamp;
-  importedAt?: Timestamp;
-}
-
-/**
- * ParsingImport tracks one intent materialization execution.
- * status transitions: started -> applied | partial | failed.
- */
-export type ParsingImportStatus =
-  /** Initial state when intent materialization starts. */
-  | 'started'
-  /** Terminal success state: all task writes were applied. */
-  | 'applied'
-  /** Terminal partial state: some task writes applied, some failed. */
-  | 'partial'
-  /** Terminal failure state: materialization failed. */
-  | 'failed';
-
-export interface ParsingImport {
-  id: string;
-  workspaceId: string;
-  intentId: IntentID;
-  intentVersion: number;
-  idempotencyKey: string;
-  status: ParsingImportStatus;
-  appliedTaskIds: string[];
-  startedAt: Timestamp;
-  completedAt?: Timestamp;
-  error?: {
-    code: string;
-    message: string;
-  };
-}
+// Thin re-export stub — workspace domain types have moved to @/features/workspace.slice.
+// This file is kept for backward compatibility with existing @/shared/types imports.
+export type {
+  WorkspaceRole,
+  WorkspaceLifecycleState,
+  WorkspacePersonnel,
+  Workspace,
+  WorkspaceGrant,
+  CapabilitySpec,
+  Capability,
+  Address,
+  WorkspaceLocation,
+  Location,
+  WorkspaceTask,
+  IssueComment,
+  WorkspaceIssue,
+  WorkspaceFileVersion,
+  WorkspaceFile,
+  IntentID,
+  SourcePointer,
+  ParsedLineItem,
+  ParsingIntentSourceType,
+  ParsingIntentReviewStatus,
+  ParsingIntent,
+  ParsingImportStatus,
+  ParsingImport,
+} from '@/features/workspace.slice'

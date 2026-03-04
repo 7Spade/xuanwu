@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { WorkspaceTask } from '@/shared/types';
+import type { WorkspaceTask } from './_types';
 
 import { updateTask } from './_actions';
 

@@ -21,7 +21,7 @@ import {
   restoreWorkspaceFileVersion as restoreVersionFacade,
 } from '@/shared/infra/firestore/firestore.facade';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
-import type { WorkspaceFile, WorkspaceFileVersion } from '@/shared/types';
+import type { WorkspaceFile, WorkspaceFileVersion } from './_types';
 
 export type CreateWorkspaceFileInput = Omit<WorkspaceFile, 'id' | 'updatedAt'>;
 

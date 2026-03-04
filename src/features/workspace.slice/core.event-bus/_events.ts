@@ -23,11 +23,13 @@ export interface WorkspaceTaskScheduleRequestedPayload {
 export interface QualityAssuranceRejectedPayload {
   task: WorkspaceTask
   rejectedBy: string
+  traceId?: string
 }
 
 export interface WorkspaceAcceptanceFailedPayload {
   task: WorkspaceTask
   rejectedBy: string
+  traceId?: string
 }
 
 export interface WorkspaceQualityAssuranceApprovedPayload {

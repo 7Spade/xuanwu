@@ -5,7 +5,8 @@
  */
 
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { Workspace, WorkspaceGrant } from '@/shared/types';
+import type { Workspace } from '../core/_types';
+import type { WorkspaceGrant } from './_types';
 
 /**
  * Returns the workspace grant for a specific user.

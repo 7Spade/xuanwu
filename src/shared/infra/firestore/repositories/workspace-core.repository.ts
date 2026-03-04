@@ -16,6 +16,7 @@ import {
   type FieldValue,
 } from 'firebase/firestore';
 
+import type { Account } from '@/shared/types';
 import type {
   Workspace,
   WorkspaceRole,
@@ -23,11 +24,10 @@ import type {
   WorkspaceFile,
   Capability,
   WorkspaceLifecycleState,
-  Account,
   WorkspaceLocation,
   Address,
   WorkspacePersonnel,
-} from '@/shared/types';
+} from '@/features/workspace.slice';
 
 import { db } from '../firestore.client';
 import {

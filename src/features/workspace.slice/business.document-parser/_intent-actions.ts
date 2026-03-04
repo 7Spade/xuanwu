@@ -6,6 +6,7 @@
  * during task materialization.
  */
 
+import type { Timestamp } from '@/shared/ports'
 import type { SkillRequirement } from '@/features/shared-kernel'
 import {
   createParsingImport as createParsingImportFacade,
@@ -22,7 +23,7 @@ import type {
   ParsingImportStatus,
   ParsingIntentReviewStatus,
   ParsingIntentSourceType,
-} from '@/shared/types'
+} from './_types'
 
 export const INITIAL_PARSING_INTENT_VERSION = 1
 
@@ -120,7 +121,7 @@ export async function saveParsingIntent(
     sourceType?: ParsingIntentSourceType
     reviewStatus?: ParsingIntentReviewStatus
     reviewedBy?: string
-    reviewedAt?: Date
+    reviewedAt?: Timestamp
     semanticHash?: string
     baseIntentId?: IntentID
   }
