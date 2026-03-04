@@ -14,6 +14,7 @@ import { firestoreTimestampToISO } from '@/shared/shadcn-ui/utils/utils';
 import type { Workspace, WorkspaceLifecycleState, Capability, Address, WorkspacePersonnel } from '../_types';
 import type { AuditLog } from '../../gov.audit/_types';
 import type { WorkspaceTask } from '../../business.tasks/_types';
+import type { WorkspaceIssue } from '../../business.issues/_types';
 import type { WorkspaceRole } from '../../gov.role/_types';
 
 import { registerOrgPolicyCache, runTransaction } from '../../application';
@@ -43,6 +44,7 @@ import {
 } from '../_actions'
 import { useAccount } from '../_hooks/use-account';
 import { useApp } from '../_hooks/use-app';
+import { subscribeToWorkspaceTasks, subscribeToWorkspaceIssues } from '../_queries';
 
 import {
   applyWorkflowBlocked,
@@ -114,6 +116,21 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   const [pendingParseFile, setPendingParseFile] = useState<FileSendToParserPayload | null>(null);
   const [workflowBlockers, setWorkflowBlockers] = useState<WorkflowBlockersState>({});
   const touchedWorkflowIdsRef = useRef<Set<string>>(new Set());
+
+  // Live subcollection subscriptions — hydrate workspace.tasks and workspace.issues
+  // from Firestore in real time so all views (Tasks, QA, Acceptance, Finance, Issues)
+  // always reflect the current state without a page reload.
+  const [liveTasks, setLiveTasks] = useState<Record<string, WorkspaceTask>>({});
+  const [liveIssues, setLiveIssues] = useState<Record<string, WorkspaceIssue>>({});
+
+  useEffect(() => {
+    const unsubTasks = subscribeToWorkspaceTasks(workspaceId, setLiveTasks);
+    const unsubIssues = subscribeToWorkspaceIssues(workspaceId, setLiveIssues);
+    return () => {
+      unsubTasks();
+      unsubIssues();
+    };
+  }, [workspaceId]);
 
   // Register Event Funnel — routes events from both buses to the Projection Layer
   // Also register Notification Router (FCM Layer 2) and Org Policy Cache
@@ -289,7 +306,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   }
 
   const value: WorkspaceContextType = {
-    workspace,
+    workspace: { ...workspace, tasks: liveTasks, issues: liveIssues },
     localAuditLogs,
     logAuditEvent,
     eventBus,

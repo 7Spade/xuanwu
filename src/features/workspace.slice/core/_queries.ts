@@ -25,6 +25,8 @@ import type { PartnerInvite } from '@/features/shared-kernel';
 
 import type { DailyLog } from '../business.daily/_types';
 import type { AuditLog } from '../gov.audit/_types';
+import type { WorkspaceTask } from '../business.tasks/_types';
+import type { WorkspaceIssue } from '../business.issues/_types';
 
 import type { Workspace } from './_types';
 
@@ -107,4 +109,38 @@ export function subscribeToWorkspacesForAccount(
     where('dimensionId', '==', dimensionId),
   );
   return onSnapshot(q, (snap) => onUpdate(snapshotToRecord<Workspace>(snap)));
+}
+
+// ---------------------------------------------------------------------------
+// Workspace-scoped subcollection subscriptions
+// ---------------------------------------------------------------------------
+
+/**
+ * Opens a real-time listener on `workspaces/{workspaceId}/tasks`.
+ * Used by WorkspaceProvider to hydrate workspace.tasks from Firestore.
+ */
+export function subscribeToWorkspaceTasks(
+  workspaceId: string,
+  onUpdate: (tasks: Record<string, WorkspaceTask>) => void,
+): Unsubscribe {
+  const q = query(
+    collection(db, 'workspaces', workspaceId, 'tasks'),
+    orderBy('createdAt', 'desc'),
+  );
+  return onSnapshot(q, (snap) => onUpdate(snapshotToRecord<WorkspaceTask>(snap)));
+}
+
+/**
+ * Opens a real-time listener on `workspaces/{workspaceId}/issues`.
+ * Used by WorkspaceProvider to hydrate workspace.issues from Firestore.
+ */
+export function subscribeToWorkspaceIssues(
+  workspaceId: string,
+  onUpdate: (issues: Record<string, WorkspaceIssue>) => void,
+): Unsubscribe {
+  const q = query(
+    collection(db, 'workspaces', workspaceId, 'issues'),
+    orderBy('createdAt', 'desc'),
+  );
+  return onSnapshot(q, (snap) => onUpdate(snapshotToRecord<WorkspaceIssue>(snap)));
 }
