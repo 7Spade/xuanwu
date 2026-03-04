@@ -67,6 +67,16 @@ export {
 } from './_services';
 
 // =================================================================
+// Hub Contracts [D19] — category, semantic type, and extended Notification
+// =================================================================
+export type { HubNotification, NotificationCategory, NotificationSemanticType } from './_contract';
+
+// =================================================================
+// Hub UI Components — GitHub-style notification center
+// =================================================================
+export { NotificationBell } from './_components/notification-bell';
+
+// =================================================================
 // User Notification (FCM Layer 3 — personal push delivery [R8])
 // =================================================================
 export { deliverNotification, type NotificationDeliveryInput, type DeliveryResult } from './user.notification';
