@@ -103,6 +103,17 @@ export type ParsingImportFinishInput = {
  *
  * Format: import:{intentId}:{intentVersion}
  */
+/**
+ * Builds a deterministic idempotency key used as the Firestore document ID
+ * for a parsing-import record.
+ *
+ * **Firestore document ID constraint**: the returned string must never contain
+ * forward-slashes (`/`), must not be `.` or `..`, and must not be surrounded
+ * by double-underscores (`__…__`). The `import:<uuid>:<number>` format
+ * satisfies all of these requirements as long as `intentId` is a valid UUID or
+ * Firestore auto-ID (no `/`).  Callers MUST NOT pass a raw path segment as
+ * `intentId`.
+ */
 export function buildParsingImportIdempotencyKey(
   intentId: string,
   intentVersion: number

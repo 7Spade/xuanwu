@@ -23,6 +23,7 @@ import {
 } from '@/features/shared-kernel';
 import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import { addDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
 
 // ---------------------------------------------------------------------------
 // TOKEN_REFRESH_SIGNAL helper [S6]
@@ -39,7 +40,7 @@ async function emitPolicyChangedRefreshSignal(accountId: string, traceId?: strin
   if (!/^[\w-]+$/.test(accountId)) {
     throw new Error(`Invalid accountId format — must match /^[\\w-]+$/`);
   }
-  await updateDocument(`tokenRefreshSignals/${accountId}`, {
+  await updateDocument(`${COLLECTIONS.tokenRefreshSignals}/${accountId}`, {
     accountId,
     reason: 'policy:changed',
     issuedAt: Timestamp.now().toDate().toISOString(),

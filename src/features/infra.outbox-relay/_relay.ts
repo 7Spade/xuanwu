@@ -9,6 +9,7 @@
  *   - Scan strategy: Firestore onSnapshot (CDC) — listens for `pending` entries
  *   - Delivery: OUTBOX → IER corresponding Lane
  *   - Failure handling: retry with exponential backoff; after 3 attempts → DLQ
+ *   - Listener resilience: auto-reconnect with exponential backoff on `onError` [D11]
  *   - Monitoring: relay_lag / relay_error_rate → VS9 DOMAIN_METRICS
  *
  * All OUTBOX collections share this single Relay Worker — no per-BC duplication.
@@ -80,6 +81,11 @@ export type IerDeliveryFn = (
 /**
  * Starts the OUTBOX_RELAY_WORKER for a given Firestore collection path.
  *
+ * The returned function **stops** the relay and cancels any pending reconnect.
+ * The relay automatically re-installs itself with exponential backoff if the
+ * underlying `onSnapshot` listener receives an error (network drop, token
+ * expiry, backend restart), satisfying the D11 resilience requirement.
+ *
  * Usage (call once per OUTBOX collection at app startup):
  * ```ts
  * const stop = startOutboxRelay('workspaceOutbox', ierDeliveryFn);
@@ -89,33 +95,79 @@ export type IerDeliveryFn = (
  *
  * @param outboxCollectionPath - Firestore collection path, e.g. "workspaceOutbox".
  * @param deliver - IER delivery callback.
- * @returns Cleanup function that unsubscribes the CDC listener.
+ * @returns Cleanup function that unsubscribes the CDC listener and cancels reconnect.
  */
 export function startOutboxRelay(
   outboxCollectionPath: string,
   deliver: IerDeliveryFn
 ): Unsubscribe {
-  const q = query(
-    collection(db, outboxCollectionPath),
-    where('status', '==', 'pending')
-  );
+  let retryCount = 0;
+  let currentUnsubscribe: Unsubscribe | null = null;
+  let retryTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let stopped = false;
 
-  const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
-    snapshot.docChanges().forEach((change: DocumentChange<DocumentData>) => {
-      if (change.type !== 'added' && change.type !== 'modified') return;
-      const data = change.doc.data() as OutboxDocument;
-      if (data.status !== 'pending') return;
+  function install(): void {
+    if (stopped) return;
 
-      void relayEntry(outboxCollectionPath, change.doc.id, data, deliver);
-    });
-  }, (err: Error) => {
-    // Log listener errors — network failure, permission denied, etc.
-    // The onSnapshot listener will NOT auto-reconnect after an error;
-    // the caller should restart the relay worker on app restart.
-    console.error(`[outbox-relay] CDC listener error on "${outboxCollectionPath}":`, err);
-  });
+    const q = query(
+      collection(db, outboxCollectionPath),
+      where('status', '==', 'pending')
+    );
 
-  return unsubscribe;
+    currentUnsubscribe = onSnapshot(
+      q,
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        // Successful snapshot — connection is healthy; reset the backoff counter.
+        retryCount = 0;
+
+        snapshot.docChanges().forEach((change: DocumentChange<DocumentData>) => {
+          if (change.type !== 'added' && change.type !== 'modified') return;
+          const data = change.doc.data() as OutboxDocument;
+          if (data.status !== 'pending') return;
+
+          void relayEntry(outboxCollectionPath, change.doc.id, data, deliver);
+        });
+      },
+      (err: Error) => {
+        // Listener has permanently terminated after this callback — re-install
+        // with exponential backoff capped at 30 s. [D11 resilience]
+        logDomainError({
+          occurredAt: new Date().toISOString(),
+          traceId: `relay:${outboxCollectionPath}`,
+          source: 'infra.outbox-relay:onSnapshot:error',
+          message: `CDC listener error on "${outboxCollectionPath}" — scheduling reconnect (attempt ${retryCount + 1})`,
+          detail: err.message,
+        });
+
+        currentUnsubscribe = null;
+
+        if (stopped) return;
+
+        // Increment first so that the log message and backoff calculation are
+        // consistent: attempt 1 → 1 s, attempt 2 → 2 s, attempt 3 → 4 s …
+        retryCount += 1;
+        // Exponential backoff: 1 s → 2 s → 4 s … capped at 30 s.
+        const backoffMs = Math.min(1_000 * 2 ** (retryCount - 1), 30_000);
+
+        retryTimeoutId = setTimeout(() => {
+          retryTimeoutId = null;
+          install();
+        }, backoffMs);
+      }
+    );
+  }
+
+  install();
+
+  return () => {
+    stopped = true;
+    if (retryTimeoutId !== null) {
+      clearTimeout(retryTimeoutId);
+      retryTimeoutId = null;
+    }
+    currentUnsubscribe?.();
+    currentUnsubscribe = null;
+  };
 }
 
 /**

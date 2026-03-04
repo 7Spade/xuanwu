@@ -258,3 +258,43 @@ The following issues were filed and resolved in the same audit session (2026-03-
 ---
 
 _Archive last updated: 2026-03-04 — 15 entries (8 pre-PR-52 + 7 from 2026-03-04 session)_
+
+---
+
+### DOC-PARSER-D14-001 — Write Idempotency Failure in `saveParsingIntent` [D14/D15]
+
+**ID**: #ISSUE-20260304-008
+**Rule**: D14/D15 — Version-protected writes must be idempotent; duplicate document creation must be prevented.
+**Severity**: Critical
+**Fixed**: 2026-03-04 (this PR — commit `fix(D14/D15): add sourceFileId idempotency guard to saveParsingIntent`)
+
+**Problem file**: `src/features/workspace.slice/business.document-parser/_intent-actions.ts`
+
+**Root cause**: `saveParsingIntent` called `createParsingIntentFacade` (backed by `addDocument`) unconditionally on every invocation. Re-uploading the same document or a network-retry re-call would create a second distinct `ParsingIntent`, triggering independent task-materialisation import runs and causing **task duplication**.
+
+**Resolution**:
+1. Added `getParsingIntentBySourceFileId` to `workspace-business.document-parser.repository.ts`.
+2. `saveParsingIntent` now queries for an existing non-superseded intent when `options.sourceFileId` is provided.
+3. Same `semanticHash` → immediate no-op return.
+4. Different `semanticHash` → auto-supersede old intent before creating new one.
+Full details preserved in the pre-archive `issues.md` entry above.
+
+---
+
+### BUG-冪等性失效 — Document Parser Duplicate Import Causes Task Doubling [D14/D15]
+
+**ID**: #BUG-20260304-001
+**Rule**: D14/D15 — TOCTOU race in `importItems()` allowed both async guards to be bypassed under concurrency.
+**Severity**: Critical
+**Fixed**: 2026-03-04 (this PR)
+
+**Problem file**: `src/features/workspace.slice/core/_hooks/use-workspace-event-handler.tsx`
+
+**Root cause**: Both the `hasTasksForSourceIntent` check and the `startParsingImport` idempotency check were async. Two concurrent calls to `importItems()` (double-click, React StrictMode double-invoke, or duplicate event delivery) both passed the async read check before either committed any writes — a classic TOCTOU race.
+
+**Resolution**: Added a **synchronous in-memory lock** (`inProgressImports: useRef<Set<string>>`) acquired before any `await`. The lock is released in `.finally()`. The pre-existing async guards remain as a defence-in-depth second layer for cross-session duplicates.
+Full details preserved in the pre-archive `issues.md` entry above.
+
+---
+
+_Archive last updated: 2026-03-04 — 17 entries (8 pre-PR-52 + 7 from 2026-03-04 session + 2 archived this PR)_
