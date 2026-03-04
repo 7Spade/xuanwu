@@ -6,8 +6,6 @@ import { useState, useEffect, useRef } from "react";
 
 import { useI18n } from "@/config/i18n/i18n-provider";
 import { useAuth } from "@/shared/app-providers/auth-provider";
-import { findSkill } from "@/shared/constants/skills";
-import { type SkillGrant } from "@/features/shared-kernel";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { useUser } from "../_hooks/use-user";
@@ -32,7 +30,6 @@ export function UserSettings() {
   const [isMounted, setIsMounted] = useState(false);
   const [name, setName] = useState(user?.name || "");
   const [bio, setBio] = useState("");
-  const [skillGrants, setSkillGrants] = useState<SkillGrant[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -42,7 +39,6 @@ export function UserSettings() {
     if (user) setName(user.name);
     if (profile) {
       setBio(profile.bio || "");
-      setSkillGrants(profile.skillGrants || []);
     }
   }, [user, profile]);
 
@@ -56,7 +52,7 @@ export function UserSettings() {
       if (user?.name !== name) {
         authDispatch({ type: 'UPDATE_USER_PROFILE', payload: { name } });
       }
-      await updateProfile({ bio, skillGrants });
+      await updateProfile({ bio });
       toast({
         title: "Profile Updated",
         description: "Your personal information has been successfully saved.",
@@ -95,23 +91,6 @@ export function UserSettings() {
     }
   };
 
-  const handleSkillToggle = (slug: string) => {
-    setSkillGrants(prev => {
-      const existing = prev.find(g => g.tagSlug === slug);
-      if (existing) {
-        return prev.filter(g => g.tagSlug !== slug);
-      }
-      const skillDefinition = findSkill(slug);
-      const newGrant: SkillGrant = {
-        tagSlug: slug,
-        tagName: skillDefinition?.name,
-        tier: 'apprentice',
-        xp: 0,
-      };
-      return [...prev, newGrant];
-    });
-  };
-
   return (
       <div className="grid gap-6">
         <ProfileCard
@@ -120,8 +99,6 @@ export function UserSettings() {
           setName={setName}
           bio={bio}
           setBio={setBio}
-          skillGrants={skillGrants}
-          onSkillToggle={handleSkillToggle}
           handleSaveProfile={handleSaveProfile}
           handleAvatarUpload={handleAvatarUpload}
           isSaving={isSaving || profileLoading}

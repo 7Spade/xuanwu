@@ -17,7 +17,7 @@
 // =================================================================
 // User Profile (account-user.profile)
 // =================================================================
-export { UserSettingsView, AccountSettingsRouter, UserSettings, ProfileCard, PreferencesCard, SecurityCard } from './user.profile';
+export { UserSettingsView, AccountSettingsRouter, UserSettings, ProfileCard, PreferencesCard, SecurityCard, AccountSkillsSection } from './user.profile';
 export { useUser } from './user.profile';
 export { createUserAccount, updateUserProfile } from './user.profile';
 export { getUserProfile } from './user.profile';

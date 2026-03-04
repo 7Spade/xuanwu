@@ -20,6 +20,4 @@ export const ROUTES = {
   ACCOUNT_SCHEDULE: "/dashboard/account/schedule",
   ACCOUNT_DAILY: "/dashboard/account/daily",
   ACCOUNT_AUDIT: "/dashboard/account/audit",
-  /** FR-K1: Personal skill profile page (XP + tier visualization). */
-  ACCOUNT_SKILLS: "/dashboard/account/skills",
 } as const;

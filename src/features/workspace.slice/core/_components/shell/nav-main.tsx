@@ -12,7 +12,6 @@ import {
   Calendar,
   MessageSquare,
   History,
-  BookOpen,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -64,10 +63,10 @@ export function NavMain({ pathname, isOrganizationAccount, t }: NavMainProps) {
 
       {!isOrganizationAccount && (
         <SidebarMenuItem>
-          <SidebarMenuButton asChild isActive={isPartiallyActive(ROUTES.ACCOUNT_SKILLS)}>
-            <Link href={ROUTES.ACCOUNT_SKILLS}>
-              <BookOpen />
-              <span className="font-semibold">{t("navigation.skills")}</span>
+          <SidebarMenuButton asChild isActive={isPartiallyActive(ROUTES.ACCOUNT_SETTINGS)}>
+            <Link href={ROUTES.ACCOUNT_SETTINGS}>
+              <Settings />
+              <span className="font-semibold">{t("navigation.settings")}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

@@ -3,6 +3,7 @@
 import { useI18n } from "@/config/i18n/i18n-provider"
 import { PageHeader } from "@/shared/ui/page-header"
 
+import { AccountSkillsSection } from "./account-skills-section"
 import { UserSettings } from "./user-settings"
 
 export function UserSettingsView() {
@@ -15,6 +16,7 @@ export function UserSettingsView() {
         description={t('settings.userSettingsDescription')}
       />
       <UserSettings />
+      <AccountSkillsSection />
     </div>
   )
 }
