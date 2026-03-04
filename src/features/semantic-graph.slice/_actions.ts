@@ -12,10 +12,17 @@
  *   [D8]  Validation logic delegated to _aggregate.ts (pure).
  *   [D21] Tag categories governed by VS8.
  *   [D26] semantic-graph.slice owns _actions.ts; does not parasitize shared-kernel.
+ *
+ * New subsystem commands (centralized-*):
+ *   addSemanticEdge        — register IS_A / REQUIRES edge [D3]
+ *   removeSemanticEdge     — deregister edge [D3]
+ *   registerTagLifecycle   — create a Tag lifecycle record in Draft state [T1]
+ *   activateTagLifecycle   — transition Draft → Active [T1]
+ *   transitionTagLifecycle — generic state transition [T1]
  */
 
 import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
-import type { CommandResult } from '@/features/shared-kernel';
+import type { CommandResult, TagSlugRef } from '@/features/shared-kernel';
 import type { TaxonomyNode } from '@/features/shared-kernel';
 
 import { detectTemporalConflicts, validateTaxonomyAssignment } from './_aggregate';
@@ -24,6 +31,17 @@ import type {
   TemporalTagAssignment,
   SemanticIndexEntry,
 } from './_types';
+import {
+  addEdge,
+  removeEdge,
+} from './centralized-edges/semantic-edge-store';
+import type { SemanticRelationType, TagLifecycleState } from './centralized-types';
+import {
+  registerTagDraft,
+  activateTag,
+  transitionTagState,
+} from './centralized-workflows/tag-lifecycle.workflow';
+import type { OutboxLifecycleEvent } from './centralized-workflows/tag-lifecycle.workflow';
 
 // =================================================================
 // Tag Upsert with Conflict Check
@@ -144,4 +162,137 @@ export async function assignSemanticTag(
     existingNodes,
     existingAssignments
   );
+}
+
+// =================================================================
+// Semantic Edge Commands (centralized-edges) [D3]
+// =================================================================
+
+/**
+ * Register a semantic edge between two tag nodes.
+ *
+ * Supported relation types:
+ *   IS_A     — inheritance / subsumption (skill:expert IS_A skill:senior)
+ *   REQUIRES — dependency (role:lead REQUIRES skill:leadership)
+ *
+ * [D3] All edge mutations go through this action.
+ * [S2] aggregateVersion in the returned edge ensures idempotency on re-runs.
+ */
+export async function addSemanticEdge(
+  fromTagSlug: string,
+  toTagSlug: string,
+  relationType: SemanticRelationType
+): Promise<CommandResult> {
+  try {
+    if (!fromTagSlug || !toTagSlug) {
+      return commandFailureFrom(
+        'INVALID_EDGE_PARAMS',
+        'fromTagSlug and toTagSlug must not be empty'
+      );
+    }
+    if (fromTagSlug === toTagSlug) {
+      return commandFailureFrom(
+        'SELF_LOOP_EDGE',
+        `Self-loop edge not allowed: "${fromTagSlug}" → "${toTagSlug}"`
+      );
+    }
+    const edge = addEdge(fromTagSlug, toTagSlug, relationType);
+    return commandSuccess(edge.edgeId, 1);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('EDGE_ADD_FAILED', message);
+  }
+}
+
+/**
+ * Remove a semantic edge between two tag nodes.
+ *
+ * Returns CommandResult with aggVersion=0 if the edge did not exist
+ * (idempotent — removing a non-existent edge is not an error).
+ *
+ * [D3] All edge mutations go through this action.
+ */
+export async function removeSemanticEdge(
+  fromTagSlug: string,
+  toTagSlug: string,
+  relationType: SemanticRelationType
+): Promise<CommandResult> {
+  try {
+    const removed = removeEdge(fromTagSlug, toTagSlug, relationType);
+    return commandSuccess(`${relationType}:${fromTagSlug}→${toTagSlug}`, removed ? 1 : 0);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('EDGE_REMOVE_FAILED', message);
+  }
+}
+
+// =================================================================
+// Tag Lifecycle Commands (centralized-workflows) [T1]
+// =================================================================
+
+/**
+ * Create a new tag lifecycle record in the Draft state. [T1]
+ *
+ * Returns the outbox-decorated TagLifecycleEvent for persistence.
+ * [S2] aggregateVersion must be 1 for brand-new lifecycle records.
+ */
+export async function registerTagLifecycle(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  aggregateVersion: number
+): Promise<CommandResult & { outboxEvent?: OutboxLifecycleEvent }> {
+  try {
+    const outboxEvent = registerTagDraft(tagSlug, triggeredBy, aggregateVersion);
+    return { ...commandSuccess(tagSlug, aggregateVersion), outboxEvent };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('LIFECYCLE_REGISTER_FAILED', message);
+  }
+}
+
+/**
+ * Transition a tag from Draft → Active. [T1]
+ *
+ * Convenience shortcut over transitionTagLifecycle.
+ * [S2] nextVersion must be greater than the current aggregateVersion.
+ */
+export async function activateTagLifecycle(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  nextVersion: number
+): Promise<CommandResult & { outboxEvent?: OutboxLifecycleEvent }> {
+  try {
+    const outboxEvent = activateTag(tagSlug, triggeredBy, nextVersion);
+    return { ...commandSuccess(tagSlug, nextVersion), outboxEvent };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('LIFECYCLE_ACTIVATE_FAILED', message);
+  }
+}
+
+/**
+ * Transition a tag to any allowed lifecycle state. [T1]
+ *
+ * Allowed transitions:
+ *   Draft      → Active
+ *   Active     → Stale | Deprecated
+ *   Stale      → Active | Deprecated
+ *   Deprecated → (terminal)
+ *
+ * [S2] nextVersion must be greater than the current aggregateVersion.
+ * [S1] The returned outboxEvent is tagged BACKGROUND_LANE for async delivery.
+ */
+export async function transitionTagLifecycle(
+  tagSlug: TagSlugRef,
+  toState: TagLifecycleState,
+  triggeredBy: string,
+  nextVersion: number
+): Promise<CommandResult & { outboxEvent?: OutboxLifecycleEvent }> {
+  try {
+    const outboxEvent = transitionTagState(tagSlug, toState, triggeredBy, nextVersion);
+    return { ...commandSuccess(tagSlug, nextVersion), outboxEvent };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return commandFailureFrom('LIFECYCLE_TRANSITION_FAILED', message);
+  }
 }
