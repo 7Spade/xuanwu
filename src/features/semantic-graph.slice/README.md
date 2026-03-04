@@ -1,45 +1,41 @@
-這是一份專為 Semantic-graph.slice (VS8) 量身打造的 README.md。這份文件不僅定義了目前的架構，更為 Copilot 或其他 AI 開發代理畫出了一張「語義大腦」的擴展藍圖，讓它明白 VS8 是如何作為整個系統的智慧中樞與各業務切片協作。
-🧠 VS8: Semantic Graph (The Brain) — README
-📌 願景與角色設定 (The Vision)
-Semantic-graph.slice 不僅僅是一個標籤管理工具，它是本系統的 「語義中樞 (The Brain)」。它將所有領域概念（技能、角色、組織、任務）轉化為具備語義特徵的「標籤 (Tags)」與「節點 (Nodes)」，並透過向量化 (Embeddings) 與圖譜關係 (Edges) 實現全域的智慧檢索與因果推理。
-> 給 AI 開發者的指令： 你在處理此 Slice 時，必須扮演 Lead Software Architect，維護「Everything as a Tag」的核心原則。所有跨切片的邏輯協作都必須基於語義契約，而非硬編碼的 ID。
+這是一份為 VS8 Semantic Graph (The Brain) 量身打造的宏大願景 README.md。
+這不僅僅是一個組件說明，它是整個系統的「語義憲法」。它告訴 Copilot 和所有開發者：「如果業務切片是肢體，VS8 就是指揮一切的神經中樞。」
+🧠 VS8: Semantic Graph (The Brain) — 全域語義中樞
+🌌 宏大願景：Everything as a Tag
+在我們的架構中，VS8 不僅是個切片，它是所有現實的投影儀。
+我們拒絕硬編碼的枚舉、拒絕孤立的 ID 字串。所有領域概念——無論是人的能力、項目的風險、組織的權限，還是通知的緊急度——都必須轉化為 Semantic Tags，納入這個「全球語義圖譜」進行統一治理。
+> 架構師指令： 作為 Lead Software Architect，你必須確保任何新功能的第一步不是建立資料表，而是在 VS8 中定義其語義節點（TE1~TE6）。
 > 
-🗺️ 跨切片語義協作大餅 (Cross-slice Collaboration Blueprint)
-VS8 作為唯一語義權威，將與以下切片進行深度「腦機接口」協作：
-1. 🔍 與 Global-search.slice：唯一語義門戶
- * 協作模式：VS8 提供底層向量索引 (Vector Index)，Global Search 作為前端唯一的搜尋權威。
- * 未來擴展：實現「意圖搜尋」，例如搜尋「急需焊接專家的項目」時，VS8 能自動關聯 tag::skill:welding + tag::urgency:high。
-2. 🟨 與 VS6 Scheduling：智慧適格性校驗
- * 協作模式：VS6 進行排班時，透過 VS8 的 centralized-edges 判斷職能覆蓋關係。
- * 未來擴展：衝突語義檢測。不再只是時間重疊，而是透過標籤判斷「物理空間」或「工具依賴」的隱性衝突。
-3. 🟩 與 VS3 Skill XP：能力演化路徑
- * 協作模式：VS3 提供 XP 數值，VS8 負責將其對應至語義層級 (Tier)。
- * 未來擴展：自動成長建議。當 VS8 發現多個項目需要某項新技能時，主動建議 VS3 更新相關人才的能力標籤。
-4. 🟧 與 VS4 Organization：動態人才庫
- * 協作模式：VS4 定義成員與團隊，VS8 為其貼上語義標籤 (TE4-TE6)。
- * 未來擴展：跨組織影子標籤。允許跨組織的合作夥伴透過 VS8 的語義對等關係，實現「無縫人才租借」。
-5. 🩷 與 VS7 Notification Hub：標籤感知路由
- * 協作模式：VS7 消費 IER 事件，並向 VS8 查詢標籤語義以決定通知通道。
- * 未來擴展：語義優先級。自動根據標籤的「緊急度語義」繞過靜音模式（例如 #urgency:critical 自動轉為電話通知）。
-🏗️ 核心架構結構 (Architecture)
-Semantic-graph.slice/
-├─ index.ts                 # 唯一公開 API [D7]
-├─ _actions.ts              # 唯一修改入口 [D3]
-├─ centralized-tag/         # 標籤生命週期真相 [A6, 17]
-├─ centralized-nodes/       # TE1~TE6 實體定義 [D21]
-├─ centralized-edges/       # 標籤間的 IS_A/REQUIRES 關係
-├─ centralized-embeddings/   # 向量生成與語義檢索 [D26]
-├─ centralized-selectors/   # 跨切片語義查詢 (eligible queries) [P4]
-├─ centralized-workflows/   # Tag Lifecycle (Draft -> Active) [T1]
-└─ centralized-types/       # 內部型別定義 [D19]
-
-📜 必須遵守的不變量 (Hard Invariants)
- * [D21] 唯一性：嚴禁在 VS8 以外的地方定義新標籤類別。
- * [S4] 鮮度契約：標籤語義異動必須在 30s 內反映至全域 (TAG_MAX_STALENESS)。
- * [D24] 隔離性：禁止直接使用 Firebase SDK，必須透過 FIREBASE_ACL。
- * [S2] 版本守則：所有圖譜寫入必須呼叫 applyVersionGuard() 以防事件亂序。
-🛠️ 給 Copilot 的下一步建議
-如果你正在開發新的業務功能：
- * 需要搜尋？ 請呼叫 global-search.slice，不要自建 Query。
- * 需要定義能力？ 請在 centralized-nodes/tag-skill 擴展語義，不要在業務代碼寫死字串。
- * 需要判斷資格？ 請使用 centralized-selectors/getEligibleTags。
+🕸️ 全域協作大餅：語義神經網絡 (The Neural Network)
+VS8 的觸角延伸至每一個業務切片，構建起一套跨領域的「智慧連動」：
+1. 🛡️ 身份與權限 (VS1 Identity & VS2 Account)
+ * 協作行為：當一個標籤被標記為 Deprecated，VS8 會透過 BACKGROUND_LANE 觸發 ClaimsRefresh。
+ * 大餅：未來我們將實現 「語義存取控制 (SAC)」。權限不再是手動分配，而是根據帳號身上標籤的「語義距離」自動推導。
+2. 📈 能力與進化 (VS3 Skill & VS4 Organization)
+ * 協作行為：VS3 提供 XP，VS8 負責將其轉化為具備市場競爭力語義的 skill-tier。
+ * 大餅：「動態人才地圖」。系統能預測組織缺口——當 VS5 出現大量 #tech:rust 任務標籤時，VS8 會自動通知 VS4 調整招聘語義權重。
+3. 📅 協作與調度 (VS5 Workspace & VS6 Scheduling)
+ * 協作行為：VS6 的適格性檢查（Eligibility）不再是簡單的布林值，而是由 VS8 計算出的「無衝突語義空間」。
+ * 大餅：「因果追蹤補償」。如果一個 #priority:high 的任務（VS5）因為人力（VS6）變動而延期，VS8 將追蹤其關聯的標籤鏈條，自動標記受影響的下游任務為 #status:at-risk。
+4. 👁️ 感知與出口 (Global Search & VS7 Notification)
+ * 協作行為：Global Search 是 VS8 的眼睛（語義索引出口）；Notification Hub 是 VS8 的嘴巴（根據標籤語義決定路由策略）。
+ * 大餅：「自適應反饋閉環」。搜尋結果的點擊率會反饋給 VS8，動態調整標籤間的 Edge 權重，讓系統越用越聰明。
+🏗️ 技術實體架構 (The Engine Room)
+我們將大腦劃分為以下核心層級：
+| 模組 | 角色 | SSOT 契約約束 |
+|---|---|---|
+| centralized-tag/ | 靈魂 | 唯一真相 Aggregate；管理標籤生命週期。 |
+| centralized-nodes/ | 骨骼 | TE1~TE6 實體定義，確保 tag::category 的嚴格一致性。 |
+| centralized-edges/ | 神經 | 實作 IS_A (繼承) 與 REQUIRES (依賴) 等邏輯關係。 |
+| centralized-embeddings/ | 直覺 | 向量化引擎。禁止直連 SDK，必須走 FIREBASE_ACL。 |
+| centralized-selectors/ | 對話 | 跨切片查詢。如 getEligibleTags 供排班使用。 |
+| centralized-workflows/ | 脈搏 | 處理異動工作流，透過 tag-outbox 廣播事件。 |
+🚫 絕對禁止項 (The Forbidden List)
+為了保護「大腦」的純粹性，開發者必須遵守：
+ * 禁止私設標籤 [D21]：嚴禁在業務切片中直接寫死 status: "done"，必須在 VS8 中定義語義標籤。
+ * 禁止繞過 ACL [D24]：向量運算與存取禁止直接 import Firebase，必須透過 SK_PORTS 接口。
+ * 禁止修改 TraceID [R8]：語義推論鏈條必須完整保留 traceId，嚴禁覆蓋，以利因果追蹤。
+ * 禁止忽略版本 [S2]：所有標籤投影寫入必須通過 applyVersionGuard()，防止語義混亂。
+🛠️ 給 AI 開發者的「角色注入指令」
+> 「你是這個專案的 Lead Software Architect。當你在這個 Slice 工作時，你的目標是建立一個能讓系統『理解自己』的知識圖譜。你產出的每一行代碼都必須考慮：這如何服務於全域的語義化搜尋？這如何確保排班的適格性檢測具備因果邏輯？請開始你的演化。」
+> 
