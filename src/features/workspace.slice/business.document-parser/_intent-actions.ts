@@ -11,6 +11,7 @@ import {
   createParsingImport as createParsingImportFacade,
   createParsingIntent as createParsingIntentFacade,
   getParsingImportByIdempotencyKey as getParsingImportByIdempotencyKeyFacade,
+  getParsingIntentById as getParsingIntentByIdFacade,
   getParsingIntentBySourceFileId as getParsingIntentBySourceFileIdFacade,
   supersedeParsingIntent as supersedeParsingIntentFacade,
   updateParsingImportStatus as updateParsingImportStatusFacade,
@@ -172,6 +173,20 @@ export async function saveParsingIntent(
       }
       // Content changed — supersede the previous intent.
       options = { ...options, previousIntentId: existing.id as IntentID }
+    }
+  }
+
+  // [D14/D15] Secondary hash-based guard for direct uploads (no sourceFileId).
+  // When a file is uploaded directly (not via Files tab), sourceFileId is absent
+  // but the UI tracks previousIntentId across re-parses within the same session.
+  // Fetching the previous intent by ID and comparing semanticHash values prevents
+  // a new ParsingIntent — and therefore duplicate tasks — from being created when
+  // the user imports the same document content a second time.
+  if (!options?.sourceFileId && options?.previousIntentId) {
+    const previous = await getParsingIntentByIdFacade(workspaceId, options.previousIntentId)
+    if (previous?.semanticHash === semanticHash) {
+      // Same content as the previous intent — return it as-is without any write.
+      return { intentId: options.previousIntentId }
     }
   }
 
