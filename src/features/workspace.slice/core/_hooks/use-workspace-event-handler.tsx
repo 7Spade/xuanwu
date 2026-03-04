@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { handleScheduleProposed } from "@/features/scheduling.slice";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { ToastAction } from "@/shared/shadcn-ui/toast";
-import type { WorkspaceTask } from "../../business.tasks/_types";
 
 import {
   finishParsingImport,
@@ -14,7 +13,8 @@ import {
   startParsingImport,
 } from "../../business.document-parser";
 import { createIssue } from "../../business.issues";
-import { createTask } from "../../business.tasks";
+import { createTask, hasTasksForSourceIntent } from "../../business.tasks";
+import type { WorkspaceTask } from "../../business.tasks/_types";
 import {
   handleIssueCreatedForWorkflow,
   handleIssueResolvedForWorkflow,
@@ -173,8 +173,25 @@ export function useWorkspaceEventHandler() {
             ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
           }));
 
-        startParsingImport(workspace.id, payload.intentId, payload.intentVersion)
-          .then(async (startResult) => {
+        // [D14] Source-based deduplication guard: check whether tasks from this
+        // intent have already been materialised before touching the ledger or
+        // writing any new documents.  This prevents duplicate tasks when the
+        // same event fires more than once (e.g. React StrictMode, re-mount, or
+        // user double-click).
+        hasTasksForSourceIntent(workspace.id, payload.intentId)
+          .then((alreadyImported) => {
+            if (alreadyImported) {
+              toast({
+                title: "Already Imported",
+                description: payload.sourceDocument
+                  ? `Tasks for document "${payload.sourceDocument}" have already been imported.`
+                  : "Tasks for this document have already been imported.",
+              });
+              return;
+            }
+
+            return startParsingImport(workspace.id, payload.intentId, payload.intentVersion)
+              .then(async (startResult) => {
             if (startResult.isDuplicate) {
               const isTerminalStatus = PARSING_IMPORT_TERMINAL_STATUSES.has(
                 startResult.status
@@ -280,7 +297,8 @@ export function useWorkspaceEventHandler() {
               description: message,
             });
           });
-      };
+      });
+  };
 
       if (payload.autoImport) {
         importItems();

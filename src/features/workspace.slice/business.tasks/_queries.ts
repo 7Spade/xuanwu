@@ -9,8 +9,11 @@
 import {
   getWorkspaceTasks as getWorkspaceTasksFacade,
   getWorkspaceTask as getWorkspaceTaskFacade,
+  getTaskBySourceIntentId as getTaskBySourceIntentIdFacade,
 } from "@/shared/infra/firestore/firestore.facade";
+
 import type { WorkspaceTask } from "./_types";
+
 
 /**
  * Fetches all tasks for a workspace (one-time read, not real-time).
@@ -32,4 +35,20 @@ export async function getWorkspaceTask(
   taskId: string
 ): Promise<WorkspaceTask | null> {
   return getWorkspaceTaskFacade(workspaceId, taskId);
+}
+
+/**
+ * Returns `true` when at least one task with the given `sourceIntentId` already
+ * exists in the workspace — used to enforce source-based deduplication [D14]
+ * and prevent a re-import of the same `ParsingIntent` from creating duplicate tasks.
+ *
+ * @param workspaceId   The workspace to query.
+ * @param sourceIntentId The ParsingIntent ID to check against.
+ */
+export async function hasTasksForSourceIntent(
+  workspaceId: string,
+  sourceIntentId: string
+): Promise<boolean> {
+  const task = await getTaskBySourceIntentIdFacade(workspaceId, sourceIntentId);
+  return task !== null;
 }

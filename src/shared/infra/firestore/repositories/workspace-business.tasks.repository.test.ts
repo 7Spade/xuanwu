@@ -2,16 +2,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { WorkspaceTask } from '@/features/workspace.slice';
 
-const { mockServerTimestamp, mockUpdateDocument } = vi.hoisted(() => ({
+const { mockServerTimestamp, mockUpdateDocument, mockGetDocuments } = vi.hoisted(() => ({
   mockServerTimestamp: vi.fn(() => '__SERVER_TIMESTAMP__'),
   mockUpdateDocument: vi.fn(),
+  mockGetDocuments: vi.fn(),
 }));
 
 vi.mock('firebase/firestore', () => ({
   serverTimestamp: mockServerTimestamp,
-  collection: vi.fn(),
+  collection: vi.fn().mockReturnValue({ withConverter: vi.fn().mockReturnValue({}) }),
   query: vi.fn(),
   orderBy: vi.fn(),
+  where: vi.fn(),
+  limit: vi.fn(),
   doc: vi.fn(),
   getDoc: vi.fn(),
 }));
@@ -23,7 +26,7 @@ vi.mock('../firestore.write.adapter', () => ({
 }));
 
 vi.mock('../firestore.read.adapter', () => ({
-  getDocuments: vi.fn(),
+  getDocuments: mockGetDocuments,
 }));
 
 vi.mock('../firestore.converter', () => ({
@@ -34,11 +37,12 @@ vi.mock('../firestore.client', () => ({
   db: {},
 }));
 
-import { updateTask } from './workspace-business.tasks.repository';
+import { updateTask, getTaskBySourceIntentId } from './workspace-business.tasks.repository';
 
 describe('workspace-business.tasks repository', () => {
   beforeEach(() => {
     mockUpdateDocument.mockReset();
+    mockGetDocuments.mockReset();
     mockServerTimestamp.mockClear();
     mockUpdateDocument.mockResolvedValue(undefined);
   });
@@ -88,5 +92,25 @@ describe('workspace-business.tasks repository', () => {
         updatedAt: '__SERVER_TIMESTAMP__',
       }
     );
+  });
+
+  describe('getTaskBySourceIntentId', () => {
+    it('returns the first task when a matching sourceIntentId exists', async () => {
+      const task: WorkspaceTask = { id: 'task-42', sourceIntentId: 'intent-abc' } as WorkspaceTask;
+      mockGetDocuments.mockResolvedValue([task]);
+
+      const result = await getTaskBySourceIntentId('workspace-1', 'intent-abc');
+
+      expect(result).toBe(task);
+      expect(mockGetDocuments).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns null when no task matches the given sourceIntentId', async () => {
+      mockGetDocuments.mockResolvedValue([]);
+
+      const result = await getTaskBySourceIntentId('workspace-1', 'intent-xyz');
+
+      expect(result).toBeNull();
+    });
   });
 });

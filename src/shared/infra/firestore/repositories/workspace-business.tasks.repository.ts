@@ -11,6 +11,8 @@ import {
   collection,
   query,
   orderBy,
+  where,
+  limit,
   doc,
   getDoc,
 } from 'firebase/firestore';
@@ -108,4 +110,29 @@ export const getWorkspaceTask = async (
   const docRef = doc(db, `workspaces/${workspaceId}/tasks/${taskId}`).withConverter(converter);
   const snap = await getDoc(docRef);
   return snap.exists() ? snap.data() : null;
+};
+
+/**
+ * Returns the first task whose `sourceIntentId` matches the given intent ID,
+ * or `null` if no tasks have been materialised for that intent yet.
+ *
+ * Used by the source-based deduplication guard [D14] to prevent a second
+ * import of the same `ParsingIntent` from creating duplicate tasks.
+ */
+// [INDEX] Firestore auto-creates single-field indexes for each collection field,
+// so a plain equality filter on `sourceIntentId` works without a manual composite
+// index.  If a composite index (e.g. sourceIntentId + createdAt) is later needed,
+// add it to firestore.indexes.json.
+export const getTaskBySourceIntentId = async (
+  workspaceId: string,
+  sourceIntentId: string
+): Promise<WorkspaceTask | null> => {
+  const converter = createConverter<WorkspaceTask>();
+  const colRef = collection(
+    db,
+    `workspaces/${workspaceId}/tasks`
+  ).withConverter(converter);
+  const q = query(colRef, where('sourceIntentId', '==', sourceIntentId), limit(1));
+  const results = await getDocuments(q);
+  return results[0] ?? null;
 };
