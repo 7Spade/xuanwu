@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail,
   signInAnonymously,
   updateProfile,
+  verifyBeforeUpdateEmail,
   signOut,
   onAuthStateChanged,
   type User as FirebaseUser,
@@ -26,4 +27,5 @@ export const authAdapter = {
   signOut: () => signOut(auth),
   onAuthStateChanged: (callback: (user: FirebaseUser | null) => void) => onAuthStateChanged(auth, callback),
   getCurrentUser: () => auth.currentUser,
+  verifyBeforeUpdateEmail: (user: FirebaseUser, newEmail: string) => verifyBeforeUpdateEmail(user, newEmail),
 };

@@ -147,11 +147,6 @@ export function ProfileCard({
           </div>
         </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="user-email">Email</Label>
-          <Input id="user-email" defaultValue={account?.email} disabled />
-          <p className="text-[10px] italic text-muted-foreground">Email address cannot be changed.</p>
-        </div>
       </CardContent>
       <CardFooter className="border-t bg-muted/20">
         <Button onClick={handleSaveProfile} disabled={isSaving || isUploading} className="ml-auto text-xs font-bold uppercase tracking-widest">
