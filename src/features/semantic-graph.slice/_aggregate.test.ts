@@ -13,7 +13,7 @@
  */
 import { describe, it, expect } from 'vitest';
 
-import type { TaxonomyNode } from '@/features/shared-kernel/semantic-primitives';
+import type { TaxonomyNode } from '@/features/shared-kernel';
 
 import {
   detectTemporalConflicts,

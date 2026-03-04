@@ -15,18 +15,14 @@
  * Consumers: import from '@/features/semantic-graph.slice'.
  */
 
-import { commandSuccess, commandFailureFrom } from '@/features/shared-kernel';
-import type { CommandResult } from '@/features/shared-kernel';
-import {
-  publishTagEvent,
-  type CentralizedTagEntry,
-  type TagDeleteRule,
-} from '@/features/shared-kernel/centralized-tag';
-import {
-  buildIdempotencyKey,
-  type DlqTier,
-} from '@/features/shared-kernel/outbox-contract';
-import type { TagCategory } from '@/features/shared-kernel/tag-authority';
+import { commandSuccess, commandFailureFrom, publishTagEvent, buildIdempotencyKey } from '@/features/shared-kernel';
+import type {
+  CommandResult,
+  CentralizedTagEntry,
+  TagDeleteRule,
+  TagCategory,
+  DlqTier,
+} from '@/features/shared-kernel';
 import { Timestamp, getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import {
   setDocument,

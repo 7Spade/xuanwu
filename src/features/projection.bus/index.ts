@@ -117,6 +117,18 @@ export { getTagSnapshot, getAllTagSnapshots, getActiveTagSnapshots } from './tag
 export type { TagSnapshotEntry } from './tag-snapshot';
 
 // =================================================================
+// demand-board — DEMAND_BOARD_PROJECTION
+// =================================================================
+export {
+  applyDemandProposed,
+  applyDemandAssigned,
+  applyDemandCompleted,
+  applyDemandAssignmentCancelled,
+  applyDemandProposalCancelled,
+  applyDemandAssignRejected,
+} from './demand-board';
+
+// =================================================================
 // workspace-scope-guard — WORKSPACE_SCOPE_READ_MODEL [#A9] CRITICAL ≤500ms
 // =================================================================
 export { getScopeGuardView, queryWorkspaceAccess } from './workspace-scope-guard';

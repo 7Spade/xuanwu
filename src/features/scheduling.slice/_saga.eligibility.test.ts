@@ -16,7 +16,7 @@
 import { describe, it, expect } from 'vitest';
 
 import type { SkillTier, SkillRequirement, WorkspaceScheduleProposedPayload } from '@/features/shared-kernel';
-import { tierSatisfies } from '@/features/shared-kernel/skill-tier';
+import { tierSatisfies } from '@/features/shared-kernel';
 
 // ---------------------------------------------------------------------------
 // Helpers — mirrors the eligibility logic inside _saga.ts

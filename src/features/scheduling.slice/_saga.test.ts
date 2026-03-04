@@ -14,7 +14,7 @@ import { describe, it, expect } from 'vitest';
 
 import type { OrgEligibleMemberView } from '@/features/projection.bus';
 import type { SkillRequirement } from '@/features/shared-kernel';
-import { tierSatisfies, TIER_DEFINITIONS } from '@/features/shared-kernel/skill-tier';
+import { tierSatisfies, TIER_DEFINITIONS } from '@/features/shared-kernel';
 
 import {
   SAGA_TIER_ORDER,
