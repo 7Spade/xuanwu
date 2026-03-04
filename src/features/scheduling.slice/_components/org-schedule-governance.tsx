@@ -67,6 +67,27 @@ function getSkillName(slug: string): string {
   return findSkill(slug)?.name ?? slug;
 }
 
+/** Renders an overlapping row of avatar badges with name tooltips. */
+function AssignedMemberAvatars({ members }: { members: Array<{ id: string; name: string }> }) {
+  if (members.length === 0) return null;
+  return (
+    <TooltipProvider>
+      <div className="flex -space-x-1">
+        {members.map((m) => (
+          <Tooltip key={m.id}>
+            <TooltipTrigger asChild>
+              <Avatar className="size-6 border-2 border-background">
+                <AvatarFallback className="text-[9px] font-bold">{m.name?.[0] ?? '?'}</AvatarFallback>
+              </Avatar>
+            </TooltipTrigger>
+            <TooltipContent><p>{m.name}</p></TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    </TooltipProvider>
+  );
+}
+
 function formatTimestamp(ts: Timestamp | string | undefined): string {
   if (!ts) return '';
   if (typeof ts === 'string') return ts;
@@ -310,22 +331,7 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
               </div>
             ))}
             {/* Already-assigned member avatar badges */}
-            {assignedMembers.length > 0 && (
-              <div className="flex -space-x-1">
-                {assignedMembers.map((m) => (
-                  <TooltipProvider key={m.id}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Avatar className="size-6 border-2 border-background">
-                          <AvatarFallback className="text-[9px] font-bold">{m.name[0]}</AvatarFallback>
-                        </Avatar>
-                      </TooltipTrigger>
-                      <TooltipContent><p>{m.name}</p></TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ))}
-              </div>
-            )}
+            <AssignedMemberAvatars members={assignedMembers} />
           </div>
         </div>
       )}
@@ -334,22 +340,7 @@ function ProposalRow({ item, orgMembers, eligibleMembers, orgId, approvedBy: _ }
         {/* For items without skill requirements, show one UserPlus button */}
         {!hasRequirements && <MemberPickerPopover popoverId={NO_SKILLS_POPOVER_ID} />}
         {/* Assigned member avatars when there are no skill requirements */}
-        {!hasRequirements && assignedMembers.length > 0 && (
-          <div className="flex -space-x-1">
-            {assignedMembers.map((m) => (
-              <TooltipProvider key={m.id}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Avatar className="size-6 border-2 border-background">
-                      <AvatarFallback className="text-[9px] font-bold">{m.name[0]}</AvatarFallback>
-                    </Avatar>
-                  </TooltipTrigger>
-                  <TooltipContent><p>{m.name}</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            ))}
-          </div>
-        )}
+        {!hasRequirements && <AssignedMemberAvatars members={assignedMembers} />}
 
         <Button
           size="icon"
@@ -457,22 +448,7 @@ function ConfirmedRow({ item, orgId, orgMembers }: ConfirmedRowProps) {
                 </Badge>
               </div>
             ))}
-            {assignedMembers.length > 0 && (
-              <div className="flex -space-x-1">
-                {assignedMembers.map((m) => (
-                  <TooltipProvider key={m.id}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Avatar className="size-6 border-2 border-background">
-                          <AvatarFallback className="text-[9px] font-bold">{m.name[0]}</AvatarFallback>
-                        </Avatar>
-                      </TooltipTrigger>
-                      <TooltipContent><p>{m.name}</p></TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ))}
-              </div>
-            )}
+            <AssignedMemberAvatars members={assignedMembers} />
           </div>
         </div>
       )}
