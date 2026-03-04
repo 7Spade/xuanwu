@@ -15,6 +15,7 @@ import { useUser } from "../_hooks/use-user";
 import { PreferencesCard } from "./preferences-card";
 import { ProfileCard } from "./profile-card";
 import { SecurityCard } from "./security-card";
+import { EmailCard } from "./email-card";
 
 /**
  * UserSettings - The main "smart" component for all user settings.
@@ -128,6 +129,7 @@ export function UserSettings() {
           isUploading={isUploading}
           avatarInputRef={avatarInputRef}
         />
+        <EmailCard currentEmail={user.email ?? ""} />
         <PreferencesCard />
         <SecurityCard onWithdraw={handleWithdraw} t={t} />
       </div>

@@ -67,6 +67,7 @@ function AccountSwitcherItem({
         </Avatar>
         <div className="flex flex-col">
           <span className="text-xs font-bold">{account.name}</span>
+          <span className="text-[10px] text-muted-foreground">{isUser ? 'Personal' : 'Organization'}</span>
         </div>
       </div>
       {activeAccount?.id === account.id && <Check className="size-4 text-primary" />}
@@ -88,7 +89,7 @@ export function AccountSwitcher({
 
   const availableAccounts = useMemo(() => {
     if (!user) return []
-    const personalAccount: Account = { ...user, name: `${user.name} (Personal)` }
+    const personalAccount: Account = { ...user }
     return [personalAccount, ...Object.values(accounts)]
   }, [user, accounts])
 
