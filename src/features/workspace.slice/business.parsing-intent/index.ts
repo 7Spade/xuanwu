@@ -6,5 +6,7 @@ export {
 export type {
   ParsingIntentContract,
   ParsingIntentStatus,
+  ParsingIntentSourceType,
+  ParsingIntentReviewStatus,
   CreateParsingIntentInput,
 } from './_contract';

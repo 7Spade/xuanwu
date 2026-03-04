@@ -1,12 +1,8 @@
 import type { Timestamp } from '@/shared/ports'
-import type { SkillRequirement } from '@/features/shared-kernel'
+import type { Location, SkillRequirement } from '@/features/shared-kernel'
 
-export interface Location {
-  building?: string; // 棟
-  floor?: string;    // 樓
-  room?: string;     // 室
-  description: string; // 一個自由文本欄位，用於描述更精確的位置，如 "主會議室" 或 "東北角機房"
-}
+// Location is owned by shared-kernel/schedule-contract [D19] — re-exported here for backward compatibility.
+export type { Location };
 
 export interface WorkspaceTask {
   id: string;

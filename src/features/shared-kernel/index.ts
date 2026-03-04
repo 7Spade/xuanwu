@@ -182,4 +182,4 @@ export type { IFileStore, UploadOptions } from './infrastructure-ports';
 
 // ─── 📅 Schedule Contract [D19] ──────────────────────────────────────────────
 
-export type { ScheduleStatus, ScheduleItem } from './schedule-contract';
+export type { ScheduleStatus, ScheduleItem, Location } from './schedule-contract';

@@ -1,5 +1,12 @@
 import type { SkillRequirement } from '@/features/shared-kernel'
 import type { Timestamp } from '@/shared/ports'
+// ParsingIntentSourceType, ParsingIntentReviewStatus, and ParsingIntentStatus are owned by
+// business.parsing-intent/_contract.ts [D20] — the single source of truth for this sub-domain contract.
+import type {
+  ParsingIntentSourceType,
+  ParsingIntentReviewStatus,
+  ParsingIntentStatus,
+} from '../business.parsing-intent/_contract'
 
 // =================================================================
 // Brand Types — nominal type safety for cross-module references
@@ -19,13 +26,8 @@ export interface ParsedLineItem {
   subtotal: number;
 }
 
-export type ParsingIntentSourceType = 'ai' | 'human' | 'system';
-
-export type ParsingIntentReviewStatus =
-  | 'not_required'
-  | 'pending_review'
-  | 'approved'
-  | 'rejected';
+// Re-export so existing consumers of this module continue to work [D20 — import from slice index].
+export type { ParsingIntentSourceType, ParsingIntentReviewStatus };
 
 export interface ParsingIntent {
   /** Branded ID — use `IntentID` cast when constructing references. */
@@ -55,7 +57,7 @@ export interface ParsingIntent {
   /** SHA-256 hash for immutable semantic snapshot verification. */
   semanticHash?: string;
   /** Lifecycle (unidirectional): pending -> importing (import start) -> imported (all task writes succeed); importing -> failed (materialization error); any non-terminal intent -> superseded (newer intent replaces it). */
-  status: 'pending' | 'importing' | 'imported' | 'superseded' | 'failed';
+  status: ParsingIntentStatus;
   createdAt: Timestamp;
   importedAt?: Timestamp;
 }
