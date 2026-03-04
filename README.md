@@ -43,3 +43,6 @@ shared-infra
 # One-Line Summary
 
 Each folder has a single responsibility: app = UI, app-runtime = runtime wiring, config = static config, features = business logic, shared = contracts/utils, shared-infra = external adapters.
+
+repomix --skill-generate xuanwu-skill --skill-output ./skills --force
+npx repomix --config repomix.config.ts
