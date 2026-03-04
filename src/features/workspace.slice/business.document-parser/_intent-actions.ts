@@ -11,6 +11,7 @@ import {
   createParsingImport as createParsingImportFacade,
   createParsingIntent as createParsingIntentFacade,
   getParsingImportByIdempotencyKey as getParsingImportByIdempotencyKeyFacade,
+  getParsingIntentById as getParsingIntentByIdFacade,
   getParsingIntentBySourceFileId as getParsingIntentBySourceFileIdFacade,
   supersedeParsingIntent as supersedeParsingIntentFacade,
   updateParsingImportStatus as updateParsingImportStatusFacade,
@@ -172,6 +173,30 @@ export async function saveParsingIntent(
       }
       // Content changed — supersede the previous intent.
       options = { ...options, previousIntentId: existing.id as IntentID }
+    }
+  }
+
+  // [D14/D15] SECONDARY guard: when no sourceFileId is available (e.g. the
+  // direct-upload path where handleFileChange does not set sourceFileIdRef),
+  // but a previousIntentId IS provided, fetch the previous intent and compare
+  // hashes.  If the content is identical the user just re-submitted the same
+  // document without uploading a new file — return the existing intent as a
+  // no-op to prevent a duplicate intent chain and the duplicate tasks it would
+  // produce [D14].
+  // Any fetch failure is non-fatal: log a warning and fall through to create a
+  // new intent (original behaviour) so a transient network error never blocks
+  // the import flow.
+  if (!options?.sourceFileId && options?.previousIntentId) {
+    try {
+      const previous = await getParsingIntentByIdFacade(workspaceId, options.previousIntentId)
+      if (previous && previous.semanticHash === semanticHash) {
+        return { intentId: options.previousIntentId }
+      }
+    } catch (err) {
+      console.warn(
+        '[D14] secondary hash guard fetch failed; proceeding with intent creation.',
+        err
+      )
     }
   }
 
