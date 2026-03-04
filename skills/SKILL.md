@@ -5,7 +5,7 @@ description: Reference codebase for Xuanwu. Use this skill when you need to unde
 
 # Xuanwu Codebase Reference
 
-593 files | 9048 lines | 84407 tokens
+601 files | 9344 lines | 86775 tokens
 
 ## Overview
 

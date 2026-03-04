@@ -43,14 +43,14 @@ This skill contains the following reference files:
 
 ## Statistics
 
-593 files | 9,048 lines
+601 files | 9,344 lines
 
 | Language | Files | Lines |
 |----------|------:|------:|
-| TypeScript | 341 | 5,628 |
-| TypeScript (TSX) | 231 | 3,033 |
+| TypeScript | 349 | 5,876 |
+| TypeScript (TSX) | 231 | 3,078 |
 | Markdown | 8 | 26 |
-| JSON | 7 | 306 |
+| JSON | 7 | 309 |
 | No Extension | 2 | 15 |
 | RULES | 2 | 21 |
 | CSS | 1 | 18 |
@@ -59,11 +59,11 @@ This skill contains the following reference files:
 **Largest files:**
 - `src/features/workspace.slice/core/_components/workspace-settings.tsx` (340 lines)
 - `src/config/i18n/i18n.schema.ts` (236 lines)
-- `src/shared/types/workspace.types.ts` (149 lines)
-- `src/features/workspace.slice/core.event-bus/_events.ts` (132 lines)
+- `src/features/workspace.slice/core.event-bus/_events.ts` (154 lines)
 - `package.json` (131 lines)
 - `src/features/organization.slice/core.event-bus/_events.ts` (126 lines)
+- `src/features/workspace.slice/business.document-parser/_intent-actions.ts` (98 lines)
 - `src/shared/infra/firestore/repositories/workspace-core.repository.ts` (87 lines)
+- `src/features/workspace.slice/core/_components/workspace-provider.tsx` (83 lines)
 - `src/features/workspace.slice/business.tasks/_components/tasks-view.tsx` (82 lines)
 - `src/features/scheduling.slice/_components/proposal-dialog.tsx` (79 lines)
-- `src/features/scheduling.slice/_actions.ts` (77 lines)

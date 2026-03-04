@@ -105,6 +105,6 @@
 
 ## Configuration Files
 
-- tsconfig.json
-- vitest.config.ts
 - package.json
+- vitest.config.ts
+- tsconfig.json
