@@ -160,4 +160,101 @@ All feature-slice import sites for `SkillTier`, `TierDefinition`, and `SkillRequ
 
 ---
 
-_Archive last updated: 2026-03-02 — 8 entries_
+## Archive — 2026 March (Session 2026-03-04)
+
+The following issues were filed and resolved in the same audit session (2026-03-04) and are migrated here from `docs/management/issues.md`.
+
+---
+
+### ARCH-D7-003 — D7 Regression: `_actions.ts` Three Sub-Path Shared-Kernel Imports
+
+**ID**: #ISSUE-20260304-001  
+**Rule**: D7 — Feature slices must import `shared-kernel` via public `index.ts`, not sub-directory paths  
+**Severity**: Major  
+**Fixed**: 2026-03-04 (this PR — commit `fix(D7): add centralized-tag exports to shared-kernel barrel, fix 6 D7 regression sites`)
+
+**Problem file**: `src/features/semantic-graph.slice/centralized-tag/_actions.ts`
+
+**Resolution**: Added `publishTagEvent`, `CentralizedTagEntry`, and `TagDeleteRule` to the `shared-kernel/index.ts` barrel; consolidated three sub-path imports into a single barrel import.
+
+---
+
+### ARCH-D7-004 — D7 Regression: `semantic-graph.slice/index.ts` Sub-Path Re-Export
+
+**ID**: #ISSUE-20260304-002  
+**Rule**: D7 — Feature slice barrels must not re-export types via `shared-kernel` sub-directory paths  
+**Severity**: Major  
+**Fixed**: 2026-03-04 (this PR)
+
+**Problem file**: `src/features/semantic-graph.slice/index.ts`
+
+**Resolution**: Changed `export type { CentralizedTagEntry, TagDeleteRule } from '@/features/shared-kernel/centralized-tag'` to `from '@/features/shared-kernel'`.
+
+---
+
+### ARCH-D7-005 — D7 Regression: `notification-hub.slice/_types.ts` Sub-Path Import
+
+**ID**: #ISSUE-20260304-003  
+**Rule**: D7 — Feature slices must import `shared-kernel` via public `index.ts`  
+**Severity**: Major  
+**Fixed**: 2026-03-04 (this PR)
+
+**Problem file**: `src/features/notification-hub.slice/_types.ts`
+
+**Resolution**: Updated `NotificationChannel` and `NotificationPriority` imports to use the public `@/features/shared-kernel` barrel.
+
+---
+
+### ARCH-D7-006 — D7 Regression: `scheduling.slice` Test Files Sub-Path Imports
+
+**ID**: #ISSUE-20260304-004  
+**Rule**: D7 — All imports of `shared-kernel` (including in tests) must use the public barrel  
+**Severity**: Minor (tests only)  
+**Fixed**: 2026-03-04 (this PR)
+
+**Problem files**: `scheduling.slice/_saga.test.ts`, `scheduling.slice/_saga.eligibility.test.ts`
+
+**Resolution**: Replaced `@/features/shared-kernel/skill-tier` sub-path imports with `@/features/shared-kernel` barrel in both test files.
+
+---
+
+### ARCH-D7-007 — D7 Regression: `semantic-graph.slice/_aggregate.test.ts` Sub-Path Import
+
+**ID**: #ISSUE-20260304-005  
+**Rule**: D7 — All imports of `shared-kernel` (including in tests) must use the public barrel  
+**Severity**: Minor (test only)  
+**Fixed**: 2026-03-04 (this PR)
+
+**Problem file**: `src/features/semantic-graph.slice/_aggregate.test.ts`
+
+**Resolution**: Changed `import type { TaxonomyNode } from '@/features/shared-kernel/semantic-primitives'` to `from '@/features/shared-kernel'`.
+
+---
+
+### ARCH-D7-008 — D7 Regression: `scheduling.slice` Sub-Path Import from `projection.bus`
+
+**ID**: #ISSUE-20260304-006  
+**Rule**: D7 — Feature slices must import other feature slices via their public `index.ts`  
+**Severity**: Major  
+**Fixed**: 2026-03-04 (this PR)
+
+**Problem files**: `scheduling.slice/index.ts`, `scheduling.slice/_projectors/demand-board.ts`
+
+**Resolution**: Added demand-board projector functions to `projection.bus/index.ts` barrel; updated both files to import via the public barrel.
+
+---
+
+### ARCH-D20-001 — D20 Violation: `workspace.slice` Re-Exports `GlobalSearch` from `global-search.slice`
+
+**ID**: #ISSUE-20260304-007  
+**Rule**: D20 — Feature slices must not cross-import from each other  
+**Severity**: Major  
+**Fixed**: 2026-03-04 (this PR)
+
+**Problem files**: `workspace.slice/core/index.ts`, `workspace.slice/index.ts`
+
+**Resolution**: Removed the `export { GlobalSearch }` re-export and its backward-compatibility comment from both barrel files. The direct consumer (`header.tsx`) already imported from the correct source.
+
+---
+
+_Archive last updated: 2026-03-04 — 15 entries (8 pre-PR-52 + 7 from 2026-03-04 session)_

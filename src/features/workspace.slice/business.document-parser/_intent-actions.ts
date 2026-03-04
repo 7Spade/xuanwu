@@ -11,6 +11,7 @@ import {
   createParsingImport as createParsingImportFacade,
   createParsingIntent as createParsingIntentFacade,
   getParsingImportByIdempotencyKey as getParsingImportByIdempotencyKeyFacade,
+  getParsingIntentBySourceFileId as getParsingIntentBySourceFileIdFacade,
   supersedeParsingIntent as supersedeParsingIntentFacade,
   updateParsingImportStatus as updateParsingImportStatusFacade,
   updateParsingIntentStatus as updateParsingIntentStatusFacade,
@@ -138,6 +139,31 @@ export async function saveParsingIntent(
 ): Promise<SaveParsingIntentResult> {
   const semanticHash =
     options?.semanticHash ?? (await createSemanticHash(lineItems))
+
+  // [D14/D15] Write-idempotency guard: when a sourceFileId is supplied, check
+  // whether a non-superseded ParsingIntent already exists for this source file.
+  //   • Same semanticHash  → content is identical; return the existing intent
+  //                          without creating a duplicate document.
+  //   • Different hash     → the file was re-parsed; automatically supersede the
+  //                          previous intent and create a fresh one.
+  if (options?.sourceFileId) {
+    const existing = await getParsingIntentBySourceFileIdFacade(
+      workspaceId,
+      options.sourceFileId
+    )
+    if (existing) {
+      if (existing.semanticHash === semanticHash) {
+        // True duplicate — identical content; return the existing intent.
+        // The caller receives the same intentId it would from a fresh create, so
+        // all downstream consumers (document-parser-view, import ledger) behave
+        // normally. No Firestore write is made and no side-effects are triggered.
+        return { intentId: existing.id as IntentID }
+      }
+      // Content changed — supersede the previous intent.
+      options = { ...options, previousIntentId: existing.id as IntentID }
+    }
+  }
+
   const id = await createParsingIntentFacade(workspaceId, {
     workspaceId,
     sourceFileName,

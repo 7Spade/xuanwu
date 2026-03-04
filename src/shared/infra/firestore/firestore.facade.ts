@@ -99,6 +99,7 @@ export const createParsingIntent = repositories.createParsingIntent
 export const updateParsingIntentStatus = repositories.updateParsingIntentStatus
 export const supersedeParsingIntent = repositories.supersedeParsingIntent
 export const getParsingIntents = repositories.getParsingIntents
+export const getParsingIntentBySourceFileId = repositories.getParsingIntentBySourceFileId
 
 // ParsingImport (intent materialization ledger)
 export const createParsingImport = repositories.createParsingImport

@@ -14,6 +14,8 @@ import {
   collection,
   query,
   orderBy,
+  where,
+  limit,
 } from 'firebase/firestore';
 
 import type { ParsingIntent } from '@/features/workspace.slice';
@@ -105,4 +107,34 @@ export const getParsingIntents = async (
   ).withConverter(converter);
   const q = query(colRef, orderBy('createdAt', 'desc'));
   return getDocuments(q);
+};
+
+/**
+ * Returns the most-recent non-superseded ParsingIntent for a given sourceFileId.
+ *
+ * Used by saveParsingIntent to implement write-idempotency [D14/D15]:
+ * if a ParsingIntent already exists for this source file the caller can
+ * decide to skip the create (same semanticHash) or supersede it (new hash).
+ *
+ * Uses an explicit `in` allowlist for status so Firestore does not require an
+ * extra mandatory `orderBy('status')` clause (which `!=` inequality would force).
+ */
+export const getParsingIntentBySourceFileId = async (
+  workspaceId: string,
+  sourceFileId: string
+): Promise<ParsingIntent | null> => {
+  const converter = createConverter<ParsingIntent>();
+  const colRef = collection(
+    db,
+    `workspaces/${workspaceId}/${SUBCOLLECTIONS.parsingIntents}`
+  ).withConverter(converter);
+  const q = query(
+    colRef,
+    where('sourceFileId', '==', sourceFileId),
+    where('status', 'in', ['pending', 'importing', 'imported', 'failed']),
+    orderBy('createdAt', 'desc'),
+    limit(1)
+  );
+  const rows = await getDocuments(q);
+  return rows[0] ?? null;
 };
