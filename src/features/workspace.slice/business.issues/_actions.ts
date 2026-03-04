@@ -24,8 +24,8 @@ export async function createIssue(
   sourceTaskId?: string
 ): Promise<CommandResult> {
   try {
-    await createIssueFacade(workspaceId, title, type, priority, sourceTaskId);
-    return commandSuccess(workspaceId, Date.now());
+    const issueId = await createIssueFacade(workspaceId, title, type, priority, sourceTaskId);
+    return commandSuccess(issueId, Date.now());
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return commandFailureFrom('ISSUE_CREATE_FAILED', message);

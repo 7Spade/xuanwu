@@ -37,7 +37,7 @@ export const createIssue = async (
   type: 'technical' | 'financial',
   priority: 'high' | 'medium',
   sourceTaskId?: string
-): Promise<void> => {
+): Promise<string> => {
   const issueData: Omit<WorkspaceIssue, 'id' | 'createdAt'> & { createdAt: FieldValue } = {
     title,
     type,
@@ -47,7 +47,8 @@ export const createIssue = async (
     createdAt: serverTimestamp(),
     comments: [],
   };
-  await addDocument(`workspaces/${workspaceId}/issues`, issueData);
+  const ref = await addDocument(`workspaces/${workspaceId}/issues`, issueData);
+  return ref.id;
 };
 
 /**

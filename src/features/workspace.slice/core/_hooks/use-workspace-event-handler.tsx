@@ -14,7 +14,10 @@ import {
 } from "../../business.document-parser";
 import { createIssue } from "../../business.issues";
 import { createTask } from "../../business.tasks";
-import { handleIssueResolvedForWorkflow } from "../../business.workflow";
+import {
+  handleIssueCreatedForWorkflow,
+  handleIssueResolvedForWorkflow,
+} from "../../business.workflow";
 import type { DocumentParserItemsExtractedPayload } from '../../core.event-bus';
 import { useWorkspace } from '../_components/workspace-provider';
 
@@ -48,6 +51,42 @@ export function useWorkspaceEventHandler() {
       });
     };
 
+    const createIssueAndBlockWorkflow = async (
+      title: string,
+      type: "technical" | "financial",
+      sourceTaskId?: string,
+      traceId?: string
+    ) => {
+      const issueResult = await createIssue(
+        workspace.id,
+        title,
+        type,
+        "high",
+        sourceTaskId
+      );
+      if (!issueResult.success) {
+        throw new Error(
+          `Failed to create issue in workspace ${workspace.id} (${type}${sourceTaskId ? `, sourceTaskId=${sourceTaskId}` : ''}): ${issueResult.error.message}`
+        );
+      }
+
+      const blockedResult = await handleIssueCreatedForWorkflow(
+        workspace.id,
+        issueResult.aggregateId
+      );
+
+      if (blockedResult.wasChanged) {
+        eventBus.publish("workspace:workflow:blocked", {
+          workflowId: blockedResult.workflowId,
+          issueId: issueResult.aggregateId,
+          blockedByCount: blockedResult.blockedByCount,
+          ...(traceId ? { traceId } : {}),
+        });
+      }
+
+      return issueResult.aggregateId;
+    };
+
     const unsubQAApproved = eventBus.subscribe(
       "workspace:quality-assurance:approved",
       (payload) => {
@@ -73,12 +112,11 @@ export function useWorkspaceEventHandler() {
     const unsubQualityAssuranceRejected = eventBus.subscribe(
       "workspace:quality-assurance:rejected",
       async (payload) => {
-        await createIssue(
-          workspace.id,
+        await createIssueAndBlockWorkflow(
           `QA Rejected: ${payload.task.name}`,
           "technical",
-          "high",
-          payload.task.id
+          payload.task.id,
+          payload.traceId
         );
         pushNotification(
           "QA Rejected & Issue Logged",
@@ -91,12 +129,11 @@ export function useWorkspaceEventHandler() {
     const unsubAcceptanceFailed = eventBus.subscribe(
       "workspace:acceptance:failed",
       async (payload) => {
-        await createIssue(
-          workspace.id,
+        await createIssueAndBlockWorkflow(
           `Acceptance Failed: ${payload.task.name}`,
           "technical",
-          "high",
-          payload.task.id
+          payload.task.id,
+          payload.traceId
         );
         pushNotification(
           "Acceptance Failed & Issue Logged",
@@ -348,16 +385,74 @@ export function useWorkspaceEventHandler() {
       }
     );
 
+    const buildWorkflowBlockedMessage = (
+      workflowId: string,
+      issueId: string,
+      blockedByCount: number
+    ) =>
+      `Workflow ${workflowId} blocked by issue ${issueId}. Active blockers: ${blockedByCount}.`;
+
+    const unsubWorkflowBlocked = eventBus.subscribe(
+      "workspace:workflow:blocked",
+      (payload) => {
+        pushNotification(
+          "Workflow Blocked",
+          buildWorkflowBlockedMessage(
+            payload.workflowId,
+            payload.issueId,
+            payload.blockedByCount
+          ),
+          "alert"
+        );
+      }
+    );
+
+    const unsubWorkflowUnblocked = eventBus.subscribe(
+      "workspace:workflow:unblocked",
+      (payload) => {
+        pushNotification(
+          "Workflow Unblocked",
+          `Workflow ${payload.workflowId} unblocked by issue ${payload.issueId}.`,
+          "success"
+        );
+      }
+    );
+
     // B-track announces fact via event bus; workflow aggregate owns blockedBy mutation [#A3].
+    const buildIssueResolvedMessage = (
+      issueTitle: string,
+      resolvedBy: string,
+      unblockedCount: number
+    ) =>
+      `Issue "${issueTitle}" closed by ${resolvedBy}. ${unblockedCount > 0 ? 'Workflow resumed.' : 'Workflow still blocked by other issues.'}`;
+
     const unsubIssueResolved = eventBus.subscribe(
       "workspace:issues:resolved",
       async (payload) => {
-        await handleIssueResolvedForWorkflow(workspace.id, payload.issueId).catch(
-          (err: unknown) => console.error('[A/B Handoff] Workflow unblock handling failed:', err)
-        );
+        const resolution = await handleIssueResolvedForWorkflow(
+          workspace.id,
+          payload.issueId
+        ).catch((err: unknown) => {
+          console.error('[A/B Handoff] Workflow unblock handling failed:', err);
+          return { touchedWorkflowIds: [], unblockedWorkflowIds: [] };
+        });
+
+        for (const workflowId of resolution.unblockedWorkflowIds) {
+          eventBus.publish("workspace:workflow:unblocked", {
+            workflowId,
+            issueId: payload.issueId,
+            blockedByCount: 0,
+            ...(payload.traceId ? { traceId: payload.traceId } : {}),
+          });
+        }
+
         pushNotification(
           "B-Track Issue Resolved",
-          `Issue "${payload.issueTitle}" closed by ${payload.resolvedBy}. A-Track may now resume.`,
+          buildIssueResolvedMessage(
+            payload.issueTitle,
+            payload.resolvedBy,
+            resolution.unblockedWorkflowIds.length
+          ),
           "success"
         );
       }
@@ -367,12 +462,11 @@ export function useWorkspaceEventHandler() {
     const unsubFinanceFailed = eventBus.subscribe(
       "workspace:finance:disburseFailed",
       async (payload) => {
-        await createIssue(
-          workspace.id,
+        await createIssueAndBlockWorkflow(
           `Disbursement Failed: ${payload.taskTitle}`,
           "financial",
-          "high",
-          payload.taskId
+          payload.taskId,
+          payload.traceId
         );
         pushNotification(
           "Finance Failure & Issue Logged",
@@ -386,12 +480,11 @@ export function useWorkspaceEventHandler() {
     const unsubTaskBlocked = eventBus.subscribe(
       "workspace:tasks:blocked",
       async (payload) => {
-        await createIssue(
-          workspace.id,
+        await createIssueAndBlockWorkflow(
           `Task Blocked: ${payload.task.name}`,
           "technical",
-          "high",
-          payload.task.id
+          payload.task.id,
+          payload.traceId
         );
         pushNotification(
           "Task Blocked & Issue Logged",
@@ -426,6 +519,8 @@ export function useWorkspaceEventHandler() {
       unsubTaskCompleted();
       unsubTaskAssigned();
       unsubForwardRequested();
+      unsubWorkflowBlocked();
+      unsubWorkflowUnblocked();
       unsubIssueResolved();
       unsubFinanceFailed();
       unsubTaskBlocked();

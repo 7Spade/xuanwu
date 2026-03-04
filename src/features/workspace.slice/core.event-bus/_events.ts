@@ -104,6 +104,20 @@ export interface WorkspaceIssueResolvedPayload {
   traceId?: string
 }
 
+export interface WorkspaceWorkflowBlockedPayload {
+  workflowId: string
+  issueId: string
+  blockedByCount: number
+  traceId?: string
+}
+
+export interface WorkspaceWorkflowUnblockedPayload {
+  workflowId: string
+  issueId: string
+  blockedByCount: number
+  traceId?: string
+}
+
 export interface WorkspaceFinanceDisbursementFailedPayload {
   taskId: string
   taskTitle: string
@@ -151,6 +165,8 @@ export type WorkspaceEventName =
   | "workspace:document-parser:itemsExtracted"
   | "workspace:files:sendToParser"
   | "workspace:issues:resolved"
+  | "workspace:workflow:blocked"
+  | "workspace:workflow:unblocked"
   | "workspace:finance:disburseFailed"
   | "daily:log:forwardRequested"
   | "workspace:parsing-intent:deltaProposed"
@@ -172,6 +188,8 @@ export interface WorkspaceEventPayloadMap {
   "workspace:document-parser:itemsExtracted": DocumentParserItemsExtractedPayload
   "workspace:files:sendToParser": FileSendToParserPayload
   "workspace:issues:resolved": WorkspaceIssueResolvedPayload
+  "workspace:workflow:blocked": WorkspaceWorkflowBlockedPayload
+  "workspace:workflow:unblocked": WorkspaceWorkflowUnblockedPayload
   "workspace:finance:disburseFailed": WorkspaceFinanceDisbursementFailedPayload
   "daily:log:forwardRequested": DailyLogForwardRequestedPayload
   "workspace:parsing-intent:deltaProposed": IntentDeltaProposedPayload
