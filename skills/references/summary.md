@@ -28,12 +28,14 @@ This skill contains the following reference files:
 - Be aware that this file may contain sensitive information. Handle it with
   the same level of security as you would the original repository.
 
+- Pay special attention to the Repository Instruction. These contain important context and guidelines specific to this project.
+
 ## Notes
 
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
 - Only files matching these patterns are included: **/*
-- Files matching these patterns are excluded: **/*.md, **/*.test.ts, **/*.svg, **/types/generated.ts, **/*.md, .codacy/**, .firebase/**, .github/**, .idx/**, .next/**, docs/**, public/**, skills/**, .aiexclude, .firebaserc, .gitattributes, .gitignore, .modified, .prettierrc, apphosting.yaml, components.json, eslint.config.mts, next.config.ts, postcss.config.mjs, README.md, repomix.config.ts, **/node_modules/**, **/dist/**, **/build/**, **/.git/**, package-lock.json, repomix-output.md
+- Files matching these patterns are excluded: src/app/favicon.ico, src/app/globals.css, **/*.md, **/*.test.ts, **/*.svg, **/types/generated.ts, **/*.md, .codacy/**, .firebase/**, .github/**, .idx/**, .next/**, docs/**, public/**, skills/**, .aiexclude, .firebaserc, .gitattributes, .gitignore, .modified, .prettierrc, apphosting.yaml, components.json, eslint.config.mts, next.config.ts, postcss.config.mjs, README.md, repomix.config.ts, **/node_modules/**, src/shared-infra/firebase/functions/lib/**, src/shared/shadcn-ui/**, tailwind.config.ts, vitest.config.ts, **/dist/**, **/build/**, **/.git/**, package-lock.json, repomix-output.md
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Code comments have been removed from supported file types
@@ -43,17 +45,16 @@ This skill contains the following reference files:
 
 ## Statistics
 
-601 files | 9,344 lines
+530 files | 8,958 lines
 
 | Language | Files | Lines |
 |----------|------:|------:|
-| TypeScript | 349 | 5,876 |
-| TypeScript (TSX) | 231 | 3,078 |
-| Markdown | 8 | 26 |
+| TypeScript | 339 | 5,847 |
+| TypeScript (TSX) | 177 | 2,755 |
 | JSON | 7 | 309 |
+| Markdown | 2 | 10 |
 | No Extension | 2 | 15 |
 | RULES | 2 | 21 |
-| CSS | 1 | 18 |
 | JavaScript | 1 | 1 |
 
 **Largest files:**
@@ -64,6 +65,6 @@ This skill contains the following reference files:
 - `src/features/organization.slice/core.event-bus/_events.ts` (126 lines)
 - `src/features/workspace.slice/business.document-parser/_intent-actions.ts` (98 lines)
 - `src/shared/infra/firestore/repositories/workspace-core.repository.ts` (87 lines)
-- `src/features/workspace.slice/core/_components/workspace-provider.tsx` (83 lines)
+- `src/features/workspace.slice/core/_components/workspace-provider.tsx` (87 lines)
 - `src/features/workspace.slice/business.tasks/_components/tasks-view.tsx` (82 lines)
 - `src/features/scheduling.slice/_components/proposal-dialog.tsx` (79 lines)
