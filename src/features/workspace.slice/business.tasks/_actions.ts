@@ -17,6 +17,7 @@ import {
   getTasksBySourceIntentId as getTasksBySourceIntentIdFacade,
   reconcileTask as reconcileTaskFacade,
 } from "@/shared/infra/firestore/firestore.facade"
+
 import type { WorkspaceTask } from "./_types"
 
 export async function createTask(
@@ -132,6 +133,7 @@ export async function reconcileIntentTasks(
     unitPrice: number
     discount?: number
     subtotal: number
+    sourceIntentIndex?: number
   }>,
   baseTaskData: Omit<WorkspaceTask, "id" | "createdAt" | "updatedAt" | "name" | "quantity" | "unitPrice" | "discount" | "subtotal" | "sourceIntentId" | "sourceIntentVersion">
 ): Promise<CommandResult> {
@@ -157,6 +159,7 @@ export async function reconcileIntentTasks(
             subtotal: item.subtotal,
             sourceIntentId: newIntentId,
             sourceIntentVersion: newIntentVersion,
+            ...(item.sourceIntentIndex !== undefined ? { sourceIntentIndex: item.sourceIntentIndex } : {}),
           });
         } else {
           // Either no matching old task or the existing task is in progress — create new.
@@ -169,6 +172,7 @@ export async function reconcileIntentTasks(
             subtotal: item.subtotal,
             sourceIntentId: newIntentId,
             sourceIntentVersion: newIntentVersion,
+            ...(item.sourceIntentIndex !== undefined ? { sourceIntentIndex: item.sourceIntentIndex } : {}),
           });
         }
       })

@@ -64,7 +64,17 @@ const CLASSIFICATION_RULES: Array<{ keywords: string[]; type: CostItemType }> = 
     type: CostItemType.FINANCIAL,
   },
 
-  // MANAGEMENT — admin, QC, supervisory, and work-safety overhead
+  // EXECUTABLE OVERRIDE — physical testing / commissioning work that contains QC or inspection
+  // keywords but is unambiguously executable field-work (must be checked BEFORE the MANAGEMENT rule
+  // so that "機電檢測QC Test" is not mis-classified as management overhead).
+  {
+    keywords: ['機電檢測', 'qc test', 'commissioning test', '通電測試', '系統測試', 'pre-commissioning'],
+    type: CostItemType.EXECUTABLE,
+  },
+
+  // MANAGEMENT — admin, supervisory, and work-safety overhead
+  // Note: bare "qc" (too broad) was intentionally removed; "quality control" and "品管"
+  // (Chinese equivalent) already cover the administrative QC use case precisely.
   {
     keywords: [
       '管理',
@@ -78,7 +88,6 @@ const CLASSIFICATION_RULES: Array<{ keywords: string[]; type: CostItemType }> = 
       'site manager',
       'site management',
       'administration',
-      'qc',
       'quality control',
       '安全管理',
     ],
@@ -141,4 +150,21 @@ export function classifyCostItem(name: string): CostItemType {
 
   // Default: treat as executable work if no specific rule matched
   return CostItemType.EXECUTABLE
+}
+
+/**
+ * Layer-3 semantic routing gate — the single source of truth for whether a cost
+ * item may be materialised as a Task.
+ *
+ * Centralising this decision in `semantic-graph.slice` (VS8) prevents feature
+ * slices from hard-coding `=== CostItemType.EXECUTABLE` and ensures any future
+ * expansion of the materialisation rule set stays inside the semantic layer.
+ *
+ * @param costItemType - The semantic type assigned by `classifyCostItem`.
+ * @returns `true` when the item should create a Task; `false` to silently skip.
+ *
+ * @pure No side effects; safe to call at any layer [D8].
+ */
+export function shouldMaterializeAsTask(costItemType: CostItemType): boolean {
+  return costItemType === CostItemType.EXECUTABLE
 }

@@ -277,7 +277,7 @@ subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（8層語義神
         direction LR
         subgraph COST_CLASS["📊 成本語義分類器 [D8][D24][D27]"]
             direction LR
-            COST_CLASSIFIER["_cost-classifier.ts（純函式 [D8]）\nclassifyCostItem(name) → CostItemType\n──────────────────────────────\nEXECUTABLE  物理施工任務（預設出口）\nMANAGEMENT  行政/品管/職安管理\nRESOURCE    倉儲/人力資源儲備\nFINANCIAL   付款里程碑/預付款\nPROFIT      利潤項目\nALLOWANCE   耗材/差旅/運輸補貼\n──────────────────────────────\n禁止 Firestore 存取・禁止 async\n可在任意 Layer 安全呼叫 [D8]"]
+            COST_CLASSIFIER["_cost-classifier.ts（純函式 [D8]）\nclassifyCostItem(name) → CostItemType\nshouldMaterializeAsTask(type) → boolean  ★[D27]\n──────────────────────────────\nEXECUTABLE  物理施工任務（預設出口）\nMANAGEMENT  行政/品管/職安管理（含 QC Inspection）\nRESOURCE    倉儲/人力資源儲備\nFINANCIAL   付款里程碑/預付款\nPROFIT      利潤項目（利潤）\nALLOWANCE   耗材/差旅/運輸補貼（含差旅、運輸）\n──────────────────────────────\n★ EXECUTABLE override 優先：機電檢測/qc test 等施工測試→EXECUTABLE\n禁止 Firestore 存取・禁止 async\n可在任意 Layer 安全呼叫 [D8]"]
         end
     end
 
@@ -1088,11 +1088,19 @@ class NOTIF_HUB_SVC crossCutAuth
 %%      Layer-1（原始解析）：document-parser 解析文件 → 產生 raw ParsedLineItem[]
 %%      Layer-2（語義分類）：VS5 document-parser-view 呼叫 VS8 classifyCostItem(name) → CostItemType
 %%                           classifyCostItem 為純函式（[D8] 禁止 async / Firestore / 副作用）
+%%                           優先級：EXECUTABLE override > MANAGEMENT > RESOURCE > FINANCIAL > PROFIT > ALLOWANCE > EXECUTABLE(預設)
+%%                           EXECUTABLE override 舉例：機電檢測、qc test、現場試驗、commissioning、調試 等施工測試關鍵字
+%%                           ALLOWANCE 舉例：差旅、運輸、勘查、工安補貼（不可物化為 task）
+%%                           PROFIT 舉例：利潤（不可物化為 task）
 %%                           CostItemType：EXECUTABLE | MANAGEMENT | RESOURCE | FINANCIAL | PROFIT | ALLOWANCE
 %%                           標注結果寫入 ParsedLineItem.costItemType，隨 DocumentParserItemsExtractedPayload 傳遞
 %%      Layer-3（語義路由）：use-workspace-event-handler.tsx Semantic Router
-%%                           filter costItemType === EXECUTABLE → 呼叫 importItems() 物化為 tasks
+%%                           [D27-gate] shouldMaterializeAsTask(item.costItemType) → 此函式是唯一的物化閘門
+%%                           禁止在 workspace.slice 內直接寫 `=== CostItemType.EXECUTABLE`；必須呼叫 shouldMaterializeAsTask() [D27]
+%%                           只有 shouldMaterializeAsTask() 返回 true 的項目才能物化為 WorkspaceTask
+%%                           物化同時寫入 sourceIntentIndex（項目在原始文件中的位置）以確保任務清單排序一致 [D27-ORDER]
 %%                           其餘類型：靜默跳過 + toast 通知（禁止物化為 tasks [#A14]）
+%%      [D27-ORDER] 任務排序不變量：tasks-view.tsx 須先按 createdAt（批次間），再按 sourceIntentIndex（批次內），確保任務順序與來源文件一致。
 %%      禁止 VS5 document-parser 自行實作成本語義邏輯；必須透過 VS8 classifyCostItem() [D27]
 %%      禁止 Layer-3 Semantic Router 繞過 costItemType 直接物化非 EXECUTABLE 項目
 %%  ╚══════════════════════════════════════════════════════════════════════════╝

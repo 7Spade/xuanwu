@@ -10,7 +10,7 @@
  */
 import { describe, it, expect } from 'vitest'
 
-import { classifyCostItem, CostItemType } from './_cost-classifier'
+import { classifyCostItem, CostItemType, shouldMaterializeAsTask } from './_cost-classifier'
 
 describe('classifyCostItem', () => {
   // ─── PROFIT ──────────────────────────────────────────────────────────────
@@ -68,14 +68,18 @@ describe('classifyCostItem', () => {
       expect(classifyCostItem('Site Management Overhead')).toBe(CostItemType.MANAGEMENT)
     })
 
-    it('classifies "QC" as MANAGEMENT', () => {
-      expect(classifyCostItem('QC Inspection')).toBe(CostItemType.MANAGEMENT)
+    it('classifies "QC Inspection" as MANAGEMENT (quality control admin)', () => {
+      // "quality control" admin oversight → MANAGEMENT.
+      // Note: bare "qc" was removed from MANAGEMENT keywords to avoid matching
+      // physical commissioning work like "機電檢測QC Test".
+      expect(classifyCostItem('QC Inspection quality control')).toBe(CostItemType.MANAGEMENT)
     })
 
-    it('classifies "機電檢測QC Test (TSMC標準)" as MANAGEMENT (QC keyword matches first)', () => {
-      // "QC" matches the MANAGEMENT rule before the EXECUTABLE catch-all — correct because
-      // QC inspection overhead is management work, not pure construction work.
-      expect(classifyCostItem('機電檢測QC Test (TSMC標準)')).toBe(CostItemType.MANAGEMENT)
+    it('classifies "機電檢測QC Test (TSMC標準)" as EXECUTABLE (EXECUTABLE override fires first)', () => {
+      // "機電檢測" and "qc test" appear in the EXECUTABLE override rule which is
+      // evaluated before the MANAGEMENT rule, so physical commissioning tests are
+      // correctly routed as executable field-work. [D27 fix]
+      expect(classifyCostItem('機電檢測QC Test (TSMC標準)')).toBe(CostItemType.EXECUTABLE)
     })
   })
 
@@ -183,5 +187,32 @@ describe('classifyCostItem', () => {
     it('matches mixed-case "Final Payment" as FINANCIAL', () => {
       expect(classifyCostItem('Final Payment')).toBe(CostItemType.FINANCIAL)
     })
+  })
+})
+
+// ─── shouldMaterializeAsTask ─────────────────────────────────────────────────
+describe('shouldMaterializeAsTask', () => {
+  it('returns true for EXECUTABLE', () => {
+    expect(shouldMaterializeAsTask(CostItemType.EXECUTABLE)).toBe(true)
+  })
+
+  it('returns false for MANAGEMENT', () => {
+    expect(shouldMaterializeAsTask(CostItemType.MANAGEMENT)).toBe(false)
+  })
+
+  it('returns false for PROFIT', () => {
+    expect(shouldMaterializeAsTask(CostItemType.PROFIT)).toBe(false)
+  })
+
+  it('returns false for FINANCIAL', () => {
+    expect(shouldMaterializeAsTask(CostItemType.FINANCIAL)).toBe(false)
+  })
+
+  it('returns false for RESOURCE', () => {
+    expect(shouldMaterializeAsTask(CostItemType.RESOURCE)).toBe(false)
+  })
+
+  it('returns false for ALLOWANCE', () => {
+    expect(shouldMaterializeAsTask(CostItemType.ALLOWANCE)).toBe(false)
   })
 })

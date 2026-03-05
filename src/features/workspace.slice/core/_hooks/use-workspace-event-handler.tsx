@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { handleScheduleProposed } from "@/features/scheduling.slice";
-import { CostItemType } from "@/features/semantic-graph.slice";
+import { shouldMaterializeAsTask } from "@/features/semantic-graph.slice";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { ToastAction } from "@/shared/shadcn-ui/toast";
 
@@ -174,31 +174,36 @@ export function useWorkspaceEventHandler() {
 
         const items: Omit<WorkspaceTask, "id" | "createdAt" | "updatedAt">[] =
           payload.items
-            // [VS8 Layer-3 Semantic Router] Only EXECUTABLE items are materialised as
-            // WorkspaceTasks.  All other types (FINANCIAL, PROFIT, MANAGEMENT, ALLOWANCE,
-            // RESOURCE) are intentionally excluded from task creation — they represent
-            // overhead, margins, or resource entries that do not map to actionable work.
-            .filter((item) => item.costItemType === CostItemType.EXECUTABLE)
-            .map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
-            ...(item.discount !== undefined ? { discount: item.discount } : {}),
-            subtotal: item.subtotal,
-            progress: 0,
-            type: "Imported",
-            priority: "medium",
-            progressState: "todo",
-            sourceIntentId: payload.intentId,
-            // [TE_SK] ParsingIntent uses `skillRequirements`; WorkspaceTask uses `requiredSkills`
-            // to align with ScheduleItem's field name — intentional cross-model mapping.
-            ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
-          }));
+            // [VS8 Layer-3 Semantic Router] shouldMaterializeAsTask() is the single gate
+            // for task materialisation — do not inline `=== CostItemType.EXECUTABLE` here.
+            // flatMap is used instead of filter+map so we can capture the item's original
+            // document position (originalIndex) and store it as `sourceIntentIndex`.
+            // This allows the task list to be sorted back into document order at render time.
+            .flatMap((item, originalIndex) =>
+              shouldMaterializeAsTask(item.costItemType)
+                ? [{
+                    name: item.name,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
+                    ...(item.discount !== undefined ? { discount: item.discount } : {}),
+                    subtotal: item.subtotal,
+                    progress: 0,
+                    type: "Imported",
+                    priority: "medium",
+                    progressState: "todo",
+                    sourceIntentId: payload.intentId,
+                    sourceIntentIndex: originalIndex,
+                    // [TE_SK] ParsingIntent uses `skillRequirements`; WorkspaceTask uses `requiredSkills`
+                    // to align with ScheduleItem's field name — intentional cross-model mapping.
+                    ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
+                  }]
+                : []
+            );
 
-        // Build a human-readable summary of skipped non-EXECUTABLE items for the toast.
+        // Build a human-readable summary of skipped non-materializable items for the toast.
         const skippedItems = payload.items.filter(
-          (item) => item.costItemType !== CostItemType.EXECUTABLE
+          (item) => !shouldMaterializeAsTask(item.costItemType)
         );
         const skippedSummaryLines = skippedItems.map(
           (item) => `• [${item.costItemType}] ${item.name}`
@@ -246,9 +251,12 @@ export function useWorkspaceEventHandler() {
             // update existing `todo` tasks in-place so we don't accumulate duplicate tasks.
             // Tasks in any other state (doing / blocked / done) keep their current doc and
             // a new task is created for the re-parsed item instead.
-            // [VS8 Layer-3] Only EXECUTABLE items are reconciled / created as tasks.
-            const executablePayloadItems = payload.items.filter(
-              (item) => item.costItemType === CostItemType.EXECUTABLE
+            // [VS8 Layer-3] shouldMaterializeAsTask() gates reconciliation/creation.
+            // flatMap captures each item's original document position as sourceIntentIndex.
+            const executablePayloadItems = payload.items.flatMap((item, originalIndex) =>
+              shouldMaterializeAsTask(item.costItemType)
+                ? [{ ...item, sourceIntentIndex: originalIndex }]
+                : []
             );
             const taskResults = payload.oldIntentId
               ? await reconcileIntentTasks(
@@ -372,7 +380,7 @@ export function useWorkspaceEventHandler() {
       }
 
       const executableCount = payload.items.filter(
-        (item) => item.costItemType === CostItemType.EXECUTABLE
+        (item) => shouldMaterializeAsTask(item.costItemType)
       ).length;
       const nonExecutableCount = payload.items.length - executableCount;
       const itemBreakdown =
