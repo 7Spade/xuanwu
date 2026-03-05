@@ -1,5 +1,5 @@
 /**
- * semantic-graph.slice/centralized-selectors — [P4] High-level Semantic Queries
+ * Module: semantic-graph.slice/projections — [L7 VS8_PROJ] Graph Selectors
  *
  * Exposes read-only query functions for use by:
  *   - VS6 scheduling eligibility (checks whether a candidate's tags satisfy requirements)
@@ -7,7 +7,7 @@
  *   - Global Search VS8 (QGWAY_SEARCH integration)
  *
  * Architecture rules:
- *   [P4]  Selectors are pure, side-effect-free, and read-only.
+ *   [L7]  Projections are pure, side-effect-free, and read-only [D21-7, T5].
  *   [D7]  Only selectors exported via index.ts (edges/nodes/workflows are private).
  *   [D24] No direct Firebase import — data is passed in or read from in-memory stores.
  *

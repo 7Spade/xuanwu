@@ -18,7 +18,7 @@
 
 import { querySemanticIndex, getIndexStats } from './_services';
 import { getEdgesByType } from './centralized-edges/semantic-edge-store';
-import { getEligibleTags, satisfiesSemanticRequirement, buildEligibilityMatrix } from './centralized-selectors/eligible-tags.selector';
+import { getEligibleTags, satisfiesSemanticRequirement, buildEligibilityMatrix } from './projections/graph-selectors';
 import type { SemanticEdge, StaleTagWarning } from './centralized-types';
 import { detectStaleTagWarnings } from './centralized-workflows/tag-lifecycle.workflow';
 import {
