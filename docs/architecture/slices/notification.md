@@ -47,3 +47,7 @@ The hook `useUserNotifications` delegates to `createNotificationListener`.
 - **[D3]** All Firestore access via the service layer, never from components.
 - **[#A13]** VS7 stores and queries notifications; it does not dispatch them.
 - **[D24]** No direct `firebase/*` imports.
+
+## Architecture Sync Note
+
+Notification read models may carry `semanticTagSlug` to support semantic grouping/filtering for parsing-derived notifications.

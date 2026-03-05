@@ -113,7 +113,7 @@ export async function extractDataFromDocument(
     };
     const sanitizedItems: WorkItem[] = result.workItems
       .filter((item) => item != null && typeof item.item === 'string' && item.item.trim() !== '')
-      .map((item) => ({
+      .map((item, index) => ({
         item: item.item,
         // quantity 0 is invalid for an invoice line — default to 1
         quantity: toNum(item.quantity, 1) || 1,
@@ -121,6 +121,14 @@ export async function extractDataFromDocument(
         unitPrice: item.unitPrice != null ? toNum(item.unitPrice, 0) : 0,
         ...(item.discount != null ? { discount: toNum(item.discount, 0) } : {}),
         price: item.price != null ? toNum(item.price, 0) : 0,
+        semanticTagSlug:
+          typeof item.semanticTagSlug === 'string' && item.semanticTagSlug.trim() !== ''
+            ? item.semanticTagSlug
+            : 'unclassified',
+        sourceIntentIndex:
+          typeof item.sourceIntentIndex === 'number' && Number.isFinite(item.sourceIntentIndex)
+            ? item.sourceIntentIndex
+            : index,
       }));
 
     if (sanitizedItems.length === 0) {

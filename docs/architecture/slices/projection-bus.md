@@ -20,6 +20,15 @@ All projectors call `applyVersionGuard()` [S2] before writing to prevent stale w
 | `schedule-view` | `ScheduleCreated`, `ScheduleItemAssigned` | `schedule-views/` |
 | `user-notification-view` | `NotificationDispatched` | `user-notification-views/` |
 
+## Parsing Projection Requirements (Semantic Sync)
+
+Projectors that consume parsing-complete events must persist semantic fields:
+- `lineItems[].costItemType`
+- `lineItems[].semanticTagSlug`
+- `lineItems[].sourceIntentIndex`
+
+`semanticTagSlug` is the projection join key to `tag-snapshot` for UI visual attributes and overview/inventory aggregation.
+
 ## Version Guard [S2]
 
 Before every write:
@@ -49,3 +58,4 @@ Firestore collections via `SK_PORTS` [D24].
 - **[S2]** Every projection must call `applyVersionGuard()` before writing.
 - **[D24]** No direct `firebase/*` imports; uses `IFirestoreRepo` port.
 - **[D7]** External consumers query projections through `{slice}/index.ts`.
+- Parsing-derived projections must keep `sourceIntentIndex` to preserve deterministic line-item order.

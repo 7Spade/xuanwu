@@ -14,6 +14,8 @@ that every other vertical slice depends on. No business logic lives here — onl
 | `authority-snapshot` | `claims / roles / scopes / TTL` | Carries authentication state; TTL = token validity period. |
 | `skill-tier` | `getTier(xp) → Tier` | Pure function; never persisted to DB [#12]. |
 | `skill-requirement` | `tagSlug × minXp` | Cross-slice human resource contract. |
+| `cost-item-type` | `EXECUTABLE \| MANAGEMENT \| RESOURCE \| FINANCIAL \| PROFIT \| ALLOWANCE` | Global semantic cost classification enum (owned by VS8, consumed cross-slice). |
+| `semantic-tag-slug` | canonical `tagSlug` string | Global semantic identity contract for projection lookup and routing. |
 | `command-result-contract` | `Success { aggregateId, version } \| Failure { DomainError }` | Basis for frontend optimistic updates. |
 | `SK_OUTBOX_CONTRACT` [S1] | at-least-once · idempotency-key · DLQ classification | Every outbox entry must declare a DLQ level: `SAFE_AUTO`, `REVIEW_REQUIRED`, or `SECURITY_BLOCK`. |
 | `SK_VERSION_GUARD` [S2] | `event.aggregateVersion > view.lastProcessedVersion` | Applied by every projection before writing; stale events are discarded. |
@@ -46,3 +48,4 @@ Infrastructure adapters implement the ports defined here.
 - **[S1]** Idempotency key format: `eventId + aggId + version`.
 - **[D24]** No feature slice may import `firebase/*` directly; all Firebase access goes through `SK_PORTS`.
 - **[D7]** Cross-slice imports must go through `{slice}/index.ts` public barrel.
+- `CostItemType` and `SemanticTagSlug` are SK-level contracts and must not be duplicated in feature-local type declarations.

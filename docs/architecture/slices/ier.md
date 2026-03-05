@@ -42,3 +42,12 @@ All domain slices (VS1–VS8) emit events into IER via the outbox.
 - **[S1]** Idempotency key is mandatory on every outbox entry.
 - **[E6]** Claims-refresh events must travel on `CRITICAL_LANE`.
 - No domain slice may call another slice's write path directly; IER is the only conduit.
+
+## Document Parsing Event Contract (Architecture Sync)
+
+`DocumentParserItemsExtracted` (or equivalent parsing-complete event) must include per-line semantic payload:
+- `costItemType`
+- `semanticTagSlug`
+- `sourceIntentIndex`
+
+This contract is required so downstream projectors (`inventory/overview/workspace-view`) can build semantic-aware read models consistently.

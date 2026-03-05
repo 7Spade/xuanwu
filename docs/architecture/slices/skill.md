@@ -44,3 +44,7 @@ drivers of VS8's learning engine — real skill events update semantic weights.
 - **[D21-G]** `learning-engine.ts` in VS8 must be driven by real `SkillXpChanged` / `AccountCreated` facts only — no manual or random weight modifications.
 - **[T1]** New slices that need skill-tier data subscribe to `TagLifecycleEvent` rather than coupling to VS3 internals.
 - **[D24]** No direct `firebase/*` imports; uses `SK_PORTS`.
+
+## Architecture Sync Note
+
+Skill-related projections that consume parsing context should prefer `semanticTagSlug` for cross-slice semantic joins.

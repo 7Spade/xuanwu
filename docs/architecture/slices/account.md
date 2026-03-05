@@ -48,3 +48,7 @@ is resolved by VS1. It also drives VS8's learning engine via real skill-fact eve
 - **[A8]** One command touches the `account` aggregate only.
 - **[D21-G]** Only real fact events from VS2 (and VS3) may drive VS8 `learning-engine.ts`; no manual updates.
 - **[D24]** No direct `firebase/*` imports; uses `SK_PORTS`.
+
+## Architecture Sync Note
+
+Account-related search/index consumers should treat `semanticTagSlug` as canonical semantic identity when joining parsing-derived records.

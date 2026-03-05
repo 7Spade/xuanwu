@@ -28,3 +28,7 @@ NOT call `sendEmail`, `sendPush`, or `sendSMS` directly — they route requests 
 - **[D26]** Business slices must not contain notification dispatch logic.
 - **[D3]** Notification-hub uses the service layer for all Firestore access; components must not import Firestore SDK directly.
 - **[D24]** No direct `firebase/*` imports; uses `IMessaging` and `IFirestoreRepo` ports.
+
+## Architecture Sync Note
+
+When notification strategies are semantic-aware, routing should consume `semanticTagSlug` from parsing events instead of hardcoded cost categories.

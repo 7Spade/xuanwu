@@ -24,6 +24,8 @@ When an assignment is created, VS8's `VS8_NG` (Neural Computation layer) perform
 
 This means VS6 must never implement its own matching logic; it delegates to VS8.
 
+Parsing-derived scheduling candidates must preserve `semanticTagSlug` so routing can align with VS8 taxonomy consistently.
+
 ## Incoming Dependencies
 
 | Source | What is consumed |

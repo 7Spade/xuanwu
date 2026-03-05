@@ -54,6 +54,7 @@ graph TD
     VS8 -->|"TagLifecycleEvent"| IER
     VS8 -.->|"semantic routing"| VS6
     VS8 -.->|"cost classification"| VS5
+    VS8 -.->|"semanticTagSlug via tag-snapshot"| VS5
     VS3 -.->|"drives learning"| VS8
     VS2 -.->|"drives learning"| VS8
 
@@ -78,3 +79,4 @@ graph TD
 - **IER is the only fan-out point** — no slice talks directly to another slice's write path.
 - **FBACL is the only Firebase SDK boundary** — all slices reach storage via ports, not directly.
 - **global-search and notification-hub** are the only two cross-cutting authorities; all slices must delegate to them.
+- DocumentParser semantic UI attributes are read from VS8 `tag-snapshot` projection (T5), not from internal graph storage.

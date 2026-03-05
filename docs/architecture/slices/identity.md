@@ -58,3 +58,7 @@ It owns the claims refresh lifecycle and is the sole producer of `AuthoritySnaps
 - **[S6]** `claims-refresh-handler` is the unique claims refresh trigger.
 - **[R8]** `traceId` passes through unchanged from `CBG_ENTRY`.
 - **[E6]** Claims refresh initiated only via IER `CRITICAL_LANE`.
+
+## Architecture Sync Note
+
+Identity context consumers that enrich parsing records should propagate `semanticTagSlug` unchanged as part of traceable semantic context.

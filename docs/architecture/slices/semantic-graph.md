@@ -52,10 +52,21 @@ Additional invariants:
 
 ## Cost Semantic Classification [D27 #A14]
 
-`classifyCostItem(name: string): CostItemType` lives in `_cost-classifier.ts`.
+`classifyCostItem(name: string): { costItemType: CostItemType; semanticTagSlug: SemanticTagSlug }` lives in `_cost-classifier.ts`.
 `CostItemType` values: `EXECUTABLE | MANAGEMENT | RESOURCE | FINANCIAL | PROFIT | ALLOWANCE`.
 The Layer-3 router in VS5 filters to `EXECUTABLE` before creating tasks.
 **No other slice may re-implement this logic.**
+
+`semanticTagSlug` is resolved by VS8 taxonomy and must match an existing `tagSlug` in `tag-snapshot` projection.
+
+## DocumentParser Query Contract [T5]
+
+DocumentParser must query semantic metadata via VS8 projection only:
+- Input: `ParsingIntent.lineItems[].costItemType`
+- Resolution: VS8 maps `costItemType` to canonical `semanticTagSlug`
+- Read path: `projections/tag-snapshot.slice.ts` (icon/color/label/category)
+
+Direct reads from adjacency internals (`graph/adjacency-list.ts`) are forbidden for UI consumption [T5].
 
 ## Neural Network Implementation
 

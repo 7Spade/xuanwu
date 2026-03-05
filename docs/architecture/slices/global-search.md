@@ -6,6 +6,8 @@
 Business slices must NOT build their own search logic; they delegate to this slice.
 It maintains search indexes built on top of VS8 tag entities and projection views.
 
+Document-parser outputs are indexed with semantic metadata so future queries can search by `semanticTagSlug` directly.
+
 ## Incoming Dependencies
 
 | Source | What is consumed |
@@ -26,3 +28,4 @@ It maintains search indexes built on top of VS8 tag entities and projection view
 - **[#A12]** Only `global-search.slice` may build cross-domain search indexes.
 - **[D26]** Business slices are forbidden from duplicating search logic.
 - Delegates semantic ranking to VS8 `rankAffectedNodes` API.
+- Parsing line items must be searchable by `semanticTagSlug` and must preserve `sourceIntentIndex` for stable result ordering.

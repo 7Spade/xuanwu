@@ -43,4 +43,11 @@
 | S2 | All projections call `applyVersionGuard()` before writing |
 | A8 | One command touches one aggregate |
 
+## 2026-03 Semantic Sync
+
+- Layer-2 cost classification now outputs `(costItemType, semanticTagSlug)`.
+- Parsing-derived records must preserve `sourceIntentIndex` for deterministic materialization order.
+- DocumentParser UI semantic visual attributes must read from `tag-snapshot` projection (T5).
+- Cross-domain search includes `semanticTagSlug` as a first-class query/index key.
+
 See [`../logic-overview.md`](../logic-overview.md) for the full invariant and rule definitions.

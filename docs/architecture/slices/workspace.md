@@ -24,14 +24,26 @@ It relies on VS8 for cost semantic classification and delegates search to global
 Upload file
   → saveParsingIntent (D14/D15 idempotency guards)
     → document-parser produces ParsedLineItem[]
-      → classifyCostItem(name) → CostItemType  [VS8 D27 #A14]
+      → classifyCostItem(name) → (CostItemType, SemanticTagSlug)  [VS8 D27 #A14]
         → Layer-3 Semantic Router
           EXECUTABLE  → materialize as task
           others      → silent skip + toast
 ```
 
-**[#A14]** `ParsedLineItem.costItemType` is set by VS8 `_cost-classifier.ts`.
+**[#A14]** `ParsedLineItem.(costItemType, semanticTagSlug)` is set by VS8 `_cost-classifier.ts`.
 The Layer-3 router must only materialize `EXECUTABLE` items as tasks.
+
+## ParsingIntent Digital Twin (Semantic)
+
+`business.parsing-intent` persists per-line semantic attributes:
+- `lineItems[].costItemType`
+- `lineItems[].semanticTagSlug`
+- `lineItems[].sourceIntentIndex`
+
+Materialization gate is mandatory:
+- Only `shouldMaterializeAsTask(costItemType)` may decide task creation.
+- Task projection must preserve `sourceIntentIndex` for deterministic ordering.
+- DocumentParser UI visual attributes must come from VS8 `tag-snapshot` projection (T5), not local hardcoded maps.
 
 ## Idempotency Guards [D14/D15]
 

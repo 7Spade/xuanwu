@@ -84,15 +84,16 @@
 %%    [D21-8] TAG_STALE_GUARD ≤ 30s，所有語義查詢必須引用 SK_STALENESS_CONTRACT
 %%    [D21-9] 突觸權重不變量：SemanticEdge.weight ∈ [0.0, 1.0]；cost = 1/weight（強連結=近鄰）
 %%    [D21-10] 拓撲可觀測性：findIsolatedNodes 必須定期回報孤立節點（D21-3 違規偵測）
-%%    [T5] 業務 Slice 僅能訂閱 projections/tag-snapshot.slice.ts，嚴禁直接存取 graph/adjacency-list.ts
+%%    [T5] 業務 Slice 僅能訂閱 projections/tag-snapshot.slice.ts，嚴禁直接存取 graph/adjacency-list.ts；
+%%         DocumentParser UI 視覺屬性（色彩/icon/分類顯示）必須透過 semantic-graph.slice 投影取得
 %%    [D22] 程式碼禁止出現裸字串 tag_name，必須引用 TE1~TE6 常數實體確保重構時語義鏈不斷裂
 %%    [D27-A] 語義感知路由：所有分發邏輯必須先調用 policy-mapper/ 轉換語義標籤，禁止 ID 硬編碼路由
 %%    [D24] Feature slice 禁止直接 import firebase/*，必須走 SK_PORTS
 %%    [D26] global-search = 唯一搜尋權威；notification-hub = 唯一副作用出口
 %%    [#A12] Global Search = 唯一跨域搜尋出口，禁止各 Slice 自建搜尋邏輯
 %%    [#A13] Notification Hub = 唯一副作用出口，業務 Slice 只產生事件不決定通知策略
-%%    [#A14] ParsedLineItem.costItemType (Layer-2) 由 VS8 _cost-classifier.ts 標注；
-%%           Layer-3 Semantic Router 只允許 EXECUTABLE 項目物化為 tasks，
+%%    [#A14] ParsedLineItem.(costItemType, semanticTagSlug) (Layer-2) 由 VS8 _cost-classifier.ts 標注；
+%%           Layer-3 Semantic Router 只允許 EXECUTABLE 項目物化為 tasks，且以 semanticTagSlug 對齊 tag-snapshot，
 %%           其餘類型（MANAGEMENT/RESOURCE/FINANCIAL/PROFIT/ALLOWANCE）靜默跳過並 toast
 %%  FORBIDDEN:
 %%    BC_X 禁止直接寫入 BC_Y aggregate → 必須透過 IER Domain Event
@@ -104,6 +105,7 @@
 %%    Feature slice 禁止直接 call sendEmail/push/SMS，必須透過 Notification Hub [D26 #A13]
 %%    VS5 document-parser 禁止自行實作成本語義邏輯，必須呼叫 VS8 classifyCostItem() [D27 #A14]
 %%    Layer-3 Semantic Router 禁止繞過 costItemType 直接物化非 EXECUTABLE 項目為 tasks [D27]
+%%    ParsingIntent.lineItems 禁止缺少 semanticTagSlug；UI 視覺屬性禁止直接讀 adjacency-list，必須讀 tag-snapshot [T5]
 %%    業務切片（VS1~VS6）禁止私自宣告語義類別，必須透過 VS8 CTA [D21-1]
 %%    禁止使用隱性字串傳遞語義，所有引用必須指向 TE1~TE6 有效 tagSlug [D21-2]
 %%    孤立標籤（無 parentTagSlug 歸屬）禁止在系統中存在，須歸入分類學 [D21-3]
@@ -277,7 +279,7 @@ subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（8層語義神
         direction LR
         subgraph COST_CLASS["📊 成本語義分類器 [D8][D24][D27]"]
             direction LR
-            COST_CLASSIFIER["_cost-classifier.ts（純函式 [D8]）\nclassifyCostItem(name) → CostItemType\nshouldMaterializeAsTask(type) → boolean  ★[D27]\n──────────────────────────────\nEXECUTABLE  物理施工任務（預設出口）\nMANAGEMENT  行政/品管/職安管理（含 QC Inspection）\nRESOURCE    倉儲/人力資源儲備\nFINANCIAL   付款里程碑/預付款\nPROFIT      利潤項目（利潤）\nALLOWANCE   耗材/差旅/運輸補貼（含差旅、運輸）\n──────────────────────────────\n★ EXECUTABLE override 優先：機電檢測/qc test 等施工測試→EXECUTABLE\n禁止 Firestore 存取・禁止 async\n可在任意 Layer 安全呼叫 [D8]"]
+            COST_CLASSIFIER["_cost-classifier.ts（純函式 [D8]）\nclassifyCostItem(name) → (costItemType, semanticTagSlug)\nshouldMaterializeAsTask(type) → boolean  ★[D27]\n──────────────────────────────\nEXECUTABLE  物理施工任務（預設出口）\nMANAGEMENT  行政/品管/職安管理（含 QC Inspection）\nRESOURCE    倉儲/人力資源儲備\nFINANCIAL   付款里程碑/預付款\nPROFIT      利潤項目（利潤）\nALLOWANCE   耗材/差旅/運輸補貼（含差旅、運輸）\n──────────────────────────────\nsemanticTagSlug 由 VS8 依內容語義掛載（對齊 tagSlug）\n★ EXECUTABLE override 優先：機電檢測/qc test 等施工測試→EXECUTABLE\n禁止 Firestore 存取・禁止 async\n可在任意 Layer 安全呼叫 [D8]"]
         end
     end
 
@@ -501,8 +503,8 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
 
         subgraph VS5_PARSE["📄 文件解析三層閉環 [Layer-1 → Layer-2 → Layer-3]"]
             W_FILES["workspace.files"]
-            W_PARSER["document-parser\nLayer-1 原始解析\n→ raw ParsedLineItem[]\n+ classifyCostItem() [VS8 Layer-2]\n→ ParsedLineItem.costItemType"]
-            PARSE_INT[("ParsingIntent\nDigital Twin [#A4]\nlineItems[].costItemType\n（Layer-2 語義標注）")]
+            W_PARSER["document-parser\nLayer-1 原始解析\n→ raw ParsedLineItem[]\n+ classifyCostItem() [VS8 Layer-2]\n→ ParsedLineItem.(costItemType, semanticTagSlug)"]
+            PARSE_INT[("ParsingIntent\nDigital Twin [#A4]\nlineItems[].(costItemType, semanticTagSlug, sourceIntentIndex)\n（Layer-2 語義標注 + 來源索引）")]
             W_FILES -.->|原始檔案| W_PARSER --> PARSE_INT
         end
 
@@ -525,7 +527,7 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
         W_DAILY["daily\n施工日誌"]
         W_SCHED["workspace.schedule\n(tagSlug T4)\nWorkspaceScheduleProposed → VS6 [A5]"]
 
-        PARSE_INT -->|"[Layer-3 Semantic Router]\ncostItemType=EXECUTABLE only → 任務草稿 [#A14 D27]"| A_TASKS
+        PARSE_INT -->|"[Layer-3 Semantic Router]\ncostItemType=EXECUTABLE only + semanticTagSlug/tag-snapshot 對齊 → 任務草稿 [#A14 D27 T5]"| A_TASKS
         PARSE_INT -->|財務指令| A_FINANCE
         PARSE_INT -->|解析異常| B_ISSUES
         A_TASKS -.->|"SourcePointer [#A4]"| PARSE_INT
@@ -970,7 +972,7 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  #A11 eligible = 「無衝突排班」快照，非靜態狀態
 %%  #A12 Global Search = 跨切片權威（語義門戶），唯一跨域搜尋出口，禁止各 Slice 自建搜尋邏輯
 %%  #A13 Notification Hub = 跨切片權威（反應中樞），唯一副作用出口，業務 Slice 只產生事件不決定通知策略
-%%  #A14 CostItemType 語義分類（Layer-2）= VS8 _cost-classifier.ts 純函式；
+%%  #A14 Cost Semantic 雙鍵分類（Layer-2）= VS8 _cost-classifier.ts 純函式輸出 (costItemType, semanticTagSlug)；
 %%       VS5 Layer-3 Semantic Router = use-workspace-event-handler，
 %%       僅 EXECUTABLE 項目物化為 tasks；其餘六類靜默跳過並 toast [D27]
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
@@ -979,7 +981,7 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  T2  SKILL_TAG_POOL = Tag Authority 組織作用域唯讀投影
 %%  T3  ORG_ELIGIBLE_MEMBER_VIEW.skills{tagSlug→xp} 交叉快照
 %%  T4  排班職能需求 = SK_SKILL_REQ × Tag Authority tagSlug [D21-5]
-%%  T5  TAG_SNAPSHOT 消費方禁止寫入 [D21-7]
+%%  T5  TAG_SNAPSHOT 消費方禁止寫入 [D21-7]；DocumentParser UI 視覺屬性必須由 semantic-graph.slice 投影讀取
 %%  T6  突觸層（VS8_SL）寫入只能透過 semantic-edge-store.addEdge()；禁止直接操作 _edges 內部狀態 [D21-9]
 %%  T7  findIsolatedNodes 在每次 addEdge/removeEdge 後由 VS8_NG 非同步觸發，孤立節點寫入 Observability [D21-10]
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
@@ -1086,19 +1088,21 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  ── 成本語義路由守則（D27）──
 %%  D27 CostItemType Semantic Routing（成本語義路由三層架構）：
 %%      Layer-1（原始解析）：document-parser 解析文件 → 產生 raw ParsedLineItem[]
-%%      Layer-2（語義分類）：VS5 document-parser-view 呼叫 VS8 classifyCostItem(name) → CostItemType
+%%      Layer-2（語義分類）：VS5 document-parser-view 呼叫 VS8 classifyCostItem(name) → (costItemType, semanticTagSlug)
 %%                           classifyCostItem 為純函式（[D8] 禁止 async / Firestore / 副作用）
 %%                           優先級：EXECUTABLE override > MANAGEMENT > RESOURCE > FINANCIAL > PROFIT > ALLOWANCE > EXECUTABLE(預設)
 %%                           EXECUTABLE override 舉例：機電檢測、qc test、現場試驗、commissioning、調試 等施工測試關鍵字
 %%                           ALLOWANCE 舉例：差旅、運輸、勘查、工安補貼（不可物化為 task）
 %%                           PROFIT 舉例：利潤（不可物化為 task）
 %%                           CostItemType：EXECUTABLE | MANAGEMENT | RESOURCE | FINANCIAL | PROFIT | ALLOWANCE
-%%                           標注結果寫入 ParsedLineItem.costItemType，隨 DocumentParserItemsExtractedPayload 傳遞
+%%                           semanticTagSlug：以 ParsingIntent.costItemType 作為索引匹配 VS8 tagSlug；每一行 LineItem 必帶 semanticTagSlug
+%%                           標注結果寫入 ParsedLineItem.(costItemType, semanticTagSlug)，隨 DocumentParserItemsExtractedPayload 傳遞
 %%      Layer-3（語義路由）：use-workspace-event-handler.tsx Semantic Router
 %%                           [D27-gate] shouldMaterializeAsTask(item.costItemType) → 此函式是唯一的物化閘門
 %%                           禁止在 workspace.slice 內直接寫 `=== CostItemType.EXECUTABLE`；必須呼叫 shouldMaterializeAsTask() [D27]
 %%                           只有 shouldMaterializeAsTask() 返回 true 的項目才能物化為 WorkspaceTask
 %%                           物化同時寫入 sourceIntentIndex（項目在原始文件中的位置）以確保任務清單排序一致 [D27-ORDER]
+%%                           DocumentParser UI 顯示屬性（icon/color/label）必須由 tag-snapshot 投影讀取，不得從分類器硬編碼 [T5]
 %%                           其餘類型：靜默跳過 + toast 通知（禁止物化為 tasks [#A14]）
 %%      [D27-ORDER] 任務排序不變量：tasks-view.tsx 須先按 createdAt（批次間），再按 sourceIntentIndex（批次內），確保任務順序與來源文件一致。
 %%      禁止 VS5 document-parser 自行實作成本語義邏輯；必須透過 VS8 classifyCostItem() [D27]

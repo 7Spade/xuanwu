@@ -50,3 +50,7 @@ access control and is referenced heavily by VS5 (Workspace) and VS6 (Scheduling)
 - **[D24]** No direct `firebase/*` imports.
 - **[D7]** VS5/VS6 reference org data through `organization.slice/index.ts` public API only.
 - **[E2]** `OrgContextProvisioned` fires after org membership is confirmed; downstream slices wait for this before acting.
+
+## Architecture Sync Note
+
+Org-level reporting/search integrations should consume `semanticTagSlug` from parsing projections as the canonical semantic join key.
