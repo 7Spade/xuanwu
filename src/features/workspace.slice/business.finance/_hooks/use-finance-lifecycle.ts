@@ -12,16 +12,6 @@ import type { WorkspaceEventBus } from '@/features/workspace.slice/core.event-bu
 import { getParsingIntents } from '@/shared/infra/firestore/firestore.facade';
 
 import { saveFinanceAggregateState } from '../_actions';
-import {
-  buildClaimLineItems,
-  buildDirectiveItem,
-  buildDirectiveItemFromParsingIntentLineItem,
-  clampRemainingQuantity,
-  getNextStageFromAction,
-  hasValidClaimSelection,
-  isActiveParsingIntentStatus,
-  normalizeLifecycleStage,
-} from './use-finance-lifecycle.helpers';
 import { getFinanceAggregateState } from '../_queries';
 import { fetchFinanceStrongReadSnapshot } from '../_services/finance-strong-read';
 import type {
@@ -32,6 +22,17 @@ import type {
   FinanceLifecycleStage,
   FinanceStrongReadSnapshot,
 } from '../_types';
+
+import {
+  buildClaimLineItems,
+  buildDirectiveItem,
+  buildDirectiveItemFromParsingIntentLineItem,
+  clampRemainingQuantity,
+  getNextStageFromAction,
+  hasValidClaimSelection,
+  isActiveParsingIntentStatus,
+  normalizeLifecycleStage,
+} from './use-finance-lifecycle.helpers';
 
 const EMPTY_SNAPSHOT: FinanceStrongReadSnapshot = {
   readConsistencyMode: 'STRONG_READ',

@@ -28,7 +28,6 @@ import type { WorkspaceTask } from '../../business.tasks/_types';
 import { listWorkflowStates } from '../../business.workflow'
 import { WorkspaceEventBus , WorkspaceEventContext, registerWorkspaceFunnel, registerOrganizationFunnel, type WorkspaceEventName, type FileSendToParserPayload } from '../../core.event-bus';
 import { writeAuditLog } from '../../gov.audit/_actions';
-import type { AuditLog } from '../../gov.audit/_types';
 import type { WorkspaceRole } from '../../gov.role/_types';
 import {
   authorizeWorkspaceTeam as authorizeWorkspaceTeamAction,
@@ -43,7 +42,7 @@ import {
 import { useAccount } from '../_hooks/use-account';
 import { useApp } from '../_hooks/use-app';
 import { subscribeToWorkspaceTasks, subscribeToWorkspaceIssues } from '../_queries';
-import type { Workspace, WorkspaceLifecycleState, Capability, Address, WorkspacePersonnel } from '../_types';
+import type { WorkspaceLifecycleState, Capability, Address, WorkspacePersonnel } from '../_types';
 
 import {
   applyWorkflowBlocked,
