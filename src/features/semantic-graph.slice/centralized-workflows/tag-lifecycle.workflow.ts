@@ -19,6 +19,7 @@ import type {
   TagLifecycleRecord,
   TagLifecycleState,
   TagLifecycleEvent,
+  TagLifecycleEventType,
   StaleTagWarning,
 } from '../centralized-types';
 
@@ -179,9 +180,18 @@ function _buildEvent(
     tagSlug,
     aggregateVersion
   );
+  const eventType: TagLifecycleEventType =
+    toState === 'Active'
+      ? 'TAG_ACTIVATED'
+      : toState === 'Deprecated'
+        ? 'TAG_DEPRECATED'
+        : toState === 'Stale'
+          ? 'TAG_STALE_FLAGGED'
+          : 'TAG_CREATED';
   return {
     eventId,
     tagSlug,
+    eventType,
     fromState,
     toState,
     transitionedAt,

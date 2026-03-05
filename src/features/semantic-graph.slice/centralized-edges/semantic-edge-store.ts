@@ -26,14 +26,22 @@ function _makeEdgeId(fromSlug: string, toSlug: string, relationType: SemanticRel
 
 // ─── Edge mutation API ────────────────────────────────────────────────────────
 
+/** Clamps a raw weight value to the valid [0.0, 1.0] range. */
+function _clampWeight(weight: number): number {
+  return Math.min(1.0, Math.max(0.0, weight));
+}
+
 /**
  * Register or overwrite a semantic edge.
  * Called exclusively from _actions.ts (Command path).
+ *
+ * @param weight — relation strength [0.0, 1.0]; defaults to 1.0 (direct). [D21-3]
  */
 export function addEdge(
   fromTagSlug: string,
   toTagSlug: string,
-  relationType: SemanticRelationType
+  relationType: SemanticRelationType,
+  weight = 1.0
 ): SemanticEdge {
   const edgeId = _makeEdgeId(fromTagSlug, toTagSlug, relationType);
   const edge: SemanticEdge = {
@@ -41,6 +49,7 @@ export function addEdge(
     fromTagSlug: tagSlugRef(fromTagSlug),
     toTagSlug: tagSlugRef(toTagSlug),
     relationType,
+    weight: _clampWeight(weight),
     createdAt: new Date().toISOString(),
   };
   _edges.set(edgeId, edge);
@@ -132,6 +141,18 @@ export function getTransitiveRequirements(tagSlug: string): readonly string[] {
 /** Returns a snapshot of all registered edges (read-only copy for tests/debug). */
 export function getAllEdges(): readonly SemanticEdge[] {
   return Array.from(_edges.values());
+}
+
+/**
+ * Return the weight of a specific edge, or 0 if the edge does not exist.
+ */
+export function getEdgeWeight(
+  fromTagSlug: string,
+  toTagSlug: string,
+  relationType: SemanticRelationType
+): number {
+  const edgeId = _makeEdgeId(fromTagSlug, toTagSlug, relationType);
+  return _edges.get(edgeId)?.weight ?? 0;
 }
 
 /** Clear all edges (used in tests). */
