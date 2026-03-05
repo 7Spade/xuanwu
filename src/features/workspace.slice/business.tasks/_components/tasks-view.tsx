@@ -36,6 +36,8 @@ import { useStorage } from '../../business.files';
 import { useWorkspace } from '../../core';
 import { type Location, type TaskWithChildren, type WorkspaceTask } from '../_types';
 
+import { AttachmentsDialog } from './attachments-dialog';
+import { LocationDialog } from './location-dialog';
 import { ProgressReportDialog } from './progress-report-dialog';
 import { TaskEditorDialog } from './task-editor-dialog';
 import { TaskTreeNode } from './task-tree-node';
@@ -58,12 +60,17 @@ export function WorkspaceTasks() {
   const [reportingTask, setReportingTask] = useState<TaskWithChildren | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [previewingImage, setPreviewingImage] = useState<string | null>(null);
+  const [locationTask, setLocationTask] = useState<TaskWithChildren | null>(null);
+  const [locationDraft, setLocationDraft] = useState<Location>({ description: '' });
+  const [attachmentsTask, setAttachmentsTask] = useState<TaskWithChildren | null>(null);
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   
-  const [photos, setPhotos] = useState<File[]>([]);
+  const [isLocationSaving, setIsLocationSaving] = useState(false);
+  const [isAttachmentsSaving, setIsAttachmentsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
-    new Set(['type', 'priority', 'discount', 'subtotal', 'progress', 'status'])
+    new Set(['type', 'priority', 'location', 'attachments', 'discount', 'subtotal', 'progress', 'status'])
   );
 
   const tasks = useMemo(
@@ -81,36 +88,11 @@ export function WorkspaceTasks() {
 
   const tree = useMemo(() => buildTaskTree(tasks), [tasks]);
 
-  useEffect(() => {
-    if (!isAddOpen) {
-      setPhotos([]);
-    }
-  }, [isAddOpen]);
-
-
-  const handleLocationChange = (field: keyof Location, value: string) => {
-    setEditingTask(prev => ({
-        ...prev,
-        location: {
-            ...prev?.location,
-            description: prev?.location?.description || '',
-            [field]: value
-        }
-    }))
-  };
-
   const handleSaveTask = async () => {
     if (!editingTask?.name) return;
     setIsUploading(true);
 
     try {
-      const newPhotoURLs = await Promise.all(
-        photos.map(photo => uploadTaskAttachment(photo))
-      );
-      
-      const existingPhotoURLs = editingTask.photoURLs || [];
-      const finalPhotoURLs = [...existingPhotoURLs, ...newPhotoURLs];
-
       const subtotal =
         (Number(editingTask.quantity) || 0) *
         (Number(editingTask.unitPrice) || 0) - (Number(editingTask.discount) || 0);
@@ -154,7 +136,6 @@ export function WorkspaceTasks() {
       const finalData: Partial<WorkspaceTask> = {
         ...editingTask,
         subtotal,
-        photoURLs: finalPhotoURLs,
         progressState: editingTask.progressState || 'todo',
       };
       delete finalData.progress; // Ensure calculated progress is not saved
@@ -281,6 +262,87 @@ export function WorkspaceTasks() {
     }
   };
 
+  const handleLocationDraftChange = (field: keyof Location, value: string) => {
+    setLocationDraft((prev) => ({
+      ...prev,
+      description: prev.description || '',
+      [field]: value,
+    }));
+  };
+
+  const handleOpenLocation = (task: TaskWithChildren) => {
+    setLocationTask(task);
+    setLocationDraft({
+      building: task.location?.building,
+      floor: task.location?.floor,
+      room: task.location?.room,
+      description: task.location?.description || '',
+    });
+  };
+
+  const handleSaveLocation = async () => {
+    if (!locationTask) return;
+    setIsLocationSaving(true);
+
+    try {
+      await updateTask(locationTask.id, { location: locationDraft });
+      logAuditEvent('Updated Task Location', locationTask.name, 'update');
+      setLocationTask(null);
+      toast({ title: 'Location Updated' });
+    } catch (error: unknown) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to Update Location',
+        description: getErrorMessage(error, 'An unknown error occurred.'),
+      });
+    } finally {
+      setIsLocationSaving(false);
+    }
+  };
+
+  const handleOpenAttachments = (task: TaskWithChildren) => {
+    setAttachmentsTask(task);
+    setAttachmentFiles([]);
+  };
+
+  const handleSelectAttachmentFiles = (files: FileList | null) => {
+    if (!files) return;
+    setAttachmentFiles((prev) => [...prev, ...Array.from(files)]);
+  };
+
+  const handleRemoveAttachmentFile = (index: number) => {
+    setAttachmentFiles((prev) => prev.filter((_, fileIndex) => fileIndex !== index));
+  };
+
+  const handleSaveAttachments = async () => {
+    if (!attachmentsTask || attachmentFiles.length === 0) {
+      if (!attachmentsTask) return;
+      setAttachmentsTask(null);
+      return;
+    }
+
+    setIsAttachmentsSaving(true);
+
+    try {
+      const uploaded = await Promise.all(attachmentFiles.map((file) => uploadTaskAttachment(file)));
+      const merged = [...(attachmentsTask.photoURLs ?? []), ...uploaded];
+
+      await updateTask(attachmentsTask.id, { photoURLs: merged });
+      logAuditEvent('Updated Task Attachments', attachmentsTask.name, 'update');
+      setAttachmentsTask(null);
+      setAttachmentFiles([]);
+      toast({ title: 'Attachments Updated' });
+    } catch (error: unknown) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to Update Attachments',
+        description: getErrorMessage(error, 'An unknown error occurred.'),
+      });
+    } finally {
+      setIsAttachmentsSaving(false);
+    }
+  };
+
   const toggleColumn = (key: string) => {
     const next = new Set(visibleColumns);
     if (next.has(key)) next.delete(key);
@@ -328,6 +390,18 @@ export function WorkspaceTasks() {
                 onCheckedChange={() => toggleColumn('priority')}
               >
                 Priority
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibleColumns.has('location')}
+                onCheckedChange={() => toggleColumn('location')}
+              >
+                Location
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibleColumns.has('attachments')}
+                onCheckedChange={() => toggleColumn('attachments')}
+              >
+                Attachments
               </DropdownMenuCheckboxItem>
                <DropdownMenuCheckboxItem
                 checked={visibleColumns.has('discount')}
@@ -399,6 +473,34 @@ export function WorkspaceTasks() {
         </DialogContent>
       </Dialog>
 
+      <LocationDialog
+        isOpen={!!locationTask}
+        draft={locationDraft}
+        onDraftChange={handleLocationDraftChange}
+        onSave={handleSaveLocation}
+        isSaving={isLocationSaving}
+        onOpenChange={(open) => {
+          if (!open) setLocationTask(null);
+        }}
+      />
+
+      <AttachmentsDialog
+        isOpen={!!attachmentsTask}
+        attachments={attachmentsTask?.photoURLs ?? []}
+        files={attachmentFiles}
+        onFilesSelected={handleSelectAttachmentFiles}
+        onRemoveFile={handleRemoveAttachmentFile}
+        onSave={handleSaveAttachments}
+        isSaving={isAttachmentsSaving}
+        onPreviewImage={setPreviewingImage}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAttachmentsTask(null);
+            setAttachmentFiles([]);
+          }
+        }}
+      />
+
       <div className="space-y-1">
         {tree.length > 0 ? (
           tree.map((root) => (
@@ -409,6 +511,8 @@ export function WorkspaceTasks() {
               setExpandedIds={setExpandedIds}
               visibleColumns={visibleColumns}
               onPreviewImage={setPreviewingImage}
+              onOpenLocation={handleOpenLocation}
+              onOpenAttachments={handleOpenAttachments}
               onReportProgress={setReportingTask}
               onScheduleRequest={handleScheduleRequest}
               onMarkBlocked={handleMarkBlocked}
@@ -453,11 +557,8 @@ export function WorkspaceTasks() {
         isOpen={isAddOpen}
         editingTask={editingTask}
         setEditingTask={setEditingTask}
-        photos={photos}
-        setPhotos={setPhotos}
         isUploading={isUploading}
         onSave={handleSaveTask}
-        onLocationChange={handleLocationChange}
         onOpenChange={(open) => {
           if (!open) {
             setEditingTask(null);

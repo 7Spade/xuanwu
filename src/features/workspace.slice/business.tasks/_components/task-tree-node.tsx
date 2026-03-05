@@ -7,8 +7,7 @@
 
 'use client';
 
-import { CalendarPlus, ChevronDown, ChevronRight, ClipboardPlus, MapPin, OctagonX, Plus, Send, Settings2, Trash2 } from 'lucide-react';
-import Image from 'next/image';
+import { CalendarPlus, ChevronDown, ChevronRight, ClipboardPlus, OctagonX, Plus, Send, Settings2, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
@@ -17,6 +16,9 @@ import { cn } from '@/shared/shadcn-ui/utils/utils';
 
 import { type TaskWithChildren, type WorkspaceTask } from '../_types';
 
+import { AttachmentsAction } from './attachments-action';
+import { LocationAction } from './location-action';
+
 interface TaskTreeNodeProps {
   node: TaskWithChildren;
   level?: number;
@@ -24,6 +26,8 @@ interface TaskTreeNodeProps {
   setExpandedIds: React.Dispatch<React.SetStateAction<Set<string>>>;
   visibleColumns: Set<string>;
   onPreviewImage: (url: string) => void;
+  onOpenLocation: (node: TaskWithChildren) => void;
+  onOpenAttachments: (node: TaskWithChildren) => void;
   onReportProgress: (node: TaskWithChildren) => void;
   onScheduleRequest: (node: WorkspaceTask) => void;
   onMarkBlocked: (node: TaskWithChildren) => void;
@@ -40,6 +44,8 @@ export function TaskTreeNode({
   setExpandedIds,
   visibleColumns,
   onPreviewImage,
+  onOpenLocation,
+  onOpenAttachments,
   onReportProgress,
   onScheduleRequest,
   onMarkBlocked,
@@ -90,33 +96,10 @@ export function TaskTreeNode({
             </span>
             <div className="flex flex-1 flex-col truncate">
               <p className="truncate text-xs font-black tracking-tight">{node.name}</p>
-              {node.location?.description && (
-                <div className="mt-1 flex items-center gap-1.5 text-muted-foreground">
-                  <MapPin className="size-3" />
-                  <p className="truncate text-[10px] font-medium">
-                    {[node.location.building, node.location.floor, node.location.room, node.location.description]
-                      .filter(Boolean)
-                      .join(' - ')}
-                  </p>
-                </div>
-              )}
-              {node.photoURLs && node.photoURLs.length > 0 && (
-                <div className="mt-1.5 flex items-center gap-2">
-                  {node.photoURLs.map((url, index) => (
-                    <button
-                      key={index}
-                      onClick={() => onPreviewImage(url)}
-                      className="relative size-8 overflow-hidden rounded border transition-opacity hover:opacity-80"
-                    >
-                      <Image src={url} alt={`Task attachment ${index + 1}`} fill sizes="32px" className="object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
-          <div className="col-span-8 grid grid-cols-6 items-center gap-2">
+          <div className="col-span-8 grid grid-cols-8 items-center gap-2">
             {visibleColumns.has('type') && (
               <div className="truncate text-[9px] font-bold uppercase text-muted-foreground">{node.type}</div>
             )}
@@ -127,6 +110,21 @@ export function TaskTreeNode({
               >
                 {node.priority}
               </Badge>
+            )}
+            {visibleColumns.has('location') && (
+              <div className="flex items-center gap-1 truncate text-[9px] text-muted-foreground">
+                <LocationAction node={node} onOpenLocation={onOpenLocation} />
+                <span className="truncate">
+                  {[node.location?.building, node.location?.floor, node.location?.room, node.location?.description]
+                    .filter(Boolean)
+                    .join(' / ') || '—'}
+                </span>
+              </div>
+            )}
+            {visibleColumns.has('attachments') && (
+              <div className="flex items-center justify-end gap-1">
+                <AttachmentsAction node={node} onOpenAttachments={onOpenAttachments} />
+              </div>
             )}
             {visibleColumns.has('discount') && (
               <div className="text-right">
@@ -188,13 +186,25 @@ export function TaskTreeNode({
           </div>
         </div>
 
-        <div className="ml-2 flex items-center gap-1 opacity-0 transition-all group-hover:opacity-100">
+        <div className="ml-2 flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7 rounded-lg text-primary"
+            onClick={() => onCreateChild(node)}
+            title="Split into sub-tasks"
+            aria-label="Split into sub-tasks"
+          >
+            <Plus className="size-3.5" />
+          </Button>
           {(node.quantity ?? 1) > 1 && !hasChildren && (
             <Button
               variant="ghost"
               size="icon"
               className="size-7 rounded-lg text-primary"
               onClick={() => onReportProgress(node)}
+              title="Report progress"
+              aria-label="Report progress"
             >
               <ClipboardPlus className="size-3.5" />
             </Button>
@@ -204,6 +214,8 @@ export function TaskTreeNode({
             size="icon"
             className="size-7 rounded-lg text-primary"
             onClick={() => onScheduleRequest(node)}
+            title="Send schedule request"
+            aria-label="Send schedule request"
           >
             <CalendarPlus className="size-3.5" />
           </Button>
@@ -222,15 +234,9 @@ export function TaskTreeNode({
             variant="ghost"
             size="icon"
             className="size-7 rounded-lg text-primary"
-            onClick={() => onCreateChild(node)}
-          >
-            <Plus className="size-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7 rounded-lg text-primary"
             onClick={() => onEditNode(node)}
+            title="Edit node"
+            aria-label="Edit node"
           >
             <Settings2 className="size-3.5" />
           </Button>
@@ -239,6 +245,8 @@ export function TaskTreeNode({
             size="icon"
             className="size-7 rounded-lg text-destructive"
             onClick={() => onDeleteNode(node)}
+            title="Delete node"
+            aria-label="Delete node"
           >
             <Trash2 className="size-3.5" />
           </Button>
@@ -256,6 +264,8 @@ export function TaskTreeNode({
               setExpandedIds={setExpandedIds}
               visibleColumns={visibleColumns}
               onPreviewImage={onPreviewImage}
+              onOpenLocation={onOpenLocation}
+              onOpenAttachments={onOpenAttachments}
               onReportProgress={onReportProgress}
               onScheduleRequest={onScheduleRequest}
               onMarkBlocked={onMarkBlocked}

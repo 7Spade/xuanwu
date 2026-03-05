@@ -7,8 +7,7 @@
 
 'use client';
 
-import { Loader2, MapPin, Paperclip, Settings2, UploadCloud, X } from 'lucide-react';
-import Image from 'next/image';
+import { Loader2, Settings2 } from 'lucide-react';
 
 import { Button } from '@/shared/shadcn-ui/button';
 import {
@@ -29,17 +28,14 @@ import {
 } from '@/shared/shadcn-ui/select';
 import { Textarea } from '@/shared/shadcn-ui/textarea';
 
-import { type Location, type WorkspaceTask } from '../_types';
+import { type WorkspaceTask } from '../_types';
 
 interface TaskEditorDialogProps {
   isOpen: boolean;
   editingTask: Partial<WorkspaceTask> | null;
   setEditingTask: React.Dispatch<React.SetStateAction<Partial<WorkspaceTask> | null>>;
-  photos: File[];
-  setPhotos: React.Dispatch<React.SetStateAction<File[]>>;
   isUploading: boolean;
   onSave: () => void;
-  onLocationChange: (field: keyof Location, value: string) => void;
   onOpenChange: (open: boolean) => void;
 }
 
@@ -47,128 +43,43 @@ export function TaskEditorDialog({
   isOpen,
   editingTask,
   setEditingTask,
-  photos,
-  setPhotos,
   isUploading,
   onSave,
-  onLocationChange,
   onOpenChange,
 }: TaskEditorDialogProps) {
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (!selectedFiles) return;
-    setPhotos((prev) => [...prev, ...Array.from(selectedFiles)]);
-  };
-
-  const handleRemovePhoto = (index: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl overflow-hidden rounded-[2.5rem] border-none p-0 shadow-2xl">
-        <div className="bg-primary p-8 text-white">
+      <DialogContent className="max-w-3xl overflow-hidden rounded-2xl border bg-background p-0 shadow-xl">
+        <div className="border-b bg-muted/20 p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 font-headline text-3xl">
-              <Settings2 className="size-8" />{' '}
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold tracking-tight">
+              <Settings2 className="size-6 text-primary" />
               {editingTask?.id ? 'Calibrate WBS Node' : 'Define New Node'}
             </DialogTitle>
           </DialogHeader>
         </div>
 
-        <div className="grid max-h-[70vh] grid-cols-2 gap-6 overflow-y-auto p-8">
+        <div className="grid max-h-[70vh] grid-cols-2 gap-5 overflow-y-auto p-6">
           <div className="col-span-2 space-y-1.5">
-            <Label className="ml-1 text-[10px] font-black uppercase text-muted-foreground">Task Name</Label>
+            <Label className="ml-1 text-xs font-semibold text-foreground">Task Name</Label>
             <Input
               value={editingTask?.name || ''}
               onChange={(e) => setEditingTask({ ...editingTask, name: e.target.value })}
-              className="h-12 rounded-xl border-none bg-muted/30 font-bold"
+              className="h-11 rounded-lg border-input bg-background"
             />
           </div>
 
           <div className="col-span-2 space-y-1.5">
-            <Label className="ml-1 text-[10px] font-black uppercase text-muted-foreground">Description & Specs</Label>
+            <Label className="ml-1 text-xs font-semibold text-foreground">Description & Specs</Label>
             <Textarea
               value={editingTask?.description || ''}
               onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
-              className="min-h-[100px] resize-none rounded-xl border-none bg-muted/30"
+              className="min-h-[96px] resize-none rounded-lg border-input bg-background"
             />
-          </div>
-
-          <div className="col-span-2 space-y-2">
-            <Label className="ml-1 flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground">
-              <MapPin className="size-3" /> Location
-            </Label>
-            <div className="grid grid-cols-3 gap-4">
-              <Input
-                placeholder="Building"
-                value={editingTask?.location?.building || ''}
-                onChange={(e) => onLocationChange('building', e.target.value)}
-                className="h-11 rounded-xl border-none bg-muted/30"
-              />
-              <Input
-                placeholder="Floor"
-                value={editingTask?.location?.floor || ''}
-                onChange={(e) => onLocationChange('floor', e.target.value)}
-                className="h-11 rounded-xl border-none bg-muted/30"
-              />
-              <Input
-                placeholder="Room"
-                value={editingTask?.location?.room || ''}
-                onChange={(e) => onLocationChange('room', e.target.value)}
-                className="h-11 rounded-xl border-none bg-muted/30"
-              />
-            </div>
-            <Textarea
-              placeholder="Location details (e.g., 'Behind the main server rack')"
-              value={editingTask?.location?.description || ''}
-              onChange={(e) => onLocationChange('description', e.target.value)}
-              className="resize-none rounded-xl border-none bg-muted/30"
-              rows={2}
-            />
-          </div>
-
-          <div className="col-span-2 space-y-3">
-            <Label className="ml-1 flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground">
-              <Paperclip className="size-3" /> Attachments
-            </Label>
-
-            {editingTask?.photoURLs && editingTask.photoURLs.length > 0 && (
-              <div className="grid grid-cols-4 gap-2">
-                {editingTask.photoURLs.map((url, index) => (
-                  <div key={index} className="group relative aspect-square">
-                    <Image src={url} alt={`Existing attachment ${index + 1}`} fill sizes="200px" className="rounded-lg object-cover" />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="grid grid-cols-4 gap-2">
-              {photos.map((photo, index) => (
-                <div key={index} className="group relative aspect-square">
-                  <Image src={URL.createObjectURL(photo)} alt={`New attachment ${index}`} fill sizes="200px" className="rounded-lg object-cover" />
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute right-1 top-1 size-5 opacity-0 transition-opacity group-hover:opacity-100"
-                    onClick={() => handleRemovePhoto(index)}
-                  >
-                    <X className="size-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-            <Button asChild variant="outline" className="h-12 w-full cursor-pointer rounded-xl border-2 border-dashed bg-muted/30 hover:bg-muted/50">
-              <label htmlFor="photo-upload">
-                <UploadCloud className="mr-2 size-4" /> Upload Images
-                <input id="photo-upload" type="file" className="sr-only" multiple accept="image/*" onChange={handlePhotoSelect} />
-              </label>
-            </Button>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="ml-1 text-[10px] font-black uppercase text-muted-foreground">Status</Label>
+            <Label className="ml-1 text-xs font-semibold text-foreground">Status</Label>
             <Select
               value={editingTask?.progressState}
               onValueChange={(v) =>
@@ -178,7 +89,7 @@ export function TaskEditorDialog({
                 })
               }
             >
-              <SelectTrigger className="h-11 rounded-xl border-none bg-muted/30">
+              <SelectTrigger className="h-11 rounded-lg border-input bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -194,62 +105,62 @@ export function TaskEditorDialog({
 
           <div className="col-span-2 grid grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="task-quantity" className="ml-1 text-[10px] font-black uppercase text-muted-foreground">Quantity (Qty)</Label>
+              <Label htmlFor="task-quantity" className="ml-1 text-xs font-semibold text-foreground">Quantity (Qty)</Label>
               <Input
                 id="task-quantity"
                 type="number"
                 value={editingTask?.quantity || 0}
                 onChange={(e) => setEditingTask({ ...editingTask, quantity: Number(e.target.value) })}
-                className="h-11 rounded-xl border-none bg-muted/30"
+                className="h-11 rounded-lg border-input bg-background"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="task-unitprice" className="ml-1 text-[10px] font-black uppercase text-muted-foreground">Unit Price</Label>
+              <Label htmlFor="task-unitprice" className="ml-1 text-xs font-semibold text-foreground">Unit Price</Label>
               <Input
                 id="task-unitprice"
                 type="number"
                 value={editingTask?.unitPrice || 0}
                 onChange={(e) => setEditingTask({ ...editingTask, unitPrice: Number(e.target.value) })}
-                className="h-11 rounded-xl border-none bg-muted/30"
+                className="h-11 rounded-lg border-input bg-background"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="task-discount" className="ml-1 text-[10px] font-black uppercase text-muted-foreground">Discount</Label>
+              <Label htmlFor="task-discount" className="ml-1 text-xs font-semibold text-foreground">Discount</Label>
               <Input
                 id="task-discount"
                 type="number"
                 value={editingTask?.discount || 0}
                 onChange={(e) => setEditingTask({ ...editingTask, discount: Number(e.target.value) })}
-                className="h-11 rounded-xl border-none bg-muted/30"
+                className="h-11 rounded-lg border-input bg-background"
               />
             </div>
           </div>
 
-          <div className="col-span-2 flex items-center justify-between rounded-3xl border border-primary/10 bg-primary/5 p-6">
+          <div className="col-span-2 flex items-center justify-between rounded-xl border border-border bg-muted/20 p-4">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-primary">Subtotal</p>
+              <p className="text-xs font-semibold text-muted-foreground">Estimated Subtotal</p>
             </div>
-            <span className="font-mono text-2xl font-black text-primary">
+            <span className="font-mono text-xl font-bold text-foreground">
               ${((editingTask?.quantity || 0) * (editingTask?.unitPrice || 0) - (editingTask?.discount || 0)).toLocaleString()}
             </span>
           </div>
         </div>
 
-        <DialogFooter className="border-t bg-muted/30 p-6">
+        <DialogFooter className="border-t bg-background p-4">
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl text-[10px] font-black uppercase"
+            className="rounded-lg"
           >
             Cancel
           </Button>
           <Button
             onClick={onSave}
             disabled={isUploading}
-            className="rounded-xl px-8 text-[10px] font-black uppercase shadow-xl shadow-primary/20"
+            className="rounded-lg px-6"
           >
             {isUploading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-            {isUploading ? 'Uploading & Syncing...' : 'Sync to Cloud Sovereignty'}
+            {isUploading ? 'Saving...' : editingTask?.id ? 'Save Changes' : 'Create Node'}
           </Button>
         </DialogFooter>
       </DialogContent>
