@@ -76,8 +76,26 @@ export function WorkspaceFinance() {
   };
 
   const handlePaymentReceived = () => {
-    lifecycle.completePayment();
-    toast({ title: 'Payment Received', description: '已完成收款確認。' });
+    try {
+      lifecycle.completePayment();
+      toast({ title: 'Payment Received', description: '已完成收款確認。' });
+    } catch (error: unknown) {
+      const firstLineItem = lifecycle.currentClaimLineItems[0];
+      const reason = error instanceof Error ? error.message : 'Unknown disbursement failure';
+
+      eventBus.publish('workspace:finance:disburseFailed', {
+        taskId: firstLineItem?.itemId ?? 'finance-cycle',
+        taskTitle: firstLineItem?.name ?? 'Finance Claim Cycle',
+        amount: lifecycle.currentClaimAmount,
+        reason,
+      });
+
+      toast({
+        variant: 'destructive',
+        title: 'Payment Confirmation Failed',
+        description: reason,
+      });
+    }
   };
 
   const handleCloseCycle = () => {

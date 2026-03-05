@@ -6,7 +6,7 @@
  */
 
 import { executeQuery, registerQuery } from '@/features/infra.gateway-query';
-import { getWorkspaceTasks } from '@/features/workspace.slice/business.tasks';
+import { getParsingIntents } from '@/shared/infra/firestore/firestore.facade';
 
 import type { FinanceStrongReadSnapshot } from '../_types';
 
@@ -26,6 +26,13 @@ function normalizeAmount(value: number | undefined): number {
   return value;
 }
 
+function isActiveParsingIntentStatus(status: string | undefined): boolean {
+  return status === 'pending'
+    || status === 'importing'
+    || status === 'imported'
+    || status === 'failed';
+}
+
 export function registerFinanceStrongReadQueryHandler(): void {
   if (isFinanceStrongReadQueryRegistered) {
     return;
@@ -34,8 +41,17 @@ export function registerFinanceStrongReadQueryHandler(): void {
   registerQuery(
     FINANCE_STRONG_READ_QUERY_ROUTE,
     async ({ workspaceId, receivedAmount }: FinanceStrongReadQueryParams): Promise<FinanceStrongReadSnapshot> => {
-      const tasks = await getWorkspaceTasks(workspaceId);
-      const totalClaimableAmount = tasks.reduce((sum, task) => sum + normalizeAmount(task.subtotal), 0);
+      const intents = await getParsingIntents(workspaceId);
+      const totalClaimableAmount = intents
+        .filter((intent) => isActiveParsingIntentStatus(intent.status))
+        .reduce(
+          (intentSum, intent) => intentSum
+            + intent.lineItems.reduce(
+              (lineItemSum, lineItem) => lineItemSum + normalizeAmount(lineItem.subtotal),
+              0,
+            ),
+          0,
+        );
       const normalizedReceivedAmount = normalizeAmount(receivedAmount);
 
       return {

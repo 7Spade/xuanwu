@@ -385,6 +385,16 @@ export function WorkspaceDocumentParser() {
         title: 'Failed to Save Parsing Record',
         description: 'Could not persist the parsing intent. Import aborted.',
       });
+
+      await createIssue(
+        `Parser Persistence Failed: ${state.fileName || 'Document'}`,
+        'technical',
+        'high'
+      ).catch((issueError: unknown) => {
+        console.error('Failed to create parser persistence issue:', issueError);
+      });
+
+      logAuditEvent('Parsing Intent Persist Failed', `Document: ${state.fileName || 'Unknown'}`, 'create');
       return;
     }
 
