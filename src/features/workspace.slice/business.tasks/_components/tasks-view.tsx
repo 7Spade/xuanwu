@@ -27,7 +27,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/shadcn-ui/dropdown-menu';
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/shared/shadcn-ui/empty';
 import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
+import { PageHeader } from '@/shared/ui/page-header';
 
 import { buildTaskTree } from '../../_task.rules';
 import { useStorage } from '../../business.files';
@@ -288,22 +290,18 @@ export function WorkspaceTasks() {
   
   return (
     <div className="space-y-6 pb-20 duration-500 animate-in fade-in">
-      <div className="flex items-center justify-between rounded-3xl border border-primary/20 bg-card/40 p-4 shadow-sm backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-primary/10 p-2 text-primary">
-            <BarChart3 className="size-5" />
+      <PageHeader
+        size="compact"
+        title="WBS Governance"
+        description="Real-time budget and topology monitoring"
+        badge={
+          <div className="inline-flex items-center gap-2 rounded-lg border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            <BarChart3 className="size-3.5 text-primary" />
+            <Clock className="size-3.5" />
+            Task Engineering
           </div>
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-widest text-foreground">
-              WBS Governance
-            </h3>
-            <p className="flex items-center gap-2 text-[9px] font-bold uppercase text-muted-foreground">
-              <Clock className="size-3" /> Real-time Budget & Topology
-              Monitoring
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
+        }
+      >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -360,7 +358,7 @@ export function WorkspaceTasks() {
 
           <Button
             size="sm"
-            className="h-9 gap-2 rounded-full px-5 text-[10px] font-black uppercase shadow-lg shadow-primary/20"
+            className="h-9 gap-2 rounded-full px-5 text-[10px] font-black uppercase"
             onClick={() => {
               setEditingTask({
                 quantity: 1,
@@ -378,8 +376,7 @@ export function WorkspaceTasks() {
           >
             <Plus className="size-3.5" /> Create Root Node
           </Button>
-        </div>
-      </div>
+      </PageHeader>
 
        <ProgressReportDialog
         task={reportingTask}
@@ -440,12 +437,15 @@ export function WorkspaceTasks() {
             />
           ))
         ) : (
-          <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed bg-muted/5 p-20 text-center opacity-20">
-            <Coins className="size-12" />
-            <p className="text-[10px] font-black uppercase tracking-widest">
-              Awaiting Engineering Node Definition...
-            </p>
-          </div>
+          <Empty className="rounded-2xl border-muted/40 bg-muted/5 py-16">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Coins className="size-5" />
+              </EmptyMedia>
+              <EmptyTitle>Awaiting Engineering Node Definition</EmptyTitle>
+              <EmptyDescription>Create your first root task to start WBS planning.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </div>
 
