@@ -6,7 +6,7 @@
 
 ```
 L0 External Triggers
-  └─> src/app/(public)    (route declarations)
+  └─> src/app/(shell)/(public)    (route declarations)
         └─> src/portal    ← THIS LAYER (official page components)
               └─> src/features/portal.slice  (domain logic)
               └─> src/shared                 (common UI / utilities)

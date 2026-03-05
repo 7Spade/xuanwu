@@ -17,19 +17,21 @@ L0 External Triggers
 
 ```
 src/app/
-├── (public)/               # Unauthenticated routes
-│   ├── login/              # VS1 Identity — sign-in page
-│   └── reset-password/
-│       └── @modal/         # Parallel route slot — modal overlay
-│
-├── (shell)/                # Authenticated shell layout
+├── (shell)/                # Global shell layout (navigation + global state)
 │   ├── layout.tsx          # Shell wrapper: injects WorkspaceProvider, sidebar
 │   ├── @sidebar/           # Parallel route slot — sidebar
 │   │   └── default.tsx
 │   │
-│   └── (account)/          # Sub-route group for account pages
-│       ├── layout.tsx
-│       └── (dashboard)/    # Dashboard and workspace pages
+│   ├── (public)/           # Unauthenticated routes
+│   │   ├── login/          # VS1 Identity — sign-in page
+│   │   └── reset-password/
+│   │       └── @modal/     # Parallel route slot — modal overlay
+│   │
+│   └── (portal)/           # Authenticated portal entry (home/org selection)
+│       ├── layout.tsx       # Portal boundary layout
+│       └── (account)/      # Account/organization context layer
+│           ├── layout.tsx
+│           ├── (dashboard)/
 │           └── (workspaces)/
 │
 ├── layout.tsx              # Root layout — mounts <Providers> from app-runtime
@@ -55,7 +57,7 @@ src/app/
 
 ## Route Structure
 
-### Public Group `(public)`
+### Public Group `(shell)/(public)`
 
 Routes accessible without authentication. They must not import any authenticated feature slice.
 
@@ -64,9 +66,9 @@ Routes accessible without authentication. They must not import any authenticated
 | `/login` | VS1 Identity | Triggers `authenticated-identity` flow |
 | `/reset-password` | VS1 Identity | Uses `@modal` parallel slot for overlay UI |
 
-### Shell Group `(shell)`
+### Portal Group `(shell)/(portal)`
 
-Authenticated routes wrapped in a layout that mounts the sidebar and workspace context.
+Authenticated routes wrapped in shell + portal layering.
 
 | Segment | Feature Slice | Notes |
 |---------|--------------|-------|
