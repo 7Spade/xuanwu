@@ -5,7 +5,7 @@ import { useActionState, useTransition, useRef, useEffect, useCallback, useState
 
 import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
 import { logDomainError } from '@/features/observability';
-import { classifyCostItem, CostItemType } from '@/features/semantic-graph.slice';
+import { classifyCostItem, CostItemType, shouldMaterializeAsTask } from '@/features/semantic-graph.slice';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
@@ -40,6 +40,19 @@ function WorkItemsTable({
   onImport: () => Promise<void>;
 }) {
   const total = initialData.reduce((sum, item) => sum + item.price, 0);
+
+  const getItemSemanticStatus = (item: WorkItem) => {
+    const semantic = classifyCostItem(item.item, { includeSemanticTagSlug: true });
+    const semanticTagSlug =
+      typeof item.semanticTagSlug === 'string' && item.semanticTagSlug.trim() !== ''
+        ? item.semanticTagSlug
+        : semantic.semanticTagSlug;
+    const itemStatus = shouldMaterializeAsTask(semantic.costItemType)
+      ? 'MATERIALIZABLE'
+      : 'SKIPPED';
+    return { semanticTagSlug, itemStatus };
+  };
+
   return (
     <div>
       <div className="overflow-x-auto rounded-md border">
@@ -51,22 +64,37 @@ function WorkItemsTable({
               <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Unit Price</th>
               <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Discount</th>
               <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Subtotal</th>
+              <th className="px-4 py-2 text-left font-bold uppercase tracking-widest text-muted-foreground">Tag</th>
+              <th className="px-4 py-2 text-left font-bold uppercase tracking-widest text-muted-foreground">Status</th>
             </tr>
           </thead>
           <tbody>
-            {initialData.map((item, idx) => (
-              <tr key={idx} className="border-b last:border-0 hover:bg-muted/30">
-                <td className="px-4 py-2">{item.item}</td>
-                <td className="px-4 py-2 text-right">{item.quantity}</td>
-                <td className="px-4 py-2 text-right">{item.unitPrice.toLocaleString()}</td>
-                <td className="px-4 py-2 text-right">{item.discount !== undefined ? `${item.discount}%` : '—'}</td>
-                <td className="px-4 py-2 text-right font-medium">{item.price.toLocaleString()}</td>
-              </tr>
-            ))}
+            {initialData.map((item, idx) => {
+              const { semanticTagSlug, itemStatus } = getItemSemanticStatus(item);
+              return (
+                <tr key={idx} className="border-b last:border-0 hover:bg-muted/30">
+                  <td className="px-4 py-2">{item.item}</td>
+                  <td className="px-4 py-2 text-right">{item.quantity}</td>
+                  <td className="px-4 py-2 text-right">{item.unitPrice.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right">{item.discount !== undefined ? `${item.discount}%` : '—'}</td>
+                  <td className="px-4 py-2 text-right font-medium">{item.price.toLocaleString()}</td>
+                  <td className="px-4 py-2">
+                    <span className="inline-flex items-center rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold">
+                      {semanticTagSlug}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <Badge variant={itemStatus === 'MATERIALIZABLE' ? 'default' : 'secondary'} className="text-[10px] uppercase">
+                      {itemStatus}
+                    </Badge>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
           <tfoot>
             <tr className="border-t bg-muted/50">
-              <td colSpan={4} className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Total</td>
+              <td colSpan={6} className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Total</td>
               <td className="px-4 py-2 text-right font-bold">{total.toLocaleString()}</td>
             </tr>
           </tfoot>
@@ -110,6 +138,8 @@ function ParsedItemsTable({ intent }: { intent: ParsingIntent }) {
             <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Unit Price</th>
             <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Discount</th>
             <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Subtotal</th>
+            <th className="px-4 py-2 text-left font-bold uppercase tracking-widest text-muted-foreground">Tag</th>
+            <th className="px-4 py-2 text-left font-bold uppercase tracking-widest text-muted-foreground">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -125,12 +155,22 @@ function ParsedItemsTable({ intent }: { intent: ParsingIntent }) {
               <td className="px-4 py-2 text-right">{item.unitPrice.toLocaleString()}</td>
               <td className="px-4 py-2 text-right">{item.discount !== undefined ? `${item.discount}%` : '—'}</td>
               <td className="px-4 py-2 text-right font-medium">{item.subtotal.toLocaleString()}</td>
+              <td className="px-4 py-2">
+                <span className="inline-flex items-center rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold">
+                  {item.semanticTagSlug}
+                </span>
+              </td>
+              <td className="px-4 py-2">
+                <Badge variant={shouldMaterializeAsTask(item.costItemType) ? 'default' : 'secondary'} className="text-[10px] uppercase">
+                  {shouldMaterializeAsTask(item.costItemType) ? 'MATERIALIZABLE' : 'SKIPPED'}
+                </Badge>
+              </td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr className="border-t bg-muted/50">
-            <td colSpan={5} className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Total</td>
+            <td colSpan={7} className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Total</td>
             <td className="px-4 py-2 text-right font-bold">{total.toLocaleString()}</td>
           </tr>
         </tfoot>
@@ -246,7 +286,9 @@ export function WorkspaceDocumentParser() {
   const handleImport = async () => {
     if (!state.data?.workItems) return;
 
-    const lineItems = state.data.workItems.map((item) => ({
+    const lineItems = state.data.workItems.map((item, index) => {
+      const semantic = classifyCostItem(item.item, { includeSemanticTagSlug: true });
+      return {
       name: item.item,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
@@ -254,8 +296,16 @@ export function WorkspaceDocumentParser() {
       ...(item.discount !== undefined ? { discount: item.discount } : {}),
       subtotal: item.price,
       // Layer-2 Semantic Classification (VS8) — applied here during the import phase.
-      costItemType: classifyCostItem(item.item),
-    }));
+      costItemType: semantic.costItemType,
+      semanticTagSlug:
+        typeof item.semanticTagSlug === 'string' && item.semanticTagSlug.trim() !== ''
+          ? item.semanticTagSlug
+          : semantic.semanticTagSlug,
+      sourceIntentIndex:
+        typeof item.sourceIntentIndex === 'number' && Number.isFinite(item.sourceIntentIndex)
+          ? item.sourceIntentIndex
+          : index,
+    }});
 
     let intentId: IntentID;
     let oldIntentId: IntentID | undefined;

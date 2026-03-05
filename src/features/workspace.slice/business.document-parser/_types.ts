@@ -33,6 +33,15 @@ export interface ParsedLineItem {
    * receives the item.
    */
   costItemType: CostItemType;
+  /**
+   * VS8 semantic tag identity (tagSlug) for this line item.
+   * Used by projection and UI to resolve semantic visual attributes via tag-snapshot [T5].
+   */
+  semanticTagSlug: string;
+  /**
+   * Original 0-based row position from ParsingIntent lineItems for deterministic materialization order.
+   */
+  sourceIntentIndex: number;
 }
 
 // Re-export so existing consumers of this module continue to work [D20 — import from slice index].

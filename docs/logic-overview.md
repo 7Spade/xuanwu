@@ -38,6 +38,7 @@
 %%    A3=workflow-blockedBy  A5=scheduling-saga    A8=1cmd-1agg
 %%    A9=scope-guard         A10=notification-stateless
 %%    A12=global-search-authority   A13=notification-hub-authority
+%%    A15=finance-lifecycle-gate    A16=multi-claim-cycle
 %%  ── Governance Rules（可演化治理）: D · P · T · E ──
 %%    D7=cross-slice-index-only   D24=no-firebase-import D26=cross-cutting-authority
 %%    D27=cost-semantic-routing   D27-A=semantic-aware-routing-policy   D22=strong-typed-tag-ref
@@ -95,6 +96,13 @@
 %%    [#A14] ParsedLineItem.(costItemType, semanticTagSlug) (Layer-2) 由 VS8 _cost-classifier.ts 標注；
 %%           Layer-3 Semantic Router 只允許 EXECUTABLE 項目物化為 tasks，且以 semanticTagSlug 對齊 tag-snapshot，
 %%           其餘類型（MANAGEMENT/RESOURCE/FINANCIAL/PROFIT/ALLOWANCE）靜默跳過並 toast
+%%    [#A15] Finance 進入閘門：僅 Acceptance=OK 才可進入 Finance；
+%%           Claim Preparation 必須以「勾選項目 + 請款數量」建立 claim line items
+%%    [#A16] Multi-Claim Cycle：Finance 為可重入循環；
+%%           每輪固定為 Claim Preparation → Claim Submitted → Claim Approved → Invoice Requested
+%%           → Payment Term（計時中）→ Payment Received（收款確認）；
+%%           Payment Term 計時起點=Invoice Requested，終點=PaymentReceived；
+%%           直到 outstandingClaimableAmount = 0 才允許 Completed
 %%  FORBIDDEN:
 %%    BC_X 禁止直接寫入 BC_Y aggregate → 必須透過 IER Domain Event
 %%    TX Runner 禁止產生 Domain Event → 只有 Aggregate 可以 [#4b]
@@ -105,6 +113,10 @@
 %%    Feature slice 禁止直接 call sendEmail/push/SMS，必須透過 Notification Hub [D26 #A13]
 %%    VS5 document-parser 禁止自行實作成本語義邏輯，必須呼叫 VS8 classifyCostItem() [D27 #A14]
 %%    Layer-3 Semantic Router 禁止繞過 costItemType 直接物化非 EXECUTABLE 項目為 tasks [D27]
+%%    Workflow 禁止在 Acceptance 未達 OK 前進入 Finance [#A15]
+%%    Claim Preparation 禁止送出空請款（未勾選任何項目）或 quantity ≤ 0 的 line item [#A15]
+%%    Finance 禁止跳過 Claim/Invoice/PaymentTerm 任一步驟直接收款確認 [#A16]
+%%    outstandingClaimableAmount > 0 時禁止標記 Completed [#A16]
 %%    ParsingIntent.lineItems 禁止缺少 semanticTagSlug；UI 視覺屬性禁止直接讀 adjacency-list，必須讀 tag-snapshot [T5]
 %%    業務切片（VS1~VS6）禁止私自宣告語義類別，必須透過 VS8 CTA [D21-1]
 %%    禁止使用隱性字串傳遞語義，所有引用必須指向 TE1~TE6 有效 tagSlug [D21-2]
@@ -509,7 +521,7 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
         end
 
         subgraph VS5_WF["⚙️ Workflow State Machine [R6]"]
-            WF_AGG["workflow.aggregate\n狀態合約：Draft→InProgress→QA\n→Acceptance→Finance→Completed\nblockedBy: Set‹issueId›\n[#A3] blockedBy.isEmpty() 才可 unblock"]
+            WF_AGG["workflow.aggregate\n狀態合約：Draft→InProgress→QA\n→Acceptance(OK)→Finance(Stage Gateway)→Completed\nFinance 子流程（可多輪循環）\nClaim Preparation(勾選+quantity)→Claim Submitted\n→Claim Approved→Invoice Requested\n→Payment Term(計時中)→Payment Received\n收斂條件：outstandingClaimableAmount=0 才可 Completed\nblockedBy: Set‹issueId›\n[#A3] blockedBy.isEmpty() 才可 unblock"]
         end
 
         subgraph VS5_A["🟢 A-track 主流程"]
@@ -518,6 +530,17 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
             A_QA["quality-assurance"]
             A_ACCEPT["acceptance"]
             A_FINANCE["finance"]
+        end
+
+        subgraph VS5_FIN["💰 Finance Lifecycle（Multi-Claim）[#A15 #A16]"]
+            direction LR
+            FIN_CLAIM_PREP["claim-preparation\n(select line-items + quantity)"]
+            FIN_CLAIM_SUB["claim-submitted"]
+            FIN_CLAIM_APV["claim-approved"]
+            FIN_INV_REQ["invoice-requested"]
+            FIN_TERM["payment-term (timer-running)"]
+            FIN_PAY_RECV["payment-received"]
+            FIN_BALANCE{"outstandingClaimableAmount > 0 ?"}
         end
 
         subgraph VS5_B["🔴 B-track 異常處理"]
@@ -534,6 +557,13 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
         PARSE_INT -.->|"IntentDeltaProposed [#A4]"| A_TASKS
         WF_AGG -.->|stage-view| A_TASKS & A_QA & A_ACCEPT & A_FINANCE
         A_TASKS --> A_QA --> A_ACCEPT --> A_FINANCE
+        A_FINANCE -->|"enter finance lifecycle [#A15]"| FIN_CLAIM_PREP
+        FIN_CLAIM_PREP --> FIN_CLAIM_SUB --> FIN_CLAIM_APV --> FIN_INV_REQ --> FIN_TERM --> FIN_PAY_RECV
+        FIN_INV_REQ -.->|"start Payment Term timer [#A16]"| FIN_TERM
+        FIN_PAY_RECV --> FIN_BALANCE
+        FIN_BALANCE -->|"yes: 還有可請款餘額 [#A16]"| FIN_CLAIM_PREP
+        FIN_BALANCE -->|"no: claims settled [#A16]"| A_FINANCE
+        A_FINANCE -->|"transition to Completed"| WF_AGG
         WF_AGG -->|"blockWorkflow [#A3]"| B_ISSUES
         A_TASKS -.-> W_DAILY
         A_TASKS -.->|任務分配| W_SCHED
@@ -975,6 +1005,12 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  #A14 Cost Semantic 雙鍵分類（Layer-2）= VS8 _cost-classifier.ts 純函式輸出 (costItemType, semanticTagSlug)；
 %%       VS5 Layer-3 Semantic Router = use-workspace-event-handler，
 %%       僅 EXECUTABLE 項目物化為 tasks；其餘六類靜默跳過並 toast [D27]
+%%  #A15 Finance gate + payload contract：Acceptance=OK 才可進入 Finance；
+%%       Claim Preparation 必須以「勾選項目 + quantity」建立 claim line items，禁止空請款與 quantity ≤ 0
+%%  #A16 Multi-Claim cycle contract：Finance 可多次循環請款；
+%%       每輪流程：Claim Preparation → Claim Submitted → Claim Approved → Invoice Requested → Payment Term(計時) → Payment Received；
+%%       Payment Term 計時區間固定為 [Invoice Requested, PaymentReceived]；
+%%       當 outstandingClaimableAmount > 0 時必須回到 Claim Preparation，僅 outstandingClaimableAmount = 0 可 Completed
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  TAG SEMANTICS 擴展規則（VS8 · 8層語義神經網絡完全體 [D21-1~D21-10 + D21-A~D21-X]）
 %%  T1  新切片訂閱 TagLifecycleEvent（BACKGROUND_LANE）即可擴展 [D21-6]

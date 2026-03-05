@@ -193,7 +193,7 @@ export function useWorkspaceEventHandler() {
                     priority: "medium",
                     progressState: "todo",
                     sourceIntentId: payload.intentId,
-                    sourceIntentIndex: originalIndex,
+                    sourceIntentIndex: item.sourceIntentIndex ?? originalIndex,
                     // [TE_SK] ParsingIntent uses `skillRequirements`; WorkspaceTask uses `requiredSkills`
                     // to align with ScheduleItem's field name — intentional cross-model mapping.
                     ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
@@ -255,7 +255,7 @@ export function useWorkspaceEventHandler() {
             // flatMap captures each item's original document position as sourceIntentIndex.
             const executablePayloadItems = payload.items.flatMap((item, originalIndex) =>
               shouldMaterializeAsTask(item.costItemType)
-                ? [{ ...item, sourceIntentIndex: originalIndex }]
+                ? [{ ...item, sourceIntentIndex: item.sourceIntentIndex ?? originalIndex }]
                 : []
             );
             const taskResults = payload.oldIntentId

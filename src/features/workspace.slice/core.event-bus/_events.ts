@@ -64,6 +64,14 @@ export interface DocumentParserItemsExtractedPayload {
      * or to route it to a different domain model / skip task creation.
      */
     costItemType: CostItemType
+    /**
+     * Canonical semantic tag slug aligned with VS8 tag taxonomy.
+     */
+    semanticTagSlug: string
+    /**
+     * 0-based original row index from ParsingIntent lineItems.
+     */
+    sourceIntentIndex: number
   }>
   /** Skill requirements extracted from the document, forwarded to schedule proposals. */
   skillRequirements?: SkillRequirement[]

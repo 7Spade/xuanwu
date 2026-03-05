@@ -47,7 +47,9 @@
         "SSOT fallback: use docs/logic-overview.md for full definitions and implementation details.",
         "A11 Occam's Razor: Simplicity is a hard constraint. Do not multiply entities or abstractions beyond necessity. Use 'sequential-thinking mcp' to validate the simplest path before implementation.",
         "A12 Global Search Authority: Global Search = cross-slice authority (語義門戶). Sole cross-domain search outlet; all slices are forbidden from building their own search logic.",
-        "A13 Notification Hub Authority: Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy."
+        "A13 Notification Hub Authority: Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy.",
+        "A15 Finance Gate + Payload Contract: Finance can start only after Acceptance=OK, and Claim Preparation must carry selected line-items with positive quantities (no empty claim, no quantity <= 0).",
+        "A16 Multi-Claim Cycle Contract: Finance is re-entrant; each cycle is Claim Preparation → Claim Submitted → Claim Approved → Invoice Requested → Payment Term(timer-running) → Payment Received. Payment Term timing window is [Invoice Requested, PaymentReceived], and completion is allowed only when outstandingClaimableAmount = 0."
       ]
     },
     {
@@ -202,6 +204,23 @@
       "entityType": "Architecture_Invariant",
       "observations": [
         "Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy."
+      ]
+    },
+    {
+      "name": "A15 Finance Gate + Payload Contract",
+      "entityType": "Architecture_Invariant",
+      "observations": [
+        "Finance entry is gated by Acceptance=OK.",
+        "Claim Preparation requires selected claim line-items with positive quantities."
+      ]
+    },
+    {
+      "name": "A16 Multi-Claim Cycle Contract",
+      "entityType": "Architecture_Invariant",
+      "observations": [
+        "Finance supports multiple claim cycles with fixed per-cycle sequence: Claim Preparation → Claim Submitted → Claim Approved → Invoice Requested → Payment Term(timer-running) → Payment Received.",
+        "Payment Term timing starts at Invoice Requested and stops at PaymentReceived.",
+        "If outstandingClaimableAmount > 0 after Payment Received, workflow must re-enter Claim Preparation; only outstandingClaimableAmount = 0 may transition to Completed."
       ]
     },
     {

@@ -760,19 +760,6 @@ export async function adaptUIColorToAccountContext(
 ): Promise<AdaptUIColorToAccountContextOutput>
 ```
 
-## File: src/app-runtime/ai/flows/extract-invoice-items.ts
-```typescript
-import { type z } from 'genkit';
-import { ai } from '@/app-runtime/ai/genkit';
-import {
-  ExtractInvoiceItemsInputSchema,
-  ExtractInvoiceItemsOutputSchema,
-} from '@/app-runtime/ai/schemas/docu-parse';
-export async function extractInvoiceItems(
-  input: z.infer<typeof ExtractInvoiceItemsInputSchema>
-): Promise<z.infer<typeof ExtractInvoiceItemsOutputSchema>>
-```
-
 ## File: src/app-runtime/ai/genkit.ts
 ```typescript
 import {googleAI} from '@genkit-ai/google-genai';
@@ -782,13 +769,6 @@ import {genkit} from 'genkit';
 ## File: src/app-runtime/ai/index.ts
 ```typescript
 
-```
-
-## File: src/app-runtime/ai/schemas/docu-parse.ts
-```typescript
-import { z } from 'genkit';
-⋮----
-export type WorkItem = z.infer<typeof WorkItemSchema>;
 ```
 
 ## File: src/app-runtime/contexts/README.MD
@@ -1199,6 +1179,16 @@ import type { ScheduleItem } from "@/features/shared-kernel"
 export default function GovernancePage()
 ⋮----
 onClick=
+```
+
+## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/layout.tsx
+```typescript
+import { ArrowLeft, ChevronRight, MapPin } from "lucide-react";
+import { useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { useEffect, useMemo, useRef, use } from "react";
+import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useApp } from "@/features/workspace.slice"
+import { Button } from "@/shared/shadcn-ui/button";
+import { PageHeader } from "@/shared/ui/page-header";
 ```
 
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/locations/page.tsx
@@ -6046,33 +6036,6 @@ export interface DailyLog {
 
 ```
 
-## File: src/features/workspace.slice/business.document-parser/_form-actions.ts
-```typescript
-import { z } from 'zod';
-import { extractInvoiceItems } from '@/app-runtime/ai/flows/extract-invoice-items';
-import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
-⋮----
-function isAllowedStorageUrl(url: string): boolean
-export type ActionState = {
-  data?: { workItems: WorkItem[] };
-  error?: string;
-  fileName?: string;
-};
-export async function extractDataFromDocument(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState>
-⋮----
-const toNum = (v: unknown, fallback: number): number =>
-⋮----
-// quantity 0 is invalid for an invoice line — default to 1
-⋮----
-// 0 is a valid price (e.g. free/fully-discounted) — only fall back when null/undefined
-⋮----
-// [SEC-1] Log a safe message only — do not log the raw error object which
-// may expose internal AI model details or stack traces to server logs.
-```
-
 ## File: src/features/workspace.slice/business.document-parser/_queries.ts
 ```typescript
 import { SUBCOLLECTIONS } from '@/shared/infra/firestore/collection-paths';
@@ -9782,14 +9745,24 @@ export function PageHeader(
 }
 ```
 
-## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/layout.tsx
+## File: src/app-runtime/ai/flows/extract-invoice-items.ts
 ```typescript
-import { ArrowLeft, ChevronRight, MapPin } from "lucide-react";
-import { useRouter, useSelectedLayoutSegment } from "next/navigation";
-import { useEffect, useMemo, useRef, use } from "react";
-import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useApp } from "@/features/workspace.slice"
-import { Button } from "@/shared/shadcn-ui/button";
-import { PageHeader } from "@/shared/ui/page-header";
+import { type z } from 'genkit';
+import { ai } from '@/app-runtime/ai/genkit';
+import {
+  ExtractInvoiceItemsInputSchema,
+  ExtractInvoiceItemsOutputSchema,
+} from '@/app-runtime/ai/schemas/docu-parse';
+export async function extractInvoiceItems(
+  input: z.infer<typeof ExtractInvoiceItemsInputSchema>
+): Promise<z.infer<typeof ExtractInvoiceItemsOutputSchema>>
+```
+
+## File: src/app-runtime/ai/schemas/docu-parse.ts
+```typescript
+import { z } from 'genkit';
+⋮----
+export type WorkItem = z.infer<typeof ParsedWorkItemSchema>;
 ```
 
 ## File: src/features/account.slice/gov.policy/_actions.ts
@@ -10678,6 +10651,30 @@ export interface ImplementsScheduleProposedPayloadContract {
 }
 ```
 
+## File: src/features/workspace.slice/business.document-parser/_form-actions.ts
+```typescript
+import { z } from 'zod';
+import { extractInvoiceItems } from '@/app-runtime/ai/flows/extract-invoice-items';
+import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
+⋮----
+function isAllowedStorageUrl(url: string): boolean
+export type ActionState = {
+  data?: { workItems: WorkItem[] };
+  error?: string;
+  fileName?: string;
+};
+export async function extractDataFromDocument(
+  prevState: ActionState,
+  formData: FormData
+): Promise<ActionState>
+⋮----
+const toNum = (v: unknown, fallback: number): number =>
+⋮----
+// quantity 0 is invalid for an invoice line — default to 1
+⋮----
+// 0 is a valid price (e.g. free/fully-discounted) — only fall back when null/undefined
+```
+
 ## File: src/features/workspace.slice/business.parsing-intent/index.ts
 ```typescript
 
@@ -11073,7 +11070,23 @@ export function usePortalState(): PortalState
 ```typescript
 export type CostItemType = (typeof CostItemType)[keyof typeof CostItemType]
 ⋮----
+export type SemanticTagSlug = (typeof COST_ITEM_TAG_SLUG)[CostItemType]
+export interface CostItemSemanticClassification {
+  costItemType: CostItemType
+  semanticTagSlug: SemanticTagSlug
+}
+⋮----
+function classifyCostItemType(name: string): CostItemType
+function toSemanticTagSlug(costItemType: CostItemType): SemanticTagSlug
 export function classifyCostItem(name: string): CostItemType
+export function classifyCostItem(
+export function classifyCostItem(
+  name: string,
+  options?: { includeSemanticTagSlug?: boolean }
+): CostItemType | CostItemSemanticClassification
+export function classifyCostItemWithSemanticTag(
+  name: string
+): CostItemSemanticClassification
 export function shouldMaterializeAsTask(costItemType: CostItemType): boolean
 ```
 
@@ -11223,6 +11236,8 @@ export interface ParsedLineItem {
   discount?: number;
   subtotal: number;
   costItemType: CostItemType;
+  semanticTagSlug: string;
+  sourceIntentIndex: number;
 }
 ⋮----
 export interface ParsingIntent {
@@ -11434,6 +11449,8 @@ export interface DocumentParserItemsExtractedPayload {
     discount?: number
     subtotal: number
     costItemType: CostItemType
+    semanticTagSlug: string
+    sourceIntentIndex: number
   }>
   skillRequirements?: SkillRequirement[]
   oldIntentId?: string
@@ -11788,7 +11805,7 @@ import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Cl
 import { useActionState, useTransition, useRef, useEffect, useCallback, useState, type ChangeEvent } from 'react';
 import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
 import { logDomainError } from '@/features/observability';
-import { classifyCostItem, CostItemType } from '@/features/semantic-graph.slice';
+import { classifyCostItem, CostItemType, shouldMaterializeAsTask } from '@/features/semantic-graph.slice';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
@@ -11813,8 +11830,7 @@ function WorkItemsTable({
   initialData: WorkItem[];
 onImport: ()
 ⋮----
-function ParsedItemsTable(
-export function WorkspaceDocumentParser()
+const getItemSemanticStatus = (item: WorkItem) =>
 ⋮----
 // On mount: if files-view queued a file via WorkspaceProvider context, auto-trigger.
 // This bridges the cross-tab gap — subscriber only exists when this component is mounted.
@@ -11922,54 +11938,6 @@ export function WorkspaceProvider(
 const hydrateWorkflowBlockers = async () =>
 ⋮----
 export function useWorkspace()
-```
-
-## File: src/shared/infra/firestore/repositories/workspace-business.document-parser.repository.ts
-```typescript
-import {
-  serverTimestamp,
-  collection,
-  doc,
-  getDoc,
-  query,
-  orderBy,
-  where,
-  limit,
-} from 'firebase/firestore';
-import type { ParsingIntent } from '@/features/workspace.slice';
-import { SUBCOLLECTIONS } from '../collection-paths';
-import { db } from '../firestore.client';
-import { createConverter } from '../firestore.converter';
-import { getDocument, getDocuments } from '../firestore.read.adapter';
-import {
-  updateDocument,
-  addDocument,
-} from '../firestore.write.adapter';
-export const createParsingIntent = async (
-  workspaceId: string,
-  intentData: Omit<ParsingIntent, 'id' | 'createdAt'>
-): Promise<string> =>
-export const updateParsingIntentStatus = async (
-  workspaceId: string,
-  intentId: string,
-  status: 'importing' | 'imported' | 'failed' | 'superseded'
-): Promise<void> =>
-export const supersedeParsingIntent = async (
-  workspaceId: string,
-  oldIntentId: string,
-  newIntentId: string
-): Promise<void> =>
-export const getParsingIntents = async (
-  workspaceId: string
-): Promise<ParsingIntent[]> =>
-export const getParsingIntentBySourceFileId = async (
-  workspaceId: string,
-  sourceFileId: string
-): Promise<ParsingIntent | null> =>
-export const getParsingIntentById = async (
-  workspaceId: string,
-  intentId: string
-): Promise<ParsingIntent | null> =>
 ```
 
 ## File: src/features/semantic-graph.slice/centralized-causality/causality-tracer.ts
@@ -12159,6 +12127,81 @@ export interface CausalityChain {
 }
 ```
 
+## File: src/shared/infra/firestore/repositories/index.ts
+```typescript
+
+```
+
+## File: src/shared/infra/firestore/repositories/workspace-business.document-parser.repository.ts
+```typescript
+import {
+  serverTimestamp,
+  collection,
+  query,
+  orderBy,
+  where,
+  limit,
+} from 'firebase/firestore';
+import type { ParsingIntent } from '@/features/workspace.slice';
+import { SUBCOLLECTIONS } from '../collection-paths';
+import { db } from '../firestore.client';
+import { createConverter } from '../firestore.converter';
+import { getDocument, getDocuments } from '../firestore.read.adapter';
+import {
+  updateDocument,
+  addDocument,
+} from '../firestore.write.adapter';
+export const createParsingIntent = async (
+  workspaceId: string,
+  intentData: Omit<ParsingIntent, 'id' | 'createdAt'>
+): Promise<string> =>
+export const updateParsingIntentStatus = async (
+  workspaceId: string,
+  intentId: string,
+  status: 'importing' | 'imported' | 'failed' | 'superseded'
+): Promise<void> =>
+export const supersedeParsingIntent = async (
+  workspaceId: string,
+  oldIntentId: string,
+  newIntentId: string
+): Promise<void> =>
+export const getParsingIntents = async (
+  workspaceId: string
+): Promise<ParsingIntent[]> =>
+export const getParsingIntentBySourceFileId = async (
+  workspaceId: string,
+  sourceFileId: string
+): Promise<ParsingIntent | null> =>
+export const getParsingIntentById = async (
+  workspaceId: string,
+  intentId: string
+): Promise<ParsingIntent | null> =>
+```
+
+## File: src/features/semantic-graph.slice/_queries.ts
+```typescript
+import { querySemanticIndex, getIndexStats } from './_services';
+import {
+  traceAffectedNodes,
+  rankAffectedNodes,
+  buildDownstreamEvents,
+  buildCausalityChain,
+} from './centralized-causality/causality-tracer';
+import { getEdgesByType } from './centralized-edges/semantic-edge-store';
+import {
+  computeSemanticDistance,
+  computeSemanticDistanceMatrix,
+  findIsolatedNodes,
+} from './centralized-neural-net/neural-network';
+import type { SemanticEdge, StaleTagWarning } from './centralized-types';
+import { detectStaleTagWarnings } from './centralized-workflows/tag-lifecycle.workflow';
+import { getEligibleTags, satisfiesSemanticRequirement, buildEligibilityMatrix } from './projections/graph-selectors';
+⋮----
+export function getIsAEdges(): readonly SemanticEdge[]
+export function getRequiresEdges(): readonly SemanticEdge[]
+export function queryStaleTagWarnings(): readonly StaleTagWarning[]
+```
+
 ## File: src/features/workspace.slice/business.document-parser/_intent-actions.ts
 ```typescript
 import type { SkillRequirement } from '@/features/shared-kernel'
@@ -12279,15 +12322,6 @@ export async function saveParsingIntent(
 // new intent (original behaviour) so a transient network error never blocks
 // the import flow.
 ⋮----
-// [D14/D15] Secondary hash-based guard for direct uploads (no sourceFileId).
-// When a file is uploaded directly (not via Files tab), sourceFileId is absent
-// but the UI tracks previousIntentId across re-parses within the same session.
-// Fetching the previous intent by ID and comparing semanticHash values prevents
-// a new ParsingIntent — and therefore duplicate tasks — from being created when
-// the user imports the same document content a second time.
-⋮----
-// Same content as the previous intent — return it as-is without any write.
-⋮----
 export async function startParsingImport(
   workspaceId: string,
   intentId: string,
@@ -12306,35 +12340,6 @@ export async function markParsingIntentFailed(
   workspaceId: string,
   intentId: string
 ): Promise<void>
-```
-
-## File: src/shared/infra/firestore/repositories/index.ts
-```typescript
-
-```
-
-## File: src/features/semantic-graph.slice/_queries.ts
-```typescript
-import { querySemanticIndex, getIndexStats } from './_services';
-import {
-  traceAffectedNodes,
-  rankAffectedNodes,
-  buildDownstreamEvents,
-  buildCausalityChain,
-} from './centralized-causality/causality-tracer';
-import { getEdgesByType } from './centralized-edges/semantic-edge-store';
-import {
-  computeSemanticDistance,
-  computeSemanticDistanceMatrix,
-  findIsolatedNodes,
-} from './centralized-neural-net/neural-network';
-import type { SemanticEdge, StaleTagWarning } from './centralized-types';
-import { detectStaleTagWarnings } from './centralized-workflows/tag-lifecycle.workflow';
-import { getEligibleTags, satisfiesSemanticRequirement, buildEligibilityMatrix } from './projections/graph-selectors';
-⋮----
-export function getIsAEdges(): readonly SemanticEdge[]
-export function getRequiresEdges(): readonly SemanticEdge[]
-export function queryStaleTagWarnings(): readonly StaleTagWarning[]
 ```
 
 ## File: src/features/workspace.slice/core/_hooks/use-workspace-event-handler.tsx

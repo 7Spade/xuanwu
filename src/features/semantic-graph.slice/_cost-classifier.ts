@@ -43,6 +43,22 @@ export const CostItemType = {
 
 export type CostItemType = (typeof CostItemType)[keyof typeof CostItemType]
 
+export const COST_ITEM_TAG_SLUG = {
+  [CostItemType.EXECUTABLE]: 'cost-item-executable',
+  [CostItemType.MANAGEMENT]: 'cost-item-management',
+  [CostItemType.RESOURCE]: 'cost-item-resource',
+  [CostItemType.FINANCIAL]: 'cost-item-financial',
+  [CostItemType.PROFIT]: 'cost-item-profit',
+  [CostItemType.ALLOWANCE]: 'cost-item-allowance',
+} as const
+
+export type SemanticTagSlug = (typeof COST_ITEM_TAG_SLUG)[CostItemType]
+
+export interface CostItemSemanticClassification {
+  costItemType: CostItemType
+  semanticTagSlug: SemanticTagSlug
+}
+
 // =================================================================
 // Keyword Rules — ordered from most-specific to least-specific
 // =================================================================
@@ -138,7 +154,7 @@ const CLASSIFICATION_RULES: Array<{ keywords: string[]; type: CostItemType }> = 
  *
  * @pure No side effects; deterministic for the same input.
  */
-export function classifyCostItem(name: string): CostItemType {
+function classifyCostItemType(name: string): CostItemType {
   const lower = name.toLowerCase()
 
   for (const rule of CLASSIFICATION_RULES) {
@@ -150,6 +166,35 @@ export function classifyCostItem(name: string): CostItemType {
 
   // Default: treat as executable work if no specific rule matched
   return CostItemType.EXECUTABLE
+}
+
+function toSemanticTagSlug(costItemType: CostItemType): SemanticTagSlug {
+  return COST_ITEM_TAG_SLUG[costItemType]
+}
+
+export function classifyCostItem(name: string): CostItemType
+export function classifyCostItem(
+  name: string,
+  options: { includeSemanticTagSlug: true }
+): CostItemSemanticClassification
+export function classifyCostItem(
+  name: string,
+  options?: { includeSemanticTagSlug?: boolean }
+): CostItemType | CostItemSemanticClassification {
+  const costItemType = classifyCostItemType(name)
+  if (options?.includeSemanticTagSlug) {
+    return {
+      costItemType,
+      semanticTagSlug: toSemanticTagSlug(costItemType),
+    }
+  }
+  return costItemType
+}
+
+export function classifyCostItemWithSemanticTag(
+  name: string
+): CostItemSemanticClassification {
+  return classifyCostItem(name, { includeSemanticTagSlug: true })
 }
 
 /**

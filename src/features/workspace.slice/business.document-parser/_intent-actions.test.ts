@@ -58,7 +58,7 @@ describe('workspace document-parser intent actions', () => {
     mockCreateParsingIntent.mockResolvedValue('intent-1')
 
     const result = await saveParsingIntent('workspace-1', 'invoice.pdf', [
-      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE },
+      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE, semanticTagSlug: 'cost-item-executable', sourceIntentIndex: 0 },
     ])
 
     expect(result).toEqual({ intentId: 'intent-1' })
@@ -81,7 +81,7 @@ describe('workspace document-parser intent actions', () => {
     mockSupersedeParsingIntent.mockResolvedValue(undefined)
 
     const result = await saveParsingIntent('workspace-1', 'invoice-v2.pdf', [
-      { name: 'item', quantity: 2, unitPrice: 50, subtotal: 100, costItemType: CostItemType.EXECUTABLE },
+      { name: 'item', quantity: 2, unitPrice: 50, subtotal: 100, costItemType: CostItemType.EXECUTABLE, semanticTagSlug: 'cost-item-executable', sourceIntentIndex: 0 },
     ], { previousIntentId: 'intent-1' as IntentID })
 
     expect(result).toEqual({ intentId: 'intent-2', oldIntentId: 'intent-1' })
@@ -92,7 +92,7 @@ describe('workspace document-parser intent actions', () => {
     mockCreateParsingIntent.mockResolvedValue('intent-3')
 
     const result = await saveParsingIntent('workspace-1', 'invoice.pdf', [
-      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE },
+      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE, semanticTagSlug: 'cost-item-executable', sourceIntentIndex: 0 },
     ])
 
     expect(result.oldIntentId).toBeUndefined()
@@ -103,7 +103,7 @@ describe('workspace document-parser intent actions', () => {
     // Simulate the case where a user uploads the same file twice via direct upload.
     // No sourceFileId is present. The previous intent's semanticHash must match
     // the newly computed hash to trigger the secondary idempotency guard.
-    const lineItems = [{ name: 'item', quantity: 1, unitPrice: 100, subtotal: 100 }]
+    const lineItems = [{ name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE, semanticTagSlug: 'cost-item-executable', sourceIntentIndex: 0 }]
 
     // First save — captures the deterministic semanticHash produced for these lineItems.
     mockCreateParsingIntent.mockResolvedValue('intent-1')
@@ -141,7 +141,7 @@ describe('workspace document-parser intent actions', () => {
     mockSupersedeParsingIntent.mockResolvedValue(undefined)
 
     const result = await saveParsingIntent('workspace-1', 'invoice-v2.pdf', [
-      { name: 'changed item', quantity: 5, unitPrice: 20, subtotal: 100 },
+      { name: 'changed item', quantity: 5, unitPrice: 20, subtotal: 100, costItemType: CostItemType.EXECUTABLE, semanticTagSlug: 'cost-item-executable', sourceIntentIndex: 0 },
     ], { previousIntentId: 'intent-old' as IntentID })
 
     expect(result).toEqual({ intentId: 'intent-new', oldIntentId: 'intent-old' })
