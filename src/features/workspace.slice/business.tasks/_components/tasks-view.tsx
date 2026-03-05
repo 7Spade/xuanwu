@@ -17,7 +17,6 @@ import {
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
-import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import {
   Dialog,
@@ -46,7 +45,6 @@ import {
   SelectValue,
 } from '@/shared/shadcn-ui/select';
 import { Textarea } from '@/shared/shadcn-ui/textarea';
-import { cn } from '@/shared/shadcn-ui/utils/utils';
 
 import { buildTaskTree } from '../../_task.rules';
 import { useStorage } from '../../business.files';

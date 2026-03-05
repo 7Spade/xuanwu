@@ -28,6 +28,7 @@ import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
+
 import { ConfirmedRow, ProposalRow } from './org-schedule-governance.rows';
 
 // ---------------------------------------------------------------------------
