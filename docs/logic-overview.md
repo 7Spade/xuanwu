@@ -38,8 +38,12 @@
 %%    A9=scope-guard         A10=notification-stateless
 %%    A12=global-search-authority   A13=notification-hub-authority
 %%  ── Governance Rules（可演化治理）: D · P · T · E ──
-%%    D7=cross-slice-index-only   D21=tag-centralized    D24=no-firebase-import
-%%    D26=cross-cutting-authority D27=cost-semantic-routing
+%%    D7=cross-slice-index-only   D24=no-firebase-import D26=cross-cutting-authority
+%%    D27=cost-semantic-routing
+%%    D21=VS8-neural-network-semantics(D21-1~D21-8 完整規範)
+%%    D21-1=semantic-uniqueness     D21-2=strong-typed-tags   D21-3=node-connectivity
+%%    D21-4=aggregate-constraint    D21-5=semantic-aware-routing
+%%    D21-6=causal-auto-trigger     D21-7=read-write-separation D21-8=freshness-defense
 %%    P1=IER-lane-priority        P4=eligibility-query   P5=projection-funnel
 %%    T1=tag-lifecycle-sub        T3=eligible-tag-logic  T5=tag-snapshot-readonly
 %%    E2=OrgContextProvisioned    E3=ScheduleAssigned    E5=ws-event-flow   E6=claims-refresh
@@ -49,7 +53,10 @@
 %%    [S2]  所有 Projection 寫入前必須呼叫 applyVersionGuard()
 %%    [S4]  SLA 數值只能引用 SK_STALENESS_CONTRACT，禁止硬寫
 %%    [D7]  跨切片引用只能透過 {slice}/index.ts 公開 API
-%%    [D21] 新 tag 類別只在 VS8（Semantic Graph）定義
+%%    [D21] VS8 語義神經網絡（Neural Network）：tag 類別在 VS8 CTA 定義・TE1~TE6 強型別引用・禁止硬編碼語義
+%%    [D21-6] TagLifecycleEvent → VS8 Causality Tracer 自動推導受影響節點並發布更新事件
+%%    [D21-7] 語義讀取必須經由 projection.tag-snapshot，寫入必須經 CMD_GWAY 進入 VS8 CTA
+%%    [D21-8] TAG_STALE_GUARD ≤ 30s，所有語義查詢必須引用 SK_STALENESS_CONTRACT
 %%    [D24] Feature slice 禁止直接 import firebase/*，必須走 SK_PORTS
 %%    [D26] global-search = 唯一搜尋權威；notification-hub = 唯一副作用出口
 %%    [#A12] Global Search = 唯一跨域搜尋出口，禁止各 Slice 自建搜尋邏輯
@@ -67,6 +74,11 @@
 %%    Feature slice 禁止直接 call sendEmail/push/SMS，必須透過 Notification Hub [D26 #A13]
 %%    VS5 document-parser 禁止自行實作成本語義邏輯，必須呼叫 VS8 classifyCostItem() [D27 #A14]
 %%    Layer-3 Semantic Router 禁止繞過 costItemType 直接物化非 EXECUTABLE 項目為 tasks [D27]
+%%    業務切片（VS1~VS6）禁止私自宣告語義類別，必須透過 VS8 CTA [D21-1]
+%%    禁止使用隱性字串傳遞語義，所有引用必須指向 TE1~TE6 有效 tagSlug [D21-2]
+%%    孤立標籤（無 parentTagSlug 歸屬）禁止在系統中存在，須歸入分類學 [D21-3]
+%%    跨切片決策（排班路由/通知分發）禁止硬編碼業務對象 ID，必須基於標籤語義權重 [D21-5]
+%%    語義讀取禁止直連資料庫，必須經由 projection.tag-snapshot [D21-7]
 %%  ╚══════════════════════════════════════════════════════════════════════════╝
 
 flowchart TD
@@ -123,38 +135,54 @@ subgraph SK["🔷 L1 · Shared Kernel — 全域契約中心（VS0）"]
     end
 end
 
-%% ─── VS8 Semantic Graph（語義中樞 · The Brain）
-%% ─── 前身為 TAG_AUTH (Tag Authority Center)，升級為正式業務垂直切片
-%% ─── 職責：標籤分類學 (Taxonomy)、因果追蹤 (Causality)、排班衝突語義檢測
+%% ─── VS8 Semantic Graph（語義神經網絡 · The Brain）
+%% ─── 三層架構：語義分類層（定義權威）/ 語義節點圖譜層（因果追蹤）/ 語義路由層（執行代理）
 %% ─── centralized-tag.aggregate 具備 lifecycle，為 domain authority [#A6 #17]
-subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（語義中樞）"]
+subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（語義神經網絡）"]
     direction TB
-    CTA["centralized-tag.aggregate\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule"]
 
-    subgraph TAG_ENTS["🏷️ AI-ready Semantic Tag Entities [D21]"]
+    subgraph VS8_CL["🏷️ 語義分類層 (Classification Layer) — 定義權威 [D21-1 D21-2]"]
         direction LR
-        TE_UL["tag::user-level\ncategory: user_level"]
-        TE_SK["tag::skill\ncategory: skill"]
-        TE_ST["tag::skill-tier\ncategory: skill_tier"]
-        TE_TM["tag::team\ncategory: team"]
-        TE_RL["tag::role\ncategory: role"]
-        TE_PT["tag::partner\ncategory: partner"]
+        CTA["centralized-tag.aggregate (CTA)\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule\n生命週期守護：創建 / 廢棄 / 刪除規則 [D21-4]"]
+
+        subgraph TAG_ENTS["🏷️ AI-ready Semantic Tag Entities (TE1~TE6) [D21-1]"]
+            direction LR
+            TE_UL["tag::user-level\ncategory: user_level"]
+            TE_SK["tag::skill\ncategory: skill"]
+            TE_ST["tag::skill-tier\ncategory: skill_tier"]
+            TE_TM["tag::team\ncategory: team"]
+            TE_RL["tag::role\ncategory: role"]
+            TE_PT["tag::partner\ncategory: partner"]
+        end
+        CTA --> TAG_ENTS
     end
 
-    TAG_EV["TagLifecycleEvent（in-process）"]
-    TAG_OB["tag-outbox\n[SK_OUTBOX: SAFE_AUTO]"]
-    TAG_RO["🔒 唯讀引用規則\nT1 新切片訂閱事件即可擴展"]
-    TAG_SG["⚠️ TAG_STALE_GUARD\n[S4: TAG_MAX_STALENESS ≤ 30s]\nDeprecated → StaleTagWarning"]
-
-    CTA --> TAG_ENTS
-    CTA -->|"標籤異動廣播"| TAG_EV --> TAG_OB
-    CTA -.->|"唯讀引用契約"| TAG_RO
-    CTA -.->|"Deprecated 通知"| TAG_SG
-
-    subgraph COST_CLASS["📊 成本語義分類器 [D8][D24][D27]"]
+    subgraph VS8_NG["🔗 語義節點圖譜層 (Node/Graph Layer) — 因果追蹤 [D21-3 D21-4 D21-6]"]
         direction LR
-        COST_CLASSIFIER["_cost-classifier.ts（純函式 [D8]）\nclassifyCostItem(name) → CostItemType\n──────────────────────────────\nEXECUTABLE  物理施工任務（預設出口）\nMANAGEMENT  行政/品管/職安管理\nRESOURCE    倉儲/人力資源儲備\nFINANCIAL   付款里程碑/預付款\nPROFIT      利潤項目\nALLOWANCE   耗材/差旅/運輸補貼\n──────────────────────────────\n禁止 Firestore 存取・禁止 async\n可在任意 Layer 安全呼叫 [D8]"]
+        NEURAL_NET["🧬 Neural Network\n關聯權重計算・語義距離矩陣\n節點互聯圖譜 [D21-3]\n孤立標籤視為無效語義\n親代歸屬：parentTagSlug"]
+        CAUSALITY["🔍 Causality Tracer [D21-6]\n因果自動推導引擎\nTagLifecycleEvent → 受影響節點集合\n語義距離計算 + 關聯權重排序\n觸發下游更新事件"]
+        TAG_EV["TagLifecycleEvent（in-process）\n[D21-6] 因果自動觸發"]
+        TAG_OB["tag-outbox\n[SK_OUTBOX: SAFE_AUTO]"]
+        TAG_RO["🔒 唯讀引用規則\n[D21-7] 讀取必須經 projection.tag-snapshot\nT1 新切片訂閱事件即可擴展"]
+        TAG_SG["⚠️ TAG_STALE_GUARD\n[S4 D21-8: TAG_MAX_STALENESS ≤ 30s]\nDeprecated → StaleTagWarning"]
+        NEURAL_NET -.->|"語義距離計算"| CAUSALITY
+        CAUSALITY -->|"TagLifecycleEvent [D21-6]"| TAG_EV
+        TAG_EV --> TAG_OB
+        CAUSALITY -.->|"廢棄感知 [D21-8]"| TAG_SG
     end
+
+    subgraph VS8_RL["🚦 語義路由層 (Routing Layer) — 執行代理 [D21-5 D21-7]"]
+        direction LR
+        subgraph COST_CLASS["📊 成本語義分類器 [D8][D24][D27]"]
+            direction LR
+            COST_CLASSIFIER["_cost-classifier.ts（純函式 [D8]）\nclassifyCostItem(name) → CostItemType\n──────────────────────────────\nEXECUTABLE  物理施工任務（預設出口）\nMANAGEMENT  行政/品管/職安管理\nRESOURCE    倉儲/人力資源儲備\nFINANCIAL   付款里程碑/預付款\nPROFIT      利潤項目\nALLOWANCE   耗材/差旅/運輸補貼\n──────────────────────────────\n禁止 Firestore 存取・禁止 async\n可在任意 Layer 安全呼叫 [D8]"]
+        end
+    end
+
+    VS8_CL -->|"標籤異動廣播 [D21-6]"| VS8_NG
+    CTA -.->|"唯讀引用契約 [D21-7]"| TAG_RO
+    CTA -.->|"Deprecated 通知 [D21-8]"| TAG_SG
+    VS8_NG -.->|"語義路由授權 [D21-5]"| VS8_RL
 end
 
 %% ═══════════════════════════════════════════════════════════════
@@ -819,7 +847,7 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  #A3  blockWorkflow → blockedBy Set；allIssuesResolved → unblockWorkflow
 %%  #A4  ParsingIntent 只允許提議事件
 %%  #A5  schedule 跨 BC saga/compensating event
-%%  #A6  CENTRALIZED_TAG_AGGREGATE 語義唯一權威
+%%  #A6  CENTRALIZED_TAG_AGGREGATE 語義唯一權威（VS8 語義分類層 · Classification Layer [D21-1]）
 %%  #A7  Event Funnel 只做 compose
 %%  #A8  TX Runner 1cmd/1agg 原子提交
 %%  #A9  Scope Guard 快路徑；高風險回源 aggregate
@@ -831,12 +859,12 @@ class NOTIF_HUB_SVC crossCutAuth
 %%       VS5 Layer-3 Semantic Router = use-workspace-event-handler，
 %%       僅 EXECUTABLE 項目物化為 tasks；其餘六類靜默跳過並 toast [D27]
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  TAG SEMANTICS 擴展規則（VS8 · Semantic Graph — The Brain）
-%%  T1  新切片訂閱 TagLifecycleEvent（BACKGROUND_LANE）即可擴展
+%%  TAG SEMANTICS 擴展規則（VS8 · 語義神經網絡 — Neural Network [D21-1~D21-8]）
+%%  T1  新切片訂閱 TagLifecycleEvent（BACKGROUND_LANE）即可擴展 [D21-6]
 %%  T2  SKILL_TAG_POOL = Tag Authority 組織作用域唯讀投影
 %%  T3  ORG_ELIGIBLE_MEMBER_VIEW.skills{tagSlug→xp} 交叉快照
-%%  T4  排班職能需求 = SK_SKILL_REQ × Tag Authority tagSlug
-%%  T5  TAG_SNAPSHOT 消費方禁止寫入
+%%  T4  排班職能需求 = SK_SKILL_REQ × Tag Authority tagSlug [D21-5]
+%%  T5  TAG_SNAPSHOT 消費方禁止寫入 [D21-7]
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  SEMANTIC TAG ENTITIES 索引（AI-ready Semantic Graph）
 %%  TE1 TAG_USER_LEVEL  tag::user-level    → tagSlug: user-level:{slug}
@@ -858,7 +886,7 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  （詳見 UNIFIED DEVELOPMENT RULES 完整定義）
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  UNIFIED DEVELOPMENT RULES [D1~D26]
-%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance (D21~D23) / Infrastructure (D24~D25) / Authority Governance (D26) ──
+%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance D21(D21-1~D21-8)/D22~D23 / Infrastructure (D24~D25) / Authority Governance (D26) ──
 %%  ── 基礎路徑約束（D1~D12）──
 %%  D1  事件傳遞只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
 %%  D2  跨切片引用：import from '@/features/{slice}/index' only；_*.ts 為私有
@@ -881,8 +909,19 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  D18 Claims 刷新邏輯變更：以 SK_TOKEN_REFRESH_CONTRACT 為唯一規範
 %%  D19 型別歸屬規則：跨 BC 契約優先放 shared.kernel.*；shared/types 僅為 legacy fallback
 %%  D20 匯入優先序：shared.kernel.* > feature slice index.ts > shared/types
-%%  ── 語義 Tag 守則（D21~D23）──
-%%  D21 新增 tag 語義類別：必須在 VS8（Semantic Graph）CTA TAG_ENTITIES 定義，禁止各 slice 自行創建
+%%  ── 語義 Tag 守則（D21~D23）── VS8 語義神經網絡 (Neural Network) 正式規範 ──
+%%  ── 一、定義權威 (Definition Authority) ──
+%%  D21-1 語義唯一性：全域所有語義類別與標籤實體（Tag Entities）僅能在 VS8 CTA 定義，禁止業務切片（VS1~VS6）私自宣告
+%%  D21-2 標籤強型別化：系統中禁止使用隱性字串傳遞語義，所有引用必須指向 TE1~TE6 有效 tagSlug
+%%  ── 二、結構化建模 (Structural Modeling) ──
+%%  D21-3 節點互聯律：語義節點必須具備層級或因果關係；孤立標籤（Isolated Tag）視為無效語義，須通過 parentTagSlug 歸入分類學
+%%  D21-4 聚合體約束：CTA 守護標籤生命週期（狀態/權限/刪除規則）；Neural Network 計算關聯權重與語義距離
+%%  ── 三、語義路由與執行 (Routing & Execution) ──
+%%  D21-5 語義感知路由：跨切片決策（排班路由/通知分發）必須基於標籤語義權重，禁止硬編碼業務對象 ID
+%%  D21-6 因果自動觸發：TagLifecycleEvent 發生時，VS8 透過 Causality Tracer 自動推導受影響節點並發布更新事件
+%%  ── 四、投影與一致性 (Projection & Consistency) ──
+%%  D21-7 讀寫分離原則：寫入操作必須經過 CMD_GWAY 進入 VS8 CTA；讀取嚴禁直連資料庫，必須經由 projection.tag-snapshot
+%%  D21-8 新鮮度防禦：所有基於語義的查詢必須引用 SK_STALENESS_CONTRACT，TAG_STALE_GUARD ≤ 30 秒
 %%  D22 跨切片 tag 語義引用：必須指向 TE1~TE6 實體節點，禁止隱式 tagSlug 字串引用
 %%  D23 tag 語義標注格式：節點內 → tag::{category}；邊 → -.->|"{dim} tag 語義"|
 %%  ── Firebase 隔離守則（D24~D25）──
