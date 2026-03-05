@@ -9,20 +9,20 @@
 
 import { AlertCircle, Clock3 } from "lucide-react";
 
-import { useGlobalSchedule } from "@/features/scheduling.slice";
-import { useScheduleActions } from "@/features/scheduling.slice";
 import type { ScheduleItem } from "@/features/shared-kernel";
 import { useApp } from "@/shared/app-providers/app-context";
+
+import { useAccountTimeline, useTimelineCommands } from "../_hooks";
 
 import { TimelineCanvas } from "./timeline-canvas";
 
 export function AccountTimelineSection() {
   const { state } = useApp();
   const { activeAccount } = state;
-  const { allItems, organizationMembers } = useGlobalSchedule();
-  const { rescheduleItem } = useScheduleActions();
+  const { items, organizationMembers } = useAccountTimeline();
+  const { rescheduleItem } = useTimelineCommands();
 
-  const itemsById = new Map<string, ScheduleItem>(allItems.map((item) => [item.id, item]));
+  const itemsById = new Map<string, ScheduleItem>(items.map((item) => [item.id, item]));
 
   if (activeAccount?.accountType !== "organization") {
     return (
@@ -47,7 +47,7 @@ export function AccountTimelineSection() {
       </div>
 
       <TimelineCanvas
-        items={allItems}
+        items={items}
         members={organizationMembers}
         groupMode="workspace"
         enableDrag

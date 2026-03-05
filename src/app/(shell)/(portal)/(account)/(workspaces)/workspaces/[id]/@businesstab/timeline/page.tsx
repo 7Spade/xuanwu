@@ -1,5 +1,7 @@
-import { WorkspaceCapabilityTabs } from "@/features/scheduling.slice";
-import { WorkspaceTimeline } from "@/features/timelineing.slice";
+import {
+  WorkspaceTimeline,
+  WorkspaceTimelineCapabilityTabs,
+} from "@/features/timelineing.slice";
 
 /**
  * Module: page.tsx
@@ -11,7 +13,7 @@ import { WorkspaceTimeline } from "@/features/timelineing.slice";
 export default function TimelineCapabilityPage() {
   return (
     <div>
-      <WorkspaceCapabilityTabs />
+      <WorkspaceTimelineCapabilityTabs />
       <WorkspaceTimeline />
     </div>
   );

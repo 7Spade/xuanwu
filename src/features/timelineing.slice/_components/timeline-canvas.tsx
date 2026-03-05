@@ -18,14 +18,16 @@ import {
 } from "vis-timeline/standalone";
 import "vis-timeline/styles/vis-timeline-graph2d.min.css";
 
-import type { MemberReference, ScheduleItem, Timestamp } from "@/features/shared-kernel";
+import type { ScheduleItem, Timestamp } from "@/features/shared-kernel";
 import { cn } from "@/shared/shadcn-ui/utils/utils";
+
+import type { TimelineMember } from "../_types";
 
 type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
 
 interface TimelineCanvasProps {
   items: ScheduleItem[];
-  members: MemberReference[];
+  members: TimelineMember[];
   enableDrag?: boolean;
   groupMode?: "none" | "workspace";
   onMoveItem?: (params: {

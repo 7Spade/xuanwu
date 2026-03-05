@@ -1,5 +1,7 @@
-import { AccountCapabilityTabs } from "@/features/scheduling.slice";
-import { AccountTimelineSection } from "@/features/timelineing.slice";
+import {
+  AccountTimelineCapabilityTabs,
+  AccountTimelineSection,
+} from "@/features/timelineing.slice";
 
 /**
  * Module: page.tsx
@@ -11,7 +13,7 @@ import { AccountTimelineSection } from "@/features/timelineing.slice";
 export default function AccountTimelinePage() {
   return (
     <div>
-      <AccountCapabilityTabs />
+      <AccountTimelineCapabilityTabs />
       <AccountTimelineSection />
     </div>
   );

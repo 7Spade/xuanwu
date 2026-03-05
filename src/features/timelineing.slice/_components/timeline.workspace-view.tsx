@@ -9,19 +9,17 @@
 
 import { Clock3 } from "lucide-react";
 
-import { useScheduleActions } from "@/features/scheduling.slice";
-import { useWorkspaceSchedule } from "@/features/scheduling.slice";
 import type { ScheduleItem } from "@/features/shared-kernel";
-import { useWorkspace } from "@/features/workspace.slice";
+
+import { useTimelineCommands, useWorkspaceTimeline } from "../_hooks";
 
 import { TimelineCanvas } from "./timeline-canvas";
 
 export function WorkspaceTimeline() {
-  const { workspace } = useWorkspace();
-  const { localItems, organizationMembers } = useWorkspaceSchedule();
-  const { rescheduleItem } = useScheduleActions();
+  const { workspace, items, organizationMembers } = useWorkspaceTimeline();
+  const { rescheduleItem } = useTimelineCommands();
 
-  const itemsById = new Map<string, ScheduleItem>(localItems.map((item) => [item.id, item]));
+  const itemsById = new Map<string, ScheduleItem>(items.map((item) => [item.id, item]));
 
   return (
     <div className="space-y-4">
@@ -34,7 +32,7 @@ export function WorkspaceTimeline() {
       </div>
 
       <TimelineCanvas
-        items={localItems}
+        items={items}
         members={organizationMembers}
         enableDrag
         onMoveItem={async ({ itemId, start, end }) => {
