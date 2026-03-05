@@ -156,3 +156,25 @@ IF 涉及專案分析
 > 所有流程可觀測
 
 ---
+
+````md
+## TypeScript Module Header Rule
+
+When creating or editing a `.ts` or `.tsx` file:
+
+1. If the file does not already have a module header comment at the top, insert one.
+2. Use this concise header template:
+
+```ts
+/**
+ * Module: <file-name>
+ * Purpose: <describe module responsibility>
+ * Responsibilities: <primary responsibilities>
+ * Constraints: deterministic logic, respect module boundaries
+ */
+````
+
+* Place the header at the very top of the file.
+* Keep it short, clear, and consistent across the repository.
+
+```

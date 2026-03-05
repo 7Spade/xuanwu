@@ -176,6 +176,27 @@ export async function saveParsingIntent(
     }
   }
 
+  // [D14/D15] SECONDARY guard: when no sourceFileId is available (e.g. the
+  // direct-upload path where handleFileChange does not set sourceFileIdRef),
+  // but a previousIntentId IS provided, fetch the previous intent and compare
+  // hashes.  If the content is identical the user just re-submitted the same
+  // document without uploading a new file — return the existing intent as a
+  // no-op to prevent a duplicate intent chain and the duplicate tasks it would
+  // produce [D14].
+  // Any fetch failure is non-fatal: log a warning and fall through to create a
+  // new intent (original behaviour) so a transient network error never blocks
+  // the import flow.
+  if (!options?.sourceFileId && options?.previousIntentId) {
+    try {
+      const previous = await getParsingIntentByIdFacade(workspaceId, options.previousIntentId)
+      if (previous && previous.semanticHash === semanticHash) {
+        return { intentId: options.previousIntentId }
+      }
+    } catch (err) {
+      console.warn(
+        '[D14] secondary hash guard fetch failed; proceeding with intent creation.',
+        err
+      )
   // [D14/D15] Secondary hash-based guard for direct uploads (no sourceFileId).
   // When a file is uploaded directly (not via Files tab), sourceFileId is absent
   // but the UI tracks previousIntentId across re-parses within the same session.

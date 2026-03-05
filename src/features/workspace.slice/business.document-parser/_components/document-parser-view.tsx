@@ -1,10 +1,11 @@
 'use client';
 
-import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Clock, AlertCircle, ListChecks } from 'lucide-react';
 import { useActionState, useTransition, useRef, useEffect, useCallback, useState, type ChangeEvent } from 'react';
 
 import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
 import { logDomainError } from '@/features/observability';
+import { classifyCostItem, CostItemType } from '@/features/semantic-graph.slice';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
@@ -79,6 +80,65 @@ function WorkItemsTable({
   );
 }
 
+// =================================================================
+// CostItemType badge helpers
+// =================================================================
+
+const COST_ITEM_TYPE_BADGE_CLASS: Record<CostItemType, string> = {
+  [CostItemType.EXECUTABLE]:  'bg-green-100 text-green-800 border-green-300',
+  [CostItemType.MANAGEMENT]:  'bg-blue-100 text-blue-800 border-blue-300',
+  [CostItemType.RESOURCE]:    'bg-orange-100 text-orange-800 border-orange-300',
+  [CostItemType.FINANCIAL]:   'bg-purple-100 text-purple-800 border-purple-300',
+  [CostItemType.PROFIT]:      'bg-yellow-100 text-yellow-800 border-yellow-300',
+  [CostItemType.ALLOWANCE]:   'bg-gray-100 text-gray-700 border-gray-300',
+};
+
+// =================================================================
+// ParsedItemsTable — shows line items for a selected ParsingIntent
+// =================================================================
+
+function ParsedItemsTable({ intent }: { intent: ParsingIntent }) {
+  const total = intent.lineItems.reduce((sum, item) => sum + item.subtotal, 0);
+  return (
+    <div className="overflow-x-auto rounded-md border">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b bg-muted/50">
+            <th className="px-4 py-2 text-left font-bold uppercase tracking-widest text-muted-foreground">Item</th>
+            <th className="px-4 py-2 text-left font-bold uppercase tracking-widest text-muted-foreground">Type</th>
+            <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Qty</th>
+            <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Unit Price</th>
+            <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Discount</th>
+            <th className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {intent.lineItems.map((item, idx) => (
+            <tr key={idx} className="border-b last:border-0 hover:bg-muted/30">
+              <td className="px-4 py-2">{item.name}</td>
+              <td className="px-4 py-2">
+                <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase ${COST_ITEM_TYPE_BADGE_CLASS[item.costItemType]}`}>
+                  {item.costItemType}
+                </span>
+              </td>
+              <td className="px-4 py-2 text-right">{item.quantity}</td>
+              <td className="px-4 py-2 text-right">{item.unitPrice.toLocaleString()}</td>
+              <td className="px-4 py-2 text-right">{item.discount !== undefined ? `${item.discount}%` : '—'}</td>
+              <td className="px-4 py-2 text-right font-medium">{item.subtotal.toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr className="border-t bg-muted/50">
+            <td colSpan={5} className="px-4 py-2 text-right font-bold uppercase tracking-widest text-muted-foreground">Total</td>
+            <td className="px-4 py-2 text-right font-bold">{total.toLocaleString()}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
 
 export function WorkspaceDocumentParser() {
   const [state, formAction] = useActionState(
@@ -99,8 +159,16 @@ export function WorkspaceDocumentParser() {
 
   // Real-time ParsingIntent history (Digital Twin 解析合約 list)
   const [parsingIntents, setParsingIntents] = useState<ParsingIntent[]>([]);
+  // Currently selected intent for line-item inspection
+  const [selectedIntent, setSelectedIntent] = useState<ParsingIntent | null>(null);
   useEffect(() => {
-    const unsub = subscribeToParsingIntents(workspace.id, setParsingIntents);
+    const unsub = subscribeToParsingIntents(workspace.id, (intents) => {
+      setParsingIntents(intents);
+      // Keep selectedIntent in sync with latest Firestore data (e.g. after status update).
+      setSelectedIntent((prev) =>
+        prev ? (intents.find((i) => i.id === prev.id) ?? prev) : null
+      );
+    });
     return () => unsub();
   }, [workspace.id]);
 
@@ -185,6 +253,8 @@ export function WorkspaceDocumentParser() {
       // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
       ...(item.discount !== undefined ? { discount: item.discount } : {}),
       subtotal: item.price,
+      // Layer-2 Semantic Classification (VS8) — applied here during the import phase.
+      costItemType: classifyCostItem(item.item),
     }));
 
     let intentId: IntentID;
@@ -217,12 +287,15 @@ export function WorkspaceDocumentParser() {
     // Publish event with intentId so tasks and schedule proposals can reference the Digital Twin.
     // skillRequirements is omitted here — the current AI flow extracts invoice line items only.
     // When the AI flow is extended to extract skill requirements, pass them here.
+    // oldIntentId is forwarded when a prior intent was superseded so the import handler can
+    // reconcile existing `todo` tasks in-place rather than creating duplicates [#A4].
     eventBus.publish('workspace:document-parser:itemsExtracted', {
         sourceDocument: state.fileName || 'Unknown Document',
         intentId,
         intentVersion: INITIAL_PARSING_INTENT_VERSION,
         autoImport: true,
         items: lineItems,
+        ...(oldIntentId && { oldIntentId }),
     });
 
     // Dispatch IntentDeltaProposed [#A4] — at-least-once delivery via wsOutbox [S1][E5].
@@ -337,12 +410,17 @@ export function WorkspaceDocumentParser() {
             <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest">
               <ClipboardList className="size-4" /> Parsing Intent History
             </CardTitle>
-            <CardDescription>Digital Twin records — each entry anchors tasks via SourcePointer.</CardDescription>
+            <CardDescription>Digital Twin records — click a row to inspect its line items.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {parsingIntents.map((intent) => (
-                <div key={intent.id} className="flex items-center justify-between rounded-lg border px-4 py-3 text-xs">
+                <button
+                  key={intent.id}
+                  type="button"
+                  onClick={() => setSelectedIntent((prev) => prev?.id === intent.id ? null : intent)}
+                  className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-xs transition-colors hover:bg-muted/50 ${selectedIntent?.id === intent.id ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : ''}`}
+                >
                   <div className="flex items-center gap-3">
                     {intent.status === 'imported' ? (
                       <CheckCircle2 className="size-4 shrink-0 text-green-500" />
@@ -359,9 +437,39 @@ export function WorkspaceDocumentParser() {
                   <Badge variant={intent.status === 'imported' ? 'default' : intent.status === 'failed' ? 'destructive' : 'secondary'} className="text-[10px] uppercase">
                     {intent.status}
                   </Badge>
-                </div>
+                </button>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Parsing Intent Line Items — shown when a history row is selected */}
+      {selectedIntent && (
+        <Card className="mt-4 bg-card/50">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest">
+                  <ListChecks className="size-4" /> Parsing Intent
+                </CardTitle>
+                <CardDescription className="mt-1 flex items-center gap-2">
+                  <FileIcon className="size-3" />
+                  {selectedIntent.sourceFileName}
+                  <span className="text-muted-foreground">·</span>
+                  {selectedIntent.lineItems.length} item(s)
+                </CardDescription>
+              </div>
+              <Badge
+                variant={selectedIntent.status === 'imported' ? 'default' : selectedIntent.status === 'failed' ? 'destructive' : 'secondary'}
+                className="mt-0.5 text-[10px] uppercase"
+              >
+                {selectedIntent.status}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ParsedItemsTable intent={selectedIntent} />
           </CardContent>
         </Card>
       )}

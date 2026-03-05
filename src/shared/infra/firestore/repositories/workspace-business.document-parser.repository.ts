@@ -25,7 +25,7 @@ import type { ParsingIntent } from '@/features/workspace.slice';
 import { SUBCOLLECTIONS } from '../collection-paths';
 import { db } from '../firestore.client';
 import { createConverter } from '../firestore.converter';
-import { getDocuments } from '../firestore.read.adapter';
+import { getDocument, getDocuments } from '../firestore.read.adapter';
 import {
   updateDocument,
   addDocument,
@@ -142,6 +142,12 @@ export const getParsingIntentBySourceFileId = async (
 };
 
 /**
+ * Fetches a single ParsingIntent by its document ID.
+ *
+ * Used by saveParsingIntent for the secondary [D14/D15] idempotency guard:
+ * when no sourceFileId is available (e.g. direct-upload path), compare the
+ * previous intent's semanticHash with the current one to avoid creating a
+ * duplicate intent for unchanged content.
  * Fetches a single ParsingIntent document by its Firestore document ID.
  *
  * Used by the secondary hash-based idempotency guard [D14/D15] in
@@ -154,6 +160,10 @@ export const getParsingIntentById = async (
   intentId: string
 ): Promise<ParsingIntent | null> => {
   const converter = createConverter<ParsingIntent>();
+  return getDocument(
+    `workspaces/${workspaceId}/${SUBCOLLECTIONS.parsingIntents}/${intentId}`,
+    converter
+  );
   const docRef = doc(
     db,
     `workspaces/${workspaceId}/${SUBCOLLECTIONS.parsingIntents}/${intentId}`

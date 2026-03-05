@@ -136,3 +136,57 @@ export const getTaskBySourceIntentId = async (
   const results = await getDocuments(q);
   return results[0] ?? null;
 };
+
+/**
+ * Returns ALL tasks whose `sourceIntentId` matches the given intent ID.
+ *
+ * Used by the intent-reconciliation path [#A4] to load the full set of tasks
+ * materialised from the superseded intent so they can be updated in-place rather
+ * than duplicated.
+ */
+export const getTasksBySourceIntentId = async (
+  workspaceId: string,
+  sourceIntentId: string
+): Promise<WorkspaceTask[]> => {
+  const converter = createConverter<WorkspaceTask>();
+  const colRef = collection(
+    db,
+    `workspaces/${workspaceId}/tasks`
+  ).withConverter(converter);
+  const q = query(colRef, where('sourceIntentId', '==', sourceIntentId));
+  return getDocuments(q);
+};
+
+/**
+ * Reconcile-specific task update that allows updating the `sourceIntentId` pointer
+ * alongside mutable line-item fields (price / qty / subtotal / name).
+ *
+ * This is the ONLY write path that may mutate `sourceIntentId`.  It must only be
+ * called from the intent-reconciliation action [#A4] when a re-parse supersedes a
+ * prior intent and we are promoting an existing `todo` task to reference the new intent.
+ */
+export const reconcileTask = async (
+  workspaceId: string,
+  taskId: string,
+  updates: {
+    name: string
+    quantity: number
+    unitPrice: number
+    discount?: number
+    subtotal: number
+    sourceIntentId: string
+    sourceIntentVersion: number
+  }
+): Promise<void> => {
+  const { discount, ...rest } = updates;
+  const dataWithTimestamp = {
+    ...rest,
+    // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
+    ...(discount !== undefined ? { discount } : {}),
+    updatedAt: serverTimestamp(),
+  };
+  return updateDocument(
+    `workspaces/${workspaceId}/tasks/${taskId}`,
+    dataWithTimestamp
+  );
+};

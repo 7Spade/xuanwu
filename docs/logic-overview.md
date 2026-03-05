@@ -9,8 +9,9 @@
 %%  ║    ⑥ Everything as a Tag：所有領域概念以語義標籤建模，由 VS8 統一治理      ║
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  SSOT Mapping:
-%%    Architecture rules   → docs/logic-overview.md  ← THIS FILE
-%%    Semantic relations   → docs/knowledge-graph.json
+%%    Architecture rules       → docs/logic-overview.md  ← THIS FILE
+%%    Semantic relations       → docs/knowledge-graph.json
+%%    VS8 complete-body guide  → docs/development/semantic-graph.slice-guide.md  (companion spec)
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  QUICK REFERENCE（快速索引 — 最速取得上下文）
 %%  ── Vertical Slice（業務域 · VS0–VS8）──
@@ -38,8 +39,18 @@
 %%    A9=scope-guard         A10=notification-stateless
 %%    A12=global-search-authority   A13=notification-hub-authority
 %%  ── Governance Rules（可演化治理）: D · P · T · E ──
-%%    D7=cross-slice-index-only   D21=tag-centralized    D24=no-firebase-import
-%%    D26=cross-cutting-authority
+%%    D7=cross-slice-index-only   D24=no-firebase-import D26=cross-cutting-authority
+%%    D27=cost-semantic-routing   D27-A=semantic-aware-routing-policy   D22=strong-typed-tag-ref
+%%    D21=VS8-semantic-graph-complete-body（8層完全體 D21-1~D21-10 + D21-A~D21-X）
+%%    D21-1=semantic-uniqueness(→D21-A)   D21-2=strong-typed-tags(→D22)  D21-3=node-connectivity(→D21-C)
+%%    D21-4=aggregate-constraint          D21-5=semantic-aware-routing(→D27-A)
+%%    D21-6=causal-auto-trigger           D21-7=read-write-separation    D21-8=freshness-defense(→S4)
+%%    D21-9=synaptic-weight-invariant     D21-10=topology-observability
+%%    D21-A=唯一註冊律   D21-B=Schema鎖定   D21-C=無孤立節點    D21-D=向量一致性  D21-E=權重透明化
+%%    D21-F=注意力隔離   D21-G=演化回饋環   D21-H=血腦屏障BBB   D21-I=全域共識律  D21-J=知識溯源
+%%    D21-K=語義衝突裁決 D21-S=同義詞重定向 D21-T=命名共識律    D21-U=禁止重複定義
+%%    D21-V=提案鎖定機制 D21-W=跨組織透明性 D21-X=語義自動激發
+%%    D22=強型別引用   D27-A=語義感知路由
 %%    P1=IER-lane-priority        P4=eligibility-query   P5=projection-funnel
 %%    T1=tag-lifecycle-sub        T3=eligible-tag-logic  T5=tag-snapshot-readonly
 %%    E2=OrgContextProvisioned    E3=ScheduleAssigned    E5=ws-event-flow   E6=claims-refresh
@@ -49,11 +60,40 @@
 %%    [S2]  所有 Projection 寫入前必須呼叫 applyVersionGuard()
 %%    [S4]  SLA 數值只能引用 SK_STALENESS_CONTRACT，禁止硬寫
 %%    [D7]  跨切片引用只能透過 {slice}/index.ts 公開 API
-%%    [D21] 新 tag 類別只在 VS8（Semantic Graph）定義
+%%    [D21] VS8 語義神經網絡完全體（8層）：core(DNA) → graph(突觸) → routing(反射弧) → guards(BBB)
+%%           → plasticity(學習) → projections(讀側) → ui(維基治理) → io(訂閱廣播)
+%%    [D21-A] 唯一註冊律：跨領域概念必須在 core/tag-definitions.ts 註冊，禁止業務切片私自創建隱性分類
+%%    [D21-B] Schema 鎖定：標籤元數據必須符合 core/schemas，禁止附加未校驗的非結構化屬性
+%%    [D21-C] 無孤立節點：每個新標籤必須透過 hierarchy-manager.ts 掛載至少一個父級節點
+%%    [D21-D] 向量一致性：embeddings/vector-store.ts 向量必須隨標籤定義同步刷新
+%%    [D21-E] 權重透明化：語義相似度與路徑權重必須由 weight-calculator.ts 統一產出，禁止業務端自行加權
+%%    [D21-F] 注意力隔離：context-attention.ts 須根據 Workspace 情境過濾無關標籤
+%%    [D21-G] 演化回饋環：learning-engine.ts 僅能由 VS3/VS2 真實事實事件驅動，禁止手動隨機修改
+%%    [D21-H] 血腦屏障(BBB)：invariant-guard.ts 對語義衝突擁有最高裁決權，可直接攔截提案
+%%    [D21-I] 全域共識律：標籤治理開放全部組織用戶提案，必須通過 consensus-engine 邏輯校驗
+%%    [D21-J] 知識溯源：每條標籤關係建立須標註貢獻者與參考依據，具備版本回溯能力
+%%    [D21-K] 語義衝突裁決：invariant-guard 偵測到違反物理邏輯的聯結時直接拒絕提案
+%%    [D21-S] 同義詞重定向：標籤合併後舊標籤成為 Alias，自動重定向至主標籤，歷史數據不斷鏈
+%%    [D21-T] 命名共識律：顯示名稱由社群貢獻度決定，tagSlug 永久不變
+%%    [D21-U] 禁止重複定義：新增標籤時 embeddings 必須即時提示相似標籤
+%%    [D21-V] 提案鎖定：處於「併購爭議中」的標籤標註 Pending-Sync，路由權重凍結直到共識完成
+%%    [D21-W] 跨組織透明性：標籤修改紀錄對全域公開，任何組織可查看演化歷程
+%%    [D21-X] 語義自動激發：用戶連結 A+B 時 causality-tracer 自動建議相關標籤 C
+%%    [D21-6] TagLifecycleEvent → VS8 Causality Tracer 自動推導受影響節點並發布更新事件
+%%    [D21-7] 語義讀取必須經由 projection.tag-snapshot，寫入必須經 CMD_GWAY 進入 VS8 CTA
+%%    [D21-8] TAG_STALE_GUARD ≤ 30s，所有語義查詢必須引用 SK_STALENESS_CONTRACT
+%%    [D21-9] 突觸權重不變量：SemanticEdge.weight ∈ [0.0, 1.0]；cost = 1/weight（強連結=近鄰）
+%%    [D21-10] 拓撲可觀測性：findIsolatedNodes 必須定期回報孤立節點（D21-3 違規偵測）
+%%    [T5] 業務 Slice 僅能訂閱 projections/tag-snapshot.slice.ts，嚴禁直接存取 graph/adjacency-list.ts
+%%    [D22] 程式碼禁止出現裸字串 tag_name，必須引用 TE1~TE6 常數實體確保重構時語義鏈不斷裂
+%%    [D27-A] 語義感知路由：所有分發邏輯必須先調用 policy-mapper/ 轉換語義標籤，禁止 ID 硬編碼路由
 %%    [D24] Feature slice 禁止直接 import firebase/*，必須走 SK_PORTS
 %%    [D26] global-search = 唯一搜尋權威；notification-hub = 唯一副作用出口
 %%    [#A12] Global Search = 唯一跨域搜尋出口，禁止各 Slice 自建搜尋邏輯
 %%    [#A13] Notification Hub = 唯一副作用出口，業務 Slice 只產生事件不決定通知策略
+%%    [#A14] ParsedLineItem.costItemType (Layer-2) 由 VS8 _cost-classifier.ts 標注；
+%%           Layer-3 Semantic Router 只允許 EXECUTABLE 項目物化為 tasks，
+%%           其餘類型（MANAGEMENT/RESOURCE/FINANCIAL/PROFIT/ALLOWANCE）靜默跳過並 toast
 %%  FORBIDDEN:
 %%    BC_X 禁止直接寫入 BC_Y aggregate → 必須透過 IER Domain Event
 %%    TX Runner 禁止產生 Domain Event → 只有 Aggregate 可以 [#4b]
@@ -62,6 +102,20 @@
 %%    Feature slice 禁止直接 import firebase/* [D24]
 %%    Feature slice 禁止自建搜尋邏輯，必須透過 Global Search [D26 #A12]
 %%    Feature slice 禁止直接 call sendEmail/push/SMS，必須透過 Notification Hub [D26 #A13]
+%%    VS5 document-parser 禁止自行實作成本語義邏輯，必須呼叫 VS8 classifyCostItem() [D27 #A14]
+%%    Layer-3 Semantic Router 禁止繞過 costItemType 直接物化非 EXECUTABLE 項目為 tasks [D27]
+%%    業務切片（VS1~VS6）禁止私自宣告語義類別，必須透過 VS8 CTA [D21-1]
+%%    禁止使用隱性字串傳遞語義，所有引用必須指向 TE1~TE6 有效 tagSlug [D21-2]
+%%    孤立標籤（無 parentTagSlug 歸屬）禁止在系統中存在，須歸入分類學 [D21-3]
+%%    跨切片決策（排班路由/通知分發）禁止硬編碼業務對象 ID，必須基於標籤語義權重 [D21-5]
+%%    語義讀取禁止直連資料庫，必須經由 projection.tag-snapshot [D21-7]
+%%    業務端禁止直接存取 graph/adjacency-list.ts，必須透過 tag-snapshot [T5]
+%%    業務端禁止自行計算語義相似度/加權，必須透過 weight-calculator.ts [D21-E]
+%%    通知/排班分發禁止基於業務 ID 硬編碼路由，必須走 policy-mapper/ 語義映射 [D27-A]
+%%    learning-engine.ts 禁止手動隨機修改神經元強度，必須由 VS3/VS2 事實事件驅動 [D21-G]
+%%    語義衝突提案禁止繞過 invariant-guard.ts，BBB 擁有最高裁決權 [D21-H D21-K]
+%%    合併提案通過後禁止直接刪除舊標籤，必須轉為 Alias 自動重定向歷史引用 [D21-S]
+%%    用戶新增重複語義標籤時禁止靜默建立，embeddings 必須即時提示相似標籤 [D21-U]
 %%  ╚══════════════════════════════════════════════════════════════════════════╝
 
 flowchart TD
@@ -118,33 +172,132 @@ subgraph SK["🔷 L1 · Shared Kernel — 全域契約中心（VS0）"]
     end
 end
 
-%% ─── VS8 Semantic Graph（語義中樞 · The Brain）
-%% ─── 前身為 TAG_AUTH (Tag Authority Center)，升級為正式業務垂直切片
-%% ─── 職責：標籤分類學 (Taxonomy)、因果追蹤 (Causality)、排班衝突語義檢測
+%% ─── VS8 Semantic Graph（語義神經網絡完全體 · The Brain）
+%% ─── 8層完全體架構（from semantic-graph.slice-guide.md）：
+%% ───   L1 VS8_CORE  — 神經元 DNA 定義層   · core/tag-definitions · schemas · hierarchy-manager · vector-store    [D21-A D21-B D21-C D21-D]
+%% ───   L2 VS8_GRAPH — 語義突觸層          · semantic-edge-store · weight-calculator · context-attention · adjacency-list [D21-E D21-F D21-9 D21-10]
+%% ───   L3 VS8_NG    — 語義計算層          · Dijkstra 前向傳播 + BFS 因果注意力                                     [D21-4 D21-6 D21-X]
+%% ───   L4 VS8_ROUT  — 語義反射弧層        · workflows · policy-mapper · dispatch-bridge                          [D21-5 D27-A]
+%% ───   L5 VS8_GUARD — 血腦屏障(BBB)層    · invariant-guard · staleness-monitor                                  [D21-H D21-K S4]
+%% ───   L6 VS8_PLAST — 語義可塑性層        · learning-engine · decay-service                                      [D21-G]
+%% ───   L7 VS8_PROJ  — 語義投影讀取層      · projections/tag-snapshot · graph-selectors · context-selectors      [D21-7 T5]
+%% ───   L8 VS8_WIKI  — 語義維基治理層 🏛️   · wiki-editor · proposal-stream · relationship-visualizer · consensus-engine [D21-I~W]
+%% ───   L9 VS8_IO    — 語義訂閱廣播層      · subscribers/lifecycle-subscriber · outbox/tag-outbox                [D21-6 S1]
+%% ─── 向下相容：VS8_CL ≡ L1 core, VS8_SL ≡ L2 graph, VS8_NG ≡ L3 neural-computation, VS8_RL ≡ L4 routing
 %% ─── centralized-tag.aggregate 具備 lifecycle，為 domain authority [#A6 #17]
-subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（語義中樞）"]
+subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（8層語義神經網路完全體）"]
     direction TB
-    CTA["centralized-tag.aggregate\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule"]
 
-    subgraph TAG_ENTS["🏷️ AI-ready Semantic Tag Entities [D21]"]
+    subgraph VS8_CL["① 🧬 神經元 DNA 定義層 VS8_CORE — 語義字典・定義權威 [D21-A D21-B D21-C D21-D]"]
         direction LR
-        TE_UL["tag::user-level\ncategory: user_level"]
-        TE_SK["tag::skill\ncategory: skill"]
-        TE_ST["tag::skill-tier\ncategory: skill_tier"]
-        TE_TM["tag::team\ncategory: team"]
-        TE_RL["tag::role\ncategory: role"]
-        TE_PT["tag::partner\ncategory: partner"]
+        CTA["centralized-tag.aggregate (CTA)\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule\n生命週期守護：Draft→Active→Stale→Deprecated [D21-4]"]
+        HIER["hierarchy-manager.ts\n確保每個新標籤掛載至少一個父節點 [D21-C]"]
+        VEC["embeddings/vector-store.ts\n向量隨標籤定義同步刷新 [D21-D]"]
+        subgraph TAG_ENTS["🏷️ AI-ready Semantic Tag Entities (TE1~TE6) [D21-A]"]
+            direction LR
+            TE_UL["TE3 · tag::user-level\ncategory: user_level"]
+            TE_SK["TE1 · tag::skill\ncategory: skill"]
+            TE_ST["TE2 · tag::skill-tier\ncategory: skill_tier"]
+            TE_TM["TE5 · tag::team\ncategory: team"]
+            TE_RL["TE4 · tag::role\ncategory: role"]
+            TE_PT["TE6 · tag::partner\ncategory: partner"]
+        end
+        CTA --> TAG_ENTS
+        CTA --> HIER
+        CTA -.-> VEC
     end
 
-    TAG_EV["TagLifecycleEvent（in-process）"]
-    TAG_OB["tag-outbox\n[SK_OUTBOX: SAFE_AUTO]"]
-    TAG_RO["🔒 唯讀引用規則\nT1 新切片訂閱事件即可擴展"]
-    TAG_SG["⚠️ TAG_STALE_GUARD\n[S4: TAG_MAX_STALENESS ≤ 30s]\nDeprecated → StaleTagWarning"]
+    subgraph VS8_SL["② ⚡ 語義突觸層 VS8_GRAPH — 加權邊圖・網路拓撲 [D21-E D21-F D21-9 D21-10]"]
+        direction LR
+        EDGE_STORE["semantic-edge-store.ts\n【突觸登錄中心 · 唯一邊圖操作點】\nIS_A / REQUIRES 加權邊 weight ∈ [0,1] [D21-9]\ncost = 1/weight（強連結=近鄰）"]
+        WT_CALC["weight-calculator.ts\n【語義相似度統一出口 · 禁止業務端自行加權】\ncomputeSimilarity(a,b) [D21-E]"]
+        CTX_ATTN["context-attention.ts\n【Workspace 情境過濾 · 注意力隔離】\nfilterByContext(slugs, wsCtx) [D21-F]"]
+        TOPO_OPS["adjacency-list.ts\n拓撲閉包計算（禁止業務端直連 [T5]）\nisSupersetOf / getTransitiveRequirements [D21-10]"]
+        EDGE_STORE -.-> WT_CALC
+        EDGE_STORE -.-> TOPO_OPS
+    end
 
-    CTA --> TAG_ENTS
-    CTA -->|"標籤異動廣播"| TAG_EV --> TAG_OB
-    CTA -.->|"唯讀引用契約"| TAG_RO
-    CTA -.->|"Deprecated 通知"| TAG_SG
+    subgraph VS8_NG["③ 🔗 語義計算層 VS8_NG — 前向傳播 + 因果注意力 [D21-4 D21-6 D21-X]"]
+        direction LR
+        NEURAL_NET["🧬 Neural Network [D21-3 D21-4]\ncomputeSemanticDistance(a,b)\nfindIsolatedNodes(slugs[]) [D21-10]\nDijkstra 加權最短路徑"]
+        CAUSALITY["🔍 Causality Tracer [D21-6 D21-X]\ntraceAffectedNodes(event, candidates[])\nbuildCausalityChain(event, candidates[])\nBFS 因果傳播 · 語義自動激發"]
+        TAG_EV["TagLifecycleEvent（in-process）\neventType: TAG_CREATED | TAG_ACTIVATED\n         | TAG_DEPRECATED | TAG_STALE_FLAGGED\n         | TAG_DELETED\n[D21-6] 因果自動觸發"]
+        TAG_OB["tag-outbox\n[SK_OUTBOX: SAFE_AUTO]"]
+        TAG_SG["⚠️ TAG_STALE_GUARD\n[S4 D21-8: TAG_MAX_STALENESS ≤ 30s]"]
+        NEURAL_NET -.->|"語義距離 [D21-4]"| CAUSALITY
+        CAUSALITY -->|"TagLifecycleEvent [D21-6]"| TAG_EV
+        TAG_EV --> TAG_OB
+        CAUSALITY -.->|"廢棄感知 [D21-8]"| TAG_SG
+    end
+
+    subgraph VS8_ROUT["④ 🚦 語義反射弧層 VS8_ROUTING — 策略映射・分發橋接 [D21-5 D27-A]"]
+        direction LR
+        POLICY_MAP["policy-mapper/\n語義標籤→分發策略 [D27-A]\n禁止 ID 硬編碼路由"]
+        DISPATCH["dispatch-bridge/\n排班路由 · 通知分發出口"]
+        subgraph WORKFLOWS["workflows/"]
+            direction LR
+            TAG_PROMO["tag-promotion-flow.ts\n標籤晉升流程"]
+            ALERT_FLOW["alert-routing-flow.ts\n告警路由流程"]
+        end
+        POLICY_MAP --> DISPATCH
+    end
+
+    subgraph VS8_GUARD["⑤ 🛡️ 血腦屏障層 VS8_BBB — 語義完整性守護 [D21-H D21-K S4]"]
+        direction LR
+        INV_GUARD["invariant-guard.ts\n【最高裁決權 · 語義衝突直接拒絕】\n違反物理邏輯聯結 → 攔截提案 [D21-H D21-K]"]
+        STALE_MON["staleness-monitor.ts\nTAG_MAX_STALENESS ≤ 30s [S4 D21-8]"]
+    end
+
+    subgraph VS8_PLAST["⑥ 🌱 語義可塑性層 VS8_PLAST — 演化學習 [D21-G]"]
+        direction LR
+        LEARN["learning-engine.ts\n【僅 VS3/VS2 事實事件驅動 · 禁止手動隨機修改】\n加權演化回饋環 [D21-G]"]
+        DECAY["decay-service.ts\n語義強度自然衰退"]
+        LEARN -.-> DECAY
+    end
+
+    subgraph VS8_PROJ["⑦ 📊 語義投影讀取層 VS8_PROJ — 唯讀出口 [D21-7 T5]"]
+        direction LR
+        TAG_RO["projections/tag-snapshot.slice.ts\n【業務端唯一合法讀取出口 · T5】\n[D21-7] 讀取必須經 projection.tag-snapshot\nT1 新切片訂閱事件即可擴展"]
+        GRAPH_SEL["projections/graph-selectors.ts\n圖結構唯讀查詢"]
+        CTX_SEL["projections/context-selectors.ts\nWorkspace 語義上下文"]
+        TAG_RO -.-> GRAPH_SEL
+        TAG_RO -.-> CTX_SEL
+    end
+
+    subgraph VS8_WIKI["⑧ 🏛️ 語義維基治理層 VS8_WIKI — 知識治理協作 [D21-I~W]"]
+        direction LR
+        WIKI_ED["wiki-editor/\n標籤定義編輯 [D21-J]"]
+        PROP_STREAM["proposal-stream/\n提案審議串流 [D21-I D21-V]"]
+        REL_VIS["relationship-visualizer/\n語義關係圖視覺化"]
+        CONS_ENG["consensus-engine/\n全域共識校驗 [D21-I D21-K]"]
+        PROP_STREAM -->|"提案送驗"| CONS_ENG
+    end
+
+    subgraph VS8_RL["⑨ 💰 語義決策輸出層 VS8_RL — 成本路由執行代理 [D21-5 D8]"]
+        direction LR
+        subgraph COST_CLASS["📊 成本語義分類器 [D8][D24][D27]"]
+            direction LR
+            COST_CLASSIFIER["_cost-classifier.ts（純函式 [D8]）\nclassifyCostItem(name) → CostItemType\nshouldMaterializeAsTask(type) → boolean  ★[D27]\n──────────────────────────────\nEXECUTABLE  物理施工任務（預設出口）\nMANAGEMENT  行政/品管/職安管理（含 QC Inspection）\nRESOURCE    倉儲/人力資源儲備\nFINANCIAL   付款里程碑/預付款\nPROFIT      利潤項目（利潤）\nALLOWANCE   耗材/差旅/運輸補貼（含差旅、運輸）\n──────────────────────────────\n★ EXECUTABLE override 優先：機電檢測/qc test 等施工測試→EXECUTABLE\n禁止 Firestore 存取・禁止 async\n可在任意 Layer 安全呼叫 [D8]"]
+        end
+    end
+
+    subgraph VS8_IO["⑩ 📡 語義訂閱廣播層 VS8_IO — 事件進出口 [D21-6 S1]"]
+        direction LR
+        LIFECYCLE_SUB["subscribers/lifecycle-subscriber.ts\n標籤生命週期事件訂閱"]
+        TAG_OUTBOX["outbox/tag-outbox.ts\n[SK_OUTBOX: SAFE_AUTO]\n標籤異動廣播出口"]
+    end
+
+    VS8_CL -->|"神經元激活信號 · 標籤異動廣播 [D21-6]"| VS8_SL
+    VS8_SL -->|"突觸拓撲輸入 [D21-3 D21-9]"| VS8_NG
+    VS8_GUARD -.->|"守護校驗 [D21-H]"| VS8_WIKI
+    VS8_NG -.->|"因果計算 [D21-5]"| VS8_ROUT
+    VS8_NG -.->|"事件廣播 [D21-6]"| VS8_IO
+    VS8_PLAST -.->|"權重回饋 [D21-G]"| VS8_SL
+    VS8_PROJ -.->|"唯讀服務 [T5]"| VS8_ROUT
+    CTA -.->|"唯讀引用契約 [D21-7]"| TAG_RO
+    CTA -.->|"Deprecated 通知 [D21-8]"| TAG_SG
+    VS8_NG -.->|"語義路由授權 [D21-5]"| VS8_RL
+    INV_GUARD -.->|"提案裁決 [D21-H]"| CONS_ENG
 end
 
 %% ═══════════════════════════════════════════════════════════════
@@ -346,10 +499,10 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
     subgraph VS5_BIZ["⚙️ Business Domain（A+B 雙軌）"]
         direction TB
 
-        subgraph VS5_PARSE["📄 文件解析閉環"]
+        subgraph VS5_PARSE["📄 文件解析三層閉環 [Layer-1 → Layer-2 → Layer-3]"]
             W_FILES["workspace.files"]
-            W_PARSER["document-parser"]
-            PARSE_INT[("ParsingIntent\nDigital Twin [#A4]")]
+            W_PARSER["document-parser\nLayer-1 原始解析\n→ raw ParsedLineItem[]\n+ classifyCostItem() [VS8 Layer-2]\n→ ParsedLineItem.costItemType"]
+            PARSE_INT[("ParsingIntent\nDigital Twin [#A4]\nlineItems[].costItemType\n（Layer-2 語義標注）")]
             W_FILES -.->|原始檔案| W_PARSER --> PARSE_INT
         end
 
@@ -372,7 +525,7 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
         W_DAILY["daily\n施工日誌"]
         W_SCHED["workspace.schedule\n(tagSlug T4)\nWorkspaceScheduleProposed → VS6 [A5]"]
 
-        PARSE_INT -->|任務草稿| A_TASKS
+        PARSE_INT -->|"[Layer-3 Semantic Router]\ncostItemType=EXECUTABLE only → 任務草稿 [#A14 D27]"| A_TASKS
         PARSE_INT -->|財務指令| A_FINANCE
         PARSE_INT -->|解析異常| B_ISSUES
         A_TASKS -.->|"SourcePointer [#A4]"| PARSE_INT
@@ -594,6 +747,7 @@ GLOBAL_SEARCH -.->|"queries VS8 semantic index [D26]"| VS8
 %% ── VS8 Semantic Graph 跨切片語義提供 ──
 VS8 -.->|"排班組合匹配"| VS6
 VS8 -.->|"任務語義標籤"| VS5
+COST_CLASSIFIER -.->|"classifyCostItem() [Layer-2 D27 #A14]"| W_PARSER
 
 %% ═══════════════════════════════════════════════════════════════
 %% LAYER 7 ── FIREBASE ACL（防腐層）
@@ -808,7 +962,7 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  #A3  blockWorkflow → blockedBy Set；allIssuesResolved → unblockWorkflow
 %%  #A4  ParsingIntent 只允許提議事件
 %%  #A5  schedule 跨 BC saga/compensating event
-%%  #A6  CENTRALIZED_TAG_AGGREGATE 語義唯一權威
+%%  #A6  CENTRALIZED_TAG_AGGREGATE 語義唯一權威（VS8 語義分類層 · Classification Layer [D21-1]）
 %%  #A7  Event Funnel 只做 compose
 %%  #A8  TX Runner 1cmd/1agg 原子提交
 %%  #A9  Scope Guard 快路徑；高風險回源 aggregate
@@ -816,13 +970,18 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  #A11 eligible = 「無衝突排班」快照，非靜態狀態
 %%  #A12 Global Search = 跨切片權威（語義門戶），唯一跨域搜尋出口，禁止各 Slice 自建搜尋邏輯
 %%  #A13 Notification Hub = 跨切片權威（反應中樞），唯一副作用出口，業務 Slice 只產生事件不決定通知策略
+%%  #A14 CostItemType 語義分類（Layer-2）= VS8 _cost-classifier.ts 純函式；
+%%       VS5 Layer-3 Semantic Router = use-workspace-event-handler，
+%%       僅 EXECUTABLE 項目物化為 tasks；其餘六類靜默跳過並 toast [D27]
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  TAG SEMANTICS 擴展規則（VS8 · Semantic Graph — The Brain）
-%%  T1  新切片訂閱 TagLifecycleEvent（BACKGROUND_LANE）即可擴展
+%%  TAG SEMANTICS 擴展規則（VS8 · 8層語義神經網絡完全體 [D21-1~D21-10 + D21-A~D21-X]）
+%%  T1  新切片訂閱 TagLifecycleEvent（BACKGROUND_LANE）即可擴展 [D21-6]
 %%  T2  SKILL_TAG_POOL = Tag Authority 組織作用域唯讀投影
 %%  T3  ORG_ELIGIBLE_MEMBER_VIEW.skills{tagSlug→xp} 交叉快照
-%%  T4  排班職能需求 = SK_SKILL_REQ × Tag Authority tagSlug
-%%  T5  TAG_SNAPSHOT 消費方禁止寫入
+%%  T4  排班職能需求 = SK_SKILL_REQ × Tag Authority tagSlug [D21-5]
+%%  T5  TAG_SNAPSHOT 消費方禁止寫入 [D21-7]
+%%  T6  突觸層（VS8_SL）寫入只能透過 semantic-edge-store.addEdge()；禁止直接操作 _edges 內部狀態 [D21-9]
+%%  T7  findIsolatedNodes 在每次 addEdge/removeEdge 後由 VS8_NG 非同步觸發，孤立節點寫入 Observability [D21-10]
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  SEMANTIC TAG ENTITIES 索引（AI-ready Semantic Graph）
 %%  TE1 TAG_USER_LEVEL  tag::user-level    → tagSlug: user-level:{slug}
@@ -844,7 +1003,7 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  （詳見 UNIFIED DEVELOPMENT RULES 完整定義）
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  UNIFIED DEVELOPMENT RULES [D1~D26]
-%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance (D21~D23) / Infrastructure (D24~D25) / Authority Governance (D26) ──
+%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance D21(D21-1~D21-10+D21-A~D21-X)/D22~D23 / Infrastructure (D24~D25) / Authority Governance (D26) ──
 %%  ── 基礎路徑約束（D1~D12）──
 %%  D1  事件傳遞只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
 %%  D2  跨切片引用：import from '@/features/{slice}/index' only；_*.ts 為私有
@@ -867,8 +1026,51 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  D18 Claims 刷新邏輯變更：以 SK_TOKEN_REFRESH_CONTRACT 為唯一規範
 %%  D19 型別歸屬規則：跨 BC 契約優先放 shared.kernel.*；shared/types 僅為 legacy fallback
 %%  D20 匯入優先序：shared.kernel.* > feature slice index.ts > shared/types
-%%  ── 語義 Tag 守則（D21~D23）──
-%%  D21 新增 tag 語義類別：必須在 VS8（Semantic Graph）CTA TAG_ENTITIES 定義，禁止各 slice 自行創建
+%%  ── 語義 Tag 守則（D21~D23）── VS8 語義神經網絡完全體（8層）正式規範 ──
+%%  ── 層級結構：core(DNA) → graph(突觸) → routing(反射弧) → guards(BBB)
+%%              → plasticity(學習) → projections(讀側) → ui(維基治理) → I/O(訂閱廣播) ──
+%%  ── 一、神經元定義層 (VS8_CL · Neuron Definition Authority) ──
+%%  D21-1 語義唯一性：全域所有語義類別與標籤實體（Tag Entities）僅能在 VS8 CTA 定義，禁止業務切片（VS1~VS6）私自宣告
+%%  D21-2 標籤強型別化：系統中禁止使用隱性字串傳遞語義，所有引用必須指向 TE1~TE6 有效 tagSlug
+%%  ── 二、突觸層與計算層 (VS8_SL · VS8_NG · Structural Modeling) ──
+%%  D21-3 節點互聯律：語義節點必須具備層級或因果關係；孤立標籤（Isolated Tag）視為無效語義，須通過 parentTagSlug 歸入分類學
+%%  D21-4 聚合體約束：CTA 守護標籤生命週期（Draft→Active→Stale→Deprecated）；Neural Network 計算關聯權重與語義距離
+%%  ── 三、語義路由與執行 (VS8_RL · Routing & Execution) ──
+%%  D21-5 語義感知路由：跨切片決策（排班路由/通知分發）必須基於標籤語義權重，禁止硬編碼業務對象 ID
+%%  D21-6 因果自動觸發：TagLifecycleEvent 發生時，VS8 透過 Causality Tracer 自動推導受影響節點並發布更新事件；
+%%        traceAffectedNodes(event, candidateSlugs[]) 支援候選節點過濾（candidateSlugs=[] 表全圖追蹤）；
+%%        rankAffectedNodes / buildDownstreamEvents 可作為獨立工具使用；TAG_DELETED 不產生下游事件
+%%  ── 四、投影與一致性 (Projection & Consistency) ──
+%%  D21-7 讀寫分離原則：寫入操作必須經過 CMD_GWAY 進入 VS8 CTA；讀取嚴禁直連資料庫，必須經由 projection.tag-snapshot
+%%  D21-8 新鮮度防禦：所有基於語義的查詢必須引用 SK_STALENESS_CONTRACT，TAG_STALE_GUARD ≤ 30 秒
+%%  ── 五、突觸物理學 (VS8_SL · Synaptic Physics) ──
+%%  D21-9 突觸權重不變量：SemanticEdge.weight ∈ [0.0, 1.0]；
+%%        語義代價 cost = 1.0 / max(weight, MIN_EDGE_WEIGHT)（強連結 = 近鄰 = 短距離）；
+%%        _clampWeight 在 addEdge 時強制執行；所有直接關係預設 weight=1.0；
+%%        禁止任何消費方持有 weight > 1.0 或 weight < 0.0 的邊
+%%  D21-10 拓撲可觀測性：findIsolatedNodes(slugs[]) 為 VS8_NG 唯一拓撲健康探針；
+%%         每次 addEdge/removeEdge 後必須以非同步方式觸發孤立節點檢查；
+%%         結果寫入 L9 Observability；D21-3 違規率 > 0 需觸發警告事件
+%%  ── 六、完全體擴展不變量 (D21-A~D21-X · 8層架構治理律) ──
+%%  D21-A 唯一註冊律：跨領域概念必須在 core/tag-definitions.ts 集中註冊，禁止業務切片私自創建隱性語義分類
+%%  D21-B Schema 鎖定：標籤元數據必須符合 core/schemas 定義，禁止附加任何未經校驗的非結構化屬性
+%%  D21-C 無孤立節點：每個新標籤建立時必須透過 hierarchy-manager.ts 掛載至少一個有效父級節點（→ D21-3 強化版）
+%%  D21-D 向量一致性：embeddings/vector-store.ts 中的向量必須隨 core/tag-definitions.ts 定義同步刷新，延遲 ≤ 60s
+%%  D21-E 權重透明化：語義相似度計算與路徑權重生成必須由 weight-calculator.ts 統一輸出，禁止消費方自行推算
+%%  D21-F 注意力隔離：context-attention.ts 必須根據當前 Workspace 情境過濾無關標籤，防止語義噪聲污染路由結果
+%%  D21-G 演化回饋環：learning-engine.ts 僅能依據 VS3（排班）/ VS2（任務）的真實事實事件進行神經元強度調整，
+%%                    禁止手動隨機修改或注入合成數據；每次調整須附帶來源事件溯源
+%%  D21-H 血腦屏障（BBB）：invariant-guard.ts 對語義衝突具有最高裁決權，可直接攔截並拒絕違反物理邏輯的提案，
+%%                          其決策優先於 consensus-engine 與 learning-engine
+%%  D21-I 全域共識律：標籤治理決策開放全部組織用戶提案，所有提案必須通過 consensus-engine 的邏輯一致性校驗
+%%  D21-J 知識溯源：每條標籤關係的建立必須標註貢獻者 ID 與參考依據（事件 ID / 文件 ID），具備完整版本回溯能力
+%%  D21-K 語義衝突裁決：invariant-guard 偵測到違反物理邏輯（如循環繼承、矛盾語義）的聯結時直接拒絕提案並產生拒絕事件
+%%  D21-S 同義詞重定向：標籤合併完成後舊標籤自動成為 Alias，所有歷史數據引用自動重定向至主標籤，禁止直接刪除舊標籤
+%%  D21-T 命名共識律：標籤顯示名稱由社群貢獻度決定（可演化），tagSlug 作為永久技術識別碼不得修改
+%%  D21-U 禁止重複定義：新增標籤時 embeddings 必須即時計算相似度並提示語義接近的現有標籤，阻止靜默重複
+%%  D21-V 提案鎖定機制：處於「併購爭議中（Pending-Sync）」的標籤其路由權重凍結為 0.5 中性值，直到共識達成
+%%  D21-W 跨組織透明性：所有標籤修改紀錄對全域公開，任何組織用戶均可查看完整演化歷程與責任歸屬
+%%  D21-X 語義自動激發：用戶建立 A→B 關聯時，causality-tracer 自動建議語義相近的節點 C 作為潛在連結候選
 %%  D22 跨切片 tag 語義引用：必須指向 TE1~TE6 實體節點，禁止隱式 tagSlug 字串引用
 %%  D23 tag 語義標注格式：節點內 → tag::{category}；邊 → -.->|"{dim} tag 語義"|
 %%  ── Firebase 隔離守則（D24~D25）──
@@ -881,4 +1083,24 @@ class NOTIF_HUB_SVC crossCutAuth
 %%      global-search.slice 為唯一跨域搜尋權威，各業務 Slice 禁止自建搜尋邏輯
 %%      notification-hub (VS7) 為唯一副作用出口，業務 Slice 禁止直接調用 sendEmail/push/SMS
 %%      兩者須擁有自己的 _actions.ts / _services.ts [D3]，不得寄生於 shared-kernel [D8]
+%%  ── 成本語義路由守則（D27）──
+%%  D27 CostItemType Semantic Routing（成本語義路由三層架構）：
+%%      Layer-1（原始解析）：document-parser 解析文件 → 產生 raw ParsedLineItem[]
+%%      Layer-2（語義分類）：VS5 document-parser-view 呼叫 VS8 classifyCostItem(name) → CostItemType
+%%                           classifyCostItem 為純函式（[D8] 禁止 async / Firestore / 副作用）
+%%                           優先級：EXECUTABLE override > MANAGEMENT > RESOURCE > FINANCIAL > PROFIT > ALLOWANCE > EXECUTABLE(預設)
+%%                           EXECUTABLE override 舉例：機電檢測、qc test、現場試驗、commissioning、調試 等施工測試關鍵字
+%%                           ALLOWANCE 舉例：差旅、運輸、勘查、工安補貼（不可物化為 task）
+%%                           PROFIT 舉例：利潤（不可物化為 task）
+%%                           CostItemType：EXECUTABLE | MANAGEMENT | RESOURCE | FINANCIAL | PROFIT | ALLOWANCE
+%%                           標注結果寫入 ParsedLineItem.costItemType，隨 DocumentParserItemsExtractedPayload 傳遞
+%%      Layer-3（語義路由）：use-workspace-event-handler.tsx Semantic Router
+%%                           [D27-gate] shouldMaterializeAsTask(item.costItemType) → 此函式是唯一的物化閘門
+%%                           禁止在 workspace.slice 內直接寫 `=== CostItemType.EXECUTABLE`；必須呼叫 shouldMaterializeAsTask() [D27]
+%%                           只有 shouldMaterializeAsTask() 返回 true 的項目才能物化為 WorkspaceTask
+%%                           物化同時寫入 sourceIntentIndex（項目在原始文件中的位置）以確保任務清單排序一致 [D27-ORDER]
+%%                           其餘類型：靜默跳過 + toast 通知（禁止物化為 tasks [#A14]）
+%%      [D27-ORDER] 任務排序不變量：tasks-view.tsx 須先按 createdAt（批次間），再按 sourceIntentIndex（批次內），確保任務順序與來源文件一致。
+%%      禁止 VS5 document-parser 自行實作成本語義邏輯；必須透過 VS8 classifyCostItem() [D27]
+%%      禁止 Layer-3 Semantic Router 繞過 costItemType 直接物化非 EXECUTABLE 項目
 %%  ╚══════════════════════════════════════════════════════════════════════════╝
