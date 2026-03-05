@@ -12,7 +12,7 @@ It owns:
 
 No other slice may re-implement any of these capabilities [D26, D27].
 
-## Architecture: 10-Layer Semantic Neural Network (D21-1 → D21-X)
+## Architecture: 10-Layer Semantic Neural Network (D21-1 ~ D21-10 + D21-A~D21-X)
 
 The semantic brain is organized as 10 discrete processing layers.
 Each layer has a single well-defined responsibility, and cross-layer
@@ -37,7 +37,7 @@ Additional invariants:
 - **D21-H** Blood-Brain Barrier — `validateEdgeProposal()` must be called before every `addEdge()`.
 - **D21-K** Semantic-conflict arbitration — self-loops, IS_A cycles, and invalid weights are rejected at the L5 BBB layer.
 
-> **Backward compatibility note:** `VS8_CL` is the subgraph ID for L1 (alias VS8_CORE); `VS8_SL` for L2 (alias VS8_GRAPH); `VS8_NG` for L3; `VS8_ROUT` for L4 (formerly VS8_RL in the 4-layer model); `VS8_RL` is now L9 (語義決策輸出層).
+> **Backward compatibility note:** `VS8_CL` is the subgraph ID for L1 (alias VS8_CORE); `VS8_SL` for L2 (alias VS8_GRAPH); `VS8_NG` for L3; `VS8_ROUT` for L4 (formerly VS8_RL in the superseded 4-layer model where VS8_RL was the "Routing Output" / dispatch-bridge layer); `VS8_RL` is now L9 (語義決策輸出層 — cost-output classifier).
 
 ## Tag Entity Types (TE)
 

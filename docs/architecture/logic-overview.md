@@ -184,7 +184,8 @@ end
 %% ───   L8  VS8_WIKI  — 語義維基治理層 🏛️   · wiki-editor · proposal-stream · relationship-visualizer · consensus-engine [D21-I~W]
 %% ───   L9  VS8_RL    — 語義決策輸出層 💰   · _cost-classifier · policy-execution-agent                            [D21-5 D8]
 %% ───   L10 VS8_IO    — 語義訂閱廣播層      · subscribers/lifecycle-subscriber · outbox/tag-outbox                [D21-6 S1]
-%% ─── 向下相容：VS8_CL ≡ L1 core, VS8_SL ≡ L2 graph, VS8_NG ≡ L3 neural-computation, VS8_ROUT ≡ L4 routing（原 VS8_RL 已重構為 L9 語義決策輸出層）
+%% ─── 向下相容：VS8_CL ≡ L1 core, VS8_SL ≡ L2 graph, VS8_NG ≡ L3 neural-computation, VS8_ROUT ≡ L4 routing
+%% ───             （原 VS8_RL 在四層模型中為 Routing Output / dispatch-bridge；現已重構為 L9 語義決策輸出層）
 %% ─── centralized-tag.aggregate 具備 lifecycle，為 domain authority [#A6 #17]
 subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（10層語義神經網路完全體）"]
     direction TB
