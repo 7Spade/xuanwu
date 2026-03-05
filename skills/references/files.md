@@ -346,12 +346,6 @@ import { AccountSettingsRouter } from "@/features/account.slice"
 export default function AccountSettingsPage()
 ```
 
-## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/skills/page.tsx
-```typescript
-import { PersonalSkillPanel } from '@/features/skill-xp.slice';
-export default function AccountSkillsPage()
-```
-
 ## File: src/app/(shell)/(account)/(dashboard)/dashboard/account/teams/[id]/page.tsx
 ```typescript
 import { TeamDetailView } from "@/features/organization.slice"
@@ -1073,11 +1067,6 @@ export function subscribeToAccountRoles(
 
 ```
 
-## File: src/features/account.slice/index.ts
-```typescript
-
-```
-
 ## File: src/features/account.slice/user.profile/_components/account-settings-router.tsx
 ```typescript
 import { OrgSettingsView } from "@/features/organization.slice";
@@ -1105,21 +1094,6 @@ interface SecurityCardProps {
   onWithdraw: () => void;
   t: (key: string) => string;
 }
-```
-
-## File: src/features/account.slice/user.profile/_components/user-settings-view.tsx
-```typescript
-import { useI18n } from "@/config/i18n/i18n-provider"
-import { PageHeader } from "@/shared/ui/page-header"
-import { UserSettings } from "./user-settings"
-export function UserSettingsView()
-⋮----
-title=
-```
-
-## File: src/features/account.slice/user.profile/index.ts
-```typescript
-
 ```
 
 ## File: src/features/account.slice/user.wallet/_actions.ts
@@ -1194,57 +1168,6 @@ import type {
 export function executeSearch(
   input: ExecuteSearchInput
 ): SearchResponse
-```
-
-## File: src/features/global-search.slice/_types.ts
-```typescript
-import type {
-  SearchDomain,
-  SemanticSearchQuery,
-  SemanticSearchHit,
-  SemanticSearchResult,
-} from '@/features/shared-kernel';
-export interface DateRangeFilter {
-  readonly from?: string;
-  readonly to?: string;
-}
-export interface SearchFilters {
-  readonly domains?: readonly SearchDomain[];
-  readonly tagSlugs?: readonly string[];
-  readonly dateRange?: DateRangeFilter;
-  readonly orgId?: string;
-  readonly workspaceId?: string;
-  readonly createdBy?: string;
-}
-export interface SearchState {
-  readonly query: string;
-  readonly filters: SearchFilters;
-  readonly results: SemanticSearchResult | null;
-  readonly isLoading: boolean;
-  readonly error: string | null;
-  readonly recentQueries: readonly string[];
-}
-⋮----
-export interface ExecuteSearchInput {
-  readonly query: string;
-  readonly filters?: SearchFilters;
-  readonly limit?: number;
-  readonly cursor?: string;
-  readonly traceId?: string;
-}
-export interface GroupedSearchResult {
-  readonly domain: SearchDomain;
-  readonly hits: readonly SemanticSearchHit[];
-  readonly count: number;
-}
-export interface SearchResponse {
-  readonly query: string;
-  readonly groups: readonly GroupedSearchResult[];
-  readonly totalCount: number;
-  readonly cursor?: string;
-  readonly executedAt: string;
-  readonly traceId?: string;
-}
 ```
 
 ## File: src/features/global-search.slice/index.ts
@@ -2068,6 +1991,27 @@ import { OrgSettings } from "./org-settings";
 export function OrgSettingsView()
 ⋮----
 title=
+```
+
+## File: src/features/organization.slice/core/_components/org-settings.tsx
+```typescript
+import { AlertTriangle, Building2, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useI18n } from "@/config/i18n/i18n-provider";
+import { useApp } from "@/shared/app-providers/app-context";
+import { ROUTES } from "@/shared/constants/routes";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/shadcn-ui/alert-dialog";
+import { Button } from "@/shared/shadcn-ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/shadcn-ui/card";
+import { Input } from "@/shared/shadcn-ui/input";
+import { Label } from "@/shared/shadcn-ui/label";
+import { Textarea } from "@/shared/shadcn-ui/textarea";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import { useOrganizationManagement } from "../_hooks/use-organization-management";
+⋮----
+const handleSave = async () =>
+const handleDelete = async () =>
 ```
 
 ## File: src/features/organization.slice/core/index.ts
@@ -3431,52 +3375,6 @@ export async function assignSemanticTag(
 ): Promise<CommandResult>
 ```
 
-## File: src/features/semantic-graph.slice/_aggregate.ts
-```typescript
-import { TAXONOMY_DIMENSIONS } from '@/features/shared-kernel';
-import type { TaxonomyDimension, TaxonomyNode } from '@/features/shared-kernel';
-import type {
-  TemporalTagAssignment,
-  TemporalConflict,
-  TemporalConflictCheckInput,
-  TemporalConflictCheckResult,
-  TaxonomyTree,
-  TaxonomyValidationResult,
-  TaxonomyValidationError,
-  TaxonomyErrorCode,
-} from './_types';
-⋮----
-export function detectTemporalConflicts(
-  input: TemporalConflictCheckInput
-): TemporalConflictCheckResult
-function isOverlapping(a: TemporalTagAssignment, b: TemporalTagAssignment): boolean
-export function validateTaxonomyAssignment(
-  node: TaxonomyNode,
-  existingNodes: readonly TaxonomyNode[],
-  validDimensions: readonly TaxonomyDimension[] = TAXONOMY_DIMENSIONS
-): TaxonomyValidationResult
-function hasCircularReference(
-  nodeSlug: string,
-  parentSlug: string,
-  existingNodes: readonly TaxonomyNode[]
-): boolean
-export function checkTemporalConflict(
-  newAssignment: TemporalTagAssignment,
-  existingAssignments: readonly TemporalTagAssignment[]
-): TemporalConflictCheckResult
-export function validateTaxonomyPath(
-  path: readonly string[],
-  tree: TaxonomyTree
-): TaxonomyValidationResult
-function buildNodeMap(tree: TaxonomyTree): Map<string, TaxonomyNode>
-function makeError(
-  code: TaxonomyErrorCode,
-  tagSlug: string,
-  message: string,
-  dimension?: TaxonomyDimension
-): TaxonomyValidationError
-```
-
 ## File: src/features/semantic-graph.slice/_services.ts
 ```typescript
 import type { SearchDomain, SemanticSearchHit } from '@/features/shared-kernel';
@@ -3496,77 +3394,6 @@ export function querySemanticIndex(
 export function getIndexStats(): SemanticIndexStats
 function isValidSearchDomain(domain: string): domain is SearchDomain
 function computeRelevanceScore(entry: SemanticIndexEntry, terms: string[]): number
-```
-
-## File: src/features/semantic-graph.slice/_types.ts
-```typescript
-import type {
-  TaxonomyDimension,
-  TaxonomyNode,
-  SemanticSearchHit,
-} from '@/features/shared-kernel';
-export interface TemporalTagAssignment {
-  readonly tagSlug: string;
-  readonly entityId: string;
-  readonly entityType: 'member' | 'workspace' | 'schedule';
-  readonly startDate: string;
-  readonly endDate: string;
-  readonly locationId?: string;
-}
-export interface TemporalConflict {
-  readonly tagSlug: string;
-  readonly entityId: string;
-  readonly existingAssignment: TemporalTagAssignment;
-  readonly conflictingAssignment: TemporalTagAssignment;
-  readonly overlapStartDate: string;
-  readonly overlapEndDate: string;
-}
-export interface TemporalConflictCheckInput {
-  readonly candidate: TemporalTagAssignment;
-  readonly existingAssignments: readonly TemporalTagAssignment[];
-}
-export interface TemporalConflictCheckResult {
-  readonly hasConflict: boolean;
-  readonly conflicts: readonly TemporalConflict[];
-}
-export interface TaxonomyTree {
-  readonly dimension: TaxonomyDimension;
-  readonly roots: readonly TaxonomyNode[];
-  readonly nodes?: readonly TaxonomyNode[];
-  readonly nodeCount: number;
-}
-export interface TaxonomyValidationResult {
-  readonly valid: boolean;
-  readonly errors: readonly TaxonomyValidationError[];
-}
-export interface TaxonomyValidationError {
-  readonly code: TaxonomyErrorCode;
-  readonly message: string;
-  readonly tagSlug: string;
-  readonly dimension?: TaxonomyDimension;
-}
-export type TaxonomyErrorCode =
-  | 'UNKNOWN_DIMENSION'
-  | 'INVALID_PARENT'
-  | 'CIRCULAR_REFERENCE'
-  | 'DUPLICATE_SLUG'
-  | 'DEPTH_EXCEEDED'
-  | 'DEPRECATED_TAG';
-export interface SemanticIndexEntry {
-  readonly id: string;
-  readonly domain: string;
-  readonly title: string;
-  readonly subtitle?: string;
-  readonly tags: readonly string[];
-  readonly searchableText: string;
-  readonly href?: string;
-  readonly updatedAt: string;
-}
-export interface SemanticIndexStats {
-  readonly totalEntries: number;
-  readonly entriesByDomain: Record<string, number>;
-  readonly lastUpdatedAt: string;
-}
 ```
 
 ## File: src/features/shared-kernel/authority-snapshot/index.ts
@@ -4696,22 +4523,6 @@ interface CreateWorkspaceDialogProps {
 const onCreate = async () =>
 ```
 
-## File: src/features/workspace.slice/core/_components/dashboard-view.tsx
-```typescript
-import { User as UserIcon } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
-import { useI18n } from "@/config/i18n/i18n-provider"
-import { PermissionTree } from "@/features/account.slice"
-import { AccountGrid } from "@/features/organization.slice"
-import { useAuth } from "@/shared/app-providers/auth-provider"
-import { Badge } from "@/shared/shadcn-ui/badge"
-import { PageHeader } from "@/shared/ui/page-header"
-import { useApp } from "../_hooks/use-app"
-import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces"
-import { StatCards } from "./stat-cards"
-import { WorkspaceList } from "./workspace-list"
-```
-
 ## File: src/features/workspace.slice/core/_components/shell/dashboard-sidebar.tsx
 ```typescript
 import { usePathname } from 'next/navigation';
@@ -4736,51 +4547,6 @@ import { AccountSwitcher } from "./account-switcher";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { NavWorkspaces } from "./nav-workspaces";
-```
-
-## File: src/features/workspace.slice/core/_components/shell/nav-main.tsx
-```typescript
-import {
-  LayoutDashboard,
-  Layers,
-  FolderTree,
-  ChevronRight,
-  Users,
-  Globe,
-  Settings,
-  Grid3X3,
-  Calendar,
-  MessageSquare,
-  History,
-  BookOpen,
-} from "lucide-react";
-import Link from "next/link";
-import { ROUTES } from "@/shared/constants/routes";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/shared/shadcn-ui/collapsible";
-import {
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
-  SidebarMenuButton,
-} from "@/shared/shadcn-ui/sidebar";
-interface NavMainProps {
-  pathname: string;
-  isOrganizationAccount: boolean;
-  t: (key: string) => string;
-}
-⋮----
-const isActive = (path: string)
-const isPartiallyActive = (path: string)
-⋮----
-<SidebarMenuButton asChild isActive=
-⋮----
-<SidebarMenuSubButton asChild isActive=
 ```
 
 ## File: src/features/workspace.slice/core/_components/stat-cards.tsx
@@ -5546,11 +5312,6 @@ export interface LocationUnitMeta {
 export function findLocationUnit(key: string): LocationUnitMeta | undefined
 ```
 
-## File: src/shared/constants/routes.ts
-```typescript
-
-```
-
 ## File: src/shared/constants/settings.ts
 ```typescript
 
@@ -6220,6 +5981,25 @@ interface PageHeaderProps {
 export function PageHeader(
 ```
 
+## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@modal/(.)settings/page.tsx
+```typescript
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { WorkspaceSettingsDialog , useWorkspace } from "@/features/workspace.slice"
+import type { WorkspaceLifecycleState, Address, WorkspacePersonnel } from "@/features/workspace.slice"
+export default function WorkspaceSettingsModalPage()
+⋮----
+const onSave = async (settings: {
+    name: string
+    visibility: "visible" | "hidden"
+    lifecycleState: WorkspaceLifecycleState
+    address?: Address
+    personnel?: WorkspacePersonnel
+}) =>
+⋮----
+onOpenChange=
+```
+
 ## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@panel/(.)governance/page.tsx
 ```typescript
 import { useRouter } from "next/navigation"
@@ -6253,6 +6033,25 @@ import { useEffect, useMemo, useRef, use } from "react";
 import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useApp } from "@/features/workspace.slice"
 import { Button } from "@/shared/shadcn-ui/button";
 import { PageHeader } from "@/shared/ui/page-header";
+```
+
+## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/settings/page.tsx
+```typescript
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { WorkspaceSettingsDialog , useWorkspace } from "@/features/workspace.slice"
+import type { WorkspaceLifecycleState, Address, WorkspacePersonnel } from "@/features/workspace.slice"
+export default function WorkspaceSettingsPage()
+⋮----
+const onSave = async (settings: {
+    name: string
+    visibility: "visible" | "hidden"
+    lifecycleState: WorkspaceLifecycleState
+    address?: Address
+    personnel?: WorkspacePersonnel
+}) =>
+⋮----
+onOpenChange=
 ```
 
 ## File: src/app/layout.tsx
@@ -6346,6 +6145,11 @@ function PermissionTier(
 name=
 ```
 
+## File: src/features/account.slice/index.ts
+```typescript
+
+```
+
 ## File: src/features/account.slice/user.profile/_actions.ts
 ```typescript
 import {
@@ -6372,6 +6176,27 @@ export async function uploadUserAvatar(
   userId: string,
   file: File,
 ): Promise<string>
+```
+
+## File: src/features/account.slice/user.profile/_components/account-skills-section.tsx
+```typescript
+import { useI18n } from "@/config/i18n/i18n-provider"
+import { PageHeader } from "@/shared/ui/page-header"
+import { PersonalSkillPanel } from "@/features/skill-xp.slice"
+export function AccountSkillsSection()
+⋮----
+title=
+```
+
+## File: src/features/account.slice/user.profile/_components/user-settings-view.tsx
+```typescript
+import { useI18n } from "@/config/i18n/i18n-provider"
+import { PageHeader } from "@/shared/ui/page-header"
+import { AccountSkillsSection } from "./account-skills-section"
+import { UserSettings } from "./user-settings"
+export function UserSettingsView()
+⋮----
+title=
 ```
 
 ## File: src/features/account.slice/user.profile/_hooks/use-user.ts
@@ -6402,6 +6227,11 @@ export function subscribeToUserProfile(
   userId: string,
   onUpdate: (profile: Account | null) => void,
 ): () => void
+```
+
+## File: src/features/account.slice/user.profile/index.ts
+```typescript
+
 ```
 
 ## File: src/features/account.slice/user.wallet/_hooks/use-wallet.ts
@@ -6471,6 +6301,58 @@ export interface GlobalSearchDialogProps {
 const handleSelect = (callback: () => void) =>
 ```
 
+## File: src/features/global-search.slice/_types.ts
+```typescript
+import type {
+  SearchDomain,
+  SemanticSearchQuery,
+  SemanticSearchHit,
+  SemanticSearchResult,
+  TagSlugRef,
+} from '@/features/shared-kernel';
+export interface DateRangeFilter {
+  readonly from?: string;
+  readonly to?: string;
+}
+export interface SearchFilters {
+  readonly domains?: readonly SearchDomain[];
+  readonly tagSlugs?: readonly TagSlugRef[];
+  readonly dateRange?: DateRangeFilter;
+  readonly orgId?: string;
+  readonly workspaceId?: string;
+  readonly createdBy?: string;
+}
+export interface SearchState {
+  readonly query: string;
+  readonly filters: SearchFilters;
+  readonly results: SemanticSearchResult | null;
+  readonly isLoading: boolean;
+  readonly error: string | null;
+  readonly recentQueries: readonly string[];
+}
+⋮----
+export interface ExecuteSearchInput {
+  readonly query: string;
+  readonly filters?: SearchFilters;
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly traceId?: string;
+}
+export interface GroupedSearchResult {
+  readonly domain: SearchDomain;
+  readonly hits: readonly SemanticSearchHit[];
+  readonly count: number;
+}
+export interface SearchResponse {
+  readonly query: string;
+  readonly groups: readonly GroupedSearchResult[];
+  readonly totalCount: number;
+  readonly cursor?: string;
+  readonly executedAt: string;
+  readonly traceId?: string;
+}
+```
+
 ## File: src/features/notification-hub.slice/_components/notification-bell.tsx
 ```typescript
 import { Bell, CheckCheck } from 'lucide-react';
@@ -6525,77 +6407,6 @@ function resolveSemanticType(
   stored: NotificationSemanticType | undefined,
   type: string
 ): NotificationSemanticType
-```
-
-## File: src/features/notification-hub.slice/_types.ts
-```typescript
-import type {
-  NotificationChannel,
-  NotificationPriority,
-} from '@/features/shared-kernel';
-export interface TagRoutingRule {
-  readonly ruleId: string;
-  readonly name: string;
-  readonly tagSlugs: readonly string[];
-  readonly channel: NotificationChannel;
-  readonly priority: NotificationPriority;
-  readonly templateId?: string;
-  readonly enabled: boolean;
-}
-export interface TagRoutingDecision {
-  readonly matchedRules: readonly TagRoutingRule[];
-  readonly channels: readonly NotificationChannel[];
-  readonly highestPriority: NotificationPriority;
-}
-export interface NotificationSourceEvent {
-  readonly eventKey: string;
-  readonly payload: Record<string, unknown>;
-  readonly tags: readonly string[];
-  readonly orgId: string;
-  readonly workspaceId?: string;
-  readonly targetAccountIds?: readonly string[];
-  readonly traceId?: string;
-  readonly occurredAt: string;
-}
-export interface NotificationDispatch {
-  readonly sourceEventKey: string;
-  readonly channel: NotificationChannel;
-  readonly priority: NotificationPriority;
-  readonly targetAccountIds: readonly string[];
-  readonly title: string;
-  readonly body: string;
-  readonly data?: Record<string, unknown>;
-  readonly tags: readonly string[];
-  readonly traceId?: string;
-  readonly dispatchedAt: string;
-}
-export interface NotificationDispatchResult {
-  readonly dispatchId: string;
-  readonly channel: NotificationChannel;
-  readonly targetCount: number;
-  readonly successCount: number;
-  readonly failureCount: number;
-  readonly errors: readonly NotificationDispatchError[];
-}
-export interface NotificationDispatchError {
-  readonly accountId: string;
-  readonly channel: NotificationChannel;
-  readonly reason: string;
-}
-export interface NotificationSubscription {
-  readonly eventKey: string;
-  readonly description: string;
-  readonly useTagRouting: boolean;
-  readonly enabled: boolean;
-}
-export interface NotificationHubStats {
-  readonly totalDispatched: number;
-  readonly dispatchedByChannel: Record<NotificationChannel, number>;
-  readonly totalErrors: number;
-  readonly activeSubscriptions: number;
-  readonly activeRoutingRules: number;
-  readonly lastDispatchedAt: string;
-}
 ```
 
 ## File: src/features/notification-hub.slice/index.ts
@@ -6680,27 +6491,6 @@ interface AccountGridProps {
 function AccountCard(
 ⋮----
 const handleClick = () =>
-```
-
-## File: src/features/organization.slice/core/_components/org-settings.tsx
-```typescript
-import { AlertTriangle, Building2, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useI18n } from "@/config/i18n/i18n-provider";
-import { useApp } from "@/shared/app-providers/app-context";
-import { ROUTES } from "@/shared/constants/routes";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/shadcn-ui/alert-dialog";
-import { Button } from "@/shared/shadcn-ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/shadcn-ui/card";
-import { Input } from "@/shared/shadcn-ui/input";
-import { Label } from "@/shared/shadcn-ui/label";
-import { Textarea } from "@/shared/shadcn-ui/textarea";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
-import { useOrganizationManagement } from "../_hooks/use-organization-management";
-⋮----
-const handleSave = async () =>
-const handleDelete = async () =>
 ```
 
 ## File: src/features/organization.slice/core/_hooks/use-organization-management.ts
@@ -7163,6 +6953,124 @@ export type UpcomingEventItem = Pick<ScheduleItem, 'id' | 'title' | 'workspaceNa
 
 ```
 
+## File: src/features/semantic-graph.slice/_aggregate.ts
+```typescript
+import { TAXONOMY_DIMENSIONS, tagSlugRef } from '@/features/shared-kernel';
+import type { TaxonomyDimension, TaxonomyNode, TagSlugRef } from '@/features/shared-kernel';
+import type {
+  TemporalTagAssignment,
+  TemporalConflict,
+  TemporalConflictCheckInput,
+  TemporalConflictCheckResult,
+  TaxonomyTree,
+  TaxonomyValidationResult,
+  TaxonomyValidationError,
+  TaxonomyErrorCode,
+} from './_types';
+⋮----
+export function detectTemporalConflicts(
+  input: TemporalConflictCheckInput
+): TemporalConflictCheckResult
+function isOverlapping(a: TemporalTagAssignment, b: TemporalTagAssignment): boolean
+export function validateTaxonomyAssignment(
+  node: TaxonomyNode,
+  existingNodes: readonly TaxonomyNode[],
+  validDimensions: readonly TaxonomyDimension[] = TAXONOMY_DIMENSIONS
+): TaxonomyValidationResult
+function hasCircularReference(
+  nodeSlug: string,
+  parentSlug: string,
+  existingNodes: readonly TaxonomyNode[]
+): boolean
+export function checkTemporalConflict(
+  newAssignment: TemporalTagAssignment,
+  existingAssignments: readonly TemporalTagAssignment[]
+): TemporalConflictCheckResult
+export function validateTaxonomyPath(
+  path: readonly string[],
+  tree: TaxonomyTree
+): TaxonomyValidationResult
+function buildNodeMap(tree: TaxonomyTree): Map<string, TaxonomyNode>
+function makeError(
+  code: TaxonomyErrorCode,
+  tagSlug: TagSlugRef,
+  message: string,
+  dimension?: TaxonomyDimension
+): TaxonomyValidationError
+```
+
+## File: src/features/semantic-graph.slice/_types.ts
+```typescript
+import type {
+  TaxonomyDimension,
+  TaxonomyNode,
+  SemanticSearchHit,
+  TagSlugRef,
+} from '@/features/shared-kernel';
+export interface TemporalTagAssignment {
+  readonly tagSlug: TagSlugRef;
+  readonly entityId: string;
+  readonly entityType: 'member' | 'workspace' | 'schedule';
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly locationId?: string;
+}
+export interface TemporalConflict {
+  readonly tagSlug: TagSlugRef;
+  readonly entityId: string;
+  readonly existingAssignment: TemporalTagAssignment;
+  readonly conflictingAssignment: TemporalTagAssignment;
+  readonly overlapStartDate: string;
+  readonly overlapEndDate: string;
+}
+export interface TemporalConflictCheckInput {
+  readonly candidate: TemporalTagAssignment;
+  readonly existingAssignments: readonly TemporalTagAssignment[];
+}
+export interface TemporalConflictCheckResult {
+  readonly hasConflict: boolean;
+  readonly conflicts: readonly TemporalConflict[];
+}
+export interface TaxonomyTree {
+  readonly dimension: TaxonomyDimension;
+  readonly roots: readonly TaxonomyNode[];
+  readonly nodes?: readonly TaxonomyNode[];
+  readonly nodeCount: number;
+}
+export interface TaxonomyValidationResult {
+  readonly valid: boolean;
+  readonly errors: readonly TaxonomyValidationError[];
+}
+export interface TaxonomyValidationError {
+  readonly code: TaxonomyErrorCode;
+  readonly message: string;
+  readonly tagSlug: TagSlugRef;
+  readonly dimension?: TaxonomyDimension;
+}
+export type TaxonomyErrorCode =
+  | 'UNKNOWN_DIMENSION'
+  | 'INVALID_PARENT'
+  | 'CIRCULAR_REFERENCE'
+  | 'DUPLICATE_SLUG'
+  | 'DEPTH_EXCEEDED'
+  | 'DEPRECATED_TAG';
+export interface SemanticIndexEntry {
+  readonly id: string;
+  readonly domain: string;
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly tags: readonly string[];
+  readonly searchableText: string;
+  readonly href?: string;
+  readonly updatedAt: string;
+}
+export interface SemanticIndexStats {
+  readonly totalEntries: number;
+  readonly entriesByDomain: Record<string, number>;
+  readonly lastUpdatedAt: string;
+}
+```
+
 ## File: src/features/semantic-graph.slice/centralized-tag/_actions.ts
 ```typescript
 import { commandSuccess, commandFailureFrom, publishTagEvent, buildIdempotencyKey } from '@/features/shared-kernel';
@@ -7328,71 +7236,6 @@ export interface ScheduleItem {
   proposedBy?: string;
   version?: number;
   traceId?: string;
-}
-```
-
-## File: src/features/shared-kernel/skill-tier/index.ts
-```typescript
-import type { Timestamp } from '@/shared/ports'
-export type SkillTier =
-  | 'apprentice'
-  | 'journeyman'
-  | 'expert'
-  | 'artisan'
-  | 'grandmaster'
-  | 'legendary'
-  | 'titan';
-export interface TierDefinition {
-  tier: SkillTier;
-  rank: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  label: string;
-  minXp: number;
-  maxXp: number;
-  color: string;
-  cssVar: string;
-}
-export interface SkillRequirement {
-  tagSlug: string;
-  tagId?: string;
-  minimumTier: SkillTier;
-  quantity: number;
-}
-⋮----
-export function getTierDefinition(tier: SkillTier): TierDefinition
-export function getTier(xp: number): SkillTier
-⋮----
-export function getTierRank(tier: SkillTier): number
-export function tierSatisfies(grantedTier: SkillTier, minimumTier: SkillTier): boolean
-export interface SkillTag {
-  slug: string;
-  name: string;
-  category?: string;
-  description?: string;
-}
-export interface SkillGrant {
-  tagSlug: string;
-  tagName?: string;
-  tagId?: string;
-  tier: SkillTier;
-  xp: number;
-  earnedInOrgId?: string;
-  grantedAt?: Timestamp;
-}
-export interface WorkspaceScheduleProposedPayload {
-  readonly scheduleItemId: string;
-  readonly workspaceId: string;
-  readonly orgId: string;
-  readonly title: string;
-  readonly startDate: string;
-  readonly endDate: string;
-  readonly proposedBy: string;
-  readonly intentId?: string;
-  readonly skillRequirements?: SkillRequirement[];
-  readonly locationId?: string;
-  readonly traceId?: string;
-}
-export interface ImplementsScheduleProposedPayloadContract {
-  readonly implementsScheduleProposedPayload: true;
 }
 ```
 
@@ -7921,6 +7764,101 @@ export async function listWorkflowStates(
 ): Promise<WorkflowAggregateState[]>
 ```
 
+## File: src/features/workspace.slice/core/_actions.ts
+```typescript
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/features/shared-kernel';
+import {
+  createWorkspace as createWorkspaceFacade,
+  authorizeWorkspaceTeam as authorizeWorkspaceTeamFacade,
+  revokeWorkspaceTeam as revokeWorkspaceTeamFacade,
+  grantIndividualWorkspaceAccess as grantIndividualWorkspaceAccessFacade,
+  revokeIndividualWorkspaceAccess as revokeIndividualWorkspaceAccessFacade,
+  mountCapabilities as mountCapabilitiesFacade,
+  unmountCapability as unmountCapabilityFacade,
+  updateWorkspaceSettings as updateWorkspaceSettingsFacade,
+  deleteWorkspace as deleteWorkspaceFacade,
+  createWorkspaceLocation as createWorkspaceLocationFacade,
+  updateWorkspaceLocation as updateWorkspaceLocationFacade,
+  deleteWorkspaceLocation as deleteWorkspaceLocationFacade,
+} from "@/shared/infra/firestore/firestore.facade"
+import type { Capability, WorkspaceLifecycleState, WorkspaceLocation, Address, WorkspacePersonnel } from "./_types"
+import type { WorkspaceRole } from "../gov.role/_types"
+import type { Account } from "@/features/shared-kernel"
+export async function createWorkspace(
+  name: string,
+  account: Account
+): Promise<CommandResult>
+export async function authorizeWorkspaceTeam(
+  workspaceId: string,
+  teamId: string
+): Promise<CommandResult>
+export async function revokeWorkspaceTeam(
+  workspaceId: string,
+  teamId: string
+): Promise<CommandResult>
+export async function grantIndividualWorkspaceAccess(
+  workspaceId: string,
+  userId: string,
+  role: WorkspaceRole,
+  protocol?: string
+): Promise<CommandResult>
+export async function revokeIndividualWorkspaceAccess(
+  workspaceId: string,
+  grantId: string
+): Promise<CommandResult>
+export async function mountCapabilities(
+  workspaceId: string,
+  capabilities: Capability[]
+): Promise<CommandResult>
+export async function unmountCapability(
+  workspaceId: string,
+  capability: Capability
+): Promise<CommandResult>
+export async function updateWorkspaceSettings(
+  workspaceId: string,
+  settings: {
+    name: string
+    visibility: "visible" | "hidden"
+    lifecycleState: WorkspaceLifecycleState
+    address?: Address
+    personnel?: WorkspacePersonnel
+  }
+): Promise<CommandResult>
+export async function deleteWorkspace(workspaceId: string): Promise<CommandResult>
+export async function createWorkspaceLocation(
+  workspaceId: string,
+  location: WorkspaceLocation
+): Promise<CommandResult>
+export async function updateWorkspaceLocation(
+  workspaceId: string,
+  locationId: string,
+  updates: Partial<Pick<WorkspaceLocation, 'label' | 'description' | 'capacity'>>
+): Promise<CommandResult>
+export async function deleteWorkspaceLocation(
+  workspaceId: string,
+  locationId: string
+): Promise<CommandResult>
+```
+
+## File: src/features/workspace.slice/core/_components/dashboard-view.tsx
+```typescript
+import { User as UserIcon } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { useI18n } from "@/config/i18n/i18n-provider"
+import { PermissionTree } from "@/features/account.slice"
+import { AccountGrid } from "@/features/organization.slice"
+import { useAuth } from "@/shared/app-providers/auth-provider"
+import { Badge } from "@/shared/shadcn-ui/badge"
+import { PageHeader } from "@/shared/ui/page-header"
+import { useApp } from "../_hooks/use-app"
+import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces"
+import { WorkspaceList } from "./workspace-list"
+```
+
 ## File: src/features/workspace.slice/core/_components/shell/account-create-dialog.tsx
 ```typescript
 import { Loader2 } from "lucide-react"
@@ -8122,6 +8060,80 @@ const getSpecIcon = (type: string) =>
 ⋮----
 ```
 
+## File: src/features/workspace.slice/core/_components/workspace-card.tsx
+```typescript
+import {
+  Building2,
+  Eye,
+  EyeOff,
+  HardHat,
+  Hash,
+  MapPin,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Trash2,
+  UserPlus,
+  User2,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
+import { useI18n } from "@/config/i18n/i18n-provider";
+import { ROUTES } from "@/shared/constants/routes";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/shadcn-ui/alert-dialog";
+import { Badge } from "@/shared/shadcn-ui/badge";
+import { Button } from "@/shared/shadcn-ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/shared/shadcn-ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/shadcn-ui/tooltip";
+import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "../_types";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import { deleteWorkspace, updateWorkspaceSettings } from "../_actions";
+import { WorkspaceSettingsDialog } from "./workspace-settings";
+interface WorkspaceCardProps {
+  workspace: Workspace;
+}
+function buildMapsUrl(address: Workspace["address"]): string
+function PersonnelSlot({
+  icon: Icon,
+  label,
+  userId,
+  onAssign,
+}: {
+  icon: React.FC<{ className?: string }>;
+  label: string;
+  userId?: string;
+onAssign: ()
+⋮----
+onClick=
+⋮----
+const handleSettingsSave = async (settings: {
+    name: string;
+    visibility: "visible" | "hidden";
+    lifecycleState: WorkspaceLifecycleState;
+    address?: Address;
+    personnel?: WorkspacePersonnel;
+}) =>
+const handleDestroyConfirm = async () =>
+⋮----
+href=
+```
+
 ## File: src/features/workspace.slice/core/_components/workspace-grid-view.tsx
 ```typescript
 import type { Workspace } from "../_types";
@@ -8196,6 +8208,350 @@ import { useWorkspace } from "./workspace-provider";
 interface WorkspaceNavTabsProps {
   workspaceId: string
 }
+```
+
+## File: src/features/workspace.slice/core/_components/workspace-settings.tsx
+```typescript
+import { HardHat, ShieldCheck, User2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Button } from "@/shared/shadcn-ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/shared/shadcn-ui/dialog";
+import { Input } from "@/shared/shadcn-ui/input";
+import { Label } from "@/shared/shadcn-ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/shadcn-ui/select";
+import { Switch } from "@/shared/shadcn-ui/switch";
+import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "../_types";
+interface WorkspaceSettingsDialogProps {
+  workspace: Workspace;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (settings: {
+    name: string;
+    visibility: "visible" | "hidden";
+    lifecycleState: WorkspaceLifecycleState;
+    address?: Address;
+    personnel?: WorkspacePersonnel;
+  }) => Promise<void>;
+  loading: boolean;
+}
+⋮----
+export function WorkspaceSettingsDialog({
+  workspace,
+  open,
+  onOpenChange,
+  onSave,
+  loading,
+}: WorkspaceSettingsDialogProps)
+⋮----
+const handleAddressChange = (field: keyof Address, value: string) =>
+const handlePersonnelChange = (field: keyof WorkspacePersonnel, value: string) =>
+const handleSave = () =>
+⋮----
+onChange={(e) => setName(e.target.value)}
+              className="h-11 rounded-xl"
+            />
+          </div>
+          {}
+          <div className="space-y-3">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+              指派人員 Personnel
+            </Label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <User2 className="h-3.5 w-3.5" />
+                  <span>經理 Manager</span>
+                </div>
+                <Input
+                  placeholder="User ID / 姓名"
+                  value={personnel.managerId ?? ""}
+                  onChange={(e) => handlePersonnelChange("managerId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <HardHat className="h-3.5 w-3.5" />
+                  <span>督導 Supervisor</span>
+                </div>
+                <Input
+                  placeholder="User ID / 姓名"
+                  value={personnel.supervisorId ?? ""}
+                  onChange={(e) => handlePersonnelChange("supervisorId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>安衛 Safety</span>
+                </div>
+                <Input
+                  placeholder="User ID / 姓名"
+                  value={personnel.safetyOfficerId ?? ""}
+                  onChange={(e) => handlePersonnelChange("safetyOfficerId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+          {}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+                Physical Address
+            </Label>
+            <div className="grid grid-cols-2 gap-4">
+                <Input
+                    placeholder="Country"
+                    value={address.country}
+                    onChange={(e) => handleAddressChange('country', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+                <Input
+                    placeholder="State / Province"
+                    value={address.state}
+                    onChange={(e) => handleAddressChange('state', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+            </div>
+            <Input
+                placeholder="City"
+                value={address.city}
+                onChange={(e) => handleAddressChange('city', e.target.value)}
+                className="h-11 rounded-xl"
+            />
+            <Input
+                placeholder="Street Address"
+                value={address.street}
+                onChange={(e) => handleAddressChange('street', e.target.value)}
+                className="h-11 rounded-xl"
+            />
+            <div className="grid grid-cols-2 gap-4">
+                <Input
+                    placeholder="Postal Code"
+                    value={address.postalCode}
+                    onChange={(e) => handleAddressChange('postalCode', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+              Current Lifecycle State
+            </Label>
+            <Select
+              value={lifecycleState}
+onValueChange=
+⋮----
+onChange={(e) => handlePersonnelChange("managerId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <HardHat className="h-3.5 w-3.5" />
+                  <span>督導 Supervisor</span>
+                </div>
+                <Input
+                  placeholder="User ID / 姓名"
+                  value={personnel.supervisorId ?? ""}
+                  onChange={(e) => handlePersonnelChange("supervisorId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>安衛 Safety</span>
+                </div>
+                <Input
+                  placeholder="User ID / 姓名"
+                  value={personnel.safetyOfficerId ?? ""}
+                  onChange={(e) => handlePersonnelChange("safetyOfficerId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+          {}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+                Physical Address
+            </Label>
+            <div className="grid grid-cols-2 gap-4">
+                <Input
+                    placeholder="Country"
+                    value={address.country}
+                    onChange={(e) => handleAddressChange('country', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+                <Input
+                    placeholder="State / Province"
+                    value={address.state}
+                    onChange={(e) => handleAddressChange('state', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+            </div>
+            <Input
+                placeholder="City"
+                value={address.city}
+                onChange={(e) => handleAddressChange('city', e.target.value)}
+                className="h-11 rounded-xl"
+            />
+            <Input
+                placeholder="Street Address"
+                value={address.street}
+                onChange={(e) => handleAddressChange('street', e.target.value)}
+                className="h-11 rounded-xl"
+            />
+            <div className="grid grid-cols-2 gap-4">
+                <Input
+                    placeholder="Postal Code"
+                    value={address.postalCode}
+                    onChange={(e) => handleAddressChange('postalCode', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+              Current Lifecycle State
+            </Label>
+            <Select
+              value={lifecycleState}
+onValueChange=
+⋮----
+onChange={(e) => handlePersonnelChange("supervisorId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>安衛 Safety</span>
+                </div>
+                <Input
+                  placeholder="User ID / 姓名"
+                  value={personnel.safetyOfficerId ?? ""}
+                  onChange={(e) => handlePersonnelChange("safetyOfficerId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+          {}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+                Physical Address
+            </Label>
+            <div className="grid grid-cols-2 gap-4">
+                <Input
+                    placeholder="Country"
+                    value={address.country}
+                    onChange={(e) => handleAddressChange('country', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+                <Input
+                    placeholder="State / Province"
+                    value={address.state}
+                    onChange={(e) => handleAddressChange('state', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+            </div>
+            <Input
+                placeholder="City"
+                value={address.city}
+                onChange={(e) => handleAddressChange('city', e.target.value)}
+                className="h-11 rounded-xl"
+            />
+            <Input
+                placeholder="Street Address"
+                value={address.street}
+                onChange={(e) => handleAddressChange('street', e.target.value)}
+                className="h-11 rounded-xl"
+            />
+            <div className="grid grid-cols-2 gap-4">
+                <Input
+                    placeholder="Postal Code"
+                    value={address.postalCode}
+                    onChange={(e) => handleAddressChange('postalCode', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+              Current Lifecycle State
+            </Label>
+            <Select
+              value={lifecycleState}
+onValueChange=
+⋮----
+onChange={(e) => handlePersonnelChange("safetyOfficerId", e.target.value)}
+                  className="h-9 rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+          {}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+                Physical Address
+            </Label>
+            <div className="grid grid-cols-2 gap-4">
+                <Input
+                    placeholder="Country"
+                    value={address.country}
+                    onChange={(e) => handleAddressChange('country', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+                <Input
+                    placeholder="State / Province"
+                    value={address.state}
+                    onChange={(e) => handleAddressChange('state', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+            </div>
+            <Input
+                placeholder="City"
+                value={address.city}
+                onChange={(e) => handleAddressChange('city', e.target.value)}
+                className="h-11 rounded-xl"
+            />
+            <Input
+                placeholder="Street Address"
+                value={address.street}
+                onChange={(e) => handleAddressChange('street', e.target.value)}
+                className="h-11 rounded-xl"
+            />
+            <div className="grid grid-cols-2 gap-4">
+                <Input
+                    placeholder="Postal Code"
+                    value={address.postalCode}
+                    onChange={(e) => handleAddressChange('postalCode', e.target.value)}
+                    className="h-11 rounded-xl"
+                />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
+              Current Lifecycle State
+            </Label>
+            <Select
+              value={lifecycleState}
+onValueChange=
 ```
 
 ## File: src/features/workspace.slice/core/_components/workspace-status-bar.tsx
@@ -8596,6 +8952,11 @@ export function workspaceRoleAtLeast(
 ): boolean
 ```
 
+## File: src/shared/constants/routes.ts
+```typescript
+
+```
+
 ## File: src/shared/constants/status.ts
 ```typescript
 import type { ScheduleStatus, InviteState, NotificationType, Presence } from '@/features/shared-kernel';
@@ -8807,6 +9168,97 @@ export const getWorkspaceFilesFromSubcollection = async (
 ): Promise<WorkspaceFile[]> =>
 ```
 
+## File: src/shared/infra/firestore/repositories/workspace-core.repository.ts
+```typescript
+import {
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove,
+  doc,
+  getDoc,
+  runTransaction,
+  type FieldValue,
+} from 'firebase/firestore';
+import type {
+  Workspace,
+  WorkspaceRole,
+  WorkspaceGrant,
+  WorkspaceFile,
+  Capability,
+  WorkspaceLifecycleState,
+  WorkspaceLocation,
+  Address,
+  WorkspacePersonnel,
+} from '@/features/workspace.slice';
+import type { Account } from '@/features/shared-kernel';
+import { db } from '../firestore.client';
+import {
+  updateDocument,
+  addDocument,
+  deleteDocument,
+} from '../firestore.write.adapter';
+export const createWorkspace = async (
+  name: string,
+  account: Account
+): Promise<string> =>
+export const authorizeWorkspaceTeam = async (
+  workspaceId: string,
+  teamId: string
+): Promise<void> =>
+export const revokeWorkspaceTeam = async (
+  workspaceId: string,
+  teamId: string
+): Promise<void> =>
+export const grantIndividualWorkspaceAccess = async (
+  workspaceId: string,
+  userId: string,
+  role: WorkspaceRole,
+  protocol?: string
+): Promise<void> =>
+export const revokeIndividualWorkspaceAccess = async (
+  workspaceId: string,
+  grantId: string
+): Promise<void> =>
+export const mountCapabilities = async (
+  workspaceId: string,
+  capabilities: Capability[]
+): Promise<void> =>
+export const unmountCapability = async (
+  workspaceId: string,
+  capability: Capability
+): Promise<void> =>
+export const updateWorkspaceSettings = async (
+  workspaceId: string,
+  settings: {
+    name: string;
+    visibility: 'visible' | 'hidden';
+    lifecycleState: WorkspaceLifecycleState;
+    address?: Address;
+    personnel?: WorkspacePersonnel;
+  }
+): Promise<void> =>
+export const deleteWorkspace = async (workspaceId: string): Promise<void> =>
+export const getWorkspaceFiles = async (
+  workspaceId: string
+): Promise<WorkspaceFile[]> =>
+export const getWorkspaceGrants = async (
+  workspaceId: string
+): Promise<WorkspaceGrant[]> =>
+export const createWorkspaceLocation = async (
+  workspaceId: string,
+  location: WorkspaceLocation
+): Promise<void> =>
+export const updateWorkspaceLocation = async (
+  workspaceId: string,
+  locationId: string,
+  updates: Partial<Pick<WorkspaceLocation, 'label' | 'description' | 'capacity'>>
+): Promise<void> =>
+export const deleteWorkspaceLocation = async (
+  workspaceId: string,
+  locationId: string
+): Promise<void> =>
+```
+
 ## File: tsconfig.json
 ```json
 {
@@ -8846,44 +9298,6 @@ export const getWorkspaceFilesFromSubcollection = async (
 }
 ```
 
-## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/@modal/(.)settings/page.tsx
-```typescript
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { WorkspaceSettingsDialog , useWorkspace } from "@/features/workspace.slice"
-import type { WorkspaceLifecycleState, Address, WorkspacePersonnel } from "@/features/workspace.slice"
-export default function WorkspaceSettingsModalPage()
-⋮----
-const onSave = async (settings: {
-    name: string
-    visibility: "visible" | "hidden"
-    lifecycleState: WorkspaceLifecycleState
-    address?: Address
-    personnel?: WorkspacePersonnel
-}) =>
-⋮----
-onOpenChange=
-```
-
-## File: src/app/(shell)/(account)/(workspaces)/workspaces/[id]/settings/page.tsx
-```typescript
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { WorkspaceSettingsDialog , useWorkspace } from "@/features/workspace.slice"
-import type { WorkspaceLifecycleState, Address, WorkspacePersonnel } from "@/features/workspace.slice"
-export default function WorkspaceSettingsPage()
-⋮----
-const onSave = async (settings: {
-    name: string
-    visibility: "visible" | "hidden"
-    lifecycleState: WorkspaceLifecycleState
-    address?: Address
-    personnel?: WorkspacePersonnel
-}) =>
-⋮----
-onOpenChange=
-```
-
 ## File: src/features/account.slice/user.profile/_components/email-card.tsx
 ```typescript
 import { Mail, Loader2 } from "lucide-react";
@@ -8901,58 +9315,76 @@ interface EmailCardProps {
 const handleChangeEmail = async () =>
 ```
 
-## File: src/features/account.slice/user.profile/_components/profile-card.tsx
+## File: src/features/notification-hub.slice/_types.ts
 ```typescript
-import { User, Loader2, Upload } from "lucide-react";
-import type React from "react"
-import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills"
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/shadcn-ui/avatar";
-import { Badge } from "@/shared/shadcn-ui/badge";
-import { Button } from "@/shared/shadcn-ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/shared/shadcn-ui/card";
-import { Checkbox } from "@/shared/shadcn-ui/checkbox";
-import { Input } from "@/shared/shadcn-ui/input";
-import { Label } from "@/shared/shadcn-ui/label";
-import { Textarea } from "@/shared/shadcn-ui/textarea";
-import { type SkillGrant, type Account } from "@/features/shared-kernel"
-interface ProfileCardProps {
-  account: Account | null
-  name: string
-  setName: (name: string) => void
-  bio: string
-  setBio: (bio: string) => void
-  skillGrants: SkillGrant[]
-  onSkillToggle: (slug: string) => void
-  handleSaveProfile: () => void
-  handleAvatarUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
-  isSaving: boolean
-  isUploading: boolean
-  avatarInputRef: React.RefObject<HTMLInputElement | null>
+import type {
+  NotificationChannel,
+  NotificationPriority,
+  TagSlugRef,
+} from '@/features/shared-kernel';
+export interface TagRoutingRule {
+  readonly ruleId: string;
+  readonly name: string;
+  readonly tagSlugs: readonly TagSlugRef[];
+  readonly channel: NotificationChannel;
+  readonly priority: NotificationPriority;
+  readonly templateId?: string;
+  readonly enabled: boolean;
 }
-⋮----
-<Button onClick=
-```
-
-## File: src/features/account.slice/user.profile/_components/user-settings.tsx
-```typescript
-import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import { useI18n } from "@/config/i18n/i18n-provider";
-import { useAuth } from "@/shared/app-providers/auth-provider";
-import { findSkill } from "@/shared/constants/skills";
-import { type SkillGrant } from "@/features/shared-kernel";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
-import { useUser } from "../_hooks/use-user";
-import { PreferencesCard } from "./preferences-card";
-import { ProfileCard } from "./profile-card";
-import { SecurityCard } from "./security-card";
-import { EmailCard } from "./email-card";
-export function UserSettings()
-⋮----
-const handleSaveProfile = async () =>
-const handleWithdraw = () =>
-const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) =>
-const handleSkillToggle = (slug: string) =>
+export interface TagRoutingDecision {
+  readonly matchedRules: readonly TagRoutingRule[];
+  readonly channels: readonly NotificationChannel[];
+  readonly highestPriority: NotificationPriority;
+}
+export interface NotificationSourceEvent {
+  readonly eventKey: string;
+  readonly payload: Record<string, unknown>;
+  readonly tags: readonly TagSlugRef[];
+  readonly orgId: string;
+  readonly workspaceId?: string;
+  readonly targetAccountIds?: readonly string[];
+  readonly traceId?: string;
+  readonly occurredAt: string;
+}
+export interface NotificationDispatch {
+  readonly sourceEventKey: string;
+  readonly channel: NotificationChannel;
+  readonly priority: NotificationPriority;
+  readonly targetAccountIds: readonly string[];
+  readonly title: string;
+  readonly body: string;
+  readonly data?: Record<string, unknown>;
+  readonly tags: readonly TagSlugRef[];
+  readonly traceId?: string;
+  readonly dispatchedAt: string;
+}
+export interface NotificationDispatchResult {
+  readonly dispatchId: string;
+  readonly channel: NotificationChannel;
+  readonly targetCount: number;
+  readonly successCount: number;
+  readonly failureCount: number;
+  readonly errors: readonly NotificationDispatchError[];
+}
+export interface NotificationDispatchError {
+  readonly accountId: string;
+  readonly channel: NotificationChannel;
+  readonly reason: string;
+}
+export interface NotificationSubscription {
+  readonly eventKey: string;
+  readonly description: string;
+  readonly useTagRouting: boolean;
+  readonly enabled: boolean;
+}
+export interface NotificationHubStats {
+  readonly totalDispatched: number;
+  readonly dispatchedByChannel: Record<NotificationChannel, number>;
+  readonly totalErrors: number;
+  readonly activeSubscriptions: number;
+  readonly activeRoutingRules: number;
+  readonly lastDispatchedAt: string;
+}
 ```
 
 ## File: src/features/notification-hub.slice/user.notification/_components/notification-list.tsx
@@ -8973,89 +9405,6 @@ import type { HubNotification } from '../../_contract';
 import { createNotificationListener } from '../../_services/notification-listener';
 import { markNotificationRead } from '../_queries';
 export function useUserNotifications(accountId: string | undefined, maxCount = 20)
-```
-
-## File: src/features/scheduling.slice/_components/proposal-dialog.tsx
-```typescript
-import { format } from "date-fns";
-import { CalendarIcon, ChevronsUpDown, MapPin, Plus, X } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
-import { type DateRange } from "react-day-picker";
-import type { SkillRequirement } from "@/features/shared-kernel";
-import { getOrgSkillTags } from "@/features/skill-xp.slice";
-import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills";
-import { cn } from "@/shared/shadcn-ui/utils/utils";
-import { Badge } from "@/shared/shadcn-ui/badge";
-import { Button } from "@/shared/shadcn-ui/button";
-import { Calendar } from "@/shared/shadcn-ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/shared/shadcn-ui/command";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/shared/shadcn-ui/dialog";
-import { Input } from "@/shared/shadcn-ui/input";
-import { Label } from "@/shared/shadcn-ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
-import { Textarea } from "@/shared/shadcn-ui/textarea";
-import { type Location } from "@/features/workspace.slice";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
-⋮----
-interface ProposalDialogProps {
-  isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void;
-  onSubmit: (data: {
-    title: string;
-    description: string;
-    startDate?: Date;
-    endDate?: Date;
-    location: Location;
-    requiredSkills: SkillRequirement[];
-  }) => Promise<void>;
-  initialDate: Date;
-  orgId?: string;
-}
-export function ProposalDialog({
-  isOpen,
-  onOpenChange,
-  onSubmit,
-  initialDate,
-  orgId,
-}: ProposalDialogProps)
-⋮----
-/** Value string for cmdk filtering — covers zh + en + sub-category labels. */
-⋮----
-const handleLocationChange = (field: keyof Location, value: string) =>
-const handleAddSkillRequirement = () =>
-const handleRemoveSkillRequirement = (slug: string) =>
-const handleSubmit = async () =>
-⋮----
-<Input id="item-title" value=
-⋮----
-
-⋮----
-<button
-                        type="button"
-                        onClick={() => handleRemoveSkillRequirement(req.tagSlug)}
-                        className="ml-1 rounded-full hover:text-destructive"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </Badge>
-                  );
-⋮----
-setSelectedSkillSlug(skill.slug);
-setSkillPickerOpen(false);
 ```
 
 ## File: src/features/scheduling.slice/_components/schedule.account-view.tsx
@@ -9148,6 +9497,72 @@ e.stopPropagation();
 ## File: src/features/shared-kernel/index.ts
 ```typescript
 
+```
+
+## File: src/features/shared-kernel/skill-tier/index.ts
+```typescript
+import type { Timestamp } from '@/shared/ports'
+import type { TagSlugRef } from '../tag-authority'
+export type SkillTier =
+  | 'apprentice'
+  | 'journeyman'
+  | 'expert'
+  | 'artisan'
+  | 'grandmaster'
+  | 'legendary'
+  | 'titan';
+export interface TierDefinition {
+  tier: SkillTier;
+  rank: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  label: string;
+  minXp: number;
+  maxXp: number;
+  color: string;
+  cssVar: string;
+}
+export interface SkillRequirement {
+  tagSlug: TagSlugRef;
+  tagId?: string;
+  minimumTier: SkillTier;
+  quantity: number;
+}
+⋮----
+export function getTierDefinition(tier: SkillTier): TierDefinition
+export function getTier(xp: number): SkillTier
+⋮----
+export function getTierRank(tier: SkillTier): number
+export function tierSatisfies(grantedTier: SkillTier, minimumTier: SkillTier): boolean
+export interface SkillTag {
+  slug: string;
+  name: string;
+  category?: string;
+  description?: string;
+}
+export interface SkillGrant {
+  tagSlug: TagSlugRef;
+  tagName?: string;
+  tagId?: string;
+  tier: SkillTier;
+  xp: number;
+  earnedInOrgId?: string;
+  grantedAt?: Timestamp;
+}
+export interface WorkspaceScheduleProposedPayload {
+  readonly scheduleItemId: string;
+  readonly workspaceId: string;
+  readonly orgId: string;
+  readonly title: string;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly proposedBy: string;
+  readonly intentId?: string;
+  readonly skillRequirements?: SkillRequirement[];
+  readonly locationId?: string;
+  readonly traceId?: string;
+}
+export interface ImplementsScheduleProposedPayloadContract {
+  readonly implementsScheduleProposedPayload: true;
+}
 ```
 
 ## File: src/features/workspace.slice/business.daily/_components/actions/like-button.tsx
@@ -9414,84 +9829,47 @@ export type TaskWithChildren = WorkspaceTask & {
 
 ```
 
-## File: src/features/workspace.slice/core/_actions.ts
+## File: src/features/workspace.slice/core/_components/shell/nav-main.tsx
 ```typescript
 import {
-  type CommandResult,
-  commandSuccess,
-  commandFailureFrom,
-} from '@/features/shared-kernel';
+  LayoutDashboard,
+  Layers,
+  FolderTree,
+  ChevronRight,
+  Users,
+  Globe,
+  Grid3X3,
+  Calendar,
+  MessageSquare,
+  History,
+} from "lucide-react";
+import Link from "next/link";
+import { ROUTES } from "@/shared/constants/routes";
 import {
-  createWorkspace as createWorkspaceFacade,
-  authorizeWorkspaceTeam as authorizeWorkspaceTeamFacade,
-  revokeWorkspaceTeam as revokeWorkspaceTeamFacade,
-  grantIndividualWorkspaceAccess as grantIndividualWorkspaceAccessFacade,
-  revokeIndividualWorkspaceAccess as revokeIndividualWorkspaceAccessFacade,
-  mountCapabilities as mountCapabilitiesFacade,
-  unmountCapability as unmountCapabilityFacade,
-  updateWorkspaceSettings as updateWorkspaceSettingsFacade,
-  deleteWorkspace as deleteWorkspaceFacade,
-  createWorkspaceLocation as createWorkspaceLocationFacade,
-  updateWorkspaceLocation as updateWorkspaceLocationFacade,
-  deleteWorkspaceLocation as deleteWorkspaceLocationFacade,
-} from "@/shared/infra/firestore/firestore.facade"
-import type { Capability, WorkspaceLifecycleState, WorkspaceLocation, Address, WorkspacePersonnel } from "./_types"
-import type { WorkspaceRole } from "../gov.role/_types"
-import type { Account } from "@/features/shared-kernel"
-export async function createWorkspace(
-  name: string,
-  account: Account
-): Promise<CommandResult>
-export async function authorizeWorkspaceTeam(
-  workspaceId: string,
-  teamId: string
-): Promise<CommandResult>
-export async function revokeWorkspaceTeam(
-  workspaceId: string,
-  teamId: string
-): Promise<CommandResult>
-export async function grantIndividualWorkspaceAccess(
-  workspaceId: string,
-  userId: string,
-  role: WorkspaceRole,
-  protocol?: string
-): Promise<CommandResult>
-export async function revokeIndividualWorkspaceAccess(
-  workspaceId: string,
-  grantId: string
-): Promise<CommandResult>
-export async function mountCapabilities(
-  workspaceId: string,
-  capabilities: Capability[]
-): Promise<CommandResult>
-export async function unmountCapability(
-  workspaceId: string,
-  capability: Capability
-): Promise<CommandResult>
-export async function updateWorkspaceSettings(
-  workspaceId: string,
-  settings: {
-    name: string
-    visibility: "visible" | "hidden"
-    lifecycleState: WorkspaceLifecycleState
-    address?: Address
-    personnel?: WorkspacePersonnel
-  }
-): Promise<CommandResult>
-export async function deleteWorkspace(workspaceId: string): Promise<CommandResult>
-export async function createWorkspaceLocation(
-  workspaceId: string,
-  location: WorkspaceLocation
-): Promise<CommandResult>
-export async function updateWorkspaceLocation(
-  workspaceId: string,
-  locationId: string,
-  updates: Partial<Pick<WorkspaceLocation, 'label' | 'description' | 'capacity'>>
-): Promise<CommandResult>
-export async function deleteWorkspaceLocation(
-  workspaceId: string,
-  locationId: string
-): Promise<CommandResult>
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/shared/shadcn-ui/collapsible";
+import {
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  SidebarMenuButton,
+} from "@/shared/shadcn-ui/sidebar";
+interface NavMainProps {
+  pathname: string;
+  isOrganizationAccount: boolean;
+  t: (key: string) => string;
+}
+⋮----
+const isActive = (path: string)
+const isPartiallyActive = (path: string)
+⋮----
+<SidebarMenuButton asChild isActive=
+⋮----
+<SidebarMenuSubButton asChild isActive=
 ```
 
 ## File: src/features/workspace.slice/core/_components/workflow-blockers-state.ts
@@ -9517,348 +9895,29 @@ export function deriveWorkflowBlockersFromSources(
 export function summarizeWorkflowBlockers(state: WorkflowBlockersState)
 ```
 
-## File: src/features/workspace.slice/core/_components/workspace-settings.tsx
+## File: src/features/workspace.slice/core/_use-cases.ts
 ```typescript
-import { HardHat, ShieldCheck, User2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { Button } from "@/shared/shadcn-ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/shared/shadcn-ui/dialog";
-import { Input } from "@/shared/shadcn-ui/input";
-import { Label } from "@/shared/shadcn-ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/shadcn-ui/select";
-import { Switch } from "@/shared/shadcn-ui/switch";
-import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "../_types";
-interface WorkspaceSettingsDialogProps {
-  workspace: Workspace;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (settings: {
-    name: string;
-    visibility: "visible" | "hidden";
-    lifecycleState: WorkspaceLifecycleState;
-    address?: Address;
-    personnel?: WorkspacePersonnel;
-  }) => Promise<void>;
-  loading: boolean;
-}
-⋮----
-export function WorkspaceSettingsDialog({
-  workspace,
-  open,
-  onOpenChange,
-  onSave,
-  loading,
-}: WorkspaceSettingsDialogProps)
-⋮----
-const handleAddressChange = (field: keyof Address, value: string) =>
-const handlePersonnelChange = (field: keyof WorkspacePersonnel, value: string) =>
-const handleSave = () =>
-⋮----
-onChange={(e) => setName(e.target.value)}
-              className="h-11 rounded-xl"
-            />
-          </div>
-          {}
-          <div className="space-y-3">
-            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-              指派人員 Personnel
-            </Label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <User2 className="h-3.5 w-3.5" />
-                  <span>經理 Manager</span>
-                </div>
-                <Input
-                  placeholder="User ID / 姓名"
-                  value={personnel.managerId ?? ""}
-                  onChange={(e) => handlePersonnelChange("managerId", e.target.value)}
-                  className="h-9 rounded-xl"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <HardHat className="h-3.5 w-3.5" />
-                  <span>督導 Supervisor</span>
-                </div>
-                <Input
-                  placeholder="User ID / 姓名"
-                  value={personnel.supervisorId ?? ""}
-                  onChange={(e) => handlePersonnelChange("supervisorId", e.target.value)}
-                  className="h-9 rounded-xl"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>安衛 Safety</span>
-                </div>
-                <Input
-                  placeholder="User ID / 姓名"
-                  value={personnel.safetyOfficerId ?? ""}
-                  onChange={(e) => handlePersonnelChange("safetyOfficerId", e.target.value)}
-                  className="h-9 rounded-xl"
-                />
-              </div>
-            </div>
-          </div>
-          {}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-                Physical Address
-            </Label>
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    placeholder="Country"
-                    value={address.country}
-                    onChange={(e) => handleAddressChange('country', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-                <Input
-                    placeholder="State / Province"
-                    value={address.state}
-                    onChange={(e) => handleAddressChange('state', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-            </div>
-            <Input
-                placeholder="City"
-                value={address.city}
-                onChange={(e) => handleAddressChange('city', e.target.value)}
-                className="h-11 rounded-xl"
-            />
-            <Input
-                placeholder="Street Address"
-                value={address.street}
-                onChange={(e) => handleAddressChange('street', e.target.value)}
-                className="h-11 rounded-xl"
-            />
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    placeholder="Postal Code"
-                    value={address.postalCode}
-                    onChange={(e) => handleAddressChange('postalCode', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-              Current Lifecycle State
-            </Label>
-            <Select
-              value={lifecycleState}
-onValueChange=
-⋮----
-onChange={(e) => handlePersonnelChange("managerId", e.target.value)}
-                  className="h-9 rounded-xl"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <HardHat className="h-3.5 w-3.5" />
-                  <span>督導 Supervisor</span>
-                </div>
-                <Input
-                  placeholder="User ID / 姓名"
-                  value={personnel.supervisorId ?? ""}
-                  onChange={(e) => handlePersonnelChange("supervisorId", e.target.value)}
-                  className="h-9 rounded-xl"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>安衛 Safety</span>
-                </div>
-                <Input
-                  placeholder="User ID / 姓名"
-                  value={personnel.safetyOfficerId ?? ""}
-                  onChange={(e) => handlePersonnelChange("safetyOfficerId", e.target.value)}
-                  className="h-9 rounded-xl"
-                />
-              </div>
-            </div>
-          </div>
-          {}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-                Physical Address
-            </Label>
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    placeholder="Country"
-                    value={address.country}
-                    onChange={(e) => handleAddressChange('country', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-                <Input
-                    placeholder="State / Province"
-                    value={address.state}
-                    onChange={(e) => handleAddressChange('state', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-            </div>
-            <Input
-                placeholder="City"
-                value={address.city}
-                onChange={(e) => handleAddressChange('city', e.target.value)}
-                className="h-11 rounded-xl"
-            />
-            <Input
-                placeholder="Street Address"
-                value={address.street}
-                onChange={(e) => handleAddressChange('street', e.target.value)}
-                className="h-11 rounded-xl"
-            />
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    placeholder="Postal Code"
-                    value={address.postalCode}
-                    onChange={(e) => handleAddressChange('postalCode', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-              Current Lifecycle State
-            </Label>
-            <Select
-              value={lifecycleState}
-onValueChange=
-⋮----
-onChange={(e) => handlePersonnelChange("supervisorId", e.target.value)}
-                  className="h-9 rounded-xl"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>安衛 Safety</span>
-                </div>
-                <Input
-                  placeholder="User ID / 姓名"
-                  value={personnel.safetyOfficerId ?? ""}
-                  onChange={(e) => handlePersonnelChange("safetyOfficerId", e.target.value)}
-                  className="h-9 rounded-xl"
-                />
-              </div>
-            </div>
-          </div>
-          {}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-                Physical Address
-            </Label>
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    placeholder="Country"
-                    value={address.country}
-                    onChange={(e) => handleAddressChange('country', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-                <Input
-                    placeholder="State / Province"
-                    value={address.state}
-                    onChange={(e) => handleAddressChange('state', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-            </div>
-            <Input
-                placeholder="City"
-                value={address.city}
-                onChange={(e) => handleAddressChange('city', e.target.value)}
-                className="h-11 rounded-xl"
-            />
-            <Input
-                placeholder="Street Address"
-                value={address.street}
-                onChange={(e) => handleAddressChange('street', e.target.value)}
-                className="h-11 rounded-xl"
-            />
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    placeholder="Postal Code"
-                    value={address.postalCode}
-                    onChange={(e) => handleAddressChange('postalCode', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-              Current Lifecycle State
-            </Label>
-            <Select
-              value={lifecycleState}
-onValueChange=
-⋮----
-onChange={(e) => handlePersonnelChange("safetyOfficerId", e.target.value)}
-                  className="h-9 rounded-xl"
-                />
-              </div>
-            </div>
-          </div>
-          {}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-                Physical Address
-            </Label>
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    placeholder="Country"
-                    value={address.country}
-                    onChange={(e) => handleAddressChange('country', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-                <Input
-                    placeholder="State / Province"
-                    value={address.state}
-                    onChange={(e) => handleAddressChange('state', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-            </div>
-            <Input
-                placeholder="City"
-                value={address.city}
-                onChange={(e) => handleAddressChange('city', e.target.value)}
-                className="h-11 rounded-xl"
-            />
-            <Input
-                placeholder="Street Address"
-                value={address.street}
-                onChange={(e) => handleAddressChange('street', e.target.value)}
-                className="h-11 rounded-xl"
-            />
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    placeholder="Postal Code"
-                    value={address.postalCode}
-                    onChange={(e) => handleAddressChange('postalCode', e.target.value)}
-                    className="h-11 rounded-xl"
-                />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-              Current Lifecycle State
-            </Label>
-            <Select
-              value={lifecycleState}
-onValueChange=
+import type { CommandResult, Account } from '@/features/shared-kernel';
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import type { Capability, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "./_types";
+import { createWorkspace, mountCapabilities, updateWorkspaceSettings, deleteWorkspace } from "./_actions";
+export async function createWorkspaceWithCapabilities(
+  name: string,
+  account: Account,
+  capabilities: Capability[] = []
+): Promise<CommandResult>
+export const handleCreateWorkspace = async (
+  name: string,
+  activeAccount: Account | null,
+  onSuccess: () => void,
+  t: (key: string) => string
+) =>
+export const handleUpdateWorkspaceSettings = async (
+  workspaceId: string,
+  settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState; address?: Address; personnel?: WorkspacePersonnel },
+  onSuccess: () => void
+) =>
+export const handleDeleteWorkspace = async (workspaceId: string, onSuccess: () => void) =>
 ```
 
 ## File: src/features/workspace.slice/core/index.ts
@@ -9997,95 +10056,148 @@ export const updateParsingImportStatus = async (
 ): Promise<void> =>
 ```
 
-## File: src/shared/infra/firestore/repositories/workspace-core.repository.ts
+## File: src/features/account.slice/user.profile/_components/profile-card.tsx
 ```typescript
+import { User, Loader2, Upload } from "lucide-react";
+import type React from "react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/shadcn-ui/avatar";
+import { Button } from "@/shared/shadcn-ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/shared/shadcn-ui/card";
+import { Input } from "@/shared/shadcn-ui/input";
+import { Label } from "@/shared/shadcn-ui/label";
+import { Textarea } from "@/shared/shadcn-ui/textarea";
+import { type Account } from "@/features/shared-kernel"
+interface ProfileCardProps {
+  account: Account | null
+  name: string
+  setName: (name: string) => void
+  bio: string
+  setBio: (bio: string) => void
+  handleSaveProfile: () => void
+  handleAvatarUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
+  isSaving: boolean
+  isUploading: boolean
+  avatarInputRef: React.RefObject<HTMLInputElement | null>
+}
+export function ProfileCard({
+  account,
+  name,
+  setName,
+  bio,
+  setBio,
+  handleSaveProfile,
+  handleAvatarUpload,
+  isSaving,
+  isUploading,
+  avatarInputRef,
+}: ProfileCardProps)
+⋮----
+<Button onClick=
+⋮----
+<Input id="user-name" value=
+```
+
+## File: src/features/account.slice/user.profile/_components/user-settings.tsx
+```typescript
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useI18n } from "@/config/i18n/i18n-provider";
+import { useAuth } from "@/shared/app-providers/auth-provider";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import { useUser } from "../_hooks/use-user";
+import { PreferencesCard } from "./preferences-card";
+import { ProfileCard } from "./profile-card";
+import { SecurityCard } from "./security-card";
+import { EmailCard } from "./email-card";
+export function UserSettings()
+⋮----
+const handleSaveProfile = async () =>
+const handleWithdraw = () =>
+const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) =>
+```
+
+## File: src/features/scheduling.slice/_components/proposal-dialog.tsx
+```typescript
+import { format } from "date-fns";
+import { CalendarIcon, ChevronsUpDown, MapPin, Plus, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { type DateRange } from "react-day-picker";
+import type { SkillRequirement } from "@/features/shared-kernel";
+import { tagSlugRef } from "@/features/shared-kernel";
+import { getOrgSkillTags } from "@/features/skill-xp.slice";
+import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
+import { Badge } from "@/shared/shadcn-ui/badge";
+import { Button } from "@/shared/shadcn-ui/button";
+import { Calendar } from "@/shared/shadcn-ui/calendar";
 import {
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove,
-  doc,
-  getDoc,
-  runTransaction,
-  type FieldValue,
-} from 'firebase/firestore';
-import type {
-  Workspace,
-  WorkspaceRole,
-  WorkspaceGrant,
-  WorkspaceFile,
-  Capability,
-  WorkspaceLifecycleState,
-  WorkspaceLocation,
-  Address,
-  WorkspacePersonnel,
-} from '@/features/workspace.slice';
-import type { Account } from '@/features/shared-kernel';
-import { db } from '../firestore.client';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/shared/shadcn-ui/command";
 import {
-  updateDocument,
-  addDocument,
-  deleteDocument,
-} from '../firestore.write.adapter';
-export const createWorkspace = async (
-  name: string,
-  account: Account
-): Promise<string> =>
-export const authorizeWorkspaceTeam = async (
-  workspaceId: string,
-  teamId: string
-): Promise<void> =>
-export const revokeWorkspaceTeam = async (
-  workspaceId: string,
-  teamId: string
-): Promise<void> =>
-export const grantIndividualWorkspaceAccess = async (
-  workspaceId: string,
-  userId: string,
-  role: WorkspaceRole,
-  protocol?: string
-): Promise<void> =>
-export const revokeIndividualWorkspaceAccess = async (
-  workspaceId: string,
-  grantId: string
-): Promise<void> =>
-export const mountCapabilities = async (
-  workspaceId: string,
-  capabilities: Capability[]
-): Promise<void> =>
-export const unmountCapability = async (
-  workspaceId: string,
-  capability: Capability
-): Promise<void> =>
-export const updateWorkspaceSettings = async (
-  workspaceId: string,
-  settings: {
-    name: string;
-    visibility: 'visible' | 'hidden';
-    lifecycleState: WorkspaceLifecycleState;
-    address?: Address;
-    personnel?: WorkspacePersonnel;
-  }
-): Promise<void> =>
-export const deleteWorkspace = async (workspaceId: string): Promise<void> =>
-export const getWorkspaceFiles = async (
-  workspaceId: string
-): Promise<WorkspaceFile[]> =>
-export const getWorkspaceGrants = async (
-  workspaceId: string
-): Promise<WorkspaceGrant[]> =>
-export const createWorkspaceLocation = async (
-  workspaceId: string,
-  location: WorkspaceLocation
-): Promise<void> =>
-export const updateWorkspaceLocation = async (
-  workspaceId: string,
-  locationId: string,
-  updates: Partial<Pick<WorkspaceLocation, 'label' | 'description' | 'capacity'>>
-): Promise<void> =>
-export const deleteWorkspaceLocation = async (
-  workspaceId: string,
-  locationId: string
-): Promise<void> =>
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/shared/shadcn-ui/dialog";
+import { Input } from "@/shared/shadcn-ui/input";
+import { Label } from "@/shared/shadcn-ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
+import { Textarea } from "@/shared/shadcn-ui/textarea";
+import { type Location } from "@/features/workspace.slice";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+⋮----
+interface ProposalDialogProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  onSubmit: (data: {
+    title: string;
+    description: string;
+    startDate?: Date;
+    endDate?: Date;
+    location: Location;
+    requiredSkills: SkillRequirement[];
+  }) => Promise<void>;
+  initialDate: Date;
+  orgId?: string;
+}
+export function ProposalDialog({
+  isOpen,
+  onOpenChange,
+  onSubmit,
+  initialDate,
+  orgId,
+}: ProposalDialogProps)
+⋮----
+/** Value string for cmdk filtering — covers zh + en + sub-category labels. */
+⋮----
+const handleLocationChange = (field: keyof Location, value: string) =>
+const handleAddSkillRequirement = () =>
+const handleRemoveSkillRequirement = (slug: string) =>
+const handleSubmit = async () =>
+⋮----
+<Input id="item-title" value=
+⋮----
+
+⋮----
+<button
+                        type="button"
+                        onClick={() => handleRemoveSkillRequirement(req.tagSlug)}
+                        className="ml-1 rounded-full hover:text-destructive"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  );
+⋮----
+setSelectedSkillSlug(skill.slug);
+setSkillPickerOpen(false);
 ```
 
 ## File: src/features/workspace.slice/business.document-parser/_types.ts
@@ -10323,42 +10435,7 @@ const getAccountInitial = (name?: string)
 ⋮----
 ```
 
-## File: src/features/workspace.slice/core/_use-cases.ts
-```typescript
-import type { CommandResult, Account } from '@/features/shared-kernel';
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
-import type { Capability, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "./_types";
-import { createWorkspace, mountCapabilities, updateWorkspaceSettings, deleteWorkspace } from "./_actions";
-export async function createWorkspaceWithCapabilities(
-  name: string,
-  account: Account,
-  capabilities: Capability[] = []
-): Promise<CommandResult>
-export const handleCreateWorkspace = async (
-  name: string,
-  activeAccount: Account | null,
-  onSuccess: () => void,
-  t: (key: string) => string
-) =>
-export const handleUpdateWorkspaceSettings = async (
-  workspaceId: string,
-  settings: { name: string; visibility: 'visible' | 'hidden'; lifecycleState: WorkspaceLifecycleState; address?: Address; personnel?: WorkspacePersonnel },
-  onSuccess: () => void
-) =>
-export const handleDeleteWorkspace = async (workspaceId: string, onSuccess: () => void) =>
-```
-
 ## File: src/shared/infra/firestore/collection-paths.ts
-```typescript
-
-```
-
-## File: src/shared/infra/firestore/firestore.facade.ts
-```typescript
-
-```
-
-## File: src/shared/infra/firestore/repositories/index.ts
 ```typescript
 
 ```
@@ -10456,80 +10533,6 @@ const handleImport = async () =>
 // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
 ```
 
-## File: src/features/workspace.slice/core/_components/workspace-card.tsx
-```typescript
-import {
-  Building2,
-  Eye,
-  EyeOff,
-  HardHat,
-  Hash,
-  MapPin,
-  Settings,
-  Shield,
-  ShieldCheck,
-  Trash2,
-  UserPlus,
-  User2,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, useCallback } from "react";
-import { useI18n } from "@/config/i18n/i18n-provider";
-import { ROUTES } from "@/shared/constants/routes";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/shared/shadcn-ui/alert-dialog";
-import { Badge } from "@/shared/shadcn-ui/badge";
-import { Button } from "@/shared/shadcn-ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/shared/shadcn-ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/shadcn-ui/tooltip";
-import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "../_types";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
-import { deleteWorkspace, updateWorkspaceSettings } from "../_actions";
-import { WorkspaceSettingsDialog } from "./workspace-settings";
-interface WorkspaceCardProps {
-  workspace: Workspace;
-}
-function buildMapsUrl(address: Workspace["address"]): string
-function PersonnelSlot({
-  icon: Icon,
-  label,
-  userId,
-  onAssign,
-}: {
-  icon: React.FC<{ className?: string }>;
-  label: string;
-  userId?: string;
-onAssign: ()
-⋮----
-onClick=
-⋮----
-const handleSettingsSave = async (settings: {
-    name: string;
-    visibility: "visible" | "hidden";
-    lifecycleState: WorkspaceLifecycleState;
-    address?: Address;
-    personnel?: WorkspacePersonnel;
-}) =>
-const handleDestroyConfirm = async () =>
-⋮----
-href=
-```
-
 ## File: src/features/workspace.slice/core/_queries.ts
 ```typescript
 import type { ScheduleItem } from '@/features/shared-kernel';
@@ -10578,6 +10581,16 @@ export function subscribeToWorkspaceIssues(
   workspaceId: string,
   onUpdate: (issues: Record<string, WorkspaceIssue>) => void,
 ): Unsubscribe
+```
+
+## File: src/shared/infra/firestore/firestore.facade.ts
+```typescript
+
+```
+
+## File: src/shared/infra/firestore/repositories/index.ts
+```typescript
+
 ```
 
 ## File: src/features/scheduling.slice/_components/org-schedule-governance.tsx
@@ -10795,144 +10808,6 @@ export type SubscribeFn = <T extends WorkspaceEventName>(
 ) => () => void
 ```
 
-## File: src/shared/infra/firestore/repositories/workspace-business.document-parser.repository.ts
-```typescript
-import {
-  serverTimestamp,
-  collection,
-  query,
-  orderBy,
-} from 'firebase/firestore';
-import type { ParsingIntent } from '@/features/workspace.slice';
-import { SUBCOLLECTIONS } from '../collection-paths';
-import { db } from '../firestore.client';
-import { createConverter } from '../firestore.converter';
-import { getDocuments } from '../firestore.read.adapter';
-import {
-  updateDocument,
-  addDocument,
-} from '../firestore.write.adapter';
-export const createParsingIntent = async (
-  workspaceId: string,
-  intentData: Omit<ParsingIntent, 'id' | 'createdAt'>
-): Promise<string> =>
-export const updateParsingIntentStatus = async (
-  workspaceId: string,
-  intentId: string,
-  status: 'importing' | 'imported' | 'failed' | 'superseded'
-): Promise<void> =>
-export const supersedeParsingIntent = async (
-  workspaceId: string,
-  oldIntentId: string,
-  newIntentId: string
-): Promise<void> =>
-export const getParsingIntents = async (
-  workspaceId: string
-): Promise<ParsingIntent[]> =>
-```
-
-## File: src/features/workspace.slice/business.document-parser/_intent-actions.ts
-```typescript
-import type { SkillRequirement } from '@/features/shared-kernel'
-import {
-  createParsingImport as createParsingImportFacade,
-  createParsingIntent as createParsingIntentFacade,
-  getParsingImportByIdempotencyKey as getParsingImportByIdempotencyKeyFacade,
-  supersedeParsingIntent as supersedeParsingIntentFacade,
-  updateParsingImportStatus as updateParsingImportStatusFacade,
-  updateParsingIntentStatus as updateParsingIntentStatusFacade,
-} from '@/shared/infra/firestore/firestore.facade'
-import type { Timestamp } from '@/shared/ports'
-import type {
-  ParsedLineItem,
-  IntentID,
-  SourcePointer,
-  ParsingImport,
-  ParsingImportStatus,
-  ParsingIntentReviewStatus,
-  ParsingIntentSourceType,
-} from './_types'
-⋮----
-function stableSerialize(value: unknown, seen = new WeakSet<object>()): string
-async function createSemanticHash(lineItems: ParsedLineItem[]): Promise<string>
-export type ParsingImportStartResult = {
-  importId: string
-  idempotencyKey: string
-  status: ParsingImportStatus
-  isDuplicate: boolean
-}
-export type ParsingImportFinishInput = {
-  status: ParsingImportStatus
-  appliedTaskIds: string[]
-  error?: {
-    code: string
-    message: string
-  }
-}
-/**
- * Builds the canonical idempotency key for one intent materialization attempt.
- *
- * intentId      = ParsingIntent aggregate ID.
- * intentVersion = ParsingIntent version for that aggregate snapshot.
- *
- * Format: import:{intentId}:{intentVersion}
- */
-export function buildParsingImportIdempotencyKey(
-  intentId: string,
-  intentVersion: number
-): string
-export type SaveParsingIntentResult = {
-  intentId: IntentID
-  /** Present when a previous intent was superseded by this save. */
-  oldIntentId?: IntentID
-}
-⋮----
-/** Present when a previous intent was superseded by this save. */
-⋮----
-export async function saveParsingIntent(
-  workspaceId: string,
-  sourceFileName: string,
-  lineItems: ParsedLineItem[],
-  options?: {
-    sourceFileDownloadURL?: SourcePointer
-    sourceFileId?: string
-    skillRequirements?: SkillRequirement[]
-    intentVersion?: number
-    parserVersion?: string
-    modelVersion?: string
-    sourceType?: ParsingIntentSourceType
-    reviewStatus?: ParsingIntentReviewStatus
-    reviewedBy?: string
-    reviewedAt?: Timestamp
-    semanticHash?: string
-    baseIntentId?: IntentID
-    /** When provided, the old intent is marked as superseded by the new intent [#A4]. */
-    previousIntentId?: IntentID
-  }
-): Promise<SaveParsingIntentResult>
-⋮----
-/** When provided, the old intent is marked as superseded by the new intent [#A4]. */
-⋮----
-export async function startParsingImport(
-  workspaceId: string,
-  intentId: string,
-  intentVersion = INITIAL_PARSING_INTENT_VERSION
-): Promise<ParsingImportStartResult>
-export async function finishParsingImport(
-  workspaceId: string,
-  importId: string,
-  input: ParsingImportFinishInput
-): Promise<void>
-export async function markParsingIntentImported(
-  workspaceId: string,
-  intentId: string
-): Promise<void>
-export async function markParsingIntentFailed(
-  workspaceId: string,
-  intentId: string
-): Promise<void>
-```
-
 ## File: src/features/workspace.slice/core/_components/workspace-provider.tsx
 ```typescript
 import { Loader2 } from 'lucide-react';
@@ -11024,9 +10899,168 @@ const hydrateWorkflowBlockers = async () =>
 export function useWorkspace()
 ```
 
+## File: src/shared/infra/firestore/repositories/workspace-business.document-parser.repository.ts
+```typescript
+import {
+  serverTimestamp,
+  collection,
+  query,
+  orderBy,
+  where,
+  limit,
+} from 'firebase/firestore';
+import type { ParsingIntent } from '@/features/workspace.slice';
+import { SUBCOLLECTIONS } from '../collection-paths';
+import { db } from '../firestore.client';
+import { createConverter } from '../firestore.converter';
+import { getDocuments } from '../firestore.read.adapter';
+import {
+  updateDocument,
+  addDocument,
+} from '../firestore.write.adapter';
+export const createParsingIntent = async (
+  workspaceId: string,
+  intentData: Omit<ParsingIntent, 'id' | 'createdAt'>
+): Promise<string> =>
+export const updateParsingIntentStatus = async (
+  workspaceId: string,
+  intentId: string,
+  status: 'importing' | 'imported' | 'failed' | 'superseded'
+): Promise<void> =>
+export const supersedeParsingIntent = async (
+  workspaceId: string,
+  oldIntentId: string,
+  newIntentId: string
+): Promise<void> =>
+export const getParsingIntents = async (
+  workspaceId: string
+): Promise<ParsingIntent[]> =>
+export const getParsingIntentBySourceFileId = async (
+  workspaceId: string,
+  sourceFileId: string
+): Promise<ParsingIntent | null> =>
+```
+
+## File: src/features/workspace.slice/business.document-parser/_intent-actions.ts
+```typescript
+import type { SkillRequirement } from '@/features/shared-kernel'
+import {
+  createParsingImport as createParsingImportFacade,
+  createParsingIntent as createParsingIntentFacade,
+  getParsingImportByIdempotencyKey as getParsingImportByIdempotencyKeyFacade,
+  getParsingIntentBySourceFileId as getParsingIntentBySourceFileIdFacade,
+  supersedeParsingIntent as supersedeParsingIntentFacade,
+  updateParsingImportStatus as updateParsingImportStatusFacade,
+  updateParsingIntentStatus as updateParsingIntentStatusFacade,
+} from '@/shared/infra/firestore/firestore.facade'
+import type { Timestamp } from '@/shared/ports'
+import type {
+  ParsedLineItem,
+  IntentID,
+  SourcePointer,
+  ParsingImport,
+  ParsingImportStatus,
+  ParsingIntentReviewStatus,
+  ParsingIntentSourceType,
+} from './_types'
+⋮----
+function stableSerialize(value: unknown, seen = new WeakSet<object>()): string
+async function createSemanticHash(lineItems: ParsedLineItem[]): Promise<string>
+export type ParsingImportStartResult = {
+  importId: string
+  idempotencyKey: string
+  status: ParsingImportStatus
+  isDuplicate: boolean
+}
+export type ParsingImportFinishInput = {
+  status: ParsingImportStatus
+  appliedTaskIds: string[]
+  error?: {
+    code: string
+    message: string
+  }
+}
+/**
+ * Builds the canonical idempotency key for one intent materialization attempt.
+ *
+ * intentId      = ParsingIntent aggregate ID.
+ * intentVersion = ParsingIntent version for that aggregate snapshot.
+ *
+ * Format: import:{intentId}:{intentVersion}
+ */
+export function buildParsingImportIdempotencyKey(
+  intentId: string,
+  intentVersion: number
+): string
+export type SaveParsingIntentResult = {
+  intentId: IntentID
+  /** Present when a previous intent was superseded by this save. */
+  oldIntentId?: IntentID
+}
+⋮----
+/** Present when a previous intent was superseded by this save. */
+⋮----
+export async function saveParsingIntent(
+  workspaceId: string,
+  sourceFileName: string,
+  lineItems: ParsedLineItem[],
+  options?: {
+    sourceFileDownloadURL?: SourcePointer
+    sourceFileId?: string
+    skillRequirements?: SkillRequirement[]
+    intentVersion?: number
+    parserVersion?: string
+    modelVersion?: string
+    sourceType?: ParsingIntentSourceType
+    reviewStatus?: ParsingIntentReviewStatus
+    reviewedBy?: string
+    reviewedAt?: Timestamp
+    semanticHash?: string
+    baseIntentId?: IntentID
+    /** When provided, the old intent is marked as superseded by the new intent [#A4]. */
+    previousIntentId?: IntentID
+  }
+): Promise<SaveParsingIntentResult>
+⋮----
+/** When provided, the old intent is marked as superseded by the new intent [#A4]. */
+⋮----
+// [D14/D15] Write-idempotency guard: when a sourceFileId is supplied, check
+// whether a non-superseded ParsingIntent already exists for this source file.
+//   • Same semanticHash  → content is identical; return the existing intent
+//                          without creating a duplicate document.
+//   • Different hash     → the file was re-parsed; automatically supersede the
+//                          previous intent and create a fresh one.
+⋮----
+// True duplicate — identical content; return the existing intent.
+// The caller receives the same intentId it would from a fresh create, so
+// all downstream consumers (document-parser-view, import ledger) behave
+// normally. No Firestore write is made and no side-effects are triggered.
+⋮----
+// Content changed — supersede the previous intent.
+⋮----
+export async function startParsingImport(
+  workspaceId: string,
+  intentId: string,
+  intentVersion = INITIAL_PARSING_INTENT_VERSION
+): Promise<ParsingImportStartResult>
+export async function finishParsingImport(
+  workspaceId: string,
+  importId: string,
+  input: ParsingImportFinishInput
+): Promise<void>
+export async function markParsingIntentImported(
+  workspaceId: string,
+  intentId: string
+): Promise<void>
+export async function markParsingIntentFailed(
+  workspaceId: string,
+  intentId: string
+): Promise<void>
+```
+
 ## File: src/features/workspace.slice/core/_hooks/use-workspace-event-handler.tsx
 ```typescript
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { handleScheduleProposed } from "@/features/scheduling.slice";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { ToastAction } from "@/shared/shadcn-ui/toast";

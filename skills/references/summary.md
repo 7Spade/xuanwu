@@ -45,12 +45,12 @@ This skill contains the following reference files:
 
 ## Statistics
 
-530 files | 8,958 lines
+530 files | 8,992 lines
 
 | Language | Files | Lines |
 |----------|------:|------:|
-| TypeScript | 339 | 5,847 |
-| TypeScript (TSX) | 177 | 2,755 |
+| TypeScript | 339 | 5,872 |
+| TypeScript (TSX) | 177 | 2,764 |
 | JSON | 7 | 309 |
 | Markdown | 2 | 10 |
 | No Extension | 2 | 15 |
@@ -63,8 +63,8 @@ This skill contains the following reference files:
 - `src/features/workspace.slice/core.event-bus/_events.ts` (154 lines)
 - `package.json` (131 lines)
 - `src/features/organization.slice/core.event-bus/_events.ts` (126 lines)
-- `src/features/workspace.slice/business.document-parser/_intent-actions.ts` (98 lines)
+- `src/features/workspace.slice/business.document-parser/_intent-actions.ts` (113 lines)
 - `src/shared/infra/firestore/repositories/workspace-core.repository.ts` (87 lines)
 - `src/features/workspace.slice/core/_components/workspace-provider.tsx` (87 lines)
 - `src/features/workspace.slice/business.tasks/_components/tasks-view.tsx` (82 lines)
-- `src/features/scheduling.slice/_components/proposal-dialog.tsx` (79 lines)
+- `src/features/scheduling.slice/_components/proposal-dialog.tsx` (80 lines)
