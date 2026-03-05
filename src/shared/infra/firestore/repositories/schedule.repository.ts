@@ -65,6 +65,19 @@ export const updateScheduleItemStatus = async (
   return updateDoc(itemRef, { status: newStatus, updatedAt: serverTimestamp() })
 }
 
+export const updateScheduleItemDateRange = async (
+  accountId: string,
+  itemId: string,
+  startDate: ScheduleItem['startDate'],
+  endDate: ScheduleItem['endDate']
+): Promise<void> => {
+  return updateDocument(`accounts/${accountId}/schedule_items/${itemId}`, {
+    startDate,
+    endDate,
+    updatedAt: serverTimestamp(),
+  })
+}
+
 /**
  * Assigns a member to a schedule item and marks it OFFICIAL in a single write.
  * Used by DemandBoard and HR Governance to keep all three tabs in sync via

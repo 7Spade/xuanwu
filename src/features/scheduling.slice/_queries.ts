@@ -19,7 +19,7 @@ import {
 import type { ImplementsStalenessContract } from '@/features/shared-kernel';
 import type { ScheduleItem, ScheduleStatus } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
-import { getScheduleItems as getScheduleItemsFacade } from '@/shared/infra/firestore/firestore.facade';
+import { fetchScheduleItems } from '@/shared/infra/firestore/firestore.facade';
 import {
   collection,
   query,
@@ -55,7 +55,7 @@ export async function getScheduleItems(
   accountId: string,
   workspaceId?: string
 ): Promise<ScheduleItem[]> {
-  return getScheduleItemsFacade(accountId, workspaceId);
+  return fetchScheduleItems(accountId, workspaceId);
 }
 
 // =================================================================

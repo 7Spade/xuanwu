@@ -14,6 +14,6 @@ export * from './workspace-business.parsing-imports.repository'// createParsingI
 export * from './workspace-business.finance.repository'        // getFinanceAggregateState, saveFinanceAggregateState
 export * from './workspace-core.event-store.repository'        // appendDomainEvent, getDomainEvents, StoredWorkspaceEvent
 export * from './projection.registry.repository'               // getProjectionVersion, upsertProjectionVersion, ProjectionVersionRecord
-export * from './schedule.repository'                          // createScheduleItem, updateScheduleItemStatus, assignMemberToScheduleItem, assignMemberAndApprove, unassignMemberFromScheduleItem, getScheduleItems
+export * from './schedule.repository'                          // createScheduleItem, updateScheduleItemStatus, updateScheduleItemDateRange, assignMemberToScheduleItem, assignMemberAndApprove, unassignMemberFromScheduleItem, getScheduleItems
 export * from './daily.repository'                             // toggleDailyLogLike, addDailyLogComment, getDailyLogs
 export * from './audit.repository'                             // getAuditLogs

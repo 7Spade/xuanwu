@@ -18,9 +18,10 @@ import { useAuth } from "@/shared/app-providers/auth-provider";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import {
-    assignMember as assignMemberAction,
-    unassignMember as unassignMemberAction,
+    assignMember,
+    unassignMember,
     updateScheduleItemStatus,
+  updateScheduleItemDateRange,
 } from "../_actions";
 import { getAccountActiveAssignments } from "../_queries";
 import { canTransitionScheduleStatus } from "../_schedule.rules";
@@ -32,7 +33,7 @@ export function useScheduleActions() {
   const { activeAccount } = appState;
   const { user } = authState;
 
-  const assignMember = useCallback(async (item: ScheduleItem, memberId: string) => {
+  const assignMemberCommand = useCallback(async (item: ScheduleItem, memberId: string) => {
     if (!user || !activeAccount || activeAccount.accountType !== 'organization') {
       toast({
         variant: "destructive",
@@ -81,7 +82,7 @@ export function useScheduleActions() {
     }
 
     try {
-      const result = await assignMemberAction(item.accountId, item.id, memberId);
+      const result = await assignMember(item.accountId, item.id, memberId);
       if (!result.success) throw new Error(result.error.message);
       toast({ title: "Member Assigned", description: "The schedule item has been updated." });
     } catch (error) {
@@ -95,7 +96,7 @@ export function useScheduleActions() {
     }
   }, [user, activeAccount]);
 
-  const unassignMember = useCallback(async (item: ScheduleItem, memberId: string) => {
+  const unassignMemberCommand = useCallback(async (item: ScheduleItem, memberId: string) => {
     if (!user || !activeAccount || activeAccount.accountType !== 'organization') {
       toast({
         variant: "destructive",
@@ -106,7 +107,7 @@ export function useScheduleActions() {
     }
 
     try {
-      const result = await unassignMemberAction(item.accountId, item.id, memberId);
+      const result = await unassignMember(item.accountId, item.id, memberId);
       if (!result.success) throw new Error(result.error.message);
       toast({ title: "Member Unassigned" });
     } catch (error) {
@@ -136,5 +137,35 @@ export function useScheduleActions() {
     if (!result.success) throw new Error(result.error.message);
   }, []);
 
-  return { assignMember, unassignMember, approveItem, rejectItem };
+  const rescheduleItem = useCallback(async (item: ScheduleItem, startDate: Date, endDate: Date) => {
+    if (!user || !activeAccount || activeAccount.accountType !== 'organization') {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'You must be in an organization to reschedule items.',
+      });
+      return false;
+    }
+
+    const result = await updateScheduleItemDateRange(item.accountId, item.id, startDate, endDate);
+    if (!result.success) {
+      toast({
+        variant: 'destructive',
+        title: 'Reschedule Failed',
+        description: result.error.message,
+      });
+      return false;
+    }
+
+    toast({ title: 'Schedule Updated', description: 'Timeline move has been saved.' });
+    return true;
+  }, [user, activeAccount]);
+
+  return {
+    assignMember: assignMemberCommand,
+    unassignMember: unassignMemberCommand,
+    approveItem,
+    rejectItem,
+    rescheduleItem,
+  };
 }

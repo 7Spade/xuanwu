@@ -65,10 +65,15 @@ export const reconcileTask = repositories.reconcileTask
 
 // Schedule
 export const createScheduleItem = repositories.createScheduleItem
+export const saveScheduleItem = repositories.createScheduleItem
 export const assignMemberToScheduleItem = repositories.assignMemberToScheduleItem
 export const unassignMemberFromScheduleItem = repositories.unassignMemberFromScheduleItem
 export const updateScheduleItemStatus = repositories.updateScheduleItemStatus
+export const setScheduleItemStatus = repositories.updateScheduleItemStatus
+export const updateScheduleItemDateRange = repositories.updateScheduleItemDateRange
+export const setScheduleItemDateRange = repositories.updateScheduleItemDateRange
 export const assignMemberAndApprove = repositories.assignMemberAndApprove
+export const fetchScheduleItems = repositories.getScheduleItems
 export const toggleDailyLogLike = repositories.toggleDailyLogLike
 export const addDailyLogComment = repositories.addDailyLogComment
 

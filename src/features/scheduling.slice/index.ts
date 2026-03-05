@@ -43,6 +43,7 @@ export {
   // Fast-path facade mutations
   approveScheduleItemWithMember,
   updateScheduleItemStatus,
+  updateScheduleItemDateRange,
   // HR domain actions
   manualAssignScheduleMember,
   cancelScheduleProposalAction,
@@ -74,11 +75,15 @@ export type { OrgEligibleMemberView, OrgMemberSkillWithTier } from './_queries';
 // =================================================================
 // Hooks (React)
 // =================================================================
-export { useOrgSchedule, usePendingScheduleProposals, useConfirmedScheduleProposals } from './_hooks/use-org-schedule';
-export { useGlobalSchedule } from './_hooks/use-global-schedule';
-export { useScheduleActions } from './_hooks/use-schedule-commands';
-export { useWorkspaceSchedule } from './_hooks/use-workspace-schedule';
-export { useScheduleEventHandler } from './_hooks/use-schedule-event-handler';
+export {
+  useOrgSchedule,
+  usePendingScheduleProposals,
+  useConfirmedScheduleProposals,
+  useGlobalSchedule,
+  useScheduleActions,
+  useWorkspaceSchedule,
+  useScheduleEventHandler,
+} from './_hooks';
 
 // =================================================================
 // UI Components
