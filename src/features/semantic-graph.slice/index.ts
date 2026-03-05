@@ -56,9 +56,17 @@ export type {
   SemanticEdge,
   SemanticRelationType,
   TagLifecycleState,
+  TagLifecycleEvent,
+  TagLifecycleEventType,
   TagLifecycleRecord,
   StaleTagWarning,
   TagEntity,
+  // Neural Network types [D21-3 D21-4 D21-6]
+  SemanticDistanceEntry,
+  AffectedNode,
+  CausalityReason,
+  DownstreamEvent,
+  CausalityChain,
 } from './centralized-types';
 
 // =================================================================
@@ -108,6 +116,15 @@ export {
   getIsAEdges,
   getRequiresEdges,
   queryStaleTagWarnings,
+  // Neural Network queries [D21-3 D21-4]
+  computeSemanticDistance,
+  computeSemanticDistanceMatrix,
+  findIsolatedNodes,
+  // Causality Tracer queries [D21-6]
+  traceAffectedNodes,
+  rankAffectedNodes,
+  buildDownstreamEvents,
+  buildCausalityChain,
 } from './_queries';
 
 // =================================================================
