@@ -57,6 +57,22 @@
 %%    T1=tag-lifecycle-sub        T3=eligible-tag-logic  T5=tag-snapshot-readonly
 %%    E2=OrgContextProvisioned    E3=ScheduleAssigned    E5=ws-event-flow   E6=claims-refresh
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
+%%  FINAL REVIEW BASELINE（最終態審查基準 · Team Gate）
+%%  ── Scope（本輪必審）──
+%%    1) VS0~VS8：每個切片必須有明確層位（L1/L3）與單一職責
+%%    2) D1~D26：列為 Mandatory Gate（PR 必須全通過）
+%%    3) TE1~TE6：語義引用必須強型別，禁止裸字串 tagSlug
+%%    4) S1~S6：契約與 SLA 僅能引用 SK_* 常數，禁止硬寫
+%%    5) L/R/A：Layer 合規 / Rule 合規 / Atomicity 合規 必須同時成立
+%%  ── D27 定位（擴展）──
+%%    D27（成本語義路由）為 Extension Gate；僅在 document-parser / finance-routing 變更時強制審查
+%%  ── No-Smell 定義（可作為 Code Review Checklist）──
+%%    - 無重複定義：同一規則只保留一個主定義，其他位置僅做索引引用
+%%    - 無邊界污染：Feature Slice 不跨邊界 mutate、不直連 firebase/* [D24]
+%%    - 無語義漂移：tag 語義只能透過 TE1~TE6 + VS8 CTA 來源 [D21-1 D22]
+%%    - 無一致性破口：Projection 全量遵守 S2；SLA 全量遵守 S4
+%%    - 無副作用旁路：通知與搜尋必須經 D26 權威出口
+%%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  KEY INVARIANTS（絕對遵守）:
 %%    [R8]  traceId 在 CBG_ENTRY 注入一次，全鏈唯讀不可覆蓋
 %%    [S2]  所有 Projection 寫入前必須呼叫 applyVersionGuard()
@@ -1048,8 +1064,8 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  FIREBASE 隔離規則 與 Cross-cutting Authority 治理 [D24~D26]
 %%  （詳見 UNIFIED DEVELOPMENT RULES 完整定義）
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  UNIFIED DEVELOPMENT RULES [D1~D27]
-%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance D21(D21-1~D21-10+D21-A~D21-X)/D22~D23 / Infrastructure (D24~D25) / Authority Governance (D26) / Cost Semantic Routing (D27) ──
+%%  UNIFIED DEVELOPMENT RULES [D1~D26 Mandatory + D27 Extension]
+%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance D21(D21-1~D21-10+D21-A~D21-X)/D22~D23 / Infrastructure (D24~D25) / Authority Governance (D26) / Cost Semantic Routing Extension (D27) ──
 %%  ── 基礎路徑約束（D1~D12）──
 %%  D1  事件傳遞只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
 %%  D2  跨切片引用：import from '@/features/{slice}/index' only；_*.ts 為私有
@@ -1129,7 +1145,7 @@ class NOTIF_HUB_SVC crossCutAuth
 %%      global-search.slice 為唯一跨域搜尋權威，各業務 Slice 禁止自建搜尋邏輯
 %%      notification-hub (VS7) 為唯一副作用出口，業務 Slice 禁止直接調用 sendEmail/push/SMS
 %%      兩者須擁有自己的 _actions.ts / _services.ts [D3]，不得寄生於 shared-kernel [D8]
-%%  ── 成本語義路由守則（D27）──
+%%  ── 成本語義路由守則（D27 · Extension Gate）──
 %%  D27 CostItemType Semantic Routing（成本語義路由三層架構）：
 %%      Layer-1（原始解析）：document-parser 解析文件 → 產生 raw ParsedLineItem[]
 %%      Layer-2（語義分類）：VS5 document-parser-view 呼叫 VS8 classifyCostItem(name) → (costItemType, semanticTagSlug)
