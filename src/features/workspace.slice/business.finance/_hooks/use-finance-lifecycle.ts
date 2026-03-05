@@ -152,7 +152,7 @@ export function useFinanceLifecycle(input: UseFinanceLifecycleInput) {
 
     async function refreshStrongReadSnapshot() {
       const snapshot = await fetchFinanceStrongReadSnapshot({
-        directiveItems,
+        workspaceId: input.workspaceId,
         receivedAmount,
       });
       if (!cancelled) {
@@ -165,7 +165,7 @@ export function useFinanceLifecycle(input: UseFinanceLifecycleInput) {
     return () => {
       cancelled = true;
     };
-  }, [directiveItems, receivedAmount]);
+  }, [directiveItems, input.workspaceId, receivedAmount]);
 
   const currentClaimAmount = useMemo(
     () => currentClaimLineItems.reduce((sum, line) => sum + line.lineAmount, 0),

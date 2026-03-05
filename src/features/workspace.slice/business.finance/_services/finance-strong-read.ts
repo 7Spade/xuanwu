@@ -7,25 +7,13 @@
 
 import { resolveReadConsistency } from '@/features/shared-kernel';
 
-import type { FinanceDirectiveItem, FinanceStrongReadSnapshot } from '../_types';
+import type { FinanceStrongReadSnapshot } from '../_types';
+
+import { executeFinanceStrongReadQuery } from './finance-aggregate-query-gateway';
 
 interface FinanceStrongReadInput {
-  readonly directiveItems: readonly FinanceDirectiveItem[];
+  readonly workspaceId: string;
   readonly receivedAmount: number;
-}
-
-function computeOutstandingClaimableAmount(
-  directiveItems: readonly FinanceDirectiveItem[],
-): Pick<FinanceStrongReadSnapshot, 'totalClaimableAmount' | 'outstandingClaimableAmount'> {
-  const totalClaimableAmount = directiveItems.reduce(
-    (total, item) => total + item.unitPrice * item.remainingQuantity,
-    0,
-  );
-
-  return {
-    totalClaimableAmount,
-    outstandingClaimableAmount: Math.max(totalClaimableAmount, 0),
-  };
 }
 
 export async function fetchFinanceStrongReadSnapshot(
@@ -41,15 +29,13 @@ export async function fetchFinanceStrongReadSnapshot(
     throw new Error('[S3] Finance data must use STRONG_READ.');
   }
 
-  const { totalClaimableAmount, outstandingClaimableAmount } = computeOutstandingClaimableAmount(
-    input.directiveItems,
-  );
+  const aggregateSnapshot = await executeFinanceStrongReadQuery({
+    workspaceId: input.workspaceId,
+    receivedAmount: input.receivedAmount,
+  });
 
   return {
+    ...aggregateSnapshot,
     readConsistencyMode,
-    source: 'aggregate',
-    totalClaimableAmount,
-    receivedAmount: input.receivedAmount,
-    outstandingClaimableAmount,
   };
 }

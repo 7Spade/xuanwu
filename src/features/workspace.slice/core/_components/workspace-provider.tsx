@@ -106,6 +106,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   const { workspaces, auditLogs } = accountState;
   const { activeAccount } = appState;
   const workspace = workspaces[workspaceId];
+  const hasWorkspace = workspace !== undefined;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- workspaceId is an intentional reset key: recreate bus when active workspace changes
   const eventBus = useMemo(() => new WorkspaceEventBus(), [workspaceId]);
@@ -121,6 +122,10 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   // Updates are dispatched into account state so the existing merge logic in
   // SET_WORKSPACES continues to work correctly as the single source of truth.
   useEffect(() => {
+    if (!hasWorkspace) {
+      return;
+    }
+
     const unsubTasks = subscribeToWorkspaceTasks(workspaceId, (tasks) => {
       accountDispatch({ type: 'SET_WORKSPACE_TASKS', payload: { workspaceId, tasks } });
     });
@@ -131,7 +136,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
       unsubTasks();
       unsubIssues();
     };
-  }, [workspaceId, accountDispatch]);
+  }, [workspaceId, accountDispatch, hasWorkspace]);
 
   // Register Event Funnel — routes events from both buses to the Projection Layer
   // Also register Notification Router (FCM Layer 2) and Org Policy Cache
