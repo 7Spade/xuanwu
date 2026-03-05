@@ -1,5 +1,5 @@
 /**
- * semantic-graph.slice/centralized-guards — L7 Blood-Brain Barrier (BBB) [D21-H D21-K]
+ * semantic-graph.slice/centralized-guards — L5 Blood-Brain Barrier (BBB) [D21-H D21-K]
  *
  * SemanticGuard is the **supreme arbiter** of semantic-graph validity.
  * It intercepts EdgeProposals BEFORE they enter the SemanticEdgeStore and

@@ -264,8 +264,8 @@ export interface DownstreamEvent {
 /**
  * Full causality chain emitted by the Causality Tracer [D21-6].
  *
- * Produced by buildCausalityChain(); consumed by the VS8 Routing Layer
- * (VS8_RL) to dispatch downstream updates without hardcoding IDs [D21-5].
+ * Produced by buildCausalityChain(); consumed by the VS8 Reflection Arc
+ * (VS8_ROUT) to dispatch downstream updates without hardcoding IDs [D21-5].
  */
 export interface CausalityChain {
   readonly sourceEvent: TagLifecycleEvent;

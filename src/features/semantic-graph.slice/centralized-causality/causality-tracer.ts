@@ -1,13 +1,14 @@
 /**
  * semantic-graph.slice/centralized-causality — Causality Tracer [D21-6]
  *
- * The CausalityTracer is the execution-agent routing backbone of VS8_RL
+ * The CausalityTracer is the computation engine for L3 VS8_NG (Neural Computation).
+ * It produces causality chains consumed by VS8_ROUT (L4 Reflection Arc)
  * (Routing Layer).  It answers: "If a TagLifecycleEvent is emitted for tag X,
  * which other tags are semantically affected, in what order, and what
  * downstream lifecycle transitions should be suggested?"
  *
  * Architecture:
- *   [D21-5] VS8_RL receives causality chains and dispatches downstream commands.
+ *   [D21-5] VS8_ROUT receives causality chains and dispatches downstream commands.
  *   [D21-6] Causality chains are computed here; no I/O, no infrastructure.
  *   [D3]    Downstream events are advisory; actual mutations go through _actions.ts.
  *   [D8]    Lives in semantic-graph.slice, not shared-kernel.
@@ -209,7 +210,7 @@ export function rankAffectedNodes(nodes: readonly AffectedNode[]): readonly Affe
 /**
  * Build the advisory downstream lifecycle events for a set of affected nodes.
  *
- * These are advisory signals; the caller (VS8_RL) decides whether to apply them.
+ * These are advisory signals; the caller (VS8_ROUT) decides whether to apply them.
  *
  * TAG_DELETED source → no downstream events (nothing to lifecycle-manage).
  *
@@ -238,7 +239,7 @@ export function buildDownstreamEvents(
 /**
  * Build the full CausalityChain for a TagLifecycleEvent [D21-6].
  *
- * The returned chain is consumed by VS8_RL to dispatch downstream commands
+ * The returned chain is consumed by VS8_ROUT to dispatch downstream commands
  * without hardcoding relationships (configuration-driven routing).
  *
  * @param event          — the lifecycle event that triggered the chain

@@ -4,7 +4,7 @@
  * [D4] QGWAY_SEARCH read-out port for semantic-graph.slice.
  *
  * This file is the query gateway adaptor — it bridges the in-memory
- * semantic services and centralized-selectors to external consumers
+ * semantic services and projections to external consumers
  * who access the slice only through its index.ts barrel.
  *
  * Architecture rules:
@@ -124,7 +124,7 @@ export {
   buildDownstreamEvents,
   /**
    * Build the full CausalityChain for a TagLifecycleEvent.
-   * Consumed by VS8_RL to dispatch downstream commands. [D21-6]
+   * Consumed by VS8_ROUT to dispatch downstream commands. [D21-6]
    */
   buildCausalityChain,
 };
