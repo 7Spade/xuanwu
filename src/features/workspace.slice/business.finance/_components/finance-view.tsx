@@ -84,6 +84,12 @@ export function WorkspaceFinance() {
     const hasOutstanding = lifecycle.financeSnapshot.outstandingClaimableAmount > 0;
     lifecycle.closeCycle();
 
+    if (!hasOutstanding) {
+      eventBus.publish('workspace:finance:completed', {
+        cycleIndex: lifecycle.cycleIndex,
+      });
+    }
+
     toast({
       title: hasOutstanding ? 'Re-enter Claim Cycle' : 'Finance Completed',
       description: hasOutstanding

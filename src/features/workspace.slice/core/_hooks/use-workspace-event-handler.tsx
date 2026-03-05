@@ -17,8 +17,10 @@ import { createIssue } from "../../business.issues";
 import { createTask, hasTasksForSourceIntent, reconcileIntentTasks } from "../../business.tasks";
 import type { WorkspaceTask } from "../../business.tasks/_types";
 import {
+  advanceWorkflowToStage,
   handleIssueCreatedForWorkflow,
   handleIssueResolvedForWorkflow,
+  type WorkflowStage,
 } from "../../business.workflow";
 import type { DocumentParserItemsExtractedPayload } from '../../core.event-bus';
 import { useWorkspace } from '../_components/workspace-provider';
@@ -97,9 +99,16 @@ export function useWorkspaceEventHandler() {
       return issueResult.aggregateId;
     };
 
+    const advanceWorkspaceWorkflowTo = async (targetStage: WorkflowStage) => {
+      await advanceWorkflowToStage(workspace.id, targetStage);
+    };
+
     const unsubQAApproved = eventBus.subscribe(
       "workspace:quality-assurance:approved",
-      (payload) => {
+      async (payload) => {
+        await advanceWorkspaceWorkflowTo('acceptance').catch((error) => {
+          console.error('[workflow-stage] failed to advance to acceptance:', error);
+        });
         pushNotification(
           "QA Approved",
           `Task "${payload.task.name}" is now ready for final acceptance.`,
@@ -110,7 +119,10 @@ export function useWorkspaceEventHandler() {
 
     const unsubAcceptancePassed = eventBus.subscribe(
       "workspace:acceptance:passed",
-      (payload) => {
+      async (payload) => {
+        await advanceWorkspaceWorkflowTo('finance').catch((error) => {
+          console.error('[workflow-stage] failed to advance to finance:', error);
+        });
         pushNotification(
           "Task Accepted",
           `Task "${payload.task.name}" is now ready for financial settlement.`,
@@ -421,6 +433,10 @@ export function useWorkspaceEventHandler() {
     const unsubTaskCompleted = eventBus.subscribe(
       "workspace:tasks:completed",
       async (payload) => {
+        await advanceWorkspaceWorkflowTo('quality-assurance').catch((error) => {
+          console.error('[workflow-stage] failed to advance to quality-assurance:', error);
+        });
+
         if (!workspace.dimensionId) return;
         try {
           await createScheduleItem({
@@ -490,6 +506,15 @@ export function useWorkspaceEventHandler() {
         } catch (error) {
           console.error("Failed to create assignment schedule proposal:", error);
         }
+      }
+    );
+
+    const unsubFinanceCompleted = eventBus.subscribe(
+      "workspace:finance:completed",
+      async () => {
+        await advanceWorkspaceWorkflowTo('completed').catch((error) => {
+          console.error('[workflow-stage] failed to advance to completed:', error);
+        });
       }
     );
 
@@ -636,6 +661,7 @@ export function useWorkspaceEventHandler() {
       unsubScheduleRequest();
       unsubTaskCompleted();
       unsubTaskAssigned();
+      unsubFinanceCompleted();
       unsubForwardRequested();
       unsubWorkflowBlocked();
       unsubWorkflowUnblocked();

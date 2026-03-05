@@ -19,6 +19,7 @@ export type {
   FileSendToParserPayload,
   WorkspaceIssueResolvedPayload,
   WorkspaceFinanceDisbursementFailedPayload,
+  WorkspaceFinanceCompletedPayload,
   WorkspaceTaskBlockedPayload,
   WorkspaceTaskAssignedPayload,
   WorkspaceScheduleProposedPayload,

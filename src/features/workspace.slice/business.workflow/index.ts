@@ -8,6 +8,8 @@ export {
 } from './_aggregate';
 export type { WorkflowStage, WorkflowAggregateState } from './_aggregate';
 
+export { advanceWorkflowToStage } from './_stage-transition';
+
 export {
   loadWorkflowState,
   saveWorkflowState,

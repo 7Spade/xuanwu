@@ -1,6 +1,6 @@
 // [職責] 事件名稱與 Payload 的 TypeScript 類型定義 (Contract)
-import type { SkillRequirement, WorkspaceScheduleProposedPayload } from "@/features/shared-kernel"
 import type { CostItemType } from "@/features/semantic-graph.slice"
+import type { SkillRequirement, WorkspaceScheduleProposedPayload } from "@/features/shared-kernel"
 
 import type { DailyLog } from "../business.daily/_types"
 import type { WorkspaceTask } from "../business.tasks/_types"
@@ -159,6 +159,12 @@ export interface WorkspaceFinanceDisbursementFailedPayload {
   traceId?: string
 }
 
+export interface WorkspaceFinanceCompletedPayload {
+  cycleIndex: number
+  /** TraceID from the originating EventEnvelope — required for R8 audit trail. */
+  traceId?: string
+}
+
 export interface WorkspaceTaskBlockedPayload {
   task: WorkspaceTask
   reason?: string
@@ -200,6 +206,7 @@ export type WorkspaceEventName =
   | "workspace:workflow:blocked"
   | "workspace:workflow:unblocked"
   | "workspace:finance:disburseFailed"
+  | "workspace:finance:completed"
   | "daily:log:forwardRequested"
   | "workspace:parsing-intent:deltaProposed"
 
@@ -223,6 +230,7 @@ export interface WorkspaceEventPayloadMap {
   "workspace:workflow:blocked": WorkspaceWorkflowBlockedPayload
   "workspace:workflow:unblocked": WorkspaceWorkflowUnblockedPayload
   "workspace:finance:disburseFailed": WorkspaceFinanceDisbursementFailedPayload
+  "workspace:finance:completed": WorkspaceFinanceCompletedPayload
   "daily:log:forwardRequested": DailyLogForwardRequestedPayload
   "workspace:parsing-intent:deltaProposed": IntentDeltaProposedPayload
 }
