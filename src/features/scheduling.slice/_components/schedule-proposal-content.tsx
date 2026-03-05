@@ -3,6 +3,7 @@
 
 import { parseISO } from "date-fns"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useMemo } from "react"
 
 import type { SkillRequirement } from "@/features/shared-kernel"
 import { useWorkspace } from "@/features/workspace.slice"
@@ -23,9 +24,26 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
   const { workspace, createScheduleItem } = useWorkspace()
 
   const dateParam = searchParams.get("date")
+  const taskIdParam = searchParams.get("taskId")
   const initialDate = dateParam ? parseISO(dateParam) : new Date()
+  const inheritedTask = taskIdParam ? workspace.tasks?.[taskIdParam] : undefined
+  const taskOptions = useMemo(
+    () => Object.values(workspace.tasks || {}).map((task) => ({
+      id: task.id,
+      name: task.name,
+      location: task.location,
+      requiredSkills: task.requiredSkills,
+    })),
+    [workspace.tasks]
+  )
+
+  const taskById = useMemo(
+    () => new Map(Object.values(workspace.tasks || {}).map((task) => [task.id, task])),
+    [workspace.tasks]
+  )
 
   const handleSubmit = async (data: {
+    taskId?: string
     title: string
     description?: string
     startDate?: Date
@@ -33,17 +51,21 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
     location: Location
     requiredSkills: SkillRequirement[]
   }) => {
+    const selectedTask = data.taskId ? taskById.get(data.taskId) : undefined
+    const effectiveTask = selectedTask ?? inheritedTask
+
     await createScheduleItem({
       accountId: workspace.dimensionId,
       workspaceId: workspace.id,
       workspaceName: workspace.name,
-      title: data.title.trim(),
+      title: (effectiveTask?.name ?? data.title).trim(),
       startDate: data.startDate ?? null,
       endDate: data.endDate ?? null,
-      location: data.location,
+      location: effectiveTask?.location ?? data.location,
       status: "PROPOSAL",
       originType: "MANUAL",
       assigneeIds: [],
+      ...(effectiveTask?.id ? { originTaskId: effectiveTask.id } : {}),
       // Omit optional fields rather than passing undefined — Firestore rejects undefined values.
       ...(data.description?.trim() ? { description: data.description.trim() } : {}),
       ...(data.requiredSkills.length > 0 ? { requiredSkills: data.requiredSkills } : {}),
@@ -64,6 +86,11 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
       onSubmit={handleSubmit}
       initialDate={initialDate}
       orgId={workspace.dimensionId}
+      taskOptions={taskOptions}
+      inheritedTitle={inheritedTask?.name}
+      inheritedTaskId={inheritedTask?.id}
+      inheritedLocation={inheritedTask?.location}
+      initialRequiredSkills={inheritedTask?.requiredSkills}
     />
   )
 

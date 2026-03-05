@@ -33,7 +33,6 @@ import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { Input } from "@/shared/shadcn-ui/input";
 import { Label } from "@/shared/shadcn-ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
-import { Textarea } from "@/shared/shadcn-ui/textarea";
 import { cn } from "@/shared/shadcn-ui/utils/utils";
 
 const MAX_SKILL_REQUIREMENT_QUANTITY = 99;
@@ -42,6 +41,7 @@ interface ProposalDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onSubmit: (data: {
+    taskId?: string;
     title: string;
     description: string;
     startDate?: Date;
@@ -52,6 +52,16 @@ interface ProposalDialogProps {
   initialDate: Date;
   /** FR-K5: Org ID used to load the org's skill tag pool instead of the global library. */
   orgId?: string;
+  inheritedTitle?: string;
+  inheritedTaskId?: string;
+  inheritedLocation?: Location;
+  initialRequiredSkills?: SkillRequirement[];
+  taskOptions?: Array<{
+    id: string;
+    name: string;
+    location?: Location;
+    requiredSkills?: SkillRequirement[];
+  }>;
 }
 
 /**
@@ -68,6 +78,11 @@ export function ProposalDialog({
   onSubmit,
   initialDate,
   orgId,
+  inheritedTitle,
+  inheritedTaskId,
+  inheritedLocation,
+  initialRequiredSkills,
+  taskOptions = [],
 }: ProposalDialogProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [title, setTitle] = useState("");
@@ -78,6 +93,9 @@ export function ProposalDialog({
   const [selectedSkillSlug, setSelectedSkillSlug] = useState("");
   const [skillPickerOpen, setSkillPickerOpen] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState<string>("1");
+  const [selectedTaskId, setSelectedTaskId] = useState("");
+  const [taskPickerOpen, setTaskPickerOpen] = useState(false);
+  const isTaskInheritedMode = Boolean(inheritedTitle);
 
   // FR-K5: Org skill tag pool — loaded once per dialog open when orgId is provided.
   const [skillOptions, setSkillOptions] = useState<{ slug: string; name: string }[]>([]);
@@ -85,10 +103,12 @@ export function ProposalDialog({
   useEffect(() => {
     if (!isOpen) return;
     setDateRange({ from: initialDate, to: initialDate });
-    setTitle("");
+    setSelectedTaskId(inheritedTaskId ?? "");
+    setTaskPickerOpen(false);
+    setTitle(inheritedTitle ?? "");
     setDescription("");
-    setLocation({ description: '' });
-    setRequiredSkills([]);
+    setLocation(inheritedLocation ?? { description: '' });
+    setRequiredSkills(initialRequiredSkills ?? []);
     setSelectedSkillSlug("");
     setSkillPickerOpen(false);
     setSelectedQuantity("1");
@@ -107,7 +127,12 @@ export function ProposalDialog({
     } else {
       setSkillOptions(SKILLS.map((s) => ({ slug: s.slug, name: s.name })));
     }
-  }, [isOpen, initialDate, orgId]);
+  }, [isOpen, initialDate, orgId, inheritedTitle, inheritedTaskId, inheritedLocation, initialRequiredSkills]);
+
+  const selectedTaskOption = useMemo(
+    () => taskOptions.find((option) => option.id === selectedTaskId),
+    [taskOptions, selectedTaskId]
+  );
 
   // Pre-compute a slug → SkillDefinition map for O(1) lookups in the grouped picker.
   const skillBySlug = useMemo(
@@ -137,14 +162,6 @@ export function ProposalDialog({
     }).filter(g => g.subCategoryEntries.length > 0);
   }, [skillOptions, skillBySlug]);
 
-  const handleLocationChange = (field: keyof Location, value: string) => {
-    setLocation(prev => ({
-        ...prev,
-        description: prev?.description || '',
-        [field]: value
-    }))
-  };
-
   const handleAddSkillRequirement = () => {
     if (!selectedSkillSlug) return;
     const alreadyAdded = requiredSkills.some(r => r.tagSlug === selectedSkillSlug);
@@ -166,18 +183,33 @@ export function ProposalDialog({
     setRequiredSkills(prev => prev.filter(r => r.tagSlug !== slug));
   };
 
+  const handleSelectTask = (taskId: string) => {
+    setSelectedTaskId(taskId);
+    setTaskPickerOpen(false);
+    const task = taskOptions.find((option) => option.id === taskId);
+    if (!task) return;
+
+    setTitle(task.name);
+    setLocation(task.location ?? { description: '' });
+    setRequiredSkills(task.requiredSkills ?? []);
+  };
+
   const handleSubmit = async () => {
     if (!title.trim()) {
       toast({ variant: 'destructive', title: 'Title is required' });
       return;
     }
-    if (requiredSkills.length === 0) {
-      toast({ variant: 'destructive', title: 'At least one skill requirement is needed' });
-      return;
-    }
     setIsAdding(true);
     try {
-      await onSubmit({ title, description, startDate: dateRange?.from, endDate: dateRange?.to, location, requiredSkills });
+      await onSubmit({
+        taskId: selectedTaskId || undefined,
+        title,
+        description,
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
+        location,
+        requiredSkills,
+      });
     } finally {
       setIsAdding(false);
     }
@@ -191,14 +223,53 @@ export function ProposalDialog({
           <DialogDescription>Submit a new item to the organization&apos;s timeline for approval.</DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-4 overflow-y-auto py-4 pr-4">
-          <div className="space-y-2">
-            <Label htmlFor="item-title">Title</Label>
-            <Input id="item-title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="item-description">Description (Optional)</Label>
-            <Textarea id="item-description" value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
+          {isTaskInheritedMode ? (
+            <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+              <p className="text-xs font-semibold text-muted-foreground">Task</p>
+              <p className="font-medium">{title}</p>
+              <p className="mt-2 text-xs font-semibold text-muted-foreground">Inherited Location</p>
+              <p>{[location?.building, location?.floor, location?.room, location?.description].filter(Boolean).join(' / ') || 'N/A'}</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label>Task (Title)</Label>
+                <Popover open={taskPickerOpen} onOpenChange={setTaskPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={taskPickerOpen}
+                      className="h-9 w-full justify-between text-xs font-normal"
+                    >
+                      <span className="truncate">{selectedTaskOption?.name ?? 'Select task...'}</span>
+                      <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[360px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search tasks..." className="h-9 text-xs" />
+                      <CommandList>
+                        <CommandEmpty className="text-xs">No task found.</CommandEmpty>
+                        <CommandGroup heading="Workspace Tasks">
+                          {taskOptions.map((task) => (
+                            <CommandItem
+                              key={task.id}
+                              value={task.name}
+                              onSelect={() => handleSelectTask(task.id)}
+                              className="text-xs"
+                            >
+                              {task.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </>
+          )}
           <div className="space-y-2">
             <Label>Date Range</Label>
             <Popover>
@@ -213,41 +284,19 @@ export function ProposalDialog({
               </PopoverContent>
             </Popover>
           </div>
-           <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                    <MapPin className="size-4"/> Location
-                </Label>
-                <div className="grid grid-cols-3 gap-4">
-                    <Input
-                        placeholder="Building"
-                        value={location?.building || ''}
-                        onChange={(e) => handleLocationChange('building', e.target.value)}
-                        className="h-11 rounded-xl border-none bg-muted/30"
-                    />
-                    <Input
-                        placeholder="Floor"
-                        value={location?.floor || ''}
-                        onChange={(e) => handleLocationChange('floor', e.target.value)}
-                        className="h-11 rounded-xl border-none bg-muted/30"
-                    />
-                    <Input
-                        placeholder="Room"
-                        value={location?.room || ''}
-                        onChange={(e) => handleLocationChange('room', e.target.value)}
-                        className="h-11 rounded-xl border-none bg-muted/30"
-                    />
-                </div>
-                <Textarea
-                    placeholder="Location details..."
-                    value={location?.description || ''}
-                    onChange={(e) => handleLocationChange('description', e.target.value)}
-                    className="resize-none rounded-xl border-none bg-muted/30"
-                    rows={2}
-                />
+           {!isTaskInheritedMode && selectedTaskOption && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <MapPin className="size-4" /> Location
+              </Label>
+              <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                {[location?.building, location?.floor, location?.room, location?.description].filter(Boolean).join(' / ') || 'N/A'}
+              </div>
             </div>
+           )}
           <div className="space-y-2">
             <Label>Required Skills</Label>
-            <p className="text-xs text-muted-foreground">Specify at least one staffing requirement so the organization can match available members.</p>
+            <p className="text-xs text-muted-foreground">Optional: add or adjust staffing requirements.</p>
             {requiredSkills.length > 0 && (
               <div className="flex flex-wrap gap-2 py-1">
                 {requiredSkills.map(req => {

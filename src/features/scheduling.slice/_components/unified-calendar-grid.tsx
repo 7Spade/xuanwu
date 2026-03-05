@@ -1,6 +1,6 @@
 "use client";
 
-import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday } from "date-fns";
+import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday, isBefore } from "date-fns";
 import { Plus, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
@@ -61,6 +61,12 @@ export function UnifiedCalendarGrid({
     new Map<string, MemberReference>(members.map(m => [m.id, m])), 
     [members]
   );
+
+  type SpanSegment = {
+    item: ScheduleItem;
+    isStart: boolean;
+    isEnd: boolean;
+  };
   
   const toDate = (timestamp: Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined): Date | null => {
     if (!timestamp) return null;
@@ -73,18 +79,49 @@ export function UnifiedCalendarGrid({
     return null;
   };
   
-  const itemsByDate = useMemo(() => {
+  const cardsByDate = useMemo(() => {
     const map = new Map<string, ScheduleItem[]>();
     items.forEach(item => {
       const end = toDate(item.endDate);
       const start = toDate(item.startDate);
       const effectiveEnd = end || start;
-      if (effectiveEnd) {
-        const dateKey = format(effectiveEnd, 'yyyy-MM-dd');
+      const effectiveStart = start || effectiveEnd;
+      if (effectiveStart) {
+        const dateKey = format(effectiveStart, 'yyyy-MM-dd');
         const dayItems = map.get(dateKey) || [];
         map.set(dateKey, [...dayItems, item]);
       }
     });
+    return map;
+  }, [items]);
+
+  const spanSegmentsByDate = useMemo(() => {
+    const map = new Map<string, SpanSegment[]>();
+
+    items.forEach((item) => {
+      const rawStart = toDate(item.startDate);
+      const rawEnd = toDate(item.endDate);
+
+      if (!rawStart && !rawEnd) return;
+
+      const start = rawStart || rawEnd!;
+      const end = rawEnd || rawStart!;
+      const normalizedStart = isBefore(end, start) ? end : start;
+      const normalizedEnd = isBefore(end, start) ? start : end;
+
+      const days = eachDayOfInterval({ start: normalizedStart, end: normalizedEnd });
+      days.forEach((day, index) => {
+        const key = format(day, 'yyyy-MM-dd');
+        const existing = map.get(key) || [];
+        existing.push({
+          item,
+          isStart: index === 0,
+          isEnd: index === days.length - 1,
+        });
+        map.set(key, existing);
+      });
+    });
+
     return map;
   }, [items]);
 
@@ -116,7 +153,8 @@ export function UnifiedCalendarGrid({
         
         {daysInMonth.map((day) => {
           const dateKey = format(day, 'yyyy-MM-dd');
-          const dayItems = itemsByDate.get(dateKey) || [];
+          const dayItems = cardsByDate.get(dateKey) || [];
+          const daySegments = spanSegmentsByDate.get(dateKey) || [];
           
           return (
             <div key={dateKey} className={cn('group relative flex min-h-[140px] flex-col gap-1.5 border-r border-b p-1.5', { 'bg-muted/30': isWeekend(day) })}>
@@ -130,6 +168,22 @@ export function UnifiedCalendarGrid({
                   {format(day, 'd')}
                 </div>
               </div>
+              {daySegments.length > 0 && (
+                <div className="space-y-1">
+                  {daySegments.slice(0, 3).map(({ item, isStart, isEnd }) => (
+                    <div
+                      key={`${item.id}-${dateKey}`}
+                      className={cn(
+                        'h-1.5 w-full bg-primary/60',
+                        isStart && 'rounded-l-full',
+                        isEnd && 'rounded-r-full',
+                        isStart && isEnd && 'rounded-full'
+                      )}
+                      title={`${item.title} (${format(toDate(item.startDate) || day, 'MM/dd')} - ${format(toDate(item.endDate) || toDate(item.startDate) || day, 'MM/dd')})`}
+                    />
+                  ))}
+                </div>
+              )}
               <ScrollArea className="grow pr-2">
                 <div className="space-y-2">
                   {dayItems.map(item => {

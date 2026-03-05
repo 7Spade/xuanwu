@@ -9,6 +9,7 @@ import {
   View,
 } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/shared/shadcn-ui/button';
@@ -53,6 +54,7 @@ const getErrorMessage = (error: unknown, fallback: string) =>
  * ARCHITECTURE REFACTORED: Now consumes state from context.
  */
 export function WorkspaceTasks() {
+  const router = useRouter();
   const { workspace, logAuditEvent, eventBus, createTask, updateTask, deleteTask } = useWorkspace();
   const { uploadTaskAttachment } = useStorage(workspace.id);
 
@@ -266,10 +268,8 @@ export function WorkspaceTasks() {
   
   const handleScheduleRequest = (task: WorkspaceTask) => {
     eventBus.publish('workspace:tasks:scheduleRequested', { taskName: task.name! });
-    toast({
-        title: 'Schedule Request Sent',
-        description: `"${task.name}" was sent to the Schedule capability.`,
-    });
+    const proposalParams = new URLSearchParams({ taskId: task.id }).toString();
+    router.push(`/workspaces/${workspace.id}/schedule-proposal?${proposalParams}`);
   };
 
   const handleMarkBlocked = async (task: TaskWithChildren) => {
