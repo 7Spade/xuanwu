@@ -38,6 +38,7 @@
 %%    A3=workflow-blockedBy  A5=scheduling-saga    A8=1cmd-1agg
 %%    A9=scope-guard         A10=notification-stateless
 %%    A12=global-search-authority   A13=notification-hub-authority
+%%    A14=cost-semantic-dual-key
 %%    A15=finance-lifecycle-gate    A16=multi-claim-cycle
 %%  ── Governance Rules（可演化治理）: D · P · T · E ──
 %%    D7=cross-slice-index-only   D24=no-firebase-import D26=cross-cutting-authority
@@ -209,11 +210,11 @@ subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（8層語義神
         VEC["embeddings/vector-store.ts\n向量隨標籤定義同步刷新 [D21-D]"]
         subgraph TAG_ENTS["🏷️ AI-ready Semantic Tag Entities (TE1~TE6) [D21-A]"]
             direction LR
-            TE_UL["TE3 · tag::user-level\ncategory: user_level"]
-            TE_SK["TE1 · tag::skill\ncategory: skill"]
-            TE_ST["TE2 · tag::skill-tier\ncategory: skill_tier"]
-            TE_TM["TE5 · tag::team\ncategory: team"]
-            TE_RL["TE4 · tag::role\ncategory: role"]
+            TE_UL["TE1 · tag::user-level\ncategory: user_level"]
+            TE_SK["TE2 · tag::skill\ncategory: skill"]
+            TE_ST["TE3 · tag::skill-tier\ncategory: skill_tier"]
+            TE_TM["TE4 · tag::team\ncategory: team"]
+            TE_RL["TE5 · tag::role\ncategory: role"]
             TE_PT["TE6 · tag::partner\ncategory: partner"]
         end
         CTA --> TAG_ENTS
@@ -529,11 +530,11 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
             A_TASKS["tasks"]
             A_QA["quality-assurance"]
             A_ACCEPT["acceptance"]
-            A_FINANCE["finance"]
+            A_FINANCE["finance-stage-gateway"]
         end
 
         subgraph VS5_FIN["💰 Finance Lifecycle（Multi-Claim）[#A15 #A16]"]
-            direction LR
+            direction TB
             FIN_CLAIM_PREP["claim-preparation\n(select line-items + quantity)"]
             FIN_CLAIM_SUB["claim-submitted"]
             FIN_CLAIM_APV["claim-approved"]
@@ -541,6 +542,7 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
             FIN_TERM["payment-term (timer-running)"]
             FIN_PAY_RECV["payment-received"]
             FIN_BALANCE{"outstandingClaimableAmount > 0 ?"}
+            FIN_EXIT["finance-exit-gate\n(outstandingClaimableAmount=0)"]
         end
 
         subgraph VS5_B["🔴 B-track 異常處理"]
@@ -551,19 +553,23 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
         W_SCHED["workspace.schedule\n(tagSlug T4)\nWorkspaceScheduleProposed → VS6 [A5]"]
 
         PARSE_INT -->|"[Layer-3 Semantic Router]\ncostItemType=EXECUTABLE only + semanticTagSlug/tag-snapshot 對齊 → 任務草稿 [#A14 D27 T5]"| A_TASKS
-        PARSE_INT -->|財務指令| A_FINANCE
+        PARSE_INT -.->|"財務候選資料（非階段遷移）"| A_FINANCE
         PARSE_INT -->|解析異常| B_ISSUES
         A_TASKS -.->|"SourcePointer [#A4]"| PARSE_INT
         PARSE_INT -.->|"IntentDeltaProposed [#A4]"| A_TASKS
         WF_AGG -.->|stage-view| A_TASKS & A_QA & A_ACCEPT & A_FINANCE
         A_TASKS --> A_QA --> A_ACCEPT --> A_FINANCE
-        A_FINANCE -->|"enter finance lifecycle [#A15]"| FIN_CLAIM_PREP
-        FIN_CLAIM_PREP --> FIN_CLAIM_SUB --> FIN_CLAIM_APV --> FIN_INV_REQ --> FIN_TERM --> FIN_PAY_RECV
-        FIN_INV_REQ -.->|"start Payment Term timer [#A16]"| FIN_TERM
+        A_FINANCE -->|"進入請款生命週期 [#A15]"| FIN_CLAIM_PREP
+        FIN_CLAIM_PREP --> FIN_CLAIM_SUB
+        FIN_CLAIM_SUB --> FIN_CLAIM_APV
+        FIN_CLAIM_APV --> FIN_INV_REQ
+        FIN_INV_REQ --> FIN_TERM
+        FIN_TERM --> FIN_PAY_RECV
+        FIN_INV_REQ -.->|"啟動 Payment Term 計時 [#A16]"| FIN_TERM
         FIN_PAY_RECV --> FIN_BALANCE
-        FIN_BALANCE -->|"yes: 還有可請款餘額 [#A16]"| FIN_CLAIM_PREP
-        FIN_BALANCE -->|"no: claims settled [#A16]"| A_FINANCE
-        A_FINANCE -->|"transition to Completed"| WF_AGG
+        FIN_BALANCE -->|"是：仍有可請款餘額 [#A16]"| FIN_CLAIM_PREP
+        FIN_BALANCE -->|"否：本輪後已結清 [#A16]"| FIN_EXIT
+        FIN_EXIT -->|"允許 Completed [#A16]"| WF_AGG
         WF_AGG -->|"blockWorkflow [#A3]"| B_ISSUES
         A_TASKS -.-> W_DAILY
         A_TASKS -.->|任務分配| W_SCHED
@@ -930,8 +936,10 @@ class TAG_SUB tagSub
 class ORG_OB outboxNode
 class VS5,WS_CMD_H,WS_SCP_G,WS_POL_E,WS_TX_R,WS_OB,WS_AGG,WS_EBUS,WS_ESTORE,WS_SETT,WS_ROLE,WS_PCHK,WS_AUDIT wsSlice
 class WF_AGG wfNode
+class FIN_CLAIM_PREP,FIN_CLAIM_SUB,FIN_CLAIM_APV,FIN_INV_REQ,FIN_TERM,FIN_PAY_RECV,FIN_BALANCE,FIN_EXIT wfNode
 class AUDIT_COL auditView
-class A_TASKS,A_QA,A_ACCEPT,A_FINANCE trackA
+class A_TASKS,A_QA,A_ACCEPT trackA
+class A_FINANCE wfNode
 class B_ISSUES,W_DAILY,W_SCHED wsSlice
 class VS6,ORG_SCH,SCH_SAGA schedSlice
 class SCH_OB outboxNode
@@ -1040,8 +1048,8 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  FIREBASE 隔離規則 與 Cross-cutting Authority 治理 [D24~D26]
 %%  （詳見 UNIFIED DEVELOPMENT RULES 完整定義）
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  UNIFIED DEVELOPMENT RULES [D1~D26]
-%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance D21(D21-1~D21-10+D21-A~D21-X)/D22~D23 / Infrastructure (D24~D25) / Authority Governance (D26) ──
+%%  UNIFIED DEVELOPMENT RULES [D1~D27]
+%%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance D21(D21-1~D21-10+D21-A~D21-X)/D22~D23 / Infrastructure (D24~D25) / Authority Governance (D26) / Cost Semantic Routing (D27) ──
 %%  ── 基礎路徑約束（D1~D12）──
 %%  D1  事件傳遞只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
 %%  D2  跨切片引用：import from '@/features/{slice}/index' only；_*.ts 為私有
