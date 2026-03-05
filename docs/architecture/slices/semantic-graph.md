@@ -12,18 +12,28 @@ It owns:
 
 No other slice may re-implement any of these capabilities [D26, D27].
 
-## Architecture: 4-Layer Semantic Neural Network (D21-1 → D21-10)
+## Architecture: 8-Layer Semantic Neural Network (D21-1 → D21-K)
 
-| Layer | ID | Name | Responsibility |
-|-------|----|------|---------------|
-| Layer 1 | VS8_CL | Classification Layer | Tag / concept definition authority |
-| Layer 2 | VS8_SL | Synapse Layer | Semantic-edge-store; carries typed weights |
-| Layer 3 | VS8_NG | Neural Computation | Dijkstra / BFS; distance matrix; isolated-node detection |
-| Layer 4 | VS8_RL | Routing Output | Routing agents; ranked assignment candidates |
+The semantic brain is organized as 8 discrete processing layers.
+Each layer has a single well-defined responsibility, and cross-layer
+coupling is forbidden except via the public `index.ts` barrel [D7].
+
+| Layer | ID | Name | Directory / File | Responsibility | Rule |
+|-------|----|------|-----------------|---------------|------|
+| L1 | VS8_DNA | DNA Layer | `centralized-tag/` | Tag entity definition + `Draft→Active→Stale→Deprecated` FSM | [D21-1, D21-2] |
+| L2 | VS8_SL | Synapse Layer | `centralized-edges/` | `SemanticEdgeStore`: typed edges; weight ∈ (0,1]; cost = 1/weight | [D21-9] |
+| L3 | VS8_NG | Neural Computation | `centralized-neural-net/` | Dijkstra / distance matrix; isolated-node detection | [D21-NG] |
+| L4 | VS8_CL | Causality Layer | `centralized-causality/` | `CausalityTracer`: semantic activation; downstream impact chains | [D22] |
+| L5 | VS8_RC | Route/Classify | `_cost-classifier.ts` | Pure keyword classifier → `CostItemType`; **no side effects** | [D27] |
+| L6 | VS8_WF | Reflection Arc | `centralized-workflows/` | `PolicyMapper`: maps L3/L4 output to business dispatch strategies | [T5] |
+| L7 | VS8_BBB | Blood-Brain Barrier | `centralized-guards/` | `SemanticGuard`: **supreme veto** over edge proposals; rejects semantic violations | [D21-H, D21-K] |
+| L8 | VS8_GOV | Governance Layer | `index.ts` | Projects `TagSnapshot` as the **sole read exit**; external slices are barred from internal stores | [D7] |
 
 Additional invariants:
-- **D21-9** Synaptic weight invariant — weights may only increase monotonically via the learning engine.
+- **D21-9** Synaptic weight invariant — weight ∈ (0.0, 1.0]; cost = 1/weight; zero-weight edges are physically impossible.
 - **D21-10** Topology observability — graph structure changes emit `SemanticTopologyChanged`.
+- **D21-H** Blood-Brain Barrier — `validateEdgeProposal()` must be called before every `addEdge()`.
+- **D21-K** Semantic-conflict arbitration — self-loops, IS_A cycles, and invalid weights are rejected at the BBB layer.
 
 ## Tag Entity Types (TE)
 
@@ -89,6 +99,8 @@ Manual weight modifications are **forbidden**. Weights are monotonically non-dec
 
 - **[D21-9]** Weights are monotonically non-decreasing; only `learning-engine.ts` may write them.
 - **[D21-10]** All topology mutations must emit `SemanticTopologyChanged`.
+- **[D21-H]** Blood-Brain Barrier — `validateEdgeProposal()` must be called before every `addEdge()`. Bypassing the BBB is a critical architecture violation.
+- **[D21-K]** Semantic-conflict arbitration — self-loops, IS_A cycles, invalid weights, and duplicate edges are vetoed at L7 and never enter the edge store.
 - **[D27]** `classifyCostItem()` is the authoritative cost classifier; no slice may re-implement.
 - **[#A12]** global-search must index through VS8 tag entities.
 - **[D26]** Other slices must call VS8 APIs; they must not contain semantic logic.

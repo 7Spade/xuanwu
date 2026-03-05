@@ -166,3 +166,17 @@ export {
   getTag,
 } from './centralized-tag/_actions';
 export type { CentralizedTagEntry, TagDeleteRule } from '@/features/shared-kernel';
+
+// =================================================================
+// L7 Blood-Brain Barrier — SemanticGuard [D21-H D21-K]
+// Supreme arbiter of semantic-graph validity.  Call validateEdgeProposal()
+// BEFORE addEdge() to enforce all graph invariants at the BBB layer.
+// External slices must never bypass this guard to write edges directly.
+// =================================================================
+export { validateEdgeProposal } from './centralized-guards/semantic-guard';
+export type {
+  EdgeProposal,
+  SemanticGuardDecision,
+  SemanticGuardRejectionCode,
+  SemanticGuardResult,
+} from './centralized-guards/semantic-guard';
