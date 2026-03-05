@@ -131,6 +131,13 @@ export {
 } from './centralized-embeddings/embedding-port';
 
 // =================================================================
+// Cost Item Classification — Layer-2 Semantic Classification [D8][D21]
+// Pure keyword-based classifier; no SDK imports (classifies during parse phase).
+// =================================================================
+export { classifyCostItem, CostItemType } from './_cost-classifier';
+export type { CostItemType as CostItemTypeValue } from './_cost-classifier';
+
+// =================================================================
 // CTA Operations — Centralized Tag Aggregate [D3][D8]
 // Firestore-backed CRUD for tagDictionary; D8-compliant (not in shared-kernel).
 // =================================================================

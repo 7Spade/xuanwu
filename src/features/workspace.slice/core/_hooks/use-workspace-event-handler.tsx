@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { handleScheduleProposed } from "@/features/scheduling.slice";
+import { CostItemType } from "@/features/semantic-graph.slice";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { ToastAction } from "@/shared/shadcn-ui/toast";
 
@@ -172,7 +173,13 @@ export function useWorkspaceEventHandler() {
         });
 
         const items: Omit<WorkspaceTask, "id" | "createdAt" | "updatedAt">[] =
-          payload.items.map((item) => ({
+          payload.items
+            // [VS8 Layer-3 Semantic Router] Only EXECUTABLE items are materialised as
+            // WorkspaceTasks.  All other types (FINANCIAL, PROFIT, MANAGEMENT, ALLOWANCE,
+            // RESOURCE) are intentionally excluded from task creation — they represent
+            // overhead, margins, or resource entries that do not map to actionable work.
+            .filter((item) => item.costItemType === CostItemType.EXECUTABLE)
+            .map((item) => ({
             name: item.name,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
@@ -188,6 +195,14 @@ export function useWorkspaceEventHandler() {
             // to align with ScheduleItem's field name — intentional cross-model mapping.
             ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
           }));
+
+        // Build a human-readable summary of skipped non-EXECUTABLE items for the toast.
+        const skippedItems = payload.items.filter(
+          (item) => item.costItemType !== CostItemType.EXECUTABLE
+        );
+        const skippedSummaryLines = skippedItems.map(
+          (item) => `• [${item.costItemType}] ${item.name}`
+        );
 
         // [D14] Source-based deduplication guard: check whether tasks from this
         // intent have already been materialised before touching the ledger or
@@ -231,13 +246,17 @@ export function useWorkspaceEventHandler() {
             // update existing `todo` tasks in-place so we don't accumulate duplicate tasks.
             // Tasks in any other state (doing / blocked / done) keep their current doc and
             // a new task is created for the re-parsed item instead.
+            // [VS8 Layer-3] Only EXECUTABLE items are reconciled / created as tasks.
+            const executablePayloadItems = payload.items.filter(
+              (item) => item.costItemType === CostItemType.EXECUTABLE
+            );
             const taskResults = payload.oldIntentId
               ? await reconcileIntentTasks(
                   workspace.id,
                   payload.oldIntentId,
                   payload.intentId,
                   payload.intentVersion,
-                  payload.items,
+                  executablePayloadItems,
                   {
                     progress: 0,
                     type: "Imported",
@@ -249,7 +268,7 @@ export function useWorkspaceEventHandler() {
                   // reconcileIntentTasks returns a single CommandResult — normalise to the
                   // same shape the batch-createTask path produces (one result per item)
                   // so the rest of the success/failure handling code stays unchanged.
-                  payload.items.map(() => result)
+                  executablePayloadItems.map(() => result)
                 )
               : await Promise.all(
                   items.map((item) => createTask(workspace.id, item))
@@ -314,7 +333,9 @@ export function useWorkspaceEventHandler() {
                 : "Import Successful",
               description: statusWritebackWarning
                 ? `${successfulTaskIds.length} tasks have been added; intent status update failed: ${statusWritebackWarning}`
-                : `${successfulTaskIds.length} tasks have been added.`,
+                : skippedSummaryLines.length > 0
+                  ? `${successfulTaskIds.length} task(s) added; ${skippedSummaryLines.length} non-executable item(s) skipped (financial, management, etc.).`
+                  : `${successfulTaskIds.length} tasks have been added.`,
             });
             logAuditEvent(
               "Imported Tasks",
@@ -350,9 +371,18 @@ export function useWorkspaceEventHandler() {
         return;
       }
 
+      const executableCount = payload.items.filter(
+        (item) => item.costItemType === CostItemType.EXECUTABLE
+      ).length;
+      const nonExecutableCount = payload.items.length - executableCount;
+      const itemBreakdown =
+        nonExecutableCount > 0
+          ? `${executableCount} executable task(s), ${nonExecutableCount} non-task item(s) (e.g. financial, management) will be skipped.`
+          : "Do you want to import them as new root tasks?";
+
       toast({
         title: `Found ${payload.items.length} items from "${payload.sourceDocument}".`,
-        description: "Do you want to import them as new root tasks?",
+        description: itemBreakdown,
         duration: TOAST_LONG_DURATION_MS,
         action: (
           <ToastAction altText="Import" onClick={importItems}>

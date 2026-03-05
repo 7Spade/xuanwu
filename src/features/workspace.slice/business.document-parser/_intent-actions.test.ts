@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { CostItemType } from '@/features/semantic-graph.slice'
 
 const {
   mockCreateParsingIntent,
@@ -53,7 +54,7 @@ describe('workspace document-parser intent actions', () => {
     mockCreateParsingIntent.mockResolvedValue('intent-1')
 
     const result = await saveParsingIntent('workspace-1', 'invoice.pdf', [
-      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100 },
+      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE },
     ])
 
     expect(result).toEqual({ intentId: 'intent-1' })
@@ -76,7 +77,7 @@ describe('workspace document-parser intent actions', () => {
     mockSupersedeParsingIntent.mockResolvedValue(undefined)
 
     const result = await saveParsingIntent('workspace-1', 'invoice-v2.pdf', [
-      { name: 'item', quantity: 2, unitPrice: 50, subtotal: 100 },
+      { name: 'item', quantity: 2, unitPrice: 50, subtotal: 100, costItemType: CostItemType.EXECUTABLE },
     ], { previousIntentId: 'intent-1' as IntentID })
 
     expect(result).toEqual({ intentId: 'intent-2', oldIntentId: 'intent-1' })
@@ -87,7 +88,7 @@ describe('workspace document-parser intent actions', () => {
     mockCreateParsingIntent.mockResolvedValue('intent-3')
 
     const result = await saveParsingIntent('workspace-1', 'invoice.pdf', [
-      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100 },
+      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE },
     ])
 
     expect(result.oldIntentId).toBeUndefined()

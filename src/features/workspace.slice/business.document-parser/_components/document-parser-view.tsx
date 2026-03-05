@@ -5,6 +5,7 @@ import { useActionState, useTransition, useRef, useEffect, useCallback, useState
 
 import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
 import { logDomainError } from '@/features/observability';
+import { classifyCostItem } from '@/features/semantic-graph.slice';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
@@ -185,6 +186,8 @@ export function WorkspaceDocumentParser() {
       // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
       ...(item.discount !== undefined ? { discount: item.discount } : {}),
       subtotal: item.price,
+      // Layer-2 Semantic Classification (VS8) — applied here during the import phase.
+      costItemType: classifyCostItem(item.item),
     }));
 
     let intentId: IntentID;

@@ -1,5 +1,6 @@
 // [職責] 事件名稱與 Payload 的 TypeScript 類型定義 (Contract)
 import type { SkillRequirement, WorkspaceScheduleProposedPayload } from "@/features/shared-kernel"
+import type { CostItemType } from "@/features/semantic-graph.slice"
 
 import type { DailyLog } from "../business.daily/_types"
 import type { WorkspaceTask } from "../business.tasks/_types"
@@ -56,6 +57,13 @@ export interface DocumentParserItemsExtractedPayload {
     unitPrice: number
     discount?: number
     subtotal: number
+    /**
+     * Layer-2 Semantic Classification (VS8) — populated during the document parse
+     * phase by `classifyCostItem`.  The semantic router in the event handler uses
+     * this to decide whether to materialise the item as a WorkspaceTask (EXECUTABLE)
+     * or to route it to a different domain model / skip task creation.
+     */
+    costItemType: CostItemType
   }>
   /** Skill requirements extracted from the document, forwarded to schedule proposals. */
   skillRequirements?: SkillRequirement[]
