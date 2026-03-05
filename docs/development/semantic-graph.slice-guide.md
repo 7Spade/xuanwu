@@ -180,104 +180,94 @@ VS8 的規則句確保了數位大腦：
 > **索引標籤**：`[#A6 #17]` · 對應 `logic-overview.md` 中 `#A6 = CENTRALIZED_TAG_AGGREGATE 語義唯一權威` / `#17 = centralized-tag.aggregate 為 tagSlug 唯一真相`
 
 ```mermaid
-%%  ╔══════════════════════════════════════════════════════════════════════════╗
-%%  ║  VS8 · Semantic Graph — The Brain [#A6 #17]                            ║
-%%  ║  語義神經網絡完全體架構圖                                                ║
-%%  ║  併入目標：docs/logic-overview.md (L3 Domain Slices subgraph)           ║
-%%  ╚══════════════════════════════════════════════════════════════════════════╝
-
 flowchart TD
 
-subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（語義神經網絡）"]
+subgraph VS8["🧠 VS8 · Semantic Graph — The Brain"]
     direction TB
 
-    subgraph VS8_CORE["🧬 core · 語義分類層 (DNA)"]
-        direction LR
-        VS8_TAGDEF["tag-definitions.ts\nTE1~TE6 標籤實體 × Alias 別名表\n[D21-A] 唯一註冊律\n[D22] 強型別引用"]
-        VS8_SCHEMA["schemas/\n元數據 JSON Schema\n[D21-B] Schema 鎖定"]
-        VS8_VALID["validator.ts\n唯一性 / 格式 / 循環併購校驗\n[D21-A] [D21-U]"]
-        VS8_CONST["constants/\nTE1 TAG_USER_LEVEL\nTE2 TAG_SKILL\nTE3 TAG_SKILL_TIER\nTE4 TAG_TEAM\nTE5 TAG_ROLE\nTE6 TAG_PARTNER"]
+    subgraph VS8_CORE["🧬 core · 語義分類層"]
+        VS8_TAGDEF["tag-definitions.ts\nTE1~TE6 · Alias\nD21-A · D22"]
+        VS8_SCHEMA["schemas/\nJSON Schema · D21-B"]
+        VS8_VALID["validator.ts\n格式校驗 · D21-U"]
+        VS8_CONST["constants/\nTE1~TE6 實體常數"]
     end
 
-    subgraph VS8_GRAPH["🧠 graph · 語義節點圖譜層 (突觸)"]
-        direction LR
-        VS8_EMB["embeddings/\nvector-store.ts\ndistance-metrics.ts\nCosine Similarity\n[D21-D] 向量一致性\n[D21-U] 相似標籤偵測"]
-        VS8_HIER["hierarchy-manager.ts\nParent/Child 層級\n等價關係 Equivalence\n[D21-C] 無孤立節點"]
-        VS8_CAUSE["causality-tracer/\n因果追蹤器\ntraceAffectedNodes()\nrankAffectedNodes()\n[D21-6] [D21-X]"]
-        VS8_WEIGHT["weight-calculator.ts\nEmbedding × 路徑長度\n統一權重計算\n[D21-E] 權重透明化"]
-        VS8_ADJ["adjacency-list.ts\n圖譜內存數據結構\n⚠️ 禁止業務端直連\n[T5]"]
+    subgraph VS8_GRAPH["🔗 graph · 圖譜層"]
+        VS8_EMB["embeddings/\nCosine Similarity · D21-D"]
+        VS8_HIER["hierarchy-manager.ts\nParent/Child · D21-C"]
+        VS8_CAUSE["causality-tracer/\ntraceAffectedNodes · D21-6"]
+        VS8_WEIGHT["weight-calculator.ts\nEmbedding 權重 · D21-E"]
+        VS8_ADJ["adjacency-list.ts\n內存圖譜 · T5"]
     end
 
-    subgraph VS8_ROUTING["⚡ routing · 語義路由層 (反射弧)"]
-        direction LR
-        VS8_WF["workflows/\ntag-promotion-flow.ts\nalert-routing-flow.ts\n神經反射鏈 [D21-H]"]
-        VS8_POLICY["policy-mapper/\n語義 → 動作策略映射\n[D27-A] 語義感知路由"]
-        VS8_DISPATCH["dispatch-bridge.ts\n跨切片橋接\n→ VS6 排班 / VS7 通知"]
-        VS8_ATTN["context-attention.ts\n情境注意力過濾\n[D21-F] 注意力隔離"]
+    subgraph VS8_ROUTING["⚡ routing · 路由層"]
+        VS8_WF["workflows/\ntag-promotion · alert-routing"]
+        VS8_POLICY["policy-mapper/\n語義到動作 · D27-A"]
+        VS8_DISPATCH["dispatch-bridge.ts\nVS6 排班 / VS7 通知"]
+        VS8_ATTN["context-attention.ts\n情境過濾 · D21-F"]
     end
 
-    subgraph VS8_GUARD["🛡️ guards · 血腦屏障 (BBB)"]
-        direction LR
-        VS8_INV["invariant-guard.ts\n守護 D21~D28 不變量\n最高裁決權 [D21-H][D21-K]"]
-        VS8_STALE["staleness-monitor.ts\nTAG_STALE_GUARD ≤ 30s\n[S4] 鮮度合約"]
+    subgraph VS8_GUARD["🛡️ guards · 血腦屏障"]
+        VS8_INV["invariant-guard.ts\nD21 to D28 · D21-K"]
+        VS8_STALE["staleness-monitor.ts\nStale 30s · S4"]
     end
 
-    subgraph VS8_PLAST["📈 plasticity · 語義可塑性 (學習)"]
-        direction LR
-        VS8_LEARN["learning-engine.ts\nVS3 / VS2 事實事件驅動\n動態權重演化 [D21-G]"]
-        VS8_DECAY["decay-service.ts\n遺忘機制\n衰減未激活語義關係"]
+    subgraph VS8_PLAST["📈 plasticity · 可塑性"]
+        VS8_LEARN["learning-engine.ts\nVS3/VS2 驅動 · D21-G"]
+        VS8_DECAY["decay-service.ts\n衰減未激活關係"]
     end
 
-    subgraph VS8_PROJ["🖼️ projections · 投影層 (Read-side)"]
-        direction LR
-        VS8_SNAP["tag-snapshot.slice.ts\n[T5] 全系統唯一合法讀取點\nForbidden: 業務端寫入"]
-        VS8_SEL["selectors/\ngraph-selectors.ts\ncontext-selectors.ts\n語義快照抽取"]
-        VS8_IDX["search-indexer.ts\n[#A12] Global Search 語義加權索引\n< 200ms 回應保證"]
+    subgraph VS8_PROJ["🖼️ projections · 投影層"]
+        VS8_SNAP["tag-snapshot.slice.ts\nT5 · 唯一合法讀取點"]
+        VS8_SEL["selectors/\ngraph · context"]
+        VS8_IDX["search-indexer.ts\nA12 · 200ms"]
     end
 
-    subgraph VS8_WIKI["🏛️ ui · 語義維基治理介面"]
-        direction LR
-        VS8_EDITOR["wiki-editor/\n標籤編輯器\n宣告同義詞 [D21-S]"]
-        VS8_PROP["proposal-stream/\n全球提案流 × 投票\n[D21-I][D21-V]"]
-        VS8_VIZ["relationship-visualizer/\n圖譜畫布\n合併狀態可視化"]
-        VS8_CONS["consensus-engine/\n提案邏輯校驗\n共識機制 [D21-J][D21-W]"]
+    subgraph VS8_WIKI["🏛️ ui · 語義維基"]
+        VS8_EDITOR["wiki-editor/\n同義詞宣告 · D21-S"]
+        VS8_PROP["proposal-stream/\n提案投票 · D21-I"]
+        VS8_VIZ["relationship-visualizer/\n圖譜畫布"]
+        VS8_CONS["consensus-engine/\n共識校驗 · D21-J"]
     end
 
-    subgraph VS8_IO["📥📤 I/O · 事件訂閱與廣播"]
-        direction LR
-        VS8_SUB["subscribers/\nlifecycle-subscriber.ts\n[T1] IER EVENT_LANE 監聽"]
-        VS8_OUT["outbox/\ntag-outbox.ts\n[T4] BACKGROUND_LANE 廣播"]
+    subgraph VS8_IO["📥📤 I/O"]
+        VS8_SUB["lifecycle-subscriber.ts\nT1 · IER EVENT_LANE"]
+        VS8_OUT["tag-outbox.ts\nT4 · BACKGROUND_LANE"]
     end
 
-    VS8_FACADE["index.ts\n外部唯一 Entry Point\n(Facade Pattern)"]
+    VS8_FACADE["index.ts · Facade"]
+
+    VS8_CORE --> VS8_GRAPH
+    VS8_GRAPH --> VS8_ROUTING
+    VS8_ROUTING --> VS8_GUARD
+    VS8_GUARD --> VS8_PROJ
+    VS8_PLAST -->|"演化權重"| VS8_GRAPH
+    VS8_WIKI -->|"提案校驗"| VS8_GUARD
+    VS8_SUB -->|"TagLifecycleEvent"| VS8_CAUSE
+    VS8_CAUSE -->|"下游節點"| VS8_OUT
+    VS8_SNAP -.->|"T5 唯讀"| VS8_FACADE
+    VS8_IDX -.->|"A12 索引"| VS8_FACADE
+    VS8_LEARN -.->|"D21-G 回饋"| VS8_DECAY
+    VS8_DISPATCH -.->|"D27-A"| VS8_ATTN
 
 end
 
-%% ── 內部數據流 ──
-VS8_CORE --> VS8_GRAPH
-VS8_GRAPH --> VS8_ROUTING
-VS8_ROUTING --> VS8_GUARD
-VS8_GUARD --> VS8_PROJ
-VS8_PLAST -->|演化權重| VS8_GRAPH
-VS8_WIKI -->|提案 → 校驗| VS8_GUARD
-VS8_SUB -->|TagLifecycleEvent| VS8_CAUSE
-VS8_CAUSE -->|推導下游節點| VS8_OUT
-VS8_SNAP -.->|tag:: 唯讀快照 [T5]| VS8_FACADE
-VS8_IDX -.->|語義加權索引 [#A12]| VS8_FACADE
+classDef coreStyle fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
+classDef routeStyle fill:#1e1b4b,stroke:#f59e0b,color:#fef3c7
+classDef guardStyle fill:#1e1b4b,stroke:#ef4444,color:#fee2e2
+classDef plastStyle fill:#1e1b4b,stroke:#22c55e,color:#dcfce7
+classDef projStyle fill:#1e1b4b,stroke:#38bdf8,color:#e0f2fe
+classDef wikiStyle fill:#1e1b4b,stroke:#a78bfa,color:#ede9fe
+classDef ioStyle fill:#1e1b4b,stroke:#94a3b8,color:#e2e8f0
+classDef facadeStyle fill:#312e81,stroke:#6366f1,color:#e0e7ff
 
-%% ── 外部依賴標注 ──
-VS8_LEARN -.->|"依賴 VS3 ExpAdded\n[D21-G]"| VS8_LEARN
-VS8_DISPATCH -.->|"→ VS6 排班\n→ VS7 通知\n[D27-A]"| VS8_DISPATCH
-
-%% ── 樣式 ──
-style VS8 fill:#0f172a,stroke:#6366f1,stroke-width:2px,color:#e2e8f0
-style VS8_CORE fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
-style VS8_GRAPH fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
-style VS8_ROUTING fill:#1e1b4b,stroke:#f59e0b,color:#fef3c7
-style VS8_GUARD fill:#1e1b4b,stroke:#ef4444,color:#fee2e2
-style VS8_PLAST fill:#1e1b4b,stroke:#22c55e,color:#dcfce7
-style VS8_PROJ fill:#1e1b4b,stroke:#38bdf8,color:#e0f2fe
-style VS8_WIKI fill:#1e1b4b,stroke:#a78bfa,color:#ede9fe
-style VS8_IO fill:#1e1b4b,stroke:#94a3b8,color:#e2e8f0
-style VS8_FACADE fill:#312e81,stroke:#6366f1,color:#e0e7ff
+class VS8_TAGDEF,VS8_SCHEMA,VS8_VALID,VS8_CONST coreStyle
+class VS8_EMB,VS8_HIER,VS8_CAUSE,VS8_WEIGHT,VS8_ADJ coreStyle
+class VS8_WF,VS8_POLICY,VS8_DISPATCH,VS8_ATTN routeStyle
+class VS8_INV,VS8_STALE guardStyle
+class VS8_LEARN,VS8_DECAY plastStyle
+class VS8_SNAP,VS8_SEL,VS8_IDX projStyle
+class VS8_EDITOR,VS8_PROP,VS8_VIZ,VS8_CONS wikiStyle
+class VS8_SUB,VS8_OUT ioStyle
+class VS8_FACADE facadeStyle
 ```
