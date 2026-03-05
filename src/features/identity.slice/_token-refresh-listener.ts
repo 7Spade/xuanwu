@@ -20,6 +20,7 @@ import { useEffect } from 'react';
 
 import type { ImplementsTokenRefreshContract } from '@/features/shared-kernel';
 import { auth } from '@/shared/infra/auth/auth.client';
+import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { onSnapshot, doc } from '@/shared/infra/firestore/firestore.read.adapter';
 
@@ -45,7 +46,7 @@ export function useTokenRefreshListener(accountId: string | null | undefined): v
     // Guard: accountId must be a valid Firestore document ID
     if (!/^[\w-]+$/.test(accountId)) return;
 
-    const signalRef = doc(db, 'tokenRefreshSignals', accountId);
+    const signalRef = doc(db, COLLECTIONS.tokenRefreshSignals, accountId);
 
     // onSnapshot fires on first attach (initial state) and on every subsequent change.
     // We skip the first emission to avoid unnecessary token refreshes on mount.

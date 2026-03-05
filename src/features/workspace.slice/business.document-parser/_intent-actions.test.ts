@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { CostItemType } from '@/features/semantic-graph.slice'
 
 const {
   mockCreateParsingIntent,
@@ -7,6 +8,7 @@ const {
   mockCreateParsingImport,
   mockGetParsingImportByIdempotencyKey,
   mockUpdateParsingImportStatus,
+  mockGetParsingIntentById,
 } = vi.hoisted(() => ({
   mockCreateParsingIntent: vi.fn(),
   mockUpdateParsingIntentStatus: vi.fn(),
@@ -14,6 +16,7 @@ const {
   mockCreateParsingImport: vi.fn(),
   mockGetParsingImportByIdempotencyKey: vi.fn(),
   mockUpdateParsingImportStatus: vi.fn(),
+  mockGetParsingIntentById: vi.fn(),
 }))
 
 vi.mock('@/shared/infra/firestore/firestore.facade', () => ({
@@ -23,6 +26,7 @@ vi.mock('@/shared/infra/firestore/firestore.facade', () => ({
   createParsingImport: mockCreateParsingImport,
   getParsingImportByIdempotencyKey: mockGetParsingImportByIdempotencyKey,
   updateParsingImportStatus: mockUpdateParsingImportStatus,
+  getParsingIntentById: mockGetParsingIntentById,
 }))
 
 import {
@@ -43,6 +47,7 @@ describe('workspace document-parser intent actions', () => {
     mockCreateParsingImport.mockReset()
     mockGetParsingImportByIdempotencyKey.mockReset()
     mockUpdateParsingImportStatus.mockReset()
+    mockGetParsingIntentById.mockReset()
   })
 
   it('builds deterministic parsing import idempotency key', () => {
@@ -53,7 +58,7 @@ describe('workspace document-parser intent actions', () => {
     mockCreateParsingIntent.mockResolvedValue('intent-1')
 
     const result = await saveParsingIntent('workspace-1', 'invoice.pdf', [
-      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100 },
+      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE },
     ])
 
     expect(result).toEqual({ intentId: 'intent-1' })
@@ -76,7 +81,7 @@ describe('workspace document-parser intent actions', () => {
     mockSupersedeParsingIntent.mockResolvedValue(undefined)
 
     const result = await saveParsingIntent('workspace-1', 'invoice-v2.pdf', [
-      { name: 'item', quantity: 2, unitPrice: 50, subtotal: 100 },
+      { name: 'item', quantity: 2, unitPrice: 50, subtotal: 100, costItemType: CostItemType.EXECUTABLE },
     ], { previousIntentId: 'intent-1' as IntentID })
 
     expect(result).toEqual({ intentId: 'intent-2', oldIntentId: 'intent-1' })
@@ -87,11 +92,61 @@ describe('workspace document-parser intent actions', () => {
     mockCreateParsingIntent.mockResolvedValue('intent-3')
 
     const result = await saveParsingIntent('workspace-1', 'invoice.pdf', [
-      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100 },
+      { name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE },
     ])
 
     expect(result.oldIntentId).toBeUndefined()
     expect(mockSupersedeParsingIntent).not.toHaveBeenCalled()
+  })
+
+  it('returns existing intentId without Firestore write when direct-upload has same semanticHash as previousIntentId (no-op guard)', async () => {
+    // Simulate the case where a user uploads the same file twice via direct upload.
+    // No sourceFileId is present. The previous intent's semanticHash must match
+    // the newly computed hash to trigger the secondary idempotency guard.
+    const lineItems = [{ name: 'item', quantity: 1, unitPrice: 100, subtotal: 100 }]
+
+    // First save — captures the deterministic semanticHash produced for these lineItems.
+    mockCreateParsingIntent.mockResolvedValue('intent-1')
+    await saveParsingIntent('workspace-1', 'invoice.pdf', lineItems)
+    const capturedHash: string = mockCreateParsingIntent.mock.calls[0][1].semanticHash
+    expect(capturedHash).toMatch(/^[a-f0-9]{64}$/)
+
+    // Second save with same content — mockGetParsingIntentById returns the
+    // previous intent with the identical hash so the guard fires.
+    mockCreateParsingIntent.mockReset()
+    mockGetParsingIntentById.mockResolvedValue({
+      id: 'intent-1',
+      semanticHash: capturedHash,
+    })
+
+    const result = await saveParsingIntent('workspace-1', 'invoice.pdf', lineItems, {
+      previousIntentId: 'intent-1' as IntentID,
+    })
+
+    // Guard fires → existing intentId returned, no new document created.
+    expect(result).toEqual({ intentId: 'intent-1' })
+    expect(mockCreateParsingIntent).not.toHaveBeenCalled()
+    expect(mockSupersedeParsingIntent).not.toHaveBeenCalled()
+    expect(mockGetParsingIntentById).toHaveBeenCalledWith('workspace-1', 'intent-1')
+  })
+
+  it('creates new intent and supersedes previous when direct-upload content changes', async () => {
+    // When the semanticHash of the new upload differs, the previous intent
+    // should be superseded and a fresh intent created.
+    mockGetParsingIntentById.mockResolvedValue({
+      id: 'intent-old',
+      semanticHash: 'aabbcc', // deliberately mismatched
+    })
+    mockCreateParsingIntent.mockResolvedValue('intent-new')
+    mockSupersedeParsingIntent.mockResolvedValue(undefined)
+
+    const result = await saveParsingIntent('workspace-1', 'invoice-v2.pdf', [
+      { name: 'changed item', quantity: 5, unitPrice: 20, subtotal: 100 },
+    ], { previousIntentId: 'intent-old' as IntentID })
+
+    expect(result).toEqual({ intentId: 'intent-new', oldIntentId: 'intent-old' })
+    expect(mockCreateParsingIntent).toHaveBeenCalled()
+    expect(mockSupersedeParsingIntent).toHaveBeenCalledWith('workspace-1', 'intent-old', 'intent-new')
   })
 
   it('returns duplicate start result when parsing import already exists', async () => {

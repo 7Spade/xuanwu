@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { handleScheduleProposed } from "@/features/scheduling.slice";
+import { shouldMaterializeAsTask } from "@/features/semantic-graph.slice";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { ToastAction } from "@/shared/shadcn-ui/toast";
 
@@ -13,7 +14,7 @@ import {
   startParsingImport,
 } from "../../business.document-parser";
 import { createIssue } from "../../business.issues";
-import { createTask, hasTasksForSourceIntent } from "../../business.tasks";
+import { createTask, hasTasksForSourceIntent, reconcileIntentTasks } from "../../business.tasks";
 import type { WorkspaceTask } from "../../business.tasks/_types";
 import {
   handleIssueCreatedForWorkflow,
@@ -172,22 +173,41 @@ export function useWorkspaceEventHandler() {
         });
 
         const items: Omit<WorkspaceTask, "id" | "createdAt" | "updatedAt">[] =
-          payload.items.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
-            ...(item.discount !== undefined ? { discount: item.discount } : {}),
-            subtotal: item.subtotal,
-            progress: 0,
-            type: "Imported",
-            priority: "medium",
-            progressState: "todo",
-            sourceIntentId: payload.intentId,
-            // [TE_SK] ParsingIntent uses `skillRequirements`; WorkspaceTask uses `requiredSkills`
-            // to align with ScheduleItem's field name — intentional cross-model mapping.
-            ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
-          }));
+          payload.items
+            // [VS8 Layer-3 Semantic Router] shouldMaterializeAsTask() is the single gate
+            // for task materialisation — do not inline `=== CostItemType.EXECUTABLE` here.
+            // flatMap is used instead of filter+map so we can capture the item's original
+            // document position (originalIndex) and store it as `sourceIntentIndex`.
+            // This allows the task list to be sorted back into document order at render time.
+            .flatMap((item, originalIndex) =>
+              shouldMaterializeAsTask(item.costItemType)
+                ? [{
+                    name: item.name,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
+                    ...(item.discount !== undefined ? { discount: item.discount } : {}),
+                    subtotal: item.subtotal,
+                    progress: 0,
+                    type: "Imported",
+                    priority: "medium",
+                    progressState: "todo",
+                    sourceIntentId: payload.intentId,
+                    sourceIntentIndex: originalIndex,
+                    // [TE_SK] ParsingIntent uses `skillRequirements`; WorkspaceTask uses `requiredSkills`
+                    // to align with ScheduleItem's field name — intentional cross-model mapping.
+                    ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
+                  }]
+                : []
+            );
+
+        // Build a human-readable summary of skipped non-materializable items for the toast.
+        const skippedItems = payload.items.filter(
+          (item) => !shouldMaterializeAsTask(item.costItemType)
+        );
+        const skippedSummaryLines = skippedItems.map(
+          (item) => `• [${item.costItemType}] ${item.name}`
+        );
 
         // [D14] Source-based deduplication guard: check whether tasks from this
         // intent have already been materialised before touching the ledger or
@@ -227,9 +247,40 @@ export function useWorkspaceEventHandler() {
               return;
             }
 
-            const taskResults = await Promise.all(
-              items.map((item) => createTask(workspace.id, item))
+            // [#A4] Intent-reconciliation path: when the parse superseded a prior intent,
+            // update existing `todo` tasks in-place so we don't accumulate duplicate tasks.
+            // Tasks in any other state (doing / blocked / done) keep their current doc and
+            // a new task is created for the re-parsed item instead.
+            // [VS8 Layer-3] shouldMaterializeAsTask() gates reconciliation/creation.
+            // flatMap captures each item's original document position as sourceIntentIndex.
+            const executablePayloadItems = payload.items.flatMap((item, originalIndex) =>
+              shouldMaterializeAsTask(item.costItemType)
+                ? [{ ...item, sourceIntentIndex: originalIndex }]
+                : []
             );
+            const taskResults = payload.oldIntentId
+              ? await reconcileIntentTasks(
+                  workspace.id,
+                  payload.oldIntentId,
+                  payload.intentId,
+                  payload.intentVersion,
+                  executablePayloadItems,
+                  {
+                    progress: 0,
+                    type: "Imported",
+                    priority: "medium",
+                    progressState: "todo",
+                    ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
+                  }
+                ).then((result) =>
+                  // reconcileIntentTasks returns a single CommandResult — normalise to the
+                  // same shape the batch-createTask path produces (one result per item)
+                  // so the rest of the success/failure handling code stays unchanged.
+                  executablePayloadItems.map(() => result)
+                )
+              : await Promise.all(
+                  items.map((item) => createTask(workspace.id, item))
+                );
             const successfulTaskIds = taskResults
               .filter((result) => result.success)
               .map((result) => result.aggregateId);
@@ -290,7 +341,9 @@ export function useWorkspaceEventHandler() {
                 : "Import Successful",
               description: statusWritebackWarning
                 ? `${successfulTaskIds.length} tasks have been added; intent status update failed: ${statusWritebackWarning}`
-                : `${successfulTaskIds.length} tasks have been added.`,
+                : skippedSummaryLines.length > 0
+                  ? `${successfulTaskIds.length} task(s) added; ${skippedSummaryLines.length} non-executable item(s) skipped (financial, management, etc.).`
+                  : `${successfulTaskIds.length} tasks have been added.`,
             });
             logAuditEvent(
               "Imported Tasks",
@@ -326,9 +379,18 @@ export function useWorkspaceEventHandler() {
         return;
       }
 
+      const executableCount = payload.items.filter(
+        (item) => shouldMaterializeAsTask(item.costItemType)
+      ).length;
+      const nonExecutableCount = payload.items.length - executableCount;
+      const itemBreakdown =
+        nonExecutableCount > 0
+          ? `${executableCount} executable task(s), ${nonExecutableCount} non-task item(s) (e.g. financial, management) will be skipped.`
+          : "Do you want to import them as new root tasks?";
+
       toast({
         title: `Found ${payload.items.length} items from "${payload.sourceDocument}".`,
-        description: "Do you want to import them as new root tasks?",
+        description: itemBreakdown,
         duration: TOAST_LONG_DURATION_MS,
         action: (
           <ToastAction altText="Import" onClick={importItems}>

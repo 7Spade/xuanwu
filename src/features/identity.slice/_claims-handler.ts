@@ -39,6 +39,7 @@
 
 import { logDomainError } from '@/features/observability';
 import type { EventEnvelope } from '@/features/shared-kernel';
+import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
 import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
 // ---------------------------------------------------------------------------
@@ -59,7 +60,7 @@ async function emitRefreshSignal(accountId: string, traceId: string): Promise<vo
   if (!/^[\w-]+$/.test(accountId)) {
     throw new Error(`Invalid accountId format — must match /^[\\w-]+$/`);
   }
-  await setDocument(`tokenRefreshSignals/${accountId}`, {
+  await setDocument(`${COLLECTIONS.tokenRefreshSignals}/${accountId}`, {
     accountId,
     reason: 'claims:refreshed',
     issuedAt: new Date().toISOString(),

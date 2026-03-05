@@ -284,9 +284,14 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
           traceId,
         });
       } else {
-        console.warn(
-          `[W_B_SCHEDULE] workspace:schedule:proposed not published for item "${result.aggregateId}" — workspace.dimensionId is missing. Org-level scheduling will not be triggered.`
-        );
+        // [D22] Do not expose internal aggregate IDs in the production console.
+        // The message is useful for local debugging but must not leak Firestore
+        // document IDs to end-users who have DevTools open in production.
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(
+            `[W_B_SCHEDULE] workspace:schedule:proposed not published for item "${result.aggregateId}" — workspace.dimensionId is missing. Org-level scheduling will not be triggered.`
+          );
+        }
       }
     }
     return result;

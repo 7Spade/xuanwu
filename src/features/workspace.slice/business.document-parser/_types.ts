@@ -1,4 +1,5 @@
 import type { SkillRequirement } from '@/features/shared-kernel'
+import type { CostItemType } from '@/features/semantic-graph.slice'
 import type { Timestamp } from '@/shared/ports'
 // ParsingIntentSourceType, ParsingIntentReviewStatus, and ParsingIntentStatus are owned by
 // business.parsing-intent/_contract.ts [D20] — the single source of truth for this sub-domain contract.
@@ -24,6 +25,14 @@ export interface ParsedLineItem {
   unitPrice: number;
   discount?: number;
   subtotal: number;
+  /**
+   * Layer-2 Semantic Classification (VS8) — set during the document parse phase.
+   * Indicates whether this item can be decomposed into executable tasks or whether
+   * it represents a non-task entry (financial, management overhead, profit, etc.).
+   * The semantic router (Layer 3) uses this field to decide which domain model
+   * receives the item.
+   */
+  costItemType: CostItemType;
 }
 
 // Re-export so existing consumers of this module continue to work [D20 — import from slice index].

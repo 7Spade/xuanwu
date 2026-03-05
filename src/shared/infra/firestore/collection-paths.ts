@@ -15,6 +15,18 @@ export const COLLECTIONS = {
   accounts: 'accounts',
   /** VS2 User profiles (sub-collection not listed — use SUBCOLLECTIONS). */
   userProfiles: 'user_profiles',
+  /**
+   * Account-role grant records.
+   * Stored at: accountRoles/{orgId}_{accountId}
+   */
+  accountRoles: 'accountRoles',
+  /**
+   * S6 TOKEN_REFRESH_SIGNAL documents.
+   * Stored at: tokenRefreshSignals/{accountId}
+   * Written by CLAIMS_HANDLER (Party 1) and governance slices (dual-path).
+   * Read by the frontend listener hook (Party 3, useTokenRefreshListener).
+   */
+  tokenRefreshSignals: 'tokenRefreshSignals',
   /** VS8 Projection: workspace scope guard view. */
   workspaceScopeGuardView: 'workspace-scope-guard-view',
   /** VS8 Projection: org eligible member view. */

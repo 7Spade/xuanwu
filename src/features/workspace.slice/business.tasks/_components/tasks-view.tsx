@@ -2,39 +2,37 @@
 'use client';
 
 import {
-  Plus,
-  ChevronRight,
-  ChevronDown,
-  Settings2,
-  Trash2,
-  Coins,
-  Clock,
-  View,
   BarChart3,
   CalendarPlus,
+  ChevronDown,
+  ChevronRight,
   ClipboardPlus,
-  OctagonX,
-  Send,
-  UploadCloud,
-  X,
+  Clock,
+  Coins,
   Loader2,
-  Paperclip,
   MapPin,
+  OctagonX,
+  Paperclip,
+  Plus,
+  Send,
+  Settings2,
+  Trash2,
+  UploadCloud,
+  View,
+  X,
 } from 'lucide-react';
-import Image from "next/image";
-import { useState, useMemo, useEffect } from 'react';
+import Image from 'next/image';
+import { useEffect, useMemo, useState } from 'react';
 
-import { cn } from '@/shared/shadcn-ui/utils/utils';
-import { buildTaskTree } from '../../_task.rules';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from '@/shared/shadcn-ui/dialog';
 import {
   DropdownMenu,
@@ -44,6 +42,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/shadcn-ui/dropdown-menu';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 import { Input } from '@/shared/shadcn-ui/input';
 import { Label } from '@/shared/shadcn-ui/label';
 import { Progress } from '@/shared/shadcn-ui/progress';
@@ -55,11 +54,12 @@ import {
   SelectValue,
 } from '@/shared/shadcn-ui/select';
 import { Textarea } from '@/shared/shadcn-ui/textarea';
-import { type WorkspaceTask, type Location , type TaskWithChildren } from '../_types';
-import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
+import { cn } from '@/shared/shadcn-ui/utils/utils';
 
+import { buildTaskTree } from '../../_task.rules';
 import { useStorage } from '../../business.files';
 import { useWorkspace } from '../../core';
+import { type Location, type TaskWithChildren, type WorkspaceTask } from '../_types';
 
 const getErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
@@ -163,9 +163,14 @@ export function WorkspaceTasks() {
 
   const tasks = useMemo(
     () =>
-      Object.values(workspace.tasks || {}).sort(
-        (a, b) => (a.createdAt?.seconds ?? 0) - (b.createdAt?.seconds ?? 0)
-      ),
+      Object.values(workspace.tasks || {}).sort((a, b) => {
+        const timeA = a.createdAt?.seconds ?? 0;
+        const timeB = b.createdAt?.seconds ?? 0;
+        if (timeA !== timeB) return timeA - timeB;
+        // Within the same import batch (same createdAt second), sort by original
+        // document position so the task list mirrors the source document order. [D27]
+        return (a.sourceIntentIndex ?? 0) - (b.sourceIntentIndex ?? 0);
+      }),
     [workspace.tasks]
   );
 

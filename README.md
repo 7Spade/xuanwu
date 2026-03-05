@@ -1,3 +1,11 @@
+# AI Agents — Start Here
+
+> **GitHub Copilot, Codex, and all AI agents**: Begin by reading
+> **[`docs/AI_AGENT_README.md`](./docs/AI_AGENT_README.md)**
+> for the recommended architecture reading order and key code-generation rules.
+
+---
+
 # Repo Layering Rules
 
 * **src/app** → Next.js App Router, routing, layouts, pages. Only composition, no business logic or runtime wiring.

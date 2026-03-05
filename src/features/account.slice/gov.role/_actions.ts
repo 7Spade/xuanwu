@@ -29,6 +29,7 @@ import {
 } from '@/features/shared-kernel';
 import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
 import type { OrganizationRole } from '@/features/shared-kernel';
 
 export interface AccountRoleRecord {
@@ -70,7 +71,7 @@ export async function assignAccountRole(input: AssignRoleInput): Promise<Command
     };
 
     await setDocument(
-      `accountRoles/${input.orgId}_${input.accountId}`,
+      `${COLLECTIONS.accountRoles}/${input.orgId}_${input.accountId}`,
       record
     );
 
@@ -110,7 +111,7 @@ export async function revokeAccountRole(
   traceId?: string
 ): Promise<CommandResult> {
   try {
-    await updateDocument(`accountRoles/${orgId}_${accountId}`, {
+    await updateDocument(`${COLLECTIONS.accountRoles}/${orgId}_${accountId}`, {
       isActive: false,
       revokedAt: Timestamp.now().toDate().toISOString(),
       ...(traceId ? { traceId } : {}),
@@ -184,5 +185,5 @@ async function emitTokenRefreshSignal(
     issuedAt: Timestamp.now().toDate().toISOString(),
     ...(traceId ? { traceId } : {}),
   };
-  await setDocument(`tokenRefreshSignals/${accountId}`, signal);
+  await setDocument(`${COLLECTIONS.tokenRefreshSignals}/${accountId}`, signal);
 }

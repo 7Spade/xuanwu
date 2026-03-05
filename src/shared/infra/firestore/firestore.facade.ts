@@ -60,6 +60,8 @@ export const updateTask = repositories.updateTask
 export const deleteTask = repositories.deleteTask
 export const getWorkspaceTask = repositories.getWorkspaceTask
 export const getTaskBySourceIntentId = repositories.getTaskBySourceIntentId
+export const getTasksBySourceIntentId = repositories.getTasksBySourceIntentId
+export const reconcileTask = repositories.reconcileTask
 
 // Schedule
 export const createScheduleItem = repositories.createScheduleItem
@@ -100,6 +102,7 @@ export const updateParsingIntentStatus = repositories.updateParsingIntentStatus
 export const supersedeParsingIntent = repositories.supersedeParsingIntent
 export const getParsingIntents = repositories.getParsingIntents
 export const getParsingIntentBySourceFileId = repositories.getParsingIntentBySourceFileId
+export const getParsingIntentById = repositories.getParsingIntentById
 
 // ParsingImport (intent materialization ledger)
 export const createParsingImport = repositories.createParsingImport

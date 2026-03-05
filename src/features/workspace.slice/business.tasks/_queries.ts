@@ -10,6 +10,7 @@ import {
   getWorkspaceTasks as getWorkspaceTasksFacade,
   getWorkspaceTask as getWorkspaceTaskFacade,
   getTaskBySourceIntentId as getTaskBySourceIntentIdFacade,
+  getTasksBySourceIntentId as getTasksBySourceIntentIdFacade,
 } from "@/shared/infra/firestore/firestore.facade";
 
 import type { WorkspaceTask } from "./_types";
@@ -51,4 +52,21 @@ export async function hasTasksForSourceIntent(
 ): Promise<boolean> {
   const task = await getTaskBySourceIntentIdFacade(workspaceId, sourceIntentId);
   return task !== null;
+}
+
+/**
+ * Returns all tasks whose `sourceIntentId` matches the given intent ID.
+ *
+ * Used by the intent-reconciliation path [#A4] to retrieve the full set of tasks
+ * materialised from a superseded intent so they can be updated in-place rather than
+ * duplicated.
+ *
+ * @param workspaceId   The workspace to query.
+ * @param sourceIntentId The superseded ParsingIntent ID whose tasks should be loaded.
+ */
+export async function getTasksBySourceIntentId(
+  workspaceId: string,
+  sourceIntentId: string
+): Promise<WorkspaceTask[]> {
+  return getTasksBySourceIntentIdFacade(workspaceId, sourceIntentId);
 }

@@ -4,43 +4,29 @@ import type { ParsingImport } from '@/features/workspace.slice';
 
 const {
   mockServerTimestamp,
-  mockCollection,
-  mockWhere,
-  mockLimit,
-  mockQuery,
-  mockAddDocument,
+  mockDoc,
+  mockGetDoc,
+  mockRunTransaction,
   mockUpdateDocument,
-  mockGetDocuments,
   mockCreateConverter,
 } = vi.hoisted(() => ({
   mockServerTimestamp: vi.fn(() => '__SERVER_TIMESTAMP__'),
-  mockCollection: vi.fn(() => ({
-    withConverter: vi.fn(() => 'COL_REF_WITH_CONVERTER'),
-  })),
-  mockWhere: vi.fn(() => 'WHERE_CLAUSE'),
-  mockLimit: vi.fn(() => 'LIMIT_CLAUSE'),
-  mockQuery: vi.fn(() => 'QUERY_REF'),
-  mockAddDocument: vi.fn(),
+  mockDoc: vi.fn(),
+  mockGetDoc: vi.fn(),
+  mockRunTransaction: vi.fn(),
   mockUpdateDocument: vi.fn(),
-  mockGetDocuments: vi.fn(),
   mockCreateConverter: vi.fn(() => 'CONVERTER'),
 }));
 
 vi.mock('firebase/firestore', () => ({
   serverTimestamp: mockServerTimestamp,
-  collection: mockCollection,
-  query: mockQuery,
-  where: mockWhere,
-  limit: mockLimit,
+  doc: mockDoc,
+  getDoc: mockGetDoc,
+  runTransaction: mockRunTransaction,
 }));
 
 vi.mock('../firestore.write.adapter', () => ({
-  addDocument: mockAddDocument,
   updateDocument: mockUpdateDocument,
-}));
-
-vi.mock('../firestore.read.adapter', () => ({
-  getDocuments: mockGetDocuments,
 }));
 
 vi.mock('../firestore.converter', () => ({
@@ -48,7 +34,7 @@ vi.mock('../firestore.converter', () => ({
 }));
 
 vi.mock('../firestore.client', () => ({
-  db: {},
+  db: 'MOCK_DB',
 }));
 
 import {
@@ -59,19 +45,29 @@ import {
 
 describe('workspace-business.parsing-imports repository', () => {
   beforeEach(() => {
-    mockAddDocument.mockReset();
+    mockDoc.mockReset();
+    mockGetDoc.mockReset();
+    mockRunTransaction.mockReset();
     mockUpdateDocument.mockReset();
-    mockGetDocuments.mockReset();
-    mockServerTimestamp.mockClear();
-    mockCollection.mockClear();
-    mockWhere.mockClear();
-    mockLimit.mockClear();
-    mockQuery.mockClear();
-    mockCreateConverter.mockClear();
+    mockServerTimestamp.mockReturnValue('__SERVER_TIMESTAMP__');
+    mockCreateConverter.mockReturnValue('CONVERTER');
   });
 
-  it('creates parsing import records with startedAt timestamp', async () => {
-    mockAddDocument.mockResolvedValue({ id: 'import-1' });
+  // ---------------------------------------------------------------------------
+  // createParsingImport
+  // ---------------------------------------------------------------------------
+
+  it('creates parsing import record with idempotencyKey as document ID', async () => {
+    const mockDocRef = { id: 'import:intent-1:2', path: 'workspaces/workspace-1/parsingImports/import:intent-1:2' };
+    mockDoc.mockReturnValue(mockDocRef);
+
+    const mockTxSet = vi.fn();
+    const mockTxGet = vi.fn().mockResolvedValue({ exists: () => false });
+    mockRunTransaction.mockImplementation(
+      async (_db: unknown, callback: (tx: { get: typeof mockTxGet; set: typeof mockTxSet }) => Promise<void>) => {
+        await callback({ get: mockTxGet, set: mockTxSet });
+      }
+    );
 
     const payload: Omit<ParsingImport, 'id' | 'startedAt'> = {
       workspaceId: 'workspace-1',
@@ -84,9 +80,14 @@ describe('workspace-business.parsing-imports repository', () => {
 
     const result = await createParsingImport('workspace-1', payload);
 
-    expect(result).toBe('import-1');
-    expect(mockAddDocument).toHaveBeenCalledWith(
-      'workspaces/workspace-1/parsingImports',
+    expect(result).toBe('import:intent-1:2');
+    expect(mockDoc).toHaveBeenCalledWith(
+      'MOCK_DB',
+      'workspaces/workspace-1/parsingImports/import:intent-1:2'
+    );
+    expect(mockTxGet).toHaveBeenCalledWith(mockDocRef);
+    expect(mockTxSet).toHaveBeenCalledWith(
+      mockDocRef,
       expect.objectContaining({
         idempotencyKey: 'import:intent-1:2',
         startedAt: '__SERVER_TIMESTAMP__',
@@ -94,10 +95,46 @@ describe('workspace-business.parsing-imports repository', () => {
     );
   });
 
-  it('reads parsing import by idempotency key and returns first match', async () => {
-    mockGetDocuments.mockResolvedValue([
-      {
-        id: 'import-1',
+  it('does not overwrite existing record when concurrent winner already created it', async () => {
+    const mockDocRef = { id: 'import:intent-1:2', path: '...' };
+    mockDoc.mockReturnValue(mockDocRef);
+
+    const mockTxSet = vi.fn();
+    const mockTxGet = vi.fn().mockResolvedValue({ exists: () => true }); // Already exists
+    mockRunTransaction.mockImplementation(
+      async (_db: unknown, callback: (tx: { get: typeof mockTxGet; set: typeof mockTxSet }) => Promise<void>) => {
+        await callback({ get: mockTxGet, set: mockTxSet });
+      }
+    );
+
+    const payload: Omit<ParsingImport, 'id' | 'startedAt'> = {
+      workspaceId: 'workspace-1',
+      intentId: 'intent-1' as ParsingImport['intentId'],
+      intentVersion: 2,
+      idempotencyKey: 'import:intent-1:2',
+      status: 'started',
+      appliedTaskIds: [],
+    };
+
+    const result = await createParsingImport('workspace-1', payload);
+
+    expect(result).toBe('import:intent-1:2');
+    expect(mockTxSet).not.toHaveBeenCalled(); // Silent no-op: concurrent winner already wrote
+  });
+
+  // ---------------------------------------------------------------------------
+  // getParsingImportByIdempotencyKey
+  // ---------------------------------------------------------------------------
+
+  it('reads parsing import by direct document ID lookup (O(1) get)', async () => {
+    const mockDocRefWithConverter = { path: '...' };
+    const mockWithConverter = vi.fn().mockReturnValue(mockDocRefWithConverter);
+    const mockDocRef = { withConverter: mockWithConverter };
+    mockDoc.mockReturnValue(mockDocRef);
+    mockGetDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        id: 'import:intent-1:2',
         workspaceId: 'workspace-1',
         intentId: 'intent-1',
         intentVersion: 2,
@@ -105,36 +142,35 @@ describe('workspace-business.parsing-imports repository', () => {
         status: 'applied',
         appliedTaskIds: ['task-1'],
         startedAt: 123,
-      },
-    ]);
+      }),
+    });
 
-    const row = await getParsingImportByIdempotencyKey(
-      'workspace-1',
-      'import:intent-1:2'
-    );
+    const row = await getParsingImportByIdempotencyKey('workspace-1', 'import:intent-1:2');
 
-    expect(mockWhere).toHaveBeenCalledWith(
-      'idempotencyKey',
-      '==',
-      'import:intent-1:2'
+    expect(mockDoc).toHaveBeenCalledWith(
+      'MOCK_DB',
+      'workspaces/workspace-1/parsingImports/import:intent-1:2'
     );
-    expect(mockLimit).toHaveBeenCalledWith(1);
-    expect(mockGetDocuments).toHaveBeenCalledWith('QUERY_REF');
-    expect(row?.id).toBe('import-1');
+    expect(mockWithConverter).toHaveBeenCalledWith('CONVERTER');
+    expect(mockGetDoc).toHaveBeenCalledWith(mockDocRefWithConverter);
+    expect(row?.id).toBe('import:intent-1:2');
   });
 
-  it('returns null when no idempotency-key match exists', async () => {
-    mockGetDocuments.mockResolvedValue([]);
+  it('returns null when no document exists for the given idempotency key', async () => {
+    const mockDocRefWithConverter = {};
+    mockDoc.mockReturnValue({ withConverter: vi.fn().mockReturnValue(mockDocRefWithConverter) });
+    mockGetDoc.mockResolvedValue({ exists: () => false });
 
-    const row = await getParsingImportByIdempotencyKey(
-      'workspace-1',
-      'import:intent-404:1'
-    );
+    const row = await getParsingImportByIdempotencyKey('workspace-1', 'import:intent-404:1');
 
     expect(row).toBeNull();
   });
 
-  it('updates parsing import status and stamps completedAt for terminal status', async () => {
+  // ---------------------------------------------------------------------------
+  // updateParsingImportStatus
+  // ---------------------------------------------------------------------------
+
+  it('stamps completedAt for terminal status', async () => {
     mockUpdateDocument.mockResolvedValue(undefined);
 
     await updateParsingImportStatus('workspace-1', 'import-1', {
