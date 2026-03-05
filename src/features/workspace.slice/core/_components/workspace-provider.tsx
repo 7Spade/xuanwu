@@ -11,10 +11,7 @@ import {
 } from '@/features/scheduling.slice'
 import type { CommandResult, ScheduleItem } from '@/features/shared-kernel';
 import { firestoreTimestampToISO } from '@/shared/shadcn-ui/utils/utils';
-import type { Workspace, WorkspaceLifecycleState, Capability, Address, WorkspacePersonnel } from '../_types';
-import type { AuditLog } from '../../gov.audit/_types';
-import type { WorkspaceTask } from '../../business.tasks/_types';
-import type { WorkspaceRole } from '../../gov.role/_types';
+
 
 import { registerOrgPolicyCache, runTransaction } from '../../application';
 import {
@@ -28,9 +25,12 @@ import {
   deleteTask as deleteTaskAction,
   getWorkspaceTask as getWorkspaceTaskAction,
 } from '../../business.tasks'
+import type { WorkspaceTask } from '../../business.tasks/_types';
 import { listWorkflowStates } from '../../business.workflow'
 import { WorkspaceEventBus , WorkspaceEventContext, registerWorkspaceFunnel, registerOrganizationFunnel, type WorkspaceEventName, type FileSendToParserPayload } from '../../core.event-bus';
 import { writeAuditLog } from '../../gov.audit/_actions';
+import type { AuditLog } from '../../gov.audit/_types';
+import type { WorkspaceRole } from '../../gov.role/_types';
 import {
   authorizeWorkspaceTeam as authorizeWorkspaceTeamAction,
   revokeWorkspaceTeam as revokeWorkspaceTeamAction,
@@ -44,6 +44,7 @@ import {
 import { useAccount } from '../_hooks/use-account';
 import { useApp } from '../_hooks/use-app';
 import { subscribeToWorkspaceTasks, subscribeToWorkspaceIssues } from '../_queries';
+import type { Workspace, WorkspaceLifecycleState, Capability, Address, WorkspacePersonnel } from '../_types';
 
 import {
   applyWorkflowBlocked,

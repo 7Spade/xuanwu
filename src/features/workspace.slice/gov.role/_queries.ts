@@ -5,7 +5,9 @@
  */
 
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+
 import type { Workspace } from '../core/_types';
+
 import type { WorkspaceGrant } from './_types';
 
 /**

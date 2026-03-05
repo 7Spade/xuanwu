@@ -3,9 +3,9 @@
 
 import { Shield } from "lucide-react";
 
+import { type OrganizationRole } from "@/features/shared-kernel";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Card, CardContent } from "@/shared/shadcn-ui/card";
-import { type OrganizationRole } from "@/features/shared-kernel";
 
 interface PermissionTreeProps {
   currentRole: OrganizationRole;

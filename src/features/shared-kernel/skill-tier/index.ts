@@ -22,6 +22,7 @@
  */
 
 import type { Timestamp } from '@/shared/ports'
+
 import type { TagSlugRef } from '../tag-authority'
 
 // ─── Canonical type definitions (D19 — owned by shared-kernel) ───────────────

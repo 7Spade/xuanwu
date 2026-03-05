@@ -5,8 +5,8 @@ import type React from 'react';
 import {type ReactNode} from 'react';
 import { createContext, useReducer, useContext, useEffect } from 'react';
 
-import { authAdapter } from '@/shared/infra/auth/auth.adapter';
 import { type Account } from '@/features/shared-kernel';
+import { authAdapter } from '@/shared/infra/auth/auth.adapter';
 
 interface AuthState {
   user: Account | null;

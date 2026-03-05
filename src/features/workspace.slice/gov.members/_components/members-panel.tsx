@@ -12,21 +12,21 @@ import {
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
+import { type Team, type MemberReference } from "@/features/shared-kernel";
 import { useApp } from '@/shared/app-providers/app-context';
-import { cn } from "@/shared/shadcn-ui/utils/utils";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/shadcn-ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/shared/shadcn-ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/shadcn-ui/dropdown-menu";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { Label } from "@/shared/shadcn-ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/shadcn-ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
-import { type Team, type MemberReference } from "@/features/shared-kernel";
-import { type WorkspaceRole } from "../../gov.role/_types";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
 
 import { useWorkspace } from '../../core';
+import { type WorkspaceRole } from "../../gov.role/_types";
 
 
 const getErrorMessage = (error: unknown, fallback: string) =>

@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/shared/shadcn-ui/select";
 import { Switch } from "@/shared/shadcn-ui/switch";
+
 import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "../_types";
 
 interface WorkspaceSettingsDialogProps {

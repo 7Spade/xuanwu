@@ -15,7 +15,6 @@ import { tierSatisfies } from "@/features/shared-kernel";
 import type { ScheduleItem } from '@/features/shared-kernel';
 import { useApp } from "@/shared/app-providers/app-context";
 import { useAuth } from "@/shared/app-providers/auth-provider";
-import { canTransitionScheduleStatus } from "../_schedule.rules";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import {
@@ -24,6 +23,7 @@ import {
     updateScheduleItemStatus,
 } from "../_actions";
 import { getAccountActiveAssignments } from "../_queries";
+import { canTransitionScheduleStatus } from "../_schedule.rules";
 
 
 export function useScheduleActions() {

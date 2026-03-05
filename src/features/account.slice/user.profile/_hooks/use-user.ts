@@ -3,8 +3,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-import { useAuth } from '@/shared/app-providers/auth-provider'
 import type { Account } from '@/features/shared-kernel'
+import { useAuth } from '@/shared/app-providers/auth-provider'
 
 import {
   updateUserProfile as updateUserProfileAction,

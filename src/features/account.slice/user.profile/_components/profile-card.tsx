@@ -3,13 +3,13 @@
 import { User, Loader2, Upload } from "lucide-react";
 import type React from "react"
 
+import { type Account } from "@/features/shared-kernel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/shadcn-ui/avatar";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/shared/shadcn-ui/card";
 import { Input } from "@/shared/shadcn-ui/input";
 import { Label } from "@/shared/shadcn-ui/label";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
-import { type Account } from "@/features/shared-kernel"
 
 
 interface ProfileCardProps {

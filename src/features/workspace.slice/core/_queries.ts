@@ -10,6 +10,7 @@
  */
 
 import type { ScheduleItem } from '@/features/shared-kernel';
+import type { PartnerInvite } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
@@ -21,7 +22,6 @@ import {
   where,
 } from '@/shared/infra/firestore/firestore.read.adapter';
 import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils';
-import type { PartnerInvite } from '@/features/shared-kernel';
 
 import type { DailyLog } from '../business.daily/_types';
 import type { WorkspaceIssue } from '../business.issues/_types';

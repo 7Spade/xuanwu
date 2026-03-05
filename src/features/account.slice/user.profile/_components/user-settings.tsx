@@ -10,10 +10,10 @@ import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { useUser } from "../_hooks/use-user";
 
+import { EmailCard } from "./email-card";
 import { PreferencesCard } from "./preferences-card";
 import { ProfileCard } from "./profile-card";
 import { SecurityCard } from "./security-card";
-import { EmailCard } from "./email-card";
 
 /**
  * UserSettings - The main "smart" component for all user settings.

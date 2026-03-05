@@ -5,8 +5,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 
+import type { Account } from "@/features/shared-kernel"
 import { ROUTES } from "@/shared/constants/routes"
-import { cn } from "@/shared/shadcn-ui/utils/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/shadcn-ui/avatar"
 import {
   DropdownMenu,
@@ -22,7 +22,7 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/shared/shadcn-ui/sidebar"
-import type { Account } from "@/features/shared-kernel"
+import { cn } from "@/shared/shadcn-ui/utils/utils"
 
 import type { AppAction } from '../app-provider'
 

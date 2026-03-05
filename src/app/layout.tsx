@@ -7,8 +7,8 @@ import { AppProvider } from '@/features/workspace.slice';
 import { AuthProvider } from '@/shared/app-providers/auth-provider';
 import { FirebaseClientProvider } from '@/shared/app-providers/firebase-provider';
 import { ThemeProvider } from '@/shared/app-providers/theme-provider';
-import { cn } from '@/shared/shadcn-ui/utils/utils';
 import {Toaster} from '@/shared/shadcn-ui/toaster';
+import { cn } from '@/shared/shadcn-ui/utils/utils';
 
 export const metadata: Metadata = {
   title: 'OrgVerse | Modern Workspace Architecture',

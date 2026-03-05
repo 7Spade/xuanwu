@@ -43,6 +43,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/shared/shadcn-ui/command';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/shadcn-ui/popover';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import {
@@ -51,7 +52,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/shared/shadcn-ui/tooltip';
-import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 
 import {
   assignMember,

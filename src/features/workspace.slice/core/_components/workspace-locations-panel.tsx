@@ -26,12 +26,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/shared/shadcn-ui/dialog';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 import { Input } from '@/shared/shadcn-ui/input';
 import { Label } from '@/shared/shadcn-ui/label';
-import type { WorkspaceLocation } from '../_types';
-import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 
 import { createWorkspaceLocation, updateWorkspaceLocation, deleteWorkspaceLocation } from '../_actions';
+import type { WorkspaceLocation } from '../_types';
+
 
 // ---------------------------------------------------------------------------
 // Location form dialog (create + edit)

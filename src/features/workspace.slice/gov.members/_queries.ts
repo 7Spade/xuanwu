@@ -7,6 +7,7 @@
 import {
   getWorkspaceGrants as getWorkspaceGrantsFacade,
 } from "@/shared/infra/firestore/firestore.facade"
+
 import type { WorkspaceGrant } from "../gov.role/_types"
 
 /**

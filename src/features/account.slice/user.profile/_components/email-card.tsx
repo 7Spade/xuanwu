@@ -6,9 +6,9 @@ import { useState } from "react";
 import { authAdapter } from "@/shared/infra/auth/auth.adapter";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/shadcn-ui/card";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { Input } from "@/shared/shadcn-ui/input";
 import { Label } from "@/shared/shadcn-ui/label";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 interface EmailCardProps {
   currentEmail: string;

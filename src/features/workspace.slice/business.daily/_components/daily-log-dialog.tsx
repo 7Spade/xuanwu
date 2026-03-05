@@ -15,19 +15,20 @@
 import { CornerUpLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import type { Account } from "@/features/shared-kernel";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import type { Timestamp } from "@/shared/ports";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/shadcn-ui/dialog";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
-import { type DailyLog, type DailyLogComment } from "../_types";
-import type { Account } from "@/features/shared-kernel";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+
 
 import { addDailyLogComment } from "../_actions";
 import { subscribeToDailyLogComments } from '../_queries';
+import { type DailyLog, type DailyLogComment } from "../_types";
 
 import { BookmarkButton } from "./actions/bookmark-button";
 import { CommentButton } from './actions/comment-button';

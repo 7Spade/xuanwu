@@ -5,6 +5,7 @@
  * Stored at: accounts/{accountId}/notifications/{notifId}
  */
 
+import type { Notification } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
@@ -16,7 +17,6 @@ import {
   type Unsubscribe,
 } from '@/shared/infra/firestore/firestore.read.adapter';
 import { updateDoc } from '@/shared/infra/firestore/firestore.write.adapter';
-import type { Notification } from '@/features/shared-kernel';
 
 /**
  * Subscribes to the latest notifications for a user.

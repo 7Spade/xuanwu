@@ -6,12 +6,11 @@ import { createContext, useReducer, useEffect } from 'react';
 
 import type { ScheduleItem } from '@/features/shared-kernel';
 import type { PartnerInvite } from '@/features/shared-kernel';
-import type { Workspace } from '../_types';
+
 import type { DailyLog } from '../../business.daily/_types';
 import type { WorkspaceIssue } from '../../business.issues/_types';
 import type { WorkspaceTask } from '../../business.tasks/_types';
 import type { AuditLog } from '../../gov.audit/_types';
-
 import { useApp } from '../_hooks/use-app';
 import {
   subscribeToDailyLogsForAccount,
@@ -20,6 +19,7 @@ import {
   subscribeToScheduleItemsForAccount,
   subscribeToWorkspacesForAccount,
 } from '../_queries';
+import type { Workspace } from '../_types';
 
 // State and Action Types
 interface AccountState {

@@ -10,10 +10,10 @@ import { ROUTES } from "@/shared/constants/routes";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/shadcn-ui/alert-dialog";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/shadcn-ui/card";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { Input } from "@/shared/shadcn-ui/input";
 import { Label } from "@/shared/shadcn-ui/label";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { useOrganizationManagement } from "../_hooks/use-organization-management";
 

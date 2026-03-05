@@ -9,10 +9,10 @@
 
 
 import { versionGuardAllows } from '@/features/shared-kernel';
+import type { Workspace } from '@/features/workspace.slice';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import type { Workspace } from '@/features/workspace.slice';
 
 export interface WorkspaceViewRecord {
   workspaceId: string;

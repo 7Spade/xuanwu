@@ -40,11 +40,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/shadcn-ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/shadcn-ui/tooltip";
-import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "../_types";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/shadcn-ui/tooltip";
 
 import { deleteWorkspace, updateWorkspaceSettings } from "../_actions";
+import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "../_types";
+
+
 import { WorkspaceSettingsDialog } from "./workspace-settings";
 
 interface WorkspaceCardProps {
@@ -373,7 +375,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between border-t border-border/20 pt-3 pb-4">
+        <CardFooter className="flex items-center justify-between border-t border-border/20 pb-4 pt-3">
           <div className="flex flex-col">
             <span className="text-[8px] font-bold uppercase leading-none tracking-tighter text-muted-foreground">
               [{t("workspaces.defaultProtocol")}]

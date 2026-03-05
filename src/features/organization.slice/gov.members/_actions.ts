@@ -16,11 +16,11 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from "@/features/shared-kernel";
+import type { MemberReference } from "@/features/shared-kernel";
 import {
   recruitOrganizationMember,
   dismissOrganizationMember,
 } from "@/shared/infra/firestore/firestore.facade";
-import type { MemberReference } from "@/features/shared-kernel";
 
 export async function recruitMember(
   organizationId: string,

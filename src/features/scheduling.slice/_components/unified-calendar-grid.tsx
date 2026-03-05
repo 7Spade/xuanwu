@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 import type { ScheduleItem, Timestamp } from "@/features/shared-kernel";
+import { type MemberReference } from "@/features/shared-kernel";
 import { findSkill } from "@/shared/constants/skills";
-import { cn } from "@/shared/shadcn-ui/utils/utils";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
@@ -18,7 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/shadcn-ui/tooltip";
-import { type MemberReference } from "@/features/shared-kernel";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
 
 
 const DAYS_OF_WEEK = ["日", "一", "二", "三", "四", "五", "六"];
@@ -195,7 +195,7 @@ export function UnifiedCalendarGrid({
                                       </div>
                                     ))
                                   ) : (
-                                    <div className="flex -space-x-1 items-center">
+                                    <div className="flex items-center -space-x-1">
                                       {assignedMembers.map(m => (
                                         <TooltipProvider key={m.id}>
                                           <Tooltip>

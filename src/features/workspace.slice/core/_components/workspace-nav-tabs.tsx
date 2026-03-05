@@ -4,9 +4,9 @@ import Link from "next/link"
 import { useSelectedLayoutSegment } from "next/navigation"
 import { useMemo } from "react"
 
+import { useApp } from "../_hooks/use-app"
 import type { Capability } from "../_types"
 
-import { useApp } from "../_hooks/use-app"
 
 import { useWorkspace } from "./workspace-provider";
 

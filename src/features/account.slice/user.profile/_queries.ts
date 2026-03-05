@@ -6,11 +6,11 @@
  * Per slice standard: reads live in _queries.ts; mutations live in _actions.ts.
  */
 
+import type { Account } from "@/features/shared-kernel"
 import {
   getUserProfile as getUserProfileFacade,
 } from "@/shared/infra/firestore/firestore.facade"
 import { subscribeToDocument } from '@/shared/infra/firestore/firestore.read.adapter'
-import type { Account } from "@/features/shared-kernel"
 
 /**
  * Fetches the user account/profile document by userId.

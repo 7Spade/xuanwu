@@ -15,10 +15,10 @@
  *   Skill tag data is referenced by tagSlug — read from skill-xp.slice.
  */
 
+import type { Account, PartnerInvite, Team } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import { collection, doc, onSnapshot, orderBy, query, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import type { Account, PartnerInvite, Team } from '@/features/shared-kernel';
 
 /**
  * Fetches all external partner groups for an organization.

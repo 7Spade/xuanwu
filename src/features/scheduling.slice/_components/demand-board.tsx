@@ -44,6 +44,7 @@ import type { Timestamp } from '@/shared/ports';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import {
   Select,
@@ -52,7 +53,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/shadcn-ui/select';
-import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
 
 import {
   approveScheduleItemWithMember,

@@ -7,6 +7,7 @@
 import {
   getAuditLogs as getAuditLogsFacade,
 } from "@/shared/infra/firestore/firestore.facade"
+
 import type { AuditLog } from "./_types"
 
 /**

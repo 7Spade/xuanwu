@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo } from "react"
 
+import type { Account } from "@/features/shared-kernel"
 import { ROUTES } from "@/shared/constants/routes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/shadcn-ui/avatar"
 import {
@@ -16,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/shadcn-ui/dropdown-menu"
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/shared/shadcn-ui/sidebar"
-import type { Account } from "@/features/shared-kernel"
 
 
 

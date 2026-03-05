@@ -9,8 +9,8 @@
 import { Bookmark, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from 'react';
 
-import { cn } from "@/shared/shadcn-ui/utils/utils";
 import { Button } from "@/shared/shadcn-ui/button";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
 
 import { useBookmarkActions } from '../../_hooks/use-bookmark-commands';
 

@@ -9,6 +9,7 @@
  * Pattern mirrors `workspace.slice/core/_queries.ts`.
  */
 
+import type { Account } from '@/features/shared-kernel';
 import { db } from '@/shared/infra/firestore/firestore.client';
 import {
   collection,
@@ -18,7 +19,6 @@ import {
   where,
 } from '@/shared/infra/firestore/firestore.read.adapter';
 import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils';
-import type { Account } from '@/features/shared-kernel';
 
 /**
  * Opens a real-time listener on accounts where `memberIds` contains `userId`.

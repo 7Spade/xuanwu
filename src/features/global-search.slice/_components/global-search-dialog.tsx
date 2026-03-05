@@ -17,6 +17,8 @@
 import { Globe, Layers, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { type Account, type MemberReference } from "@/features/shared-kernel";
+import { type Workspace } from "@/features/workspace.slice";
 import { ROUTES } from "@/shared/constants/routes";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import {
@@ -27,8 +29,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/shared/shadcn-ui/command";
-import { type Account, type MemberReference } from "@/features/shared-kernel";
-import { type Workspace } from "@/features/workspace.slice";
 
 export interface GlobalSearchDialogProps {
   isOpen: boolean;

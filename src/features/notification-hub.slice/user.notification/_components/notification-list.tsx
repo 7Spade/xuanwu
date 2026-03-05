@@ -7,9 +7,9 @@
  * Marks items as read when clicked.
  */
 
-import { cn } from '@/shared/shadcn-ui/utils/utils';
-import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import type { Notification } from '@/features/shared-kernel';
+import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
+import { cn } from '@/shared/shadcn-ui/utils/utils';
 
 interface NotificationListProps {
   notifications: Notification[];

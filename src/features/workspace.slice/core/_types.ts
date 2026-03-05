@@ -1,8 +1,9 @@
 import type { Timestamp } from '@/shared/ports'
-import type { WorkspaceGrant } from '../gov.role/_types'
-import type { WorkspaceTask } from '../business.tasks/_types'
-import type { WorkspaceIssue } from '../business.issues/_types'
+
 import type { WorkspaceFile } from '../business.files/_types'
+import type { WorkspaceIssue } from '../business.issues/_types'
+import type { WorkspaceTask } from '../business.tasks/_types'
+import type { WorkspaceGrant } from '../gov.role/_types'
 
 export type WorkspaceLifecycleState = 'preparatory' | 'active' | 'stopped';
 

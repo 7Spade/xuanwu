@@ -38,11 +38,12 @@ import { Button } from "@/shared/shadcn-ui/button";
 import { Card, CardDescription, CardHeader, CardTitle, CardFooter } from "@/shared/shadcn-ui/card";
 import { Checkbox } from "@/shared/shadcn-ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/shared/shadcn-ui/dialog";
-import { Label } from "@/shared/shadcn-ui/label";
-import { type Capability } from "../_types";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import { Label } from "@/shared/shadcn-ui/label";
 
 import { useApp } from '../_hooks/use-app';
+import { type Capability } from "../_types";
+
 
 import { useWorkspace } from './workspace-provider';
 

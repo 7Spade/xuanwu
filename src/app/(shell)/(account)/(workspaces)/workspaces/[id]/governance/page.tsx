@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation"
 import { useMemo } from "react"
 
 import { GovernanceSidebar , useScheduleActions } from "@/features/scheduling.slice"
+import type { ScheduleItem } from "@/features/shared-kernel"
 import { useWorkspace } from "@/features/workspace.slice"
 import { useAccount } from "@/features/workspace.slice"
-import type { ScheduleItem } from "@/features/shared-kernel"
 
 export default function GovernancePage() {
   const router = useRouter()

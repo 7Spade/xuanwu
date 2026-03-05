@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 
+import { useAccount } from "../../core";
 import type { DailyLog } from "../_types";
 
-import { useAccount } from "../../core";
 
 export function useAggregatedLogs() {
   const { state: accountState } = useAccount();

@@ -4,6 +4,7 @@
 import { useMemo } from 'react'
 
 import { useAuth } from '@/shared/app-providers/auth-provider'
+
 import { filterVisibleWorkspaces } from '../../_workspace.rules'
 
 import { useAccount } from './use-account'

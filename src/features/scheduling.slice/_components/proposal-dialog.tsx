@@ -8,8 +8,8 @@ import { type DateRange } from "react-day-picker";
 import type { SkillRequirement } from "@/features/shared-kernel";
 import { tagSlugRef } from "@/features/shared-kernel";
 import { getOrgSkillTags } from "@/features/skill-xp.slice";
+import { type Location } from "@/features/workspace.slice";
 import { SKILLS, SKILL_GROUPS, SKILL_SUB_CATEGORY_BY_KEY } from "@/shared/constants/skills";
-import { cn } from "@/shared/shadcn-ui/utils/utils";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Calendar } from "@/shared/shadcn-ui/calendar";
@@ -29,12 +29,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/shared/shadcn-ui/dialog";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { Input } from "@/shared/shadcn-ui/input";
 import { Label } from "@/shared/shadcn-ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
 import { Textarea } from "@/shared/shadcn-ui/textarea";
-import { type Location } from "@/features/workspace.slice";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
 
 const MAX_SKILL_REQUIREMENT_QUANTITY = 99;
 

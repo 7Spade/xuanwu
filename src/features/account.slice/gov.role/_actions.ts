@@ -27,10 +27,10 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/features/shared-kernel';
+import type { OrganizationRole } from '@/features/shared-kernel';
+import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
 import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
-import type { OrganizationRole } from '@/features/shared-kernel';
 
 export interface AccountRoleRecord {
   accountId: string;

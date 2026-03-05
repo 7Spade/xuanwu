@@ -13,12 +13,12 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from "@/features/shared-kernel";
+import type { Account } from "@/features/shared-kernel";
 import {
   createUserAccount as createUserAccountFacade,
   updateUserProfile as updateUserProfileFacade,
 } from "@/shared/infra/firestore/firestore.facade";
 import { uploadProfilePicture as uploadProfilePictureFacade } from "@/shared/infra/storage/storage.facade";
-import type { Account } from "@/features/shared-kernel";
 
 export async function createUserAccount(
   userId: string,

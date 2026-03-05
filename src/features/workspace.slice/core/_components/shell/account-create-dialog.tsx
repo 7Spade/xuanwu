@@ -4,6 +4,7 @@
 import { Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 
+import { type Account } from "@/features/shared-kernel"
 import { Button } from "@/shared/shadcn-ui/button"
 import {
   Dialog,
@@ -13,10 +14,9 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/shared/shadcn-ui/dialog"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { Input } from "@/shared/shadcn-ui/input"
 import { Label } from "@/shared/shadcn-ui/label"
-import { type Account } from "@/features/shared-kernel"
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 
 import type { AppAction } from '../app-provider'
 

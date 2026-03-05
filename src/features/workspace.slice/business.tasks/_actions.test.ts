@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { updateTask, reconcileIntentTasks } from './_actions';
 import type { WorkspaceTask } from './_types';
 
-import { updateTask, reconcileIntentTasks } from './_actions';
 
 const {
   mockUpdateTaskFacade,

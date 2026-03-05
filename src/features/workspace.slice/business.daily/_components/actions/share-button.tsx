@@ -15,10 +15,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/shadcn-ui/dropdown-menu";
-import { type DailyLog } from "../../_types";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { useWorkspace } from "../../../core";
+import { type DailyLog } from "../../_types";
 
 interface ShareButtonProps {
   log: DailyLog;

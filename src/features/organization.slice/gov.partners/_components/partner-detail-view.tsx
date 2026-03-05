@@ -12,6 +12,7 @@ import {
 import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect, useMemo } from "react"
 
+import type { PartnerInvite, MemberReference , Team } from "@/features/shared-kernel"
 import { useApp } from "@/shared/app-providers/app-context"
 import { Badge } from "@/shared/shadcn-ui/badge"
 import { Button } from "@/shared/shadcn-ui/button"
@@ -24,12 +25,11 @@ import {
   DialogDescription, 
   DialogFooter 
 } from "@/shared/shadcn-ui/dialog"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { Input } from "@/shared/shadcn-ui/input"
 import { Label } from "@/shared/shadcn-ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs"
-import type { PartnerInvite, MemberReference , Team } from "@/features/shared-kernel"
 import { PageHeader } from "@/shared/ui/page-header"
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 
 import { usePartnerManagement } from "../_hooks/use-partner-management"
 import { subscribeToOrgPartnerInvites } from "../_queries"

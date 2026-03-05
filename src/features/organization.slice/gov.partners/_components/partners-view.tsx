@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect, useMemo } from "react"
 
 import { useI18n } from "@/config/i18n/i18n-provider"
+import type { Team } from "@/features/shared-kernel"
 import { useApp } from "@/shared/app-providers/app-context"
 import { Badge } from "@/shared/shadcn-ui/badge"
 import { Button } from "@/shared/shadcn-ui/button"
@@ -17,11 +18,10 @@ import {
   DialogFooter,
   DialogDescription
 } from "@/shared/shadcn-ui/dialog"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { Input } from "@/shared/shadcn-ui/input"
 import { Label } from "@/shared/shadcn-ui/label"
-import type { Team } from "@/features/shared-kernel"
 import { PageHeader } from "@/shared/ui/page-header"
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 
 import { usePartnerManagement } from "../_hooks/use-partner-management"
 

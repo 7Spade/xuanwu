@@ -5,9 +5,10 @@
 
 import type { CommandResult, Account } from '@/features/shared-kernel';
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
-import type { Capability, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "./_types";
 
 import { createWorkspace, mountCapabilities, updateWorkspaceSettings, deleteWorkspace } from "./_actions";
+import type { Capability, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "./_types";
+
 
 /**
  * Creates a workspace and immediately mounts a set of initial capabilities.

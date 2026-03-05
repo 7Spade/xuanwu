@@ -25,7 +25,6 @@ import { useState, useRef, useEffect } from "react";
 
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { ROUTES } from "@/shared/constants/routes";
-import { cn } from "@/shared/shadcn-ui/utils/utils";
 import { Badge } from "@/shared/shadcn-ui/badge";
 import { Button } from "@/shared/shadcn-ui/button";
 import {
@@ -34,6 +33,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/shadcn-ui/dropdown-menu";
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { ScrollArea } from "@/shared/shadcn-ui/scroll-area";
 import { 
   Sheet, 
@@ -50,8 +50,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/shadcn-ui/table";
-import type { WorkspaceFile, WorkspaceFileVersion } from "../_types";
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
 
 import { useWorkspace } from '../../core';
 import {
@@ -61,6 +60,7 @@ import {
 } from '../_actions';
 import { subscribeToWorkspaceFiles } from '../_queries';
 import { uploadRawFile } from '../_storage-actions';
+import type { WorkspaceFile, WorkspaceFileVersion } from "../_types";
 
 
 const getErrorMessage = (error: unknown, fallback: string) =>

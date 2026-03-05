@@ -22,8 +22,8 @@ import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 
 import type { ScheduleItem } from '@/features/shared-kernel';
+import type { MemberReference } from "@/features/shared-kernel";
 import { useApp } from "@/shared/app-providers/app-context";
-import { cn } from "@/shared/shadcn-ui/utils/utils";
 import { Button } from "@/shared/shadcn-ui/button";
 import {
   Command,
@@ -35,7 +35,7 @@ import {
 } from "@/shared/shadcn-ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
-import type { MemberReference } from "@/features/shared-kernel";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
 
 import { useGlobalSchedule } from "../_hooks/use-global-schedule";
 import { useScheduleActions } from "../_hooks/use-schedule-commands";

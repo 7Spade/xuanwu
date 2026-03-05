@@ -5,6 +5,7 @@ import { format } from "date-fns"
 import { ArrowUpDown } from "lucide-react"
 
 import type { ScheduleItem } from '@/features/shared-kernel'
+import { type MemberReference } from "@/features/shared-kernel"
 import { SKILLS } from "@/shared/constants/skills"
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar"
 import { Badge } from "@/shared/shadcn-ui/badge"
@@ -15,7 +16,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/shadcn-ui/tooltip"
-import { type MemberReference } from "@/features/shared-kernel"
 
 export type UpcomingEventItem = Pick<ScheduleItem, 'id' | 'title' | 'workspaceName' | 'startDate' | 'endDate' | 'assigneeIds' | 'requiredSkills'> & { members: MemberReference[] }
 
