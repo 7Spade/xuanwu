@@ -1,53 +1,62 @@
-# Logic Overview Tree（Next.js 16 適配版）
+# Logic Overview Tree（Next.js 16 × Logic Overview 對齊版）
 
-> 你提醒得很準：上一版太偏「純分層後端目錄」，不夠 Next.js 16 App Router。  
-> 這版改為 **Next.js 16 可落地結構**：`app` 負責路由/入口，`features` 承載 VS 邏輯，`shared-kernel` + `infra` 提供契約與實作。
+> 目的：同時滿足兩件事  
+> 1) 與 `docs/logic-overview.md` 的 L0~L9 / VS0~VS8 / D24 / D26 / D27 對齊。  
+> 2) 符合 Next.js 16 App Router 實作與 Server/Client 邊界。
 
 ```text
 src/
-├─ app/                                               # Next.js 16 App Router（L0 入口）
+├─ app/                                                  # L0 External Triggers（Next.js App Router）
 │  ├─ (public)/
 │  │  ├─ login/
+│  │  │  └─ page.tsx
 │  │  └─ reset-password/
+│  │     └─ page.tsx
 │  ├─ (portal)/
 │  │  ├─ dashboard/
-│  │  ├─ workspaces/
-│  │  │  ├─ [workspaceId]/
-│  │  │  │  ├─ @businesstab/                        # 平行路由
-│  │  │  │  │  ├─ tasks/
-│  │  │  │  │  ├─ schedule/
-│  │  │  │  │  ├─ quality-assurance/
-│  │  │  │  │  ├─ acceptance/
-│  │  │  │  │  ├─ finance/
-│  │  │  │  │  └─ document-parser/
-│  │  │  │  ├─ @modal/                              # 平行路由 modal
-│  │  │  │  └─ @panel/
-│  │  │  └─ new/
-│  │  └─ settings/
-│  ├─ api/                                            # Route Handlers（L0 webhooks/api）
+│  │  │  └─ page.tsx
+│  │  └─ workspaces/
+│  │     ├─ [workspaceId]/
+│  │     │  ├─ page.tsx
+│  │     │  ├─ @businesstab/                           # parallel routes
+│  │     │  │  ├─ tasks/page.tsx
+│  │     │  │  ├─ schedule/page.tsx
+│  │     │  │  ├─ quality-assurance/page.tsx
+│  │     │  │  ├─ acceptance/page.tsx
+│  │     │  │  ├─ finance/page.tsx
+│  │     │  │  └─ document-parser/page.tsx
+│  │     │  ├─ @modal/
+│  │     │  │  └─ default.tsx
+│  │     │  └─ @panel/
+│  │     │     └─ default.tsx
+│  │     └─ new/page.tsx
+│  ├─ api/                                               # route handlers（webhook/commands/queries）
 │  │  ├─ webhooks/
 │  │  ├─ commands/
 │  │  ├─ queries/
 │  │  └─ health/
 │  ├─ layout.tsx
-│  ├─ error.tsx
 │  ├─ loading.tsx
+│  ├─ error.tsx
 │  └─ not-found.tsx
 │
-├─ app-runtime/                                       # Next runtime wiring（providers/hooks/context）
+├─ app-runtime/                                          # runtime wiring（providers/hooks/contexts）
 │  ├─ providers/
-│  ├─ contexts/
 │  ├─ hooks/
+│  ├─ contexts/
 │  └─ ai/
 │
-├─ features/                                          # L3 Domain Slices + Cross-cutting Authorities
+├─ features/                                             # L3 Domain Slices + Authorities
 │  ├─ vs1-identity.slice/
 │  │  ├─ domain/
 │  │  ├─ application/
-│  │  │  ├─ actions/
-│  │  │  └─ queries/
+│  │  │  ├─ _actions.ts                                 # D3
+│  │  │  ├─ _queries.ts                                 # D4
+│  │  │  └─ _services.ts
 │  │  ├─ ui/
-│  │  └─ index.ts
+│  │  │  ├─ _components/
+│  │  │  └─ _hooks/
+│  │  └─ index.ts                                       # D7 public API
 │  │
 │  ├─ vs2-account.slice/
 │  │  ├─ domain/
@@ -55,16 +64,18 @@ src/
 │  │  │  ├─ wallet/
 │  │  │  └─ governance/
 │  │  ├─ application/
-│  │  │  ├─ actions/
-│  │  │  └─ queries/
+│  │  │  ├─ _actions.ts
+│  │  │  ├─ _queries.ts
+│  │  │  └─ _services.ts
 │  │  ├─ ui/
 │  │  └─ index.ts
 │  │
 │  ├─ vs3-skill-xp.slice/
 │  │  ├─ domain/
 │  │  ├─ application/
-│  │  │  ├─ actions/
-│  │  │  └─ queries/
+│  │  │  ├─ _actions.ts
+│  │  │  ├─ _queries.ts
+│  │  │  └─ _services.ts
 │  │  ├─ ui/
 │  │  └─ index.ts
 │  │
@@ -74,8 +85,9 @@ src/
 │  │  │  ├─ governance/
 │  │  │  └─ talent-repository/
 │  │  ├─ application/
-│  │  │  ├─ actions/
-│  │  │  └─ queries/
+│  │  │  ├─ _actions.ts
+│  │  │  ├─ _queries.ts
+│  │  │  └─ _services.ts
 │  │  ├─ ui/
 │  │  └─ index.ts
 │  │
@@ -84,90 +96,106 @@ src/
 │  │  │  ├─ core/
 │  │  │  ├─ workflow/
 │  │  │  └─ finance-lifecycle/
-│  │  ├─ application/
-│  │  │  ├─ command-handler/
-│  │  │  ├─ scope-guard/
-│  │  │  ├─ policy-engine/
-│  │  │  └─ transaction-runner/
 │  │  ├─ document-parser/
 │  │  │  ├─ layer-1-raw-parse/
 │  │  │  ├─ layer-2-semantic-classification/
 │  │  │  └─ layer-3-semantic-router/
+│  │  ├─ application/
+│  │  │  ├─ _actions.ts
+│  │  │  ├─ _queries.ts
+│  │  │  └─ _services.ts
 │  │  ├─ ui/
 │  │  └─ index.ts
 │  │
 │  ├─ vs6-scheduling.slice/
 │  │  ├─ domain/
+│  │  ├─ saga/
 │  │  ├─ application/
-│  │  │  ├─ saga/
-│  │  │  ├─ actions/
-│  │  │  └─ queries/
+│  │  │  ├─ _actions.ts
+│  │  │  ├─ _queries.ts
+│  │  │  └─ _services.ts
 │  │  ├─ ui/
 │  │  └─ index.ts
 │  │
-│  ├─ vs7-notification-hub.slice/                    # Cross-cutting Authority（唯一副作用出口）
+│  ├─ vs7-notification-hub.slice/                     # Authority Exit（D26 #A13）
 │  │  ├─ domain/
 │  │  │  ├─ router/
 │  │  │  └─ channel-policy/
 │  │  ├─ application/
-│  │  │  ├─ actions/
-│  │  │  ├─ services/
-│  │  │  └─ queries/
+│  │  │  ├─ _actions.ts                               # required by D3
+│  │  │  ├─ _queries.ts                               # read-model only
+│  │  │  └─ _services.ts                              # required by D26
 │  │  ├─ ui/
 │  │  └─ index.ts
 │  │
-│  ├─ vs8-semantic-cognition.slice/
-│  │  ├─ governance/                                 # Semantic Governance
+│  ├─ vs8-semantic-cognition.slice/                   # aka semantic-graph.slice
+│  │  ├─ governance/                                  # Semantic Governance
 │  │  │  ├─ semantic-registry/
 │  │  │  ├─ semantic-protocol/
 │  │  │  ├─ guards/
 │  │  │  └─ wiki/
-│  │  ├─ neural-core/                                # Semantic Neural Core
+│  │  ├─ neural-core/                                 # Semantic Neural Core
 │  │  │  ├─ core/
 │  │  │  ├─ graph/
 │  │  │  ├─ neural/
 │  │  │  ├─ routing/
 │  │  │  └─ plasticity/
-│  │  ├─ projection/                                 # Semantic Projection
+│  │  ├─ projection/                                  # Semantic Projection
 │  │  │  ├─ projections/
 │  │  │  ├─ io/
 │  │  │  └─ decision/
 │  │  ├─ application/
-│  │  │  ├─ actions/
-│  │  │  └─ queries/
+│  │  │  ├─ _actions.ts
+│  │  │  ├─ _queries.ts
+│  │  │  └─ _services.ts
 │  │  ├─ ui/
 │  │  └─ index.ts
 │  │
-│  ├─ global-search.slice/                           # Cross-cutting Authority（唯一跨域搜尋）
+│  ├─ global-search.slice/                            # Authority Exit（D26 #A12）
 │  │  ├─ domain/
 │  │  ├─ application/
-│  │  │  ├─ actions/
-│  │  │  ├─ services/
-│  │  │  └─ queries/
+│  │  │  ├─ _actions.ts                               # required by D3
+│  │  │  ├─ _queries.ts
+│  │  │  └─ _services.ts                              # required by D26
 │  │  ├─ ui/
 │  │  └─ index.ts
 │  │
-│  ├─ infra.gateway-command/                         # L2 CMD
-│  ├─ infra.event-router/                            # L4 IER
-│  ├─ infra.outbox-relay/                            # L4 relay
-│  ├─ projection.bus/                                # L5 Projection Bus
-│  ├─ infra.gateway-query/                           # L6 Query Gateway
-│  └─ observability/                                 # L9
+│  ├─ infra.gateway-command/                          # L2 Command Gateway
+│  │  ├─ _gateway.ts
+│  │  └─ index.ts
+│  ├─ infra.event-router/                             # L4 IER
+│  │  ├─ _router.ts
+│  │  └─ index.ts
+│  ├─ infra.outbox-relay/                             # L4 relay worker
+│  │  ├─ _relay.ts
+│  │  └─ index.ts
+│  ├─ projection.bus/                                 # L5 Projection Bus
+│  │  ├─ _funnel.ts
+│  │  ├─ _registry.ts
+│  │  └─ index.ts
+│  ├─ infra.gateway-query/                            # L6 Query Gateway
+│  │  ├─ _registry.ts
+│  │  └─ index.ts
+│  └─ observability/                                  # L9
+│     ├─ _trace.ts
+│     ├─ _metrics.ts
+│     ├─ _error-log.ts
+│     └─ index.ts
 │
-├─ shared-kernel/                                    # L1 / VS0（契約 + 規則）
+├─ shared-kernel/                                     # L1 / VS0
 │  ├─ data-contracts/
 │  ├─ infra-contracts/
 │  ├─ ports/
 │  ├─ semantic-primitives/
 │  └─ index.ts
 │
-├─ shared/                                           # 可重用 UI 與通用程式
+├─ shared/
 │  ├─ ui/
 │  ├─ app-providers/
 │  ├─ constants/
 │  ├─ enums/
 │  ├─ utils/
-│  └─ infra/                                         # L7 Firebase ACL（對齊 D24）
+│  └─ infra/                                          # L7 Firebase ACL（D24）
 │     ├─ auth/
 │     │  ├─ auth.adapter.ts
 │     │  └─ index.ts
@@ -182,15 +210,14 @@ src/
 │     │  └─ index.ts
 │     └─ index.ts
 │
-├─ shared-infra/                                     # 平台整合與部署配套（非 Domain）
-│  ├─ firebase/
-│  │  ├─ app/
-│  │  ├─ functions/
-│  │  ├─ rules/
-│  │  └─ indexes/
-│  └─ platform-ops/
+├─ shared-infra/                                      # L8 Firebase Infra（平台配置/部署配套）
+│  └─ firebase/
+│     ├─ app/
+│     ├─ functions/
+│     ├─ rules/
+│     └─ indexes/
 │
-└─ governance/                                       # 架構治理（文件與檢核）
+└─ governance/
 	├─ hard-invariants/
 	├─ cross-cutting-authorities/
 	├─ layering-rules/
@@ -199,24 +226,13 @@ src/
 	└─ review-checklists/
 ```
 
-## 為什麼這版更適合 Next.js 16
+## 匹配驗證矩陣（Deep Check）
 
-- `app/` 作為唯一路由入口，直接符合 App Router 模式。
-- 平行路由（`@businesstab/@modal/@panel`）保留 UI orchestration 能力。
-- Domain 邏輯不塞在 `app/`，而是放 `features/`，避免 route 層污染。
-- `actions/queries` 仍在各 slice 內，維持 D3/D4 與 D7 邊界。
-- VS8 保留三大區塊（governance/neural-core/projection），可直接對應你的語義引擎定位。
-
-## 與邏輯圖匹配檢查（對照 `docs/logic-overview.md`）
-
-- L0：`src/app` + `src/app/api` 對應 External Triggers（Client / Webhook 入口）。
-- L1：`src/shared-kernel` 對應 Shared Kernel（VS0）。
-- L2：`src/features/infra.gateway-command` 對應 Command Gateway。
-- L3：`src/features/vs1~vs8` + `global-search.slice` + `vs7-notification-hub.slice` 對應 Domain + Cross-cutting Authorities。
-- L4：`src/features/infra.event-router` + `src/features/infra.outbox-relay` 對應 IER。
-- L5：`src/features/projection.bus` 對應 Projection Bus。
-- L6：`src/features/infra.gateway-query` 對應 Query Gateway。
-- L7：`src/shared/infra/{auth|firestore|messaging|storage}` 對應 Firebase ACL（D24）。
-- L8：`src/shared-infra/firebase/*` 作為平台整合支援（外部 Firebase Infra 對接層）。
-- L9：`src/features/observability` 對應 Observability。
+- **邏輯圖 L0~L9 對位**：L0=`app/api`，L1=`shared-kernel`，L2/L4/L5/L6/L9=`features/infra* + projection.bus + observability`，L7=`shared/infra`，L8=`shared-infra/firebase`。
+- **VS0~VS8 對位**：VS0=`shared-kernel`，VS1~VS8=`features/vs*-*.slice`。
+- **Cross-cutting Authorities 對位**：`global-search.slice` 與 `vs7-notification-hub.slice` 均具 `_actions.ts` + `_services.ts`。
+- **D3/D4/D7 對位**：每個 slice 明確有 `application/_actions.ts`、`application/_queries.ts`、`index.ts`。
+- **D24 對位**：Firebase SDK 呼叫點集中在 `shared/infra/{auth|firestore|messaging|storage}`。
+- **D27 對位**：VS5 保留 document-parser 三層；VS8 projection/decision 保留 cost-semantic routing 出口。
+- **Next.js 16 對位**：App Router、parallel routes、route handlers、server-first 路由結構已就位。
 
