@@ -8,7 +8,7 @@ import { createContext, useContext, useMemo, useCallback, useEffect, useRef, use
 import { initTagChangedSubscriber } from '@/features/notification-hub.slice';
 import {
   createScheduleItem as createScheduleItemAction,
-} from '@/features/scheduling.slice'
+} from '@/features/workforce-scheduling.slice'
 import { firestoreTimestampToISO } from '@/shared/shadcn-ui/utils/utils';
 
 

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Module: use-workspace-timeline.ts
+ * Module: _hooks/use-workspace-timeline.ts
  * Purpose: Workspace-level timeline state hook.
  * Responsibilities: subscribe workspace timeline items and resolve member references.
  * Constraints: deterministic logic, respect module boundaries
@@ -32,7 +32,7 @@ export function useWorkspaceTimeline() {
       workspace.dimensionId,
       workspace.id,
       setItems,
-      (error) => console.error('[useWorkspaceTimeline] timeline subscription failed:', error)
+      (error) => console.error('[useWorkspaceTimeline] timeline subscription failed:', error),
     );
   }, [workspace.dimensionId, workspace.id]);
 

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Module: use-account-timeline.ts
+ * Module: _hooks/use-account-timeline.ts
  * Purpose: Account-level timeline state hook.
  * Responsibilities: provide organization timeline items and member references.
  * Constraints: deterministic logic, respect module boundaries

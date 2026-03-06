@@ -190,9 +190,9 @@ describe('[Architecture] VS5?VS6 integration compliance', () => {
       expect(violations).toHaveLength(0);
     });
 
-    it('scheduling.slice has no direct firebase/firestore imports', () => {
+    it('workforce-scheduling.slice has no direct firebase/firestore imports', () => {
       const violations = findDirectFirebaseImports(
-        path.join(SRC_ROOT, 'features', 'scheduling.slice')
+        path.join(SRC_ROOT, 'features', 'workforce-scheduling.slice')
       );
       if (violations.length > 0) {
         console.error('[D24 violation] Direct firebase imports found:\n', violations.join('\n'));
@@ -210,12 +210,12 @@ describe('[Architecture] VS5?VS6 integration compliance', () => {
   });
 
   // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
-  // [D7] Cross-slice isolation ??scheduling.slice MUST NOT import workspace.slice internals
+  // [D7] Cross-slice isolation ??workforce-scheduling.slice MUST NOT import workspace.slice internals
   // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
   describe('[D7] Cross-slice isolation ??scheduling does not import workspace internals', () => {
-    it('scheduling.slice source files do not import from workspace.slice directly', () => {
+    it('workforce-scheduling.slice source files do not import from workspace.slice directly', () => {
       const schedulingFiles = collectSourceFiles(
-        path.join(SRC_ROOT, 'features', 'scheduling.slice')
+        path.join(SRC_ROOT, 'features', 'workforce-scheduling.slice')
       );
       const violations = schedulingFiles.filter((file) => {
         const content = fs.readFileSync(file, 'utf8');
@@ -295,19 +295,19 @@ describe('[Architecture] VS5?VS6 integration compliance', () => {
   // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
   describe('[QGWAY_SCHED] Scheduling eligible-member queries use projection.bus', () => {
     it('scheduling _queries.ts exports getEligibleMembersForSchedule', () => {
-      const queriesPath = path.join(SRC_ROOT, 'features', 'scheduling.slice', '_queries.ts');
+      const queriesPath = path.join(SRC_ROOT, 'features', 'workforce-scheduling.slice', '_queries.ts');
       const content = fs.readFileSync(queriesPath, 'utf8');
       expect(content).toMatch(/getEligibleMembersForSchedule/);
     });
 
     it('scheduling _queries.ts exports getEligibleMemberForSchedule', () => {
-      const queriesPath = path.join(SRC_ROOT, 'features', 'scheduling.slice', '_queries.ts');
+      const queriesPath = path.join(SRC_ROOT, 'features', 'workforce-scheduling.slice', '_queries.ts');
       const content = fs.readFileSync(queriesPath, 'utf8');
       expect(content).toMatch(/getEligibleMemberForSchedule/);
     });
 
     it('scheduling _queries.ts imports eligible members from projection.bus (QGWAY_SCHED channel)', () => {
-      const queriesPath = path.join(SRC_ROOT, 'features', 'scheduling.slice', '_queries.ts');
+      const queriesPath = path.join(SRC_ROOT, 'features', 'workforce-scheduling.slice', '_queries.ts');
       const content = fs.readFileSync(queriesPath, 'utf8');
       expect(content).toMatch(/@\/features\/projection\.bus/);
     });
@@ -359,7 +359,7 @@ describe('[Architecture] VS5?VS6 integration compliance', () => {
     it('business slices do not implement their own CommandDialog (cross-domain search) [D26]', () => {
       const businessSliceDirs = [
         path.join(SRC_ROOT, 'features', 'workspace.slice'),
-        path.join(SRC_ROOT, 'features', 'scheduling.slice'),
+        path.join(SRC_ROOT, 'features', 'workforce-scheduling.slice'),
         path.join(SRC_ROOT, 'features', 'organization.slice'),
         path.join(SRC_ROOT, 'features', 'account.slice'),
       ].filter(fs.existsSync);

@@ -22,3 +22,6 @@ export {
   cancelScheduleProposalAction,
   completeOrgScheduleAction,
 } from './governance';
+
+// Timeline-specific mutations (TimelineView drag-to-reschedule)
+export { updateTimelineItemDateRange } from './timeline';

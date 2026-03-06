@@ -1,7 +1,17 @@
 /**
- * scheduling.slice — Public API
+ * workforce-scheduling.slice — Public API
  *
- * Unified VS6 Scheduling vertical slice.
+ * Unified VS6 Workforce-Scheduling vertical slice.
+ *
+ * Merges scheduling.slice (CalendarView governance) and
+ * timelineing.slice (TimelineView vis-timeline canvas) into a single,
+ * high-cohesion domain slice.
+ *
+ * Architecture: "One Core, Two Views"
+ *   • Core:         _aggregate, _actions, _queries, _hooks (shared by both views)
+ *   • CalendarView: _components/CalendarView/ (scheduling grid + governance)
+ *   • TimelineView: _components/TimelineView/ (vis-timeline canvas + drag-reschedule)
+ *
  * Domain: accounts/{orgId}/schedule_items (single source of truth)
  * Staleness: DEMAND_BOARD ≤ 5s | STANDARD ≤ 10s (SK_STALENESS_CONTRACT)
  *
@@ -33,7 +43,7 @@ export type {
 export { executeWriteOp } from './_write-op';
 
 // =================================================================
-// Server Actions (all schedule mutations go through here)
+// Server Actions — Core schedule mutations (CalendarView)
 // =================================================================
 export {
   // Workspace-level
@@ -48,10 +58,12 @@ export {
   manualAssignScheduleMember,
   cancelScheduleProposalAction,
   completeOrgScheduleAction,
+  // Timeline mutations (TimelineView drag-reschedule)
+  updateTimelineItemDateRange,
 } from './_actions';
 
 // =================================================================
-// Queries (read-only)
+// Queries — Calendar read-path
 // =================================================================
 export {
   getScheduleItems,
@@ -69,11 +81,13 @@ export {
   getEligibleMemberForSchedule,
   getEligibleMembersForSchedule,
   DEMAND_BOARD_STALENESS,
+  // Timeline read-path (ordered by startDate asc for vis-timeline)
+  subscribeToWorkspaceTimelineItems,
 } from './_queries';
 export type { OrgEligibleMemberView, OrgMemberSkillWithTier } from './_queries';
 
 // =================================================================
-// Hooks (React)
+// Hooks — CalendarView
 // =================================================================
 export {
   useOrgSchedule,
@@ -83,18 +97,19 @@ export {
   useScheduleActions,
   useWorkspaceSchedule,
   useScheduleEventHandler,
+  // TimelineView hooks
+  useAccountTimeline,
+  useWorkspaceTimeline,
+  useTimelineCommands,
 } from './_hooks';
 
 // =================================================================
-// UI Components
+// UI Components — CalendarView
 // =================================================================
-// Account-level views
 export { AccountScheduleSection } from './_components/schedule.account-view';
 export { OrgScheduleGovernance } from './_components/org-schedule-governance';
 export { OrgSkillPoolManager } from './_components/org-skill-pool-manager';
-// Workspace-level views
 export { WorkspaceSchedule } from './_components/schedule.workspace-view';
-// Shared schedule UI primitives
 export { GovernanceSidebar } from './_components/governance-sidebar';
 export { ProposalDialog } from './_components/proposal-dialog';
 export { ScheduleProposalContent } from './_components/schedule-proposal-content';
@@ -102,6 +117,35 @@ export { ScheduleDataTable } from './_components/schedule-data-table';
 export { AccountCapabilityTabs, WorkspaceCapabilityTabs } from './_components/schedule-capability-tabs';
 export { UnifiedCalendarGrid } from './_components/unified-calendar-grid';
 export { DemandBoard } from './_components/demand-board';
+
+// =================================================================
+// UI Components — TimelineView
+// =================================================================
+export { AccountTimelineSection } from './_components/timeline.account-view';
+export { WorkspaceTimeline } from './_components/timeline.workspace-view';
+
+// Backwards-compatible aliases for former timelineing.slice consumers
+export {
+  AccountCapabilityTabs as AccountTimelineCapabilityTabs,
+  WorkspaceCapabilityTabs as WorkspaceTimelineCapabilityTabs,
+} from './_components/schedule-capability-tabs';
+
+// =================================================================
+// View namespace re-exports (explicit view imports)
+// =================================================================
+export * as CalendarView from './_components/calendar-view';
+export * as TimelineView from './_components/timeline-view';
+
+// =================================================================
+// IER Events [D11]
+// =================================================================
+export {
+  WORKFORCE_SCHEDULE_PROPOSED_EVENT,
+  WORKFORCE_TIMELINE_DATE_RANGE_UPDATED_EVENT,
+  WORKFORCE_SCHEDULE_APPROVED_EVENT,
+  WORKFORCE_SCHEDULE_ASSIGNMENT_CANCELLED_EVENT,
+} from './_events';
+export type { WorkforceSchedulingEvent } from './_events';
 
 // =================================================================
 // Projectors (event handlers — used by projection.event-funnel)
@@ -116,7 +160,6 @@ export {
 } from '@/features/projection.bus';
 
 // AccountScheduleProjection types — read model types for scheduling queries.
-// Write-side projection logic lives in projection.bus/account-schedule/.
 export type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
 
 // =================================================================
@@ -152,3 +195,8 @@ export type { SagaState, SagaStep, SagaStatus } from './_saga';
 // Domain rules
 // =================================================================
 export { canTransitionScheduleStatus, VALID_STATUS_TRANSITIONS } from './_schedule.rules';
+
+// =================================================================
+// Local view-model types [D19]
+// =================================================================
+export type { TimelineMember } from './_types';
