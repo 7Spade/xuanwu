@@ -1,20 +1,20 @@
-# VS8 · Semantic Graph（SSOT Aligned）
+# VS8 · Semantic Cognition Engine（SSOT Aligned）
 
 ## 責任
 
-VS8 是全域語義唯一權威（`#17` / `A6`），負責 tag 定義、突觸圖、語義路由、因果追蹤、治理與廣播。
+VS8 是全域語義唯一權威（`#17` / `A6`），定位為語義推理與治理引擎，負責語義註冊、圖結構、訊號傳遞、推理決策與讀側投影。
 
-## 8層完全體（D21）
+## 三大層級（長期可維護視圖）
 
-- `VS8_CORE`：tag 定義與 schema
-- `VS8_GRAPH`：semantic edges + 權重
-- `VS8_NG`：語義距離與因果推導
-- `VS8_ROUTING`：policy mapping / dispatch bridge
-- `VS8_BBB`：invariant guard（最高裁決）
-- `VS8_PLAST`：learning + decay
-- `VS8_PROJ`：`tag-snapshot` 唯讀出口
-- `VS8_WIKI`：提案治理 + 共識校驗
-- `VS8_IO`：生命週期訂閱與 outbox 廣播
+- `Semantic Governance`：semantic-registry / protocol / guards / wiki
+- `Semantic Neural Core`：core / graph / neural / routing / plasticity
+- `Semantic Projection`：projections / io / decision
+
+## 模組映射（D21 完全體）
+
+- `Governance` → `semantic-registry(CTA)`, `semantic-protocol`, `VS8_BBB`, `VS8_WIKI`
+- `Neural Core` → `VS8_CORE`, `VS8_GRAPH`, `VS8_NG`, `VS8_ROUTING`, `VS8_PLAST`
+- `Projection` → `VS8_PROJ`, `VS8_IO`, `decision(_cost-classifier.ts)`
 
 ## TE1~TE6（正規映射）
 

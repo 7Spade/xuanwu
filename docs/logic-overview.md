@@ -56,6 +56,35 @@
 %%    P1=IER-lane-priority        P4=eligibility-query   P5=projection-funnel
 %%    T1=tag-lifecycle-sub        T3=eligible-tag-logic  T5=tag-snapshot-readonly
 %%    E2=OrgContextProvisioned    E3=ScheduleAssigned    E5=ws-event-flow   E6=claims-refresh
+%%  ── Layering Rules（層級通訊規則 · Directional Communication）──
+%%    External → L2 CMD_GWAY（寫） / L6 QGWAY（讀）
+%%    L3 Slice ↔ L3 Slice = 禁止直接 mutate；僅可透過 L4 IER 事件協作 [#2 D9]
+%%    L3 → L5 Projection 寫入 = 禁止直寫；必須經 event-funnel [#9 S2]
+%%    L3 讀取語義 = 僅可經 VS8 projection.tag-snapshot [D21-7 T5]
+%%    任意層直連 firebase/* = 禁止；僅 L7 FIREBASE_ACL 可呼叫 SDK [D24 D25]
+%%  ── Authority Exits（權威出口白名單）──
+%%    Search Exit     = global-search.slice（唯一跨域搜尋權威）[D26 #A12]
+%%    Side-effect Exit= notification-hub.slice（唯一通知副作用出口）[D26 #A13]
+%%    Semantic Exit   = VS8 Semantic Cognition Engine（語義註冊/推理/投影）[D21]
+%%    Finance Routing = VS8 decision/_cost-classifier + VS5 Layer-3 gate [D27 #A14]
+%%  ── Governance Focus（治理與演化焦點）──
+%%    Stable Core     = R/S/A/#（Hard Invariants，版本演進不可破壞）
+%%    Evolution Track = D/P/T/E（可演化規則，以索引引用，不重複定義）
+%%    Team Gate       = L/R/A 同時成立（Layer/Rule/Atomicity）
+%%  ╠══════════════════════════════════════════════════════════════════════════╣
+%%  ARCHITECTURE CONTROL PLANE（四大治理視圖 · for review / design / onboarding）
+%%  ── 1) Hard Invariants（系統穩定基石）──
+%%    任何重構不得破壞：traceId 唯讀（R8）、版本守衛（S2）、SLA 常數單一真相（S4）、
+%%    跨切片公開 API 邊界（D7）、副作用與搜尋權威出口（A12/A13）。
+%%  ── 2) Cross-cutting Authorities（職責邊界與權威出口）──
+%%    全域搜尋只經 Global Search；通知副作用只經 Notification Hub；
+%%    任務語義與成本決策只經 VS8（禁止切片私有實作）。
+%%  ── 3) Layering Rules（層級通訊）──
+%%    命令由 L2 收口、事件由 L4 分發、投影由 L5 物化、讀取由 L6 暴露；
+%%    Feature Slice 不得跨層旁路（含 Firebase SDK 旁路與 Projection 直寫）。
+%%  ── 4) Governance Rules（治理與演化）──
+%%    新規則先索引、再實作；優先引用現有契約；未定義語義需先進 VS8 註冊；
+%%    D27 屬 Extension Gate，僅影響 document-parser / finance-routing 變更。
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  FINAL REVIEW BASELINE（最終態審查基準 · Team Gate）
 %%  ── Scope（本輪必審）──
@@ -203,120 +232,133 @@ subgraph SK["🔷 L1 · Shared Kernel — 全域契約中心（VS0）"]
     end
 end
 
-%% ─── VS8 Semantic Graph（語義神經網絡完全體 · The Brain）
-%% ─── 8層完全體架構（from semantic-graph.slice-guide.md）：
-%% ───   L1 VS8_CORE  — 神經元 DNA 定義層   · core/tag-definitions · schemas · hierarchy-manager · vector-store    [D21-A D21-B D21-C D21-D]
-%% ───   L2 VS8_GRAPH — 語義突觸層          · semantic-edge-store · weight-calculator · context-attention · adjacency-list [D21-E D21-F D21-9 D21-10]
-%% ───   L3 VS8_NG    — 語義計算層          · Dijkstra 前向傳播 + BFS 因果注意力                                     [D21-4 D21-6 D21-X]
-%% ───   L4 VS8_ROUT  — 語義反射弧層        · workflows · policy-mapper · dispatch-bridge                          [D21-5 D27-A]
-%% ───   L5 VS8_GUARD — 血腦屏障(BBB)層    · invariant-guard · staleness-monitor                                  [D21-H D21-K S4]
-%% ───   L6 VS8_PLAST — 語義可塑性層        · learning-engine · decay-service                                      [D21-G]
-%% ───   L7 VS8_PROJ  — 語義投影讀取層      · projections/tag-snapshot · graph-selectors · context-selectors      [D21-7 T5]
-%% ───   L8 VS8_WIKI  — 語義維基治理層 🏛️   · wiki-editor · proposal-stream · relationship-visualizer · consensus-engine [D21-I~W]
-%% ───   L9 VS8_IO    — 語義訂閱廣播層      · subscribers/lifecycle-subscriber · outbox/tag-outbox                [D21-6 S1]
-%% ─── 向下相容：VS8_CL ≡ L1 core, VS8_SL ≡ L2 graph, VS8_NG ≡ L3 neural-computation, VS8_RL ≡ L4 routing
+%% ─── VS8 Semantic Cognition Engine（語義推理與治理引擎 · The Brain）
+%% ─── 三大區塊（長期可維護視圖）：
+%% ───   ① Semantic Governance（治理）: semantic-registry / protocol / guards / wiki
+%% ───   ② Semantic Neural Core（神經）: core / graph / neural / routing / plasticity
+%% ───   ③ Semantic Projection（輸出）: projections / io / decision
+%% ─── 向下相容：VS8_CL ≡ core, VS8_SL ≡ graph, VS8_NG ≡ neural-computation, VS8_RL ≡ decision-routing
 %% ─── centralized-tag.aggregate 具備 lifecycle，為 domain authority [#A6 #17]
-subgraph VS8["🧠 VS8 · Semantic Graph — The Brain [#A6 #17]（8層語義神經網路完全體）"]
+subgraph VS8["🧠 VS8 · Semantic Cognition Engine — The Brain [#A6 #17]（三層語義推理與治理）"]
     direction TB
 
-    subgraph VS8_CL["① 🧬 神經元 DNA 定義層 VS8_CORE — 語義字典・定義權威 [D21-A D21-B D21-C D21-D]"]
-        direction LR
-        CTA["centralized-tag.aggregate (CTA)\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule\n生命週期守護：Draft→Active→Stale→Deprecated [D21-4]"]
-        HIER["hierarchy-manager.ts\n確保每個新標籤掛載至少一個父節點 [D21-C]"]
-        VEC["embeddings/vector-store.ts\n向量隨標籤定義同步刷新 [D21-D]"]
-        subgraph TAG_ENTS["🏷️ AI-ready Semantic Tag Entities (TE1~TE6) [D21-A]"]
+    subgraph VS8_GOV_LAYER["① 🏛️ 語義治理層 Semantic Governance — semantic-registry / protocol / governance"]
+        direction TB
+        SEM_REG["semantic-registry\n【Semantic SSOT】\n由 centralized-tag.aggregate 提供唯一註冊來源\n跨域語義必須先註冊再使用 [D21-A D21-T D21-U]"]
+        SEM_PROTOCOL["semantic-protocol\n【訊號協議層】\ncommand/event envelope 與 TagLifecycleEvent 協議\n維持跨模組語義訊號一致 [D21-6 S1 R8]"]
+
+        subgraph VS8_GUARD["1.1 🛡️ guards · 血腦屏障 BBB — 語義完整性守護 [D21-H D21-K S4]"]
             direction LR
-            TE_UL["TE1 · tag::user-level\ncategory: user_level"]
-            TE_SK["TE2 · tag::skill\ncategory: skill"]
-            TE_ST["TE3 · tag::skill-tier\ncategory: skill_tier"]
-            TE_TM["TE4 · tag::team\ncategory: team"]
-            TE_RL["TE5 · tag::role\ncategory: role"]
-            TE_PT["TE6 · tag::partner\ncategory: partner"]
+            INV_GUARD["invariant-guard.ts\n【最高裁決權 · 語義衝突直接拒絕】\n違反物理邏輯聯結 → 攔截提案 [D21-H D21-K]"]
+            STALE_MON["staleness-monitor.ts\nTAG_MAX_STALENESS ≤ 30s [S4 D21-8]"]
         end
-        CTA --> TAG_ENTS
-        CTA --> HIER
-        CTA -.-> VEC
-    end
 
-    subgraph VS8_SL["② ⚡ 語義突觸層 VS8_GRAPH — 加權邊圖・網路拓撲 [D21-E D21-F D21-9 D21-10]"]
-        direction LR
-        EDGE_STORE["semantic-edge-store.ts\n【突觸登錄中心 · 唯一邊圖操作點】\nIS_A / REQUIRES 加權邊 weight ∈ [0,1] [D21-9]\ncost = 1/weight（強連結=近鄰）"]
-        WT_CALC["weight-calculator.ts\n【語義相似度統一出口 · 禁止業務端自行加權】\ncomputeSimilarity(a,b) [D21-E]"]
-        CTX_ATTN["context-attention.ts\n【Workspace 情境過濾 · 注意力隔離】\nfilterByContext(slugs, wsCtx) [D21-F]"]
-        TOPO_OPS["adjacency-list.ts\n拓撲閉包計算（禁止業務端直連 [T5]）\nisSupersetOf / getTransitiveRequirements [D21-10]"]
-        EDGE_STORE -.-> WT_CALC
-        EDGE_STORE -.-> TOPO_OPS
-    end
-
-    subgraph VS8_NG["③ 🔗 語義計算層 VS8_NG — 前向傳播 + 因果注意力 [D21-4 D21-6 D21-X]"]
-        direction LR
-        NEURAL_NET["🧬 Neural Network [D21-3 D21-4]\ncomputeSemanticDistance(a,b)\nfindIsolatedNodes(slugs[]) [D21-10]\nDijkstra 加權最短路徑"]
-        CAUSALITY["🔍 Causality Tracer [D21-6 D21-X]\ntraceAffectedNodes(event, candidates[])\nbuildCausalityChain(event, candidates[])\nBFS 因果傳播 · 語義自動激發"]
-        TAG_EV["TagLifecycleEvent（in-process）\neventType: TAG_CREATED | TAG_ACTIVATED\n         | TAG_DEPRECATED | TAG_STALE_FLAGGED\n         | TAG_DELETED\n[D21-6] 因果自動觸發"]
-        TAG_OB["tag-outbox\n[SK_OUTBOX: SAFE_AUTO]"]
-        TAG_SG["⚠️ TAG_STALE_GUARD\n[S4 D21-8: TAG_MAX_STALENESS ≤ 30s]"]
-        NEURAL_NET -.->|"語義距離 [D21-4]"| CAUSALITY
-        CAUSALITY -->|"TagLifecycleEvent [D21-6]"| TAG_EV
-        TAG_EV --> TAG_OB
-        CAUSALITY -.->|"廢棄感知 [D21-8]"| TAG_SG
-    end
-
-    subgraph VS8_ROUT["④ 🚦 語義反射弧層 VS8_ROUTING — 策略映射・分發橋接 [D21-5 D27-A]"]
-        direction LR
-        POLICY_MAP["policy-mapper/\n語義標籤→分發策略 [D27-A]\n禁止 ID 硬編碼路由"]
-        DISPATCH["dispatch-bridge/\n排班路由 · 通知分發出口"]
-        subgraph WORKFLOWS["workflows/"]
+        subgraph VS8_WIKI["1.2 🏛️ wiki · 語義維基治理入口 [D21-I~W]"]
             direction LR
-            TAG_PROMO["tag-promotion-flow.ts\n標籤晉升流程"]
-            ALERT_FLOW["alert-routing-flow.ts\n告警路由流程"]
-        end
-        POLICY_MAP --> DISPATCH
-    end
-
-    subgraph VS8_GUARD["⑤ 🛡️ 血腦屏障層 VS8_BBB — 語義完整性守護 [D21-H D21-K S4]"]
-        direction LR
-        INV_GUARD["invariant-guard.ts\n【最高裁決權 · 語義衝突直接拒絕】\n違反物理邏輯聯結 → 攔截提案 [D21-H D21-K]"]
-        STALE_MON["staleness-monitor.ts\nTAG_MAX_STALENESS ≤ 30s [S4 D21-8]"]
-    end
-
-    subgraph VS8_PLAST["⑥ 🌱 語義可塑性層 VS8_PLAST — 演化學習 [D21-G]"]
-        direction LR
-        LEARN["learning-engine.ts\n【僅 VS3/VS2 事實事件驅動 · 禁止手動隨機修改】\n加權演化回饋環 [D21-G]"]
-        DECAY["decay-service.ts\n語義強度自然衰退"]
-        LEARN -.-> DECAY
-    end
-
-    subgraph VS8_PROJ["⑦ 📊 語義投影讀取層 VS8_PROJ — 唯讀出口 [D21-7 T5]"]
-        direction LR
-        TAG_RO["projections/tag-snapshot.slice.ts\n【業務端唯一合法讀取出口 · T5】\n[D21-7] 讀取必須經 projection.tag-snapshot\nT1 新切片訂閱事件即可擴展"]
-        GRAPH_SEL["projections/graph-selectors.ts\n圖結構唯讀查詢"]
-        CTX_SEL["projections/context-selectors.ts\nWorkspace 語義上下文"]
-        TAG_RO -.-> GRAPH_SEL
-        TAG_RO -.-> CTX_SEL
-    end
-
-    subgraph VS8_WIKI["⑧ 🏛️ 語義維基治理層 VS8_WIKI — 知識治理協作 [D21-I~W]"]
-        direction LR
-        WIKI_ED["wiki-editor/\n標籤定義編輯 [D21-J]"]
-        PROP_STREAM["proposal-stream/\n提案審議串流 [D21-I D21-V]"]
-        REL_VIS["relationship-visualizer/\n語義關係圖視覺化"]
-        CONS_ENG["consensus-engine/\n全域共識校驗 [D21-I D21-K]"]
-        PROP_STREAM -->|"提案送驗"| CONS_ENG
-    end
-
-    subgraph VS8_RL["⑨ 💰 語義決策輸出層 VS8_RL — 成本路由執行代理 [D21-5 D8]"]
-        direction LR
-        subgraph COST_CLASS["📊 成本語義分類器 [D8][D24][D27]"]
-            direction LR
-            COST_CLASSIFIER["_cost-classifier.ts（純函式 [D8]）\nclassifyCostItem(name) → (costItemType, semanticTagSlug)\nshouldMaterializeAsTask(type) → boolean  ★[D27]\n──────────────────────────────\nEXECUTABLE  物理施工任務（預設出口）\nMANAGEMENT  行政/品管/職安管理（含 QC Inspection）\nRESOURCE    倉儲/人力資源儲備\nFINANCIAL   付款里程碑/預付款\nPROFIT      利潤項目（利潤）\nALLOWANCE   耗材/差旅/運輸補貼（含差旅、運輸）\n──────────────────────────────\nsemanticTagSlug 由 VS8 依內容語義掛載（對齊 tagSlug）\n★ EXECUTABLE override 優先：機電檢測/qc test 等施工測試→EXECUTABLE\n禁止 Firestore 存取・禁止 async\n可在任意 Layer 安全呼叫 [D8]"]
+            WIKI_ED["wiki-editor/\n標籤定義編輯 [D21-J]"]
+            PROP_STREAM["proposal-stream/\n提案審議串流 [D21-I D21-V]"]
+            REL_VIS["relationship-visualizer/\n語義關係圖視覺化"]
+            CONS_ENG["consensus-engine/\n全域共識校驗 [D21-I D21-K]"]
+            PROP_STREAM -->|"提案送驗"| CONS_ENG
         end
     end
 
-    subgraph VS8_IO["⑩ 📡 語義訂閱廣播層 VS8_IO — 事件進出口 [D21-6 S1]"]
-        direction LR
-        LIFECYCLE_SUB["subscribers/lifecycle-subscriber.ts\n標籤生命週期事件訂閱"]
-        TAG_OUTBOX["outbox/tag-outbox.ts\n[SK_OUTBOX: SAFE_AUTO]\n標籤異動廣播出口"]
+    subgraph VS8_NEURAL_LAYER["② ⚡ 語義神經層 Semantic Neural Core — core / graph / neural / routing / plasticity"]
+        direction TB
+
+        subgraph VS8_CL["2.1 🧬 core · 語義 DNA 定義層 [D21-A D21-B D21-C D21-D]"]
+            direction LR
+            CTA["centralized-tag.aggregate (CTA)\n【全域語義字典・唯一真相】\ntagSlug / label / category\ndeprecatedAt / deleteRule\n生命週期守護：Draft→Active→Stale→Deprecated [D21-4]"]
+            HIER["hierarchy-manager.ts\n確保每個新標籤掛載至少一個父節點 [D21-C]"]
+            VEC["embeddings/vector-store.ts\n向量隨標籤定義同步刷新 [D21-D]"]
+            subgraph TAG_ENTS["🏷️ AI-ready Semantic Tag Entities (TE1~TE6) [D21-A]"]
+                direction LR
+                TE_UL["TE1 · tag::user-level\ncategory: user_level"]
+                TE_SK["TE2 · tag::skill\ncategory: skill"]
+                TE_ST["TE3 · tag::skill-tier\ncategory: skill_tier"]
+                TE_TM["TE4 · tag::team\ncategory: team"]
+                TE_RL["TE5 · tag::role\ncategory: role"]
+                TE_PT["TE6 · tag::partner\ncategory: partner"]
+            end
+            CTA --> TAG_ENTS
+            CTA --> HIER
+            CTA -.-> VEC
+        end
+
+        subgraph VS8_SL["2.2 ⚡ graph · 語義突觸層 [D21-E D21-F D21-9 D21-10]"]
+            direction LR
+            EDGE_STORE["semantic-edge-store.ts\n【突觸登錄中心 · 唯一邊圖操作點】\nIS_A / REQUIRES 加權邊 weight ∈ [0,1] [D21-9]\ncost = 1/weight（強連結=近鄰）"]
+            WT_CALC["weight-calculator.ts\n【語義相似度統一出口 · 禁止業務端自行加權】\ncomputeSimilarity(a,b) [D21-E]"]
+            CTX_ATTN["context-attention.ts\n【Workspace 情境過濾 · 注意力隔離】\nfilterByContext(slugs, wsCtx) [D21-F]"]
+            TOPO_OPS["adjacency-list.ts\n拓撲閉包計算（禁止業務端直連 [T5]）\nisSupersetOf / getTransitiveRequirements [D21-10]"]
+            EDGE_STORE -.-> WT_CALC
+            EDGE_STORE -.-> TOPO_OPS
+        end
+
+        subgraph VS8_NG["2.3 🔗 neural · 語義計算層 [D21-4 D21-6 D21-X]"]
+            direction LR
+            NEURAL_NET["🧬 Neural Network [D21-3 D21-4]\ncomputeSemanticDistance(a,b)\nfindIsolatedNodes(slugs[]) [D21-10]\nDijkstra 加權最短路徑"]
+            CAUSALITY["🔍 Causality Tracer [D21-6 D21-X]\ntraceAffectedNodes(event, candidates[])\nbuildCausalityChain(event, candidates[])\nBFS 因果傳播 · 語義自動激發"]
+            TAG_EV["TagLifecycleEvent（in-process）\neventType: TAG_CREATED | TAG_ACTIVATED\n         | TAG_DEPRECATED | TAG_STALE_FLAGGED\n         | TAG_DELETED\n[D21-6] 因果自動觸發"]
+            TAG_OB["tag-outbox\n[SK_OUTBOX: SAFE_AUTO]"]
+            TAG_SG["⚠️ TAG_STALE_GUARD\n[S4 D21-8: TAG_MAX_STALENESS ≤ 30s]"]
+            NEURAL_NET -.->|"語義距離 [D21-4]"| CAUSALITY
+            CAUSALITY -->|"TagLifecycleEvent [D21-6]"| TAG_EV
+            TAG_EV --> TAG_OB
+            CAUSALITY -.->|"廢棄感知 [D21-8]"| TAG_SG
+        end
+
+        subgraph VS8_ROUT["2.4 🚦 routing · 語義反射弧層 [D21-5 D27-A]"]
+            direction LR
+            POLICY_MAP["policy-mapper/\n語義標籤→分發策略 [D27-A]\n禁止 ID 硬編碼路由"]
+            DISPATCH["dispatch-bridge/\n排班路由 · 通知分發出口"]
+            subgraph WORKFLOWS["workflows/"]
+                direction LR
+                TAG_PROMO["tag-promotion-flow.ts\n標籤晉升流程"]
+                ALERT_FLOW["alert-routing-flow.ts\n告警路由流程"]
+            end
+            POLICY_MAP --> DISPATCH
+        end
+
+        subgraph VS8_PLAST["2.5 🌱 plasticity · 語義可塑性 [D21-G]"]
+            direction LR
+            LEARN["learning-engine.ts\n【僅 VS3/VS2 事實事件驅動 · 禁止手動隨機修改】\n加權演化回饋環 [D21-G]"]
+            DECAY["decay-service.ts\n語義強度自然衰退"]
+            LEARN -.-> DECAY
+        end
     end
+
+    subgraph VS8_PROJ_LAYER["③ 📤 語義輸出層 Semantic Projection — projections / io / decision"]
+        direction TB
+
+        subgraph VS8_PROJ["3.1 📊 projections · 讀側投影 [D21-7 T5]"]
+            direction LR
+            TAG_RO["projections/tag-snapshot.slice.ts\n【業務端唯一合法讀取出口 · T5】\n[D21-7] 讀取必須經 projection.tag-snapshot\nT1 新切片訂閱事件即可擴展"]
+            GRAPH_SEL["projections/graph-selectors.ts\n圖結構唯讀查詢"]
+            CTX_SEL["projections/context-selectors.ts\nWorkspace 語義上下文"]
+            TAG_RO -.-> GRAPH_SEL
+            TAG_RO -.-> CTX_SEL
+        end
+
+        subgraph VS8_IO["3.2 📡 io · 語義訂閱廣播 [D21-6 S1]"]
+            direction LR
+            LIFECYCLE_SUB["subscribers/lifecycle-subscriber.ts\n標籤生命週期事件訂閱"]
+            TAG_OUTBOX["outbox/tag-outbox.ts\n[SK_OUTBOX: SAFE_AUTO]\n標籤異動廣播出口"]
+        end
+
+        subgraph VS8_RL["3.3 💰 decision · 語義決策輸出 [D21-5 D8 D27]"]
+            direction LR
+            subgraph COST_CLASS["📊 成本語義分類器 [D8][D24][D27]"]
+                direction LR
+                COST_CLASSIFIER["_cost-classifier.ts（純函式 [D8]）\nclassifyCostItem(name) → (costItemType, semanticTagSlug)\nshouldMaterializeAsTask(type) → boolean  ★[D27]\n──────────────────────────────\nEXECUTABLE  物理施工任務（預設出口）\nMANAGEMENT  行政/品管/職安管理（含 QC Inspection）\nRESOURCE    倉儲/人力資源儲備\nFINANCIAL   付款里程碑/預付款\nPROFIT      利潤項目（利潤）\nALLOWANCE   耗材/差旅/運輸補貼（含差旅、運輸）\n──────────────────────────────\nsemanticTagSlug 由 VS8 依內容語義掛載（對齊 tagSlug）\n★ EXECUTABLE override 優先：機電檢測/qc test 等施工測試→EXECUTABLE\n禁止 Firestore 存取・禁止 async\n可在任意 Layer 安全呼叫 [D8]"]
+            end
+        end
+    end
+
+    SEM_REG --> CTA
+    SEM_PROTOCOL -.->|"protocol drives lifecycle events"| TAG_EV
+    SEM_PROTOCOL -.->|"protocol constrains routing I/O"| VS8_ROUT
+    SEM_PROTOCOL -.->|"protocol constrains outbox broadcast"| VS8_IO
 
     VS8_CL -->|"神經元激活信號 · 標籤異動廣播 [D21-6]"| VS8_SL
     VS8_SL -->|"突觸拓撲輸入 [D21-3 D21-9]"| VS8_NG
