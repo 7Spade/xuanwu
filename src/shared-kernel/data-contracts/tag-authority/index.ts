@@ -62,6 +62,31 @@ export type TagCategory = (typeof TAG_CATEGORIES)[number];
  */
 export type TagDeleteRule = 'block' | 'archive' | 'cascade';
 
+/**
+ * Deletion policy for centralized tag aggregate records.
+ *
+ * `allow`               — allow hard delete regardless of references
+ * `block-if-referenced` — block delete while references still exist
+ */
+export type CentralizedTagDeleteRule = 'allow' | 'block-if-referenced';
+
+/**
+ * Canonical centralized tag dictionary record shape.
+ *
+ * Used by semantic-graph centralized-tag aggregate persistence and read models.
+ */
+export interface CentralizedTagEntry {
+  readonly tagSlug: string;
+  readonly label: string;
+  readonly category: TagCategory;
+  readonly deprecatedAt?: string;
+  readonly replacedByTagSlug?: string;
+  readonly deleteRule: CentralizedTagDeleteRule;
+  readonly createdBy: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
 // ─── Read-only tag reference ──────────────────────────────────────────────────
 
 /**

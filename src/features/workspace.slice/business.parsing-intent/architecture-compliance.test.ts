@@ -397,18 +397,18 @@ describe('[Architecture] VS5?VS6 integration compliance', () => {
       });
     }
 
-    it('semantic-graph.slice/centralized-tag/_contract.ts has no Firestore imports [D8]', () => {
+    it('shared-kernel/data-contracts/tag-authority/index.ts has no Firestore imports [D8]', () => {
       const aggPath = path.join(
-        SRC_ROOT, 'features', 'semantic-graph.slice', 'centralized-tag', '_contract.ts'
+        SRC_ROOT, 'shared-kernel', 'data-contracts', 'tag-authority', 'index.ts'
       );
       const content = fs.readFileSync(aggPath, 'utf8');
       expect(content).not.toMatch(/from ['"]@\/shared\/infra/);
       expect(content).not.toMatch(/firestore/);
     });
 
-    it('semantic-graph.slice/centralized-tag/_contract.ts has no async functions [D8]', () => {
+    it('shared-kernel/data-contracts/tag-authority/index.ts has no async functions [D8]', () => {
       const aggPath = path.join(
-        SRC_ROOT, 'features', 'semantic-graph.slice', 'centralized-tag', '_contract.ts'
+        SRC_ROOT, 'shared-kernel', 'data-contracts', 'tag-authority', 'index.ts'
       );
       const content = fs.readFileSync(aggPath, 'utf8');
       expect(content).not.toMatch(/^export async function/m);

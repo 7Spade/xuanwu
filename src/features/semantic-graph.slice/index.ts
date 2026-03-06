@@ -189,6 +189,7 @@ export {
 export { onTagEvent, publishTagEvent } from './centralized-tag';
 export type {
   CentralizedTagEntry,
+  CentralizedTagDeleteRule,
   TagDeleteRule,
   TagLifecycleEventPayloadMap,
   TagLifecycleEventKey,

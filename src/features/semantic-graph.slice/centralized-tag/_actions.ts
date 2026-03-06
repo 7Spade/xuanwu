@@ -21,9 +21,10 @@ import {
   buildIdempotencyKey,
   type DlqTier,
   type TagCategory,
+  type CentralizedTagEntry,
+  type CentralizedTagDeleteRule,
   type CommandResult,
 } from '@/shared-kernel';
-import type { CentralizedTagEntry, TagDeleteRule } from './_contract';
 import { publishTagEvent } from './_bus';
 import { Timestamp, getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import {
@@ -91,7 +92,7 @@ export async function createTag(
   label: string,
   category: TagCategory,
   createdBy: string,
-  deleteRule: TagDeleteRule = 'block-if-referenced',
+  deleteRule: CentralizedTagDeleteRule = 'block-if-referenced',
   traceId?: string
 ): Promise<CommandResult> {
   try {

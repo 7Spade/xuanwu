@@ -114,6 +114,8 @@ export {
 export { TAG_CATEGORIES, tagSlugRef } from './data-contracts/tag-authority';
 export type {
 	TagCategory,
+	CentralizedTagDeleteRule,
+	CentralizedTagEntry,
 	TagSlugRef,
 	TagCreatedPayload,
 	TagUpdatedPayload,
