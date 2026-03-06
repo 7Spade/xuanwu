@@ -50,8 +50,10 @@ export function buildAuthoritySnapshot(
 
   return {
     subjectId: userId,
+    claims: { roles },
     roles,
     permissions,
+    scopes: permissions,
     snapshotAt: new Date().toISOString(),
     readModelVersion: view.readModelVersion,
   };

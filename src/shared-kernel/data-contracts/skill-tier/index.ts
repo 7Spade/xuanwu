@@ -58,6 +58,9 @@ export interface TierDefinition {
 export interface SkillRequirement {
   tagSlug: TagSlugRef;
   tagId?: string;
+  /** Optional XP threshold form (SK_SKILL_REQ: tagSlug × minXp). */
+  minXp?: number;
+  /** Tier threshold form kept for current scheduling compatibility. */
   minimumTier: SkillTier;
   quantity: number;
 }

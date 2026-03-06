@@ -30,12 +30,18 @@
 export interface AuthoritySnapshot {
   /** Subject identifier (accountId / userId) this snapshot describes. */
   readonly subjectId: string;
+  /** Token claims captured at snapshot time (optional compatibility surface). */
+  readonly claims?: Readonly<Record<string, unknown>>;
   /** Roles currently held by this subject in the active context. */
   readonly roles: readonly string[];
-  /** Scoped permissions derived from roles at snapshot time. */
+  /** Scoped permissions derived from roles at snapshot time (legacy alias of scopes). */
   readonly permissions: readonly string[];
+  /** Canonical scope list used by SK_AUTH_SNAP (claims / roles / scopes). */
+  readonly scopes?: readonly string[];
   /** ISO 8601 timestamp when this snapshot was last computed. */
   readonly snapshotAt: string;
+  /** Snapshot TTL in milliseconds (typically equals current token lifetime). */
+  readonly tokenTtlMs?: number;
   /** Read-model version from which this snapshot was built. [S2] */
   readonly readModelVersion: number;
 }
