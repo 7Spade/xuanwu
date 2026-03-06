@@ -1,310 +1,222 @@
-# Logic Overview Tree（重新設計版）
+# Logic Overview Tree（Next.js 16 適配版）
 
-> 目標：依照邏輯圖（L0~L9、VS0~VS8、Cross-cutting Authorities、Governance）建立全新 `src/**/**` 資料夾樹。  
-> 原則：不對照現有專案、以架構責任分層優先、保留未來擴充空間。
+> 你提醒得很準：上一版太偏「純分層後端目錄」，不夠 Next.js 16 App Router。  
+> 這版改為 **Next.js 16 可落地結構**：`app` 負責路由/入口，`features` 承載 VS 邏輯，`shared-kernel` + `infra` 提供契約與實作。
 
 ```text
 src/
-├─ l0-external-triggers/
-│  ├─ nextjs-client/
-│  │  ├─ actions/
-│  │  ├─ web-entry/
-│  │  └─ dto/
-│  ├─ webhooks/
-│  │  ├─ handlers/
-│  │  ├─ validators/
-│  │  └─ dto/
-│  └─ edge-functions/
-│     ├─ adapters/
-│     ├─ guards/
-│     └─ dto/
+├─ app/                                               # Next.js 16 App Router（L0 入口）
+│  ├─ (public)/
+│  │  ├─ login/
+│  │  └─ reset-password/
+│  ├─ (portal)/
+│  │  ├─ dashboard/
+│  │  ├─ workspaces/
+│  │  │  ├─ [workspaceId]/
+│  │  │  │  ├─ @businesstab/                        # 平行路由
+│  │  │  │  │  ├─ tasks/
+│  │  │  │  │  ├─ schedule/
+│  │  │  │  │  ├─ quality-assurance/
+│  │  │  │  │  ├─ acceptance/
+│  │  │  │  │  ├─ finance/
+│  │  │  │  │  └─ document-parser/
+│  │  │  │  ├─ @modal/                              # 平行路由 modal
+│  │  │  │  └─ @panel/
+│  │  │  └─ new/
+│  │  └─ settings/
+│  ├─ api/                                            # Route Handlers（L0 webhooks/api）
+│  │  ├─ webhooks/
+│  │  ├─ commands/
+│  │  ├─ queries/
+│  │  └─ health/
+│  ├─ layout.tsx
+│  ├─ error.tsx
+│  ├─ loading.tsx
+│  └─ not-found.tsx
 │
-├─ l1-shared-kernel/                                # VS0
-│  ├─ data-contracts/
-│  │  ├─ event-envelope/
-│  │  ├─ authority-snapshot/
-│  │  ├─ command-result/
-│  │  ├─ skill-tier/
-│  │  ├─ schedule-contract/
-│  │  └─ semantic-contracts/
-│  ├─ infra-contracts/
-│  │  ├─ outbox-contract/
-│  │  ├─ version-guard/
-│  │  ├─ read-consistency/
-│  │  ├─ staleness-contract/
-│  │  ├─ resilience-contract/
-│  │  └─ token-refresh-contract/
-│  ├─ ports/
-│  │  ├─ auth/
-│  │  ├─ firestore/
-│  │  ├─ messaging/
-│  │  └─ storage/
-│  ├─ semantic-primitives/
-│  │  ├─ tag-entities/
-│  │  ├─ tag-slug/
-│  │  └─ type-guards/
-│  └─ index/
+├─ app-runtime/                                       # Next runtime wiring（providers/hooks/context）
+│  ├─ providers/
+│  ├─ contexts/
+│  ├─ hooks/
+│  └─ ai/
 │
-├─ l2-command-gateway/
-│  ├─ entry/
-│  ├─ interceptors/
-│  │  ├─ authority-interceptor/
-│  │  └─ trace-interceptor/
-│  ├─ resilience/
-│  │  ├─ rate-limiter/
-│  │  ├─ circuit-breaker/
-│  │  └─ bulkhead-router/
-│  ├─ router/
-│  └─ command-pipeline/
-│
-├─ l3-domain-slices/
-│  ├─ vs1-identity-slice/
-│  │  ├─ core/
-│  │  ├─ context-lifecycle/
-│  │  ├─ claims-refresh/
-│  │  ├─ actions/
-│  │  ├─ queries/
-│  │  └─ index/
+├─ features/                                          # L3 Domain Slices + Cross-cutting Authorities
+│  ├─ vs1-identity.slice/
+│  │  ├─ domain/
+│  │  ├─ application/
+│  │  │  ├─ actions/
+│  │  │  └─ queries/
+│  │  ├─ ui/
+│  │  └─ index.ts
 │  │
-│  ├─ vs2-account-slice/
-│  │  ├─ user-account/
-│  │  ├─ wallet/
-│  │  ├─ org-account/
-│  │  ├─ governance/
-│  │  │  ├─ role/
-│  │  │  └─ policy/
-│  │  ├─ event-bus/
-│  │  ├─ outbox/
-│  │  ├─ actions/
-│  │  ├─ queries/
-│  │  └─ index/
+│  ├─ vs2-account.slice/
+│  │  ├─ domain/
+│  │  │  ├─ user-account/
+│  │  │  ├─ wallet/
+│  │  │  └─ governance/
+│  │  ├─ application/
+│  │  │  ├─ actions/
+│  │  │  └─ queries/
+│  │  ├─ ui/
+│  │  └─ index.ts
 │  │
-│  ├─ vs3-skill-xp-slice/
-│  │  ├─ aggregate/
-│  │  ├─ xp-ledger/
-│  │  ├─ event-bus/
-│  │  ├─ outbox/
-│  │  ├─ actions/
-│  │  ├─ queries/
-│  │  └─ index/
+│  ├─ vs3-skill-xp.slice/
+│  │  ├─ domain/
+│  │  ├─ application/
+│  │  │  ├─ actions/
+│  │  │  └─ queries/
+│  │  ├─ ui/
+│  │  └─ index.ts
 │  │
-│  ├─ vs4-organization-slice/
-│  │  ├─ core/
-│  │  ├─ governance/
-│  │  │  ├─ members/
-│  │  │  ├─ partners/
-│  │  │  ├─ teams/
-│  │  │  └─ policy/
-│  │  ├─ talent-repository/
-│  │  ├─ tag-lifecycle-subscription/
-│  │  ├─ event-bus/
-│  │  ├─ outbox/
-│  │  ├─ actions/
-│  │  ├─ queries/
-│  │  └─ index/
+│  ├─ vs4-organization.slice/
+│  │  ├─ domain/
+│  │  │  ├─ core/
+│  │  │  ├─ governance/
+│  │  │  └─ talent-repository/
+│  │  ├─ application/
+│  │  │  ├─ actions/
+│  │  │  └─ queries/
+│  │  ├─ ui/
+│  │  └─ index.ts
 │  │
-│  ├─ vs5-workspace-slice/
-│  │  ├─ app-coordinator/
+│  ├─ vs5-workspace.slice/
+│  │  ├─ domain/
+│  │  │  ├─ core/
+│  │  │  ├─ workflow/
+│  │  │  └─ finance-lifecycle/
+│  │  ├─ application/
 │  │  │  ├─ command-handler/
 │  │  │  ├─ scope-guard/
 │  │  │  ├─ policy-engine/
 │  │  │  └─ transaction-runner/
-│  │  ├─ core/
-│  │  ├─ governance/
-│  │  ├─ business/
-│  │  │  ├─ files/
-│  │  │  ├─ document-parser/
-│  │  │  │  ├─ layer-1-raw-parse/
-│  │  │  │  ├─ layer-2-semantic-classification/
-│  │  │  │  └─ layer-3-semantic-router/
-│  │  │  ├─ workflow-state-machine/
-│  │  │  ├─ tasks/
-│  │  │  ├─ quality-assurance/
-│  │  │  ├─ acceptance/
-│  │  │  ├─ finance-lifecycle/
-│  │  │  ├─ issues/
-│  │  │  ├─ daily/
-│  │  │  └─ schedule/
-│  │  ├─ event-bus/
-│  │  ├─ event-store/
-│  │  ├─ outbox/
-│  │  ├─ actions/
-│  │  ├─ queries/
-│  │  └─ index/
+│  │  ├─ document-parser/
+│  │  │  ├─ layer-1-raw-parse/
+│  │  │  ├─ layer-2-semantic-classification/
+│  │  │  └─ layer-3-semantic-router/
+│  │  ├─ ui/
+│  │  └─ index.ts
 │  │
-│  ├─ vs6-scheduling-slice/
-│  │  ├─ aggregate/
-│  │  ├─ saga/
-│  │  ├─ eligibility/
-│  │  ├─ outbox/
-│  │  ├─ actions/
-│  │  ├─ queries/
-│  │  └─ index/
+│  ├─ vs6-scheduling.slice/
+│  │  ├─ domain/
+│  │  ├─ application/
+│  │  │  ├─ saga/
+│  │  │  ├─ actions/
+│  │  │  └─ queries/
+│  │  ├─ ui/
+│  │  └─ index.ts
 │  │
-│  ├─ vs7-notification-hub-slice/                  # Cross-cutting Authority
-│  │  ├─ router/
-│  │  ├─ channel-policy/
-│  │  ├─ delivery/
-│  │  ├─ templates/
-│  │  ├─ actions/
-│  │  ├─ services/
-│  │  ├─ queries/
-│  │  └─ index/
+│  ├─ vs7-notification-hub.slice/                    # Cross-cutting Authority（唯一副作用出口）
+│  │  ├─ domain/
+│  │  │  ├─ router/
+│  │  │  └─ channel-policy/
+│  │  ├─ application/
+│  │  │  ├─ actions/
+│  │  │  ├─ services/
+│  │  │  └─ queries/
+│  │  ├─ ui/
+│  │  └─ index.ts
 │  │
-│  ├─ vs8-semantic-cognition-engine/
-│  │  ├─ governance/                               # Semantic Governance
+│  ├─ vs8-semantic-cognition.slice/
+│  │  ├─ governance/                                 # Semantic Governance
 │  │  │  ├─ semantic-registry/
 │  │  │  ├─ semantic-protocol/
 │  │  │  ├─ guards/
-│  │  │  │  ├─ invariant-guard/
-│  │  │  │  └─ staleness-monitor/
 │  │  │  └─ wiki/
-│  │  │     ├─ wiki-editor/
-│  │  │     ├─ proposal-stream/
-│  │  │     ├─ consensus-engine/
-│  │  │     └─ relationship-visualizer/
-│  │  ├─ neural-core/                              # Semantic Neural Core
+│  │  ├─ neural-core/                                # Semantic Neural Core
 │  │  │  ├─ core/
-│  │  │  │  ├─ centralized-tag-aggregate/
-│  │  │  │  ├─ tag-definitions/
-│  │  │  │  ├─ schemas/
-│  │  │  │  ├─ hierarchy-manager/
-│  │  │  │  └─ vector-store/
 │  │  │  ├─ graph/
-│  │  │  │  ├─ semantic-edge-store/
-│  │  │  │  ├─ adjacency-list/
-│  │  │  │  ├─ weight-calculator/
-│  │  │  │  └─ context-attention/
 │  │  │  ├─ neural/
-│  │  │  │  ├─ semantic-distance/
-│  │  │  │  ├─ causality-tracer/
-│  │  │  │  └─ topology-observability/
 │  │  │  ├─ routing/
-│  │  │  │  ├─ policy-mapper/
-│  │  │  │  ├─ dispatch-bridge/
-│  │  │  │  └─ workflows/
 │  │  │  └─ plasticity/
-│  │  │     ├─ learning-engine/
-│  │  │     └─ decay-service/
-│  │  ├─ projection/                               # Semantic Projection
+│  │  ├─ projection/                                 # Semantic Projection
 │  │  │  ├─ projections/
-│  │  │  │  ├─ tag-snapshot/
-│  │  │  │  ├─ graph-selectors/
-│  │  │  │  └─ context-selectors/
 │  │  │  ├─ io/
-│  │  │  │  ├─ subscribers/
-│  │  │  │  └─ outbox/
 │  │  │  └─ decision/
-│  │  │     ├─ cost-classifier/
-│  │  │     └─ decision-contracts/
-│  │  ├─ actions/
-│  │  ├─ queries/
-│  │  └─ index/
+│  │  ├─ application/
+│  │  │  ├─ actions/
+│  │  │  └─ queries/
+│  │  ├─ ui/
+│  │  └─ index.ts
 │  │
-│  └─ global-search-slice/                         # Cross-cutting Authority
-│     ├─ semantic-index/
-│     ├─ query-composer/
-│     ├─ ranking/
-│     ├─ actions/
-│     ├─ services/
-│     ├─ queries/
-│     └─ index/
+│  ├─ global-search.slice/                           # Cross-cutting Authority（唯一跨域搜尋）
+│  │  ├─ domain/
+│  │  ├─ application/
+│  │  │  ├─ actions/
+│  │  │  ├─ services/
+│  │  │  └─ queries/
+│  │  ├─ ui/
+│  │  └─ index.ts
+│  │
+│  ├─ infra.gateway-command/                         # L2 CMD
+│  ├─ infra.event-router/                            # L4 IER
+│  ├─ infra.outbox-relay/                            # L4 relay
+│  ├─ projection.bus/                                # L5 Projection Bus
+│  ├─ infra.gateway-query/                           # L6 Query Gateway
+│  └─ observability/                                 # L9
 │
-├─ l4-integration-event-router/
-│  ├─ relay-worker/
-│  ├─ router-core/
-│  ├─ lanes/
-│  │  ├─ critical-lane/
-│  │  ├─ standard-lane/
-│  │  └─ background-lane/
-│  ├─ dead-letter-queue/
-│  │  ├─ safe-auto/
-│  │  ├─ review-required/
-│  │  └─ security-block/
-│  └─ replay-control/
+├─ shared-kernel/                                    # L1 / VS0（契約 + 規則）
+│  ├─ data-contracts/
+│  ├─ infra-contracts/
+│  ├─ ports/
+│  ├─ semantic-primitives/
+│  └─ index.ts
 │
-├─ l5-projection-bus/
-│  ├─ event-funnel/
-│  ├─ lanes/
-│  │  ├─ critical-projection-lane/
-│  │  └─ standard-projection-lane/
-│  ├─ stream-meta/
-│  │  ├─ projection-version/
-│  │  └─ read-model-registry/
-│  ├─ critical-projections/
-│  │  ├─ workspace-scope-guard-view/
-│  │  ├─ org-eligible-member-view/
-│  │  └─ wallet-balance-view/
-│  ├─ standard-projections/
-│  │  ├─ workspace-view/
-│  │  ├─ account-view/
-│  │  ├─ organization-view/
-│  │  ├─ account-skill-view/
-│  │  ├─ account-schedule-view/
-│  │  ├─ global-audit-view/
-│  │  └─ tag-snapshot-view/
-│  └─ projector-tooling/
+├─ shared/                                           # 可重用 UI 與通用程式
+│  ├─ ui/
+│  ├─ app-providers/
+│  ├─ constants/
+│  ├─ enums/
+│  ├─ utils/
+│  └─ infra/                                         # L7 Firebase ACL（對齊 D24）
+│     ├─ auth/
+│     │  ├─ auth.adapter.ts
+│     │  └─ index.ts
+│     ├─ firestore/
+│     │  ├─ firestore.facade.ts
+│     │  └─ index.ts
+│     ├─ messaging/
+│     │  ├─ messaging.adapter.ts
+│     │  └─ index.ts
+│     ├─ storage/
+│     │  ├─ storage.facade.ts
+│     │  └─ index.ts
+│     └─ index.ts
 │
-├─ l6-query-gateway/
-│  ├─ registry/
-│  ├─ read-consistency-router/
-│  ├─ query-endpoints/
-│  │  ├─ schedule-query/
-│  │  ├─ notification-query/
-│  │  ├─ scope-query/
-│  │  ├─ wallet-query/
-│  │  └─ semantic-query/
-│  └─ query-contracts/
+├─ shared-infra/                                     # 平台整合與部署配套（非 Domain）
+│  ├─ firebase/
+│  │  ├─ app/
+│  │  ├─ functions/
+│  │  ├─ rules/
+│  │  └─ indexes/
+│  └─ platform-ops/
 │
-├─ l7-firebase-acl/
-│  ├─ auth-adapter/
-│  ├─ firestore-adapter/
-│  ├─ messaging-adapter/
-│  ├─ storage-adapter/
-│  ├─ port-bindings/
-│  └─ acl-guards/
-│
-├─ l8-firebase-infra/
-│  ├─ firestore/
-│  ├─ auth/
-│  ├─ messaging/
-│  └─ storage/
-│
-├─ l9-observability/
-│  ├─ trace/
-│  ├─ metrics/
-│  │  ├─ relay-lag/
-│  │  ├─ lane-throughput/
-│  │  ├─ stale-monitor/
-│  │  └─ resilience-signals/
-│  ├─ errors/
-│  └─ audit/
-│
-└─ governance/
-	├─ architecture-rules/
-	│  ├─ hard-invariants/
-	│  │  ├─ r-rules/
-	│  │  ├─ s-rules/
-	│  │  ├─ a-rules/
-	│  │  └─ hash-invariants/
-	│  ├─ layering-rules/
-	│  ├─ cross-cutting-authorities/
-	│  ├─ semantic-governance/
-	│  └─ cost-routing-extension/
-	├─ compliance/
-	│  ├─ review-checklists/
-	│  ├─ gate-policies/
-	│  └─ drift-detection/
-	└─ change-management/
-		├─ proposals/
-		├─ accepted-decisions/
-		└─ migration-plans/
+└─ governance/                                       # 架構治理（文件與檢核）
+	├─ hard-invariants/
+	├─ cross-cutting-authorities/
+	├─ layering-rules/
+	├─ semantic-governance/
+	├─ extension-gates/
+	└─ review-checklists/
 ```
 
-## 設計摘要（對應邏輯圖）
+## 為什麼這版更適合 Next.js 16
 
-- `l0~l9` 對應系統層級與通訊方向。
-- `l3-domain-slices` 收斂 VS1~VS8 + Cross-cutting Authorities（Global Search / Notification Hub）。
-- VS8 採三大區塊：`governance / neural-core / projection`。
-- `governance/architecture-rules` 將 Hard Invariants、Layering、Authority、Governance 規範獨立成可治理空間。
+- `app/` 作為唯一路由入口，直接符合 App Router 模式。
+- 平行路由（`@businesstab/@modal/@panel`）保留 UI orchestration 能力。
+- Domain 邏輯不塞在 `app/`，而是放 `features/`，避免 route 層污染。
+- `actions/queries` 仍在各 slice 內，維持 D3/D4 與 D7 邊界。
+- VS8 保留三大區塊（governance/neural-core/projection），可直接對應你的語義引擎定位。
+
+## 與邏輯圖匹配檢查（對照 `docs/logic-overview.md`）
+
+- L0：`src/app` + `src/app/api` 對應 External Triggers（Client / Webhook 入口）。
+- L1：`src/shared-kernel` 對應 Shared Kernel（VS0）。
+- L2：`src/features/infra.gateway-command` 對應 Command Gateway。
+- L3：`src/features/vs1~vs8` + `global-search.slice` + `vs7-notification-hub.slice` 對應 Domain + Cross-cutting Authorities。
+- L4：`src/features/infra.event-router` + `src/features/infra.outbox-relay` 對應 IER。
+- L5：`src/features/projection.bus` 對應 Projection Bus。
+- L6：`src/features/infra.gateway-query` 對應 Query Gateway。
+- L7：`src/shared/infra/{auth|firestore|messaging|storage}` 對應 Firebase ACL（D24）。
+- L8：`src/shared-infra/firebase/*` 作為平台整合支援（外部 Firebase Infra 對接層）。
+- L9：`src/features/observability` 對應 Observability。
 
