@@ -21,8 +21,8 @@ import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users, BookOpen, 
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 
-import type { ScheduleItem } from '@/features/shared-kernel';
-import type { MemberReference } from "@/features/shared-kernel";
+import type { ScheduleItem } from '@/shared-kernel';
+import type { MemberReference } from "@/shared-kernel";
 import { useApp } from "@/shared/app-providers/app-context";
 import { Button } from "@/shared/shadcn-ui/button";
 import {

@@ -5,7 +5,7 @@ import { parseISO } from "date-fns"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMemo } from "react"
 
-import type { SkillRequirement } from "@/features/shared-kernel"
+import type { SkillRequirement } from "@/shared-kernel"
 import { useWorkspace } from "@/features/workspace.slice"
 import type { Location } from "@/features/workspace.slice"
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast"

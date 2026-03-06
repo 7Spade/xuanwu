@@ -11,8 +11,7 @@
 import { AlertCircle, CheckCircle2, FileSearch, Send } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { getTagSnapshotPresentationMap } from '@/features/semantic-graph.slice/projections/tag-snapshot.slice';
-import type { TagSnapshotPresentation } from '@/features/semantic-graph.slice/projections/tag-snapshot.slice';
+import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';

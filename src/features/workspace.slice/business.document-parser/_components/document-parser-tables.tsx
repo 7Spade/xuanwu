@@ -9,7 +9,7 @@ import {
 
 import type { WorkItem } from '@/app-runtime/ai/schemas/docu-parse';
 import { classifyCostItem, shouldMaterializeAsTask } from '@/features/semantic-graph.slice';
-import type { TagSnapshotPresentation } from '@/features/semantic-graph.slice/projections/tag-snapshot.slice';
+import type { TagSnapshotPresentation } from '@/features/semantic-graph.slice';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 

@@ -12,8 +12,8 @@ import { Plus, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
-import type { ScheduleItem } from "@/features/shared-kernel";
-import { type MemberReference } from "@/features/shared-kernel";
+import type { ScheduleItem } from "@/shared-kernel";
+import { type MemberReference } from "@/shared-kernel";
 import { findSkill } from "@/shared/constants/skills";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { Badge } from "@/shared/shadcn-ui/badge";

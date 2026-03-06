@@ -5,7 +5,7 @@ import { useActionState, useTransition, useRef, useEffect, useCallback, useState
 
 import { logDomainError } from '@/features/observability';
 import { classifyCostItem } from '@/features/semantic-graph.slice';
-import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice/projections/tag-snapshot.slice';
+import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
 import { useToast } from '@/shared/shadcn-ui/hooks/use-toast';

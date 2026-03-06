@@ -23,7 +23,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 import type { OrgEligibleMemberView } from '@/features/projection.bus';
-import type { ScheduleItem } from '@/features/shared-kernel';
+import type { ScheduleItem } from '@/shared-kernel';
 import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';

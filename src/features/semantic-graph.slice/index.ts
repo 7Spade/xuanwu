@@ -165,6 +165,16 @@ export type {
   CostItemSemanticClassification,
 } from './_cost-classifier';
 
+export {
+  getTagSnapshotPresentation,
+  getTagSnapshotPresentationMap,
+} from './projections/tag-snapshot.slice';
+export type {
+  TagSnapshotPresentation,
+  TagSnapshotColorToken,
+  TagSnapshotIconToken,
+} from './projections/tag-snapshot.slice';
+
 // =================================================================
 // CTA Operations — Centralized Tag Aggregate [D3][D8]
 // Firestore-backed CRUD for tagDictionary; D8-compliant (not in shared-kernel).

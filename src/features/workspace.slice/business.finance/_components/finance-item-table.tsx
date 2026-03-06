@@ -9,7 +9,7 @@
 
 import { BriefcaseBusiness, Coins, Hammer, type LucideIcon, ShieldCheck } from 'lucide-react';
 
-import type { TagSnapshotPresentation } from '@/features/semantic-graph.slice/projections/tag-snapshot.slice';
+import type { TagSnapshotPresentation } from '@/features/semantic-graph.slice';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Checkbox } from '@/shared/shadcn-ui/checkbox';
 import { Input } from '@/shared/shadcn-ui/input';
