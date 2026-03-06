@@ -48,6 +48,8 @@ export {
   manualAssignScheduleMember,
   cancelScheduleProposalAction,
   completeOrgScheduleAction,
+  // Timeline-specific facade
+  updateTimelineItemDateRange,
 } from './_actions';
 
 // =================================================================
@@ -66,6 +68,7 @@ export {
   getAccountScheduleProjection,
   getAccountActiveAssignments,
   subscribeToWorkspaceScheduleItems,
+  subscribeToWorkspaceTimelineItems,
   getEligibleMemberForSchedule,
   getEligibleMembersForSchedule,
   DEMAND_BOARD_STALENESS,
@@ -83,6 +86,9 @@ export {
   useScheduleActions,
   useWorkspaceSchedule,
   useScheduleEventHandler,
+  useAccountTimeline,
+  useWorkspaceTimeline,
+  useTimelineCommands,
 } from './_hooks';
 
 // =================================================================
@@ -90,17 +96,24 @@ export {
 // =================================================================
 // Account-level views
 export { AccountScheduleSection } from './_components/schedule.account-view';
+export { AccountTimelineSection } from './_components/timeline.account-view';
 export { OrgScheduleGovernance } from './_components/org-schedule-governance';
 export { OrgSkillPoolManager } from './_components/org-skill-pool-manager';
 // Workspace-level views
 export { WorkspaceSchedule } from './_components/schedule.workspace-view';
+export { WorkspaceTimeline } from './_components/timeline.workspace-view';
 // Shared schedule UI primitives
 export { GovernanceSidebar } from './_components/governance-sidebar';
 export { ProposalDialog } from './_components/proposal-dialog';
 export { ScheduleProposalContent } from './_components/schedule-proposal-content';
 export { ScheduleDataTable } from './_components/schedule-data-table';
 export { AccountCapabilityTabs, WorkspaceCapabilityTabs } from './_components/schedule-capability-tabs';
+export {
+  AccountTimelineCapabilityTabs,
+  WorkspaceTimelineCapabilityTabs,
+} from './_components/timeline-capability-tabs';
 export { UnifiedCalendarGrid } from './_components/unified-calendar-grid';
+export { TimelineCanvas } from './_components/timeline-canvas';
 export { DemandBoard } from './_components/demand-board';
 
 // =================================================================
@@ -147,6 +160,15 @@ export type { ScheduleItemWithWorkspace, ScheduleItemWithMembers } from './_sele
 // =================================================================
 export { startSchedulingSaga, getSagaState } from './_saga';
 export type { SagaState, SagaStep, SagaStatus } from './_saga';
+
+// =================================================================
+// Local contracts
+// =================================================================
+export type { TimelineMember } from './_types';
+export type {
+  WorkforceSchedulingEventName,
+  WorkforceSchedulingLifecycleEventPayload,
+} from './_events';
 
 // =================================================================
 // Domain rules

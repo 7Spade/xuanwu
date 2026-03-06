@@ -1,6 +1,6 @@
 /**
- * Module: index.ts
- * Purpose: Public action barrel for scheduling slice.
+ * Module: _actions.ts
+ * Purpose: Aggregate schedule action modules.
  * Responsibilities: Re-export workspace, lifecycle, and governance actions.
  * Constraints: deterministic logic, respect module boundaries
  */
@@ -9,16 +9,11 @@ export {
   createScheduleItem,
   assignMember,
   unassignMember,
-} from './workspace';
-
-export {
   approveScheduleItemWithMember,
   updateScheduleItemStatus,
   updateScheduleItemDateRange,
-} from './lifecycle';
-
-export {
+  updateTimelineItemDateRange,
   manualAssignScheduleMember,
   cancelScheduleProposalAction,
   completeOrgScheduleAction,
-} from './governance';
+} from './_actions/index';

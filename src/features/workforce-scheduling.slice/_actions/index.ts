@@ -1,11 +1,27 @@
-'use server';
-
 /**
  * Module: index.ts
- * Purpose: Server actions for timelineing.slice.
- * Responsibilities: timeline-specific schedule item mutations.
+ * Purpose: Server actions for workforce-scheduling.slice.
+ * Responsibilities: expose unified schedule/timeline command entry points.
  * Constraints: deterministic logic, respect module boundaries
  */
+
+export {
+  createScheduleItem,
+  assignMember,
+  unassignMember,
+} from './workspace';
+
+export {
+  approveScheduleItemWithMember,
+  updateScheduleItemStatus,
+  updateScheduleItemDateRange,
+} from './lifecycle';
+
+export {
+  manualAssignScheduleMember,
+  cancelScheduleProposalAction,
+  completeOrgScheduleAction,
+} from './governance';
 
 import {
   type CommandResult,

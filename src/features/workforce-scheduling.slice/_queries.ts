@@ -229,3 +229,26 @@ export function subscribeToWorkspaceScheduleItems(
     (err) => onError?.(err),
   );
 }
+
+/**
+ * Opens a real-time listener for timeline rendering, ordered by startDate.
+ * Uses the same schedule_items source but returns records in timeline-friendly order.
+ */
+export function subscribeToWorkspaceTimelineItems(
+  accountId: string,
+  workspaceId: string,
+  onUpdate: (items: ScheduleItem[]) => void,
+  onError?: (error: Error) => void
+): Unsubscribe {
+  const q = query(
+    collection(db, 'accounts', accountId, 'schedule_items'),
+    where('workspaceId', '==', workspaceId),
+    orderBy('startDate', 'asc')
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => onUpdate(snapshot.docs.map((doc) => ({ ...(doc.data() as Omit<ScheduleItem, 'id'>), id: doc.id }))),
+    (error) => onError?.(error as Error)
+  );
+}
