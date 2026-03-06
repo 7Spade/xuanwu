@@ -182,6 +182,7 @@ src/features/infra.outbox-relay/index.ts
 src/features/notification-hub.slice/_actions.ts
 src/features/notification-hub.slice/_components/notification-bell.tsx
 src/features/notification-hub.slice/_contract.ts
+src/features/notification-hub.slice/_notification-authority.ts
 src/features/notification-hub.slice/_services.ts
 src/features/notification-hub.slice/_services/notification-listener.ts
 src/features/notification-hub.slice/_types.ts
@@ -321,6 +322,7 @@ src/features/semantic-graph.slice/_actions.ts
 src/features/semantic-graph.slice/_aggregate.ts
 src/features/semantic-graph.slice/_cost-classifier.ts
 src/features/semantic-graph.slice/_queries.ts
+src/features/semantic-graph.slice/_semantic-authority.ts
 src/features/semantic-graph.slice/_services.ts
 src/features/semantic-graph.slice/_types.ts
 src/features/semantic-graph.slice/centralized-causality/causality-tracer.ts
@@ -347,11 +349,6 @@ src/features/semantic-graph.slice/projections/tag-snapshot.slice.ts
 src/features/semantic-graph.slice/proposal-stream/index.ts
 src/features/semantic-graph.slice/subscribers/lifecycle-subscriber.ts
 src/features/semantic-graph.slice/wiki-editor/index.ts
-src/features/shared-kernel/account-contract/account-aggregate.ts
-src/features/shared-kernel/account-contract/account-identity.ts
-src/features/shared-kernel/account-contract/index.ts
-src/features/shared-kernel/account-contract/notification-contract.ts
-src/features/shared-kernel/account-contract/organization-membership.ts
 src/features/shared-kernel/authority-snapshot/index.ts
 src/features/shared-kernel/command-result-contract/index.ts
 src/features/shared-kernel/event-envelope/index.ts
@@ -360,11 +357,6 @@ src/features/shared-kernel/infrastructure-ports/index.ts
 src/features/shared-kernel/outbox-contract/index.ts
 src/features/shared-kernel/read-consistency/index.ts
 src/features/shared-kernel/resilience-contract/index.ts
-src/features/shared-kernel/schedule-contract/index.ts
-src/features/shared-kernel/schedule-contract/location.ts
-src/features/shared-kernel/schedule-contract/schedule-item.ts
-src/features/shared-kernel/schedule-contract/status.ts
-src/features/shared-kernel/semantic-primitives/index.ts
 src/features/shared-kernel/skill-tier/index.ts
 src/features/shared-kernel/staleness-contract/index.ts
 src/features/shared-kernel/tag-authority/index.ts
@@ -596,6 +588,9 @@ src/shared-infra/firebase/functions/src/types.ts
 src/shared-infra/firebase/functions/tsconfig.dev.json
 src/shared-infra/firebase/functions/tsconfig.json
 src/shared-infra/firebase/storage/storage.rules
+src/shared-kernel/data-contracts/account/account-contract.ts
+src/shared-kernel/data-contracts/scheduling/schedule-contract.ts
+src/shared-kernel/data-contracts/semantic/semantic-contracts.ts
 src/shared-kernel/index.ts
 src/shared/app-providers/_queries.ts
 src/shared/app-providers/app-context.tsx
@@ -1694,55 +1689,6 @@ export interface HubNotification extends Notification {
 }
 ```
 
-## File: src/features/notification-hub.slice/_services.ts
-```typescript
-import type { NotificationPriority } from '@/features/shared-kernel';
-import type {
-  TagRoutingRule,
-  TagRoutingDecision,
-  NotificationSourceEvent,
-  NotificationDispatch,
-  NotificationDispatchResult,
-  NotificationHubStats,
-  NotificationSubscription,
-} from './_types';
-⋮----
-// =================================================================
-// Routing Rule Management
-// =================================================================
-export function registerRoutingRule(rule: TagRoutingRule): void
-export function unregisterRoutingRule(ruleId: string): void
-export function getRoutingRules(): readonly TagRoutingRule[]
-// =================================================================
-// Event Subscription Management
-// =================================================================
-export function registerSubscription(sub: NotificationSubscription): void
-export function unregisterSubscription(eventKey: string): void
-export function getSubscriptions(): readonly NotificationSubscription[]
-// =================================================================
-// Tag-Aware Routing Engine (Stateless per #A10)
-// =================================================================
-⋮----
-export function evaluateTagRouting(
-  eventTags: readonly string[]
-): TagRoutingDecision
-export async function processNotificationEvent(
-  event: NotificationSourceEvent
-): Promise<NotificationDispatchResult>
-⋮----
-export type ProjectionBusListener = (event: NotificationSourceEvent) => void;
-⋮----
-export function subscribeToProjectionBus(
-  eventKey: string,
-  listener: ProjectionBusListener
-): () => void
-export function emitProjectionBusEvent(event: NotificationSourceEvent): void
-export function initTagChangedSubscriber(): () => void
-export function getHubStats(): NotificationHubStats
-⋮----
-function generateDispatchId(): string
-```
-
 ## File: src/features/notification-hub.slice/_services/notification-listener.ts
 ```typescript
 import type { HubNotification, NotificationCategory, NotificationSemanticType } from '../_contract';
@@ -1850,11 +1796,6 @@ export function registerNotificationRouter(): RouterRegistration
 ```
 
 ## File: src/features/notification-hub.slice/gov.notification-router/index.ts
-```typescript
-
-```
-
-## File: src/features/notification-hub.slice/index.ts
 ```typescript
 
 ```
@@ -3052,73 +2993,6 @@ import type { WriteOp } from './_aggregate';
 export async function executeWriteOp(op: WriteOp): Promise<void>
 ```
 
-## File: src/features/semantic-graph.slice/_aggregate.ts
-```typescript
-import { TAXONOMY_DIMENSIONS, tagSlugRef } from '@/features/shared-kernel';
-import type { TaxonomyDimension, TaxonomyNode, TagSlugRef } from '@/features/shared-kernel';
-import type {
-  TemporalTagAssignment,
-  TemporalConflict,
-  TemporalConflictCheckInput,
-  TemporalConflictCheckResult,
-  TaxonomyTree,
-  TaxonomyValidationResult,
-  TaxonomyValidationError,
-  TaxonomyErrorCode,
-} from './_types';
-⋮----
-export function detectTemporalConflicts(
-  input: TemporalConflictCheckInput
-): TemporalConflictCheckResult
-function isOverlapping(a: TemporalTagAssignment, b: TemporalTagAssignment): boolean
-export function validateTaxonomyAssignment(
-  node: TaxonomyNode,
-  existingNodes: readonly TaxonomyNode[],
-  validDimensions: readonly TaxonomyDimension[] = TAXONOMY_DIMENSIONS
-): TaxonomyValidationResult
-function hasCircularReference(
-  nodeSlug: string,
-  parentSlug: string,
-  existingNodes: readonly TaxonomyNode[]
-): boolean
-export function checkTemporalConflict(
-  newAssignment: TemporalTagAssignment,
-  existingAssignments: readonly TemporalTagAssignment[]
-): TemporalConflictCheckResult
-export function validateTaxonomyPath(
-  path: readonly string[],
-  tree: TaxonomyTree
-): TaxonomyValidationResult
-function buildNodeMap(tree: TaxonomyTree): Map<string, TaxonomyNode>
-function makeError(
-  code: TaxonomyErrorCode,
-  tagSlug: TagSlugRef,
-  message: string,
-  dimension?: TaxonomyDimension
-): TaxonomyValidationError
-```
-
-## File: src/features/semantic-graph.slice/_services.ts
-```typescript
-import type { SearchDomain, SemanticSearchHit } from '@/features/shared-kernel';
-import { SEARCH_DOMAINS } from '@/features/shared-kernel';
-import type { SemanticIndexEntry, SemanticIndexStats } from './_types';
-⋮----
-export function indexEntity(entry: SemanticIndexEntry): void
-export function removeFromIndex(domain: string, id: string): void
-export function querySemanticIndex(
-  query: string,
-  options?: {
-    domains?: readonly string[];
-    tagFilters?: readonly string[];
-    limit?: number;
-  }
-): SemanticSearchHit[]
-export function getIndexStats(): SemanticIndexStats
-function isValidSearchDomain(domain: string): domain is SearchDomain
-function computeRelevanceScore(entry: SemanticIndexEntry, terms: string[]): number
-```
-
 ## File: src/features/semantic-graph.slice/_types.ts
 ```typescript
 import type {
@@ -3314,48 +3188,6 @@ export interface ResilienceContract {
 ⋮----
 export interface ImplementsResilienceContract {
   readonly implementsResilienceContract: true;
-}
-```
-
-## File: src/features/shared-kernel/semantic-primitives/index.ts
-```typescript
-export type SearchDomain = (typeof SEARCH_DOMAINS)[number];
-export interface SemanticSearchQuery {
-  readonly query: string;
-  readonly domains: readonly SearchDomain[];
-  readonly tagFilters?: readonly string[];
-  readonly limit?: number;
-  readonly cursor?: string;
-  readonly traceId?: string;
-}
-export interface SemanticSearchHit {
-  readonly id: string;
-  readonly domain: SearchDomain;
-  readonly title: string;
-  readonly subtitle?: string;
-  readonly score: number;
-  readonly tags: readonly string[];
-  readonly href?: string;
-}
-export interface SemanticSearchResult {
-  readonly hits: readonly SemanticSearchHit[];
-  readonly totalCount: number;
-  readonly cursor?: string;
-  readonly traceId?: string;
-}
-⋮----
-export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];
-⋮----
-export type NotificationPriority = (typeof NOTIFICATION_PRIORITIES)[number];
-⋮----
-export type TaxonomyDimension = (typeof TAXONOMY_DIMENSIONS)[number];
-export interface TaxonomyNode {
-  readonly slug: string;
-  readonly label: string;
-  readonly dimension: TaxonomyDimension;
-  readonly parentSlug?: string;
-  readonly depth: number;
-  readonly metadata?: Record<string, unknown>;
 }
 ```
 
@@ -5555,56 +5387,6 @@ export type SkillSlug = (typeof SKILLS)[number]['slug'];
 export function findSkill(slug: string): SkillDefinition | undefined
 ```
 
-## File: src/shared/constants/status.ts
-```typescript
-import type { ScheduleStatus, InviteState, NotificationType, Presence } from '@/features/shared-kernel';
-import type { AuditLogType } from '@/features/workspace.slice';
-import type { WorkspaceLifecycleState } from '@/features/workspace.slice';
-⋮----
-export interface ScheduleStatusMeta {
-  status: ScheduleStatus;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-  bgClass: string;
-}
-⋮----
-export interface WorkspaceLifecycleStateMeta {
-  state: WorkspaceLifecycleState;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
-⋮----
-export interface AuditLogTypeMeta {
-  type: AuditLogType;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
-⋮----
-export interface InviteStateMeta {
-  state: InviteState;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
-⋮----
-export interface PresenceMeta {
-  presence: Presence;
-  zhLabel: string;
-  enLabel: string;
-  dotClass: string;
-}
-⋮----
-export interface NotificationTypeMeta {
-  type: NotificationType;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
-```
-
 ## File: src/shared/constants/taiwan-address.ts
 ```typescript
 export type TwCountyType =
@@ -7251,6 +7033,72 @@ async function routeToDlq(
 ): Promise<void>
 ```
 
+## File: src/features/notification-hub.slice/_notification-authority.ts
+```typescript
+import type { NotificationChannel, NotificationPriority } from '@/shared-kernel/data-contracts/semantic/semantic-contracts';
+```
+
+## File: src/features/notification-hub.slice/_services.ts
+```typescript
+import type { NotificationPriority } from '@/features/shared-kernel';
+import { NOTIFICATION_PRIORITY_ORDER } from './_notification-authority';
+import type {
+  TagRoutingRule,
+  TagRoutingDecision,
+  NotificationSourceEvent,
+  NotificationDispatch,
+  NotificationDispatchResult,
+  NotificationHubStats,
+  NotificationSubscription,
+} from './_types';
+⋮----
+// =================================================================
+// Routing Rule Management
+// =================================================================
+export function registerRoutingRule(rule: TagRoutingRule): void
+export function unregisterRoutingRule(ruleId: string): void
+export function getRoutingRules(): readonly TagRoutingRule[]
+// =================================================================
+// Event Subscription Management
+// =================================================================
+export function registerSubscription(sub: NotificationSubscription): void
+export function unregisterSubscription(eventKey: string): void
+export function getSubscriptions(): readonly NotificationSubscription[]
+// =================================================================
+// Tag-Aware Routing Engine (Stateless per #A10)
+// =================================================================
+⋮----
+/**
+ * Evaluate all enabled routing rules against an event's tags.
+ * Returns matched rules, channels to fire, and highest matched priority.
+ *
+ * Stateless: uses only the event's tags and the in-memory rule set.
+ */
+export function evaluateTagRouting(
+  eventTags: readonly string[]
+): TagRoutingDecision
+export async function processNotificationEvent(
+  event: NotificationSourceEvent
+): Promise<NotificationDispatchResult>
+⋮----
+export type ProjectionBusListener = (event: NotificationSourceEvent) => void;
+⋮----
+export function subscribeToProjectionBus(
+  eventKey: string,
+  listener: ProjectionBusListener
+): () => void
+export function emitProjectionBusEvent(event: NotificationSourceEvent): void
+export function initTagChangedSubscriber(): () => void
+export function getHubStats(): NotificationHubStats
+⋮----
+function generateDispatchId(): string
+```
+
+## File: src/features/notification-hub.slice/index.ts
+```typescript
+
+```
+
 ## File: src/features/notification-hub.slice/user.notification/_components/notification-list.tsx
 ```typescript
 import type { Notification } from '@/features/shared-kernel';
@@ -8254,6 +8102,79 @@ export async function transitionTagLifecycle(
 ): Promise<CommandResult &
 ```
 
+## File: src/features/semantic-graph.slice/_aggregate.ts
+```typescript
+import { tagSlugRef } from '@/features/shared-kernel';
+import type { TaxonomyDimension, TaxonomyNode, TagSlugRef } from '@/features/shared-kernel';
+import { TAXONOMY_DIMENSIONS } from './_semantic-authority';
+import type {
+  TemporalTagAssignment,
+  TemporalConflict,
+  TemporalConflictCheckInput,
+  TemporalConflictCheckResult,
+  TaxonomyTree,
+  TaxonomyValidationResult,
+  TaxonomyValidationError,
+  TaxonomyErrorCode,
+} from './_types';
+⋮----
+export function detectTemporalConflicts(
+  input: TemporalConflictCheckInput
+): TemporalConflictCheckResult
+function isOverlapping(a: TemporalTagAssignment, b: TemporalTagAssignment): boolean
+export function validateTaxonomyAssignment(
+  node: TaxonomyNode,
+  existingNodes: readonly TaxonomyNode[],
+  validDimensions: readonly TaxonomyDimension[] = TAXONOMY_DIMENSIONS
+): TaxonomyValidationResult
+function hasCircularReference(
+  nodeSlug: string,
+  parentSlug: string,
+  existingNodes: readonly TaxonomyNode[]
+): boolean
+export function checkTemporalConflict(
+  newAssignment: TemporalTagAssignment,
+  existingAssignments: readonly TemporalTagAssignment[]
+): TemporalConflictCheckResult
+export function validateTaxonomyPath(
+  path: readonly string[],
+  tree: TaxonomyTree
+): TaxonomyValidationResult
+function buildNodeMap(tree: TaxonomyTree): Map<string, TaxonomyNode>
+function makeError(
+  code: TaxonomyErrorCode,
+  tagSlug: TagSlugRef,
+  message: string,
+  dimension?: TaxonomyDimension
+): TaxonomyValidationError
+```
+
+## File: src/features/semantic-graph.slice/_semantic-authority.ts
+```typescript
+import type { SearchDomain, TaxonomyDimension } from '@/shared-kernel/data-contracts/semantic/semantic-contracts';
+```
+
+## File: src/features/semantic-graph.slice/_services.ts
+```typescript
+import type { SearchDomain, SemanticSearchHit } from '@/features/shared-kernel';
+import { SEARCH_DOMAINS } from './_semantic-authority';
+import type { SemanticIndexEntry, SemanticIndexStats } from './_types';
+⋮----
+export function indexEntity(entry: SemanticIndexEntry): void
+export function removeFromIndex(domain: string, id: string): void
+export function querySemanticIndex(
+  query: string,
+  options?: {
+    domains?: readonly string[];
+    tagFilters?: readonly string[];
+    limit?: number;
+  }
+): SemanticSearchHit[]
+export function getIndexStats(): SemanticIndexStats
+function isValidSearchDomain(domain: string): domain is SearchDomain
+function computeRelevanceScore(entry: SemanticIndexEntry, terms: string[]): number
+```
+
 ## File: src/features/semantic-graph.slice/centralized-embeddings/embedding-port.ts
 ```typescript
 import type { TagSlugRef } from '@/features/shared-kernel';
@@ -8490,159 +8411,6 @@ function _buildLifecycleMap(): Map<string, TagLifecycleRecord>
 ## File: src/features/semantic-graph.slice/wiki-editor/index.ts
 ```typescript
 
-```
-
-## File: src/features/shared-kernel/account-contract/account-aggregate.ts
-```typescript
-import type { Timestamp } from '@/shared/ports';
-import type { SkillGrant } from '../skill-tier';
-import type { AccountType, OrganizationRole } from './account-identity';
-import type { MemberReference, Team } from './organization-membership';
-export interface ThemeConfig {
-  primary: string;
-  background: string;
-  accent: string;
-}
-export interface Wallet {
-  balance: number;
-}
-export interface ExpertiseBadge {
-  id: string;
-  name: string;
-  icon?: string;
-}
-export interface Account {
-  id: string;
-  name: string;
-  accountType: AccountType;
-  email?: string;
-  photoURL?: string;
-  bio?: string;
-  achievements?: string[];
-  expertiseBadges?: ExpertiseBadge[];
-  skillGrants?: SkillGrant[];
-  wallet?: Wallet;
-  description?: string;
-  ownerId?: string;
-  role?: OrganizationRole;
-  theme?: ThemeConfig;
-  members?: MemberReference[];
-  memberIds?: string[];
-  teams?: Team[];
-  createdAt?: Timestamp;
-}
-```
-
-## File: src/features/shared-kernel/account-contract/account-identity.ts
-```typescript
-export type AccountType = 'user' | 'organization';
-export type OrganizationRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
-export type Presence = 'active' | 'away' | 'offline';
-export type InviteState = 'pending' | 'accepted' | 'expired';
-export type NotificationType = 'info' | 'alert' | 'success';
-```
-
-## File: src/features/shared-kernel/account-contract/index.ts
-```typescript
-
-```
-
-## File: src/features/shared-kernel/account-contract/notification-contract.ts
-```typescript
-import type { NotificationType } from './account-identity';
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: NotificationType;
-  read: boolean;
-  timestamp: number;
-}
-```
-
-## File: src/features/shared-kernel/account-contract/organization-membership.ts
-```typescript
-import type { Timestamp } from '@/shared/ports';
-import type { SkillGrant } from '../skill-tier';
-import type { InviteState, OrganizationRole, Presence } from './account-identity';
-export interface MemberReference {
-  id: string;
-  name: string;
-  email: string;
-  role: OrganizationRole;
-  presence: Presence;
-  isExternal?: boolean;
-  expiryDate?: Timestamp;
-  skillGrants?: SkillGrant[];
-}
-export interface Team {
-  id: string;
-  name: string;
-  description: string;
-  type: 'internal' | 'external';
-  memberIds: string[];
-}
-export interface PartnerInvite {
-  id: string;
-  email: string;
-  teamId: string;
-  role: OrganizationRole;
-  inviteState: InviteState;
-  invitedAt: Timestamp;
-  protocol: string;
-}
-```
-
-## File: src/features/shared-kernel/index.ts
-```typescript
-
-```
-
-## File: src/features/shared-kernel/schedule-contract/location.ts
-```typescript
-export interface Location {
-  building?: string;
-  floor?: string;
-  room?: string;
-  description: string;
-}
-```
-
-## File: src/features/shared-kernel/schedule-contract/schedule-item.ts
-```typescript
-import type { Timestamp } from '@/shared/ports';
-import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
-import type { Location } from './location';
-import type { ScheduleStatus, ScheduleTemporalKind } from './status';
-export interface ScheduleItem {
-  id: string;
-  accountId: string;
-  workspaceId: string;
-  workspaceName?: string;
-  title: string;
-  description?: string;
-  createdAt: Timestamp;
-  updatedAt?: Timestamp;
-  startDate: Timestamp;
-  endDate: Timestamp;
-  temporalKind?: ScheduleTemporalKind;
-  status: ScheduleStatus;
-  originType: 'MANUAL' | 'TASK_AUTOMATION';
-  originTaskId?: string;
-  assigneeIds: string[];
-  location?: Location;
-  locationId?: string;
-  requiredSkills?: SkillRequirement[];
-  proposedBy?: string;
-  version?: number;
-  traceId?: string;
-}
-```
-
-## File: src/features/shared-kernel/schedule-contract/status.ts
-```typescript
-export type ScheduleStatus = 'PROPOSAL' | 'OFFICIAL' | 'REJECTED' | 'COMPLETED';
-export type ScheduleTemporalKind = 'point' | 'range' | 'allDay';
 ```
 
 ## File: src/features/shared-kernel/skill-tier/index.ts
@@ -10969,6 +10737,172 @@ type PortalLayoutProps = {
 export function PortalLayout(
 ```
 
+## File: src/shared-kernel/data-contracts/account/account-contract.ts
+```typescript
+import type { Timestamp } from '@/shared/ports';
+import type { SkillGrant } from '@/features/shared-kernel/skill-tier';
+export type AccountType = 'user' | 'organization';
+export type OrganizationRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
+export type Presence = 'active' | 'away' | 'offline';
+export type InviteState = 'pending' | 'accepted' | 'expired';
+export type NotificationType = 'info' | 'alert' | 'success';
+export interface ThemeConfig {
+  primary: string;
+  background: string;
+  accent: string;
+}
+export interface Wallet {
+  balance: number;
+}
+export interface ExpertiseBadge {
+  id: string;
+  name: string;
+  icon?: string;
+}
+export interface MemberReference {
+  id: string;
+  name: string;
+  email: string;
+  role: OrganizationRole;
+  presence: Presence;
+  isExternal?: boolean;
+  expiryDate?: Timestamp;
+  skillGrants?: SkillGrant[];
+}
+export interface Team {
+  id: string;
+  name: string;
+  description: string;
+  type: 'internal' | 'external';
+  memberIds: string[];
+}
+export interface PartnerInvite {
+  id: string;
+  email: string;
+  teamId: string;
+  role: OrganizationRole;
+  inviteState: InviteState;
+  invitedAt: Timestamp;
+  protocol: string;
+}
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  read: boolean;
+  timestamp: number;
+}
+export interface Account {
+  id: string;
+  name: string;
+  accountType: AccountType;
+  email?: string;
+  photoURL?: string;
+  bio?: string;
+  achievements?: string[];
+  expertiseBadges?: ExpertiseBadge[];
+  skillGrants?: SkillGrant[];
+  wallet?: Wallet;
+  description?: string;
+  ownerId?: string;
+  role?: OrganizationRole;
+  theme?: ThemeConfig;
+  members?: MemberReference[];
+  memberIds?: string[];
+  teams?: Team[];
+  createdAt?: Timestamp;
+}
+```
+
+## File: src/shared-kernel/data-contracts/scheduling/schedule-contract.ts
+```typescript
+import type { Timestamp } from '@/shared/ports';
+import type { SkillRequirement } from '@/features/shared-kernel/skill-tier';
+export interface Location {
+  building?: string;
+  floor?: string;
+  room?: string;
+  description: string;
+}
+export type ScheduleStatus = 'PROPOSAL' | 'OFFICIAL' | 'REJECTED' | 'COMPLETED';
+export type ScheduleTemporalKind = 'point' | 'range' | 'allDay';
+export interface ScheduleItem {
+  id: string;
+  accountId: string;
+  workspaceId: string;
+  workspaceName?: string;
+  title: string;
+  description?: string;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+  startDate: Timestamp;
+  endDate: Timestamp;
+  temporalKind?: ScheduleTemporalKind;
+  status: ScheduleStatus;
+  originType: 'MANUAL' | 'TASK_AUTOMATION';
+  originTaskId?: string;
+  assigneeIds: string[];
+  location?: Location;
+  locationId?: string;
+  requiredSkills?: SkillRequirement[];
+  proposedBy?: string;
+  version?: number;
+  traceId?: string;
+}
+```
+
+## File: src/shared-kernel/data-contracts/semantic/semantic-contracts.ts
+```typescript
+export type SearchDomain =
+  | 'workspace'
+  | 'member'
+  | 'schedule'
+  | 'tag'
+  | 'skill'
+  | 'organization'
+  | 'document';
+export interface SemanticSearchQuery {
+  readonly query: string;
+  readonly domains: readonly SearchDomain[];
+  readonly tagFilters?: readonly string[];
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly traceId?: string;
+}
+export interface SemanticSearchHit {
+  readonly id: string;
+  readonly domain: SearchDomain;
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly score: number;
+  readonly tags: readonly string[];
+  readonly href?: string;
+}
+export interface SemanticSearchResult {
+  readonly hits: readonly SemanticSearchHit[];
+  readonly totalCount: number;
+  readonly cursor?: string;
+  readonly traceId?: string;
+}
+export type NotificationChannel = 'push' | 'in-app' | 'email' | 'sms';
+export type NotificationPriority = 'low' | 'normal' | 'high' | 'critical';
+export type TaxonomyDimension =
+  | 'skill'
+  | 'location'
+  | 'temporal'
+  | 'organizational'
+  | 'compliance';
+export interface TaxonomyNode {
+  readonly slug: string;
+  readonly label: string;
+  readonly dimension: TaxonomyDimension;
+  readonly parentSlug?: string;
+  readonly depth: number;
+  readonly metadata?: Record<string, unknown>;
+}
+```
+
 ## File: src/shared-kernel/index.ts
 ```typescript
 
@@ -11014,6 +10948,56 @@ export const AuthProvider = (
 const logout = async () =>
 ⋮----
 export const useAuth = () =>
+```
+
+## File: src/shared/constants/status.ts
+```typescript
+import type { ScheduleStatus, InviteState, NotificationType, Presence } from '@/features/shared-kernel';
+import type { AuditLogType } from '@/features/workspace.slice';
+import type { WorkspaceLifecycleState } from '@/features/workspace.slice';
+⋮----
+export interface ScheduleStatusMeta {
+  status: ScheduleStatus;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+  bgClass: string;
+}
+⋮----
+export interface WorkspaceLifecycleStateMeta {
+  state: WorkspaceLifecycleState;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+⋮----
+export interface AuditLogTypeMeta {
+  type: AuditLogType;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+⋮----
+export interface InviteStateMeta {
+  state: InviteState;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+⋮----
+export interface PresenceMeta {
+  presence: Presence;
+  zhLabel: string;
+  enLabel: string;
+  dotClass: string;
+}
+⋮----
+export interface NotificationTypeMeta {
+  type: NotificationType;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
 ```
 
 ## File: src/shared/infra/firestore/collection-paths.ts
@@ -12158,7 +12142,7 @@ export async function getTagSnapshotPresentationMap(
 ): Promise<Record<string, TagSnapshotPresentation>>
 ```
 
-## File: src/features/shared-kernel/schedule-contract/index.ts
+## File: src/features/shared-kernel/index.ts
 ```typescript
 
 ```
@@ -13470,11 +13454,6 @@ const buildIssueResolvedMessage = (
 )
 ```
 
-## File: src/features/semantic-graph.slice/index.ts
-```typescript
-
-```
-
 ## File: src/features/workspace.slice/business.document-parser/_components/document-parser-view.tsx
 ```typescript
 import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Clock, AlertCircle, ListChecks } from 'lucide-react';
@@ -13522,6 +13501,11 @@ const handleImport = async () =>
 // Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
 ⋮----
 // Layer-2 Semantic Classification (VS8) — applied here during the import phase.
+```
+
+## File: src/features/semantic-graph.slice/index.ts
+```typescript
+
 ```
 
 ## File: src/features/workspace.slice/business.tasks/_components/tasks-view.tsx
