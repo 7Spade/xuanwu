@@ -105,6 +105,8 @@ export {
   getIndexStats,
 } from './_services';
 
+export { SEARCH_DOMAINS, TAXONOMY_DIMENSIONS } from './_semantic-authority';
+
 // =================================================================
 // Read Queries — [D4] QGWAY_SEARCH outbound port (VS8 Global Search)
 // All reads go through _queries.ts; internal stores are HIDDEN [D7].

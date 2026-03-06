@@ -21,6 +21,7 @@
  */
 
 import type { NotificationPriority } from '@/features/shared-kernel';
+import { NOTIFICATION_PRIORITY_ORDER } from './_notification-authority';
 
 import type {
   TagRoutingRule,
@@ -78,7 +79,7 @@ export function getSubscriptions(): readonly NotificationSubscription[] {
 // Tag-Aware Routing Engine (Stateless per #A10)
 // =================================================================
 
-const PRIORITY_ORDER: readonly NotificationPriority[] = ['critical', 'high', 'normal', 'low'];
+const PRIORITY_ORDER: readonly NotificationPriority[] = NOTIFICATION_PRIORITY_ORDER;
 
 /**
  * Evaluate all enabled routing rules against an event's tags.

@@ -6,7 +6,7 @@
  * `@/features/shared-kernel` and `@/features/workspace.slice`.
  *
  * Covered union types:
- *   - ScheduleStatus          (→ @/features/shared-kernel/schedule-contract)
+ *   - ScheduleStatus          (→ @/shared-kernel/data-contracts/scheduling/schedule-contract)
  *   - WorkspaceLifecycleState (→ @/features/workspace.slice)
  *   - AuditLogType            (→ @/features/workspace.slice)
  *   - InviteState             (→ @/features/shared-kernel → PartnerInvite.inviteState)

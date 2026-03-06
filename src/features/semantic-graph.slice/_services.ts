@@ -18,7 +18,7 @@
  */
 
 import type { SearchDomain, SemanticSearchHit } from '@/features/shared-kernel';
-import { SEARCH_DOMAINS } from '@/features/shared-kernel';
+import { SEARCH_DOMAINS } from './_semantic-authority';
 
 import type { SemanticIndexEntry, SemanticIndexStats } from './_types';
 

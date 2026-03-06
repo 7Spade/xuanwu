@@ -17,8 +17,9 @@
  * Dependency rule: ZERO infrastructure imports. Pure functions only.
  */
 
-import { TAXONOMY_DIMENSIONS, tagSlugRef } from '@/features/shared-kernel';
+import { tagSlugRef } from '@/features/shared-kernel';
 import type { TaxonomyDimension, TaxonomyNode, TagSlugRef } from '@/features/shared-kernel';
+import { TAXONOMY_DIMENSIONS } from './_semantic-authority';
 
 import type {
   TemporalTagAssignment,

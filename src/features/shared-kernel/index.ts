@@ -75,7 +75,7 @@ export type {
   ExpertiseBadge,
   Notification,
   PartnerInvite,
-} from './account-contract';
+} from '@/shared-kernel/data-contracts/account/account-contract';
 
 // SK_CMD_RESULT [R4]
 export type {
@@ -147,12 +147,6 @@ export type {
 
 // ─── 🔍 Semantic Primitives (VS8/VS9/VS7) [D19][D21][D26] ────────────────────
 
-export {
-  SEARCH_DOMAINS,
-  NOTIFICATION_CHANNELS,
-  NOTIFICATION_PRIORITIES,
-  TAXONOMY_DIMENSIONS,
-} from './semantic-primitives';
 export type {
   SearchDomain,
   SemanticSearchQuery,
@@ -162,7 +156,7 @@ export type {
   NotificationPriority,
   TaxonomyDimension,
   TaxonomyNode,
-} from './semantic-primitives';
+} from '@/shared-kernel/data-contracts/semantic/semantic-contracts';
 
 // ─── 🔌 Infrastructure Ports [D24] ───────────────────────────────────────────
 
@@ -173,4 +167,4 @@ export type { IFileStore, UploadOptions } from './infrastructure-ports';
 
 // ─── 📅 Schedule Contract [D19] ──────────────────────────────────────────────
 
-export type { ScheduleStatus, ScheduleItem, Location } from './schedule-contract';
+export type { ScheduleStatus, ScheduleItem, Location } from '@/shared-kernel/data-contracts/scheduling/schedule-contract';

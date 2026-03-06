@@ -76,6 +76,12 @@ export type { HubNotification, NotificationCategory, NotificationSemanticType } 
 // =================================================================
 export { NotificationBell } from './_components/notification-bell';
 
+export {
+  NOTIFICATION_CHANNELS,
+  NOTIFICATION_PRIORITIES,
+  NOTIFICATION_PRIORITY_ORDER,
+} from './_notification-authority';
+
 // =================================================================
 // User Notification (FCM Layer 3 — personal push delivery [R8])
 // =================================================================
