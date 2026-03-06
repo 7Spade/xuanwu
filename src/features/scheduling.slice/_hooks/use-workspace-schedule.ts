@@ -71,7 +71,7 @@ export function useWorkspaceSchedule() {
   };
 
   const handleOpenAddDialog = (date: Date) => {
-    router.push(`schedule-proposal?date=${format(date, "yyyy-MM-dd")}`);
+    router.push(`/workspaces/${workspace.id}/schedule-proposal?date=${format(date, "yyyy-MM-dd")}`);
   };
 
   return {
