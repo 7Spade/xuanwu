@@ -7,7 +7,7 @@
 
 "use client";
 
-import { addDays } from "date-fns";
+import { addDays, addMinutes, isSameDay, startOfDay } from "date-fns";
 import { useEffect, useMemo, useRef } from "react";
 import { DataSet } from "vis-data";
 import {
@@ -25,6 +25,7 @@ import { cn } from "@/shared/shadcn-ui/utils/utils";
 import type { TimelineMember } from "../_types";
 
 type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
+type ResolvedTemporalKind = NonNullable<ScheduleItem["temporalKind"]>;
 
 interface TimelineCanvasProps {
   items: ScheduleItem[];
@@ -72,6 +73,78 @@ function toTimelineClassName(item: ScheduleItem): string {
     default:
       return "bg-background border-border";
   }
+}
+
+function isStartOfDay(date: Date): boolean {
+  return (
+    date.getHours() === 0 &&
+    date.getMinutes() === 0 &&
+    date.getSeconds() === 0 &&
+    date.getMilliseconds() === 0
+  );
+}
+
+function inferTemporalKind(start: Date, end?: Date, explicitKind?: ScheduleItem["temporalKind"]): ResolvedTemporalKind {
+  if (explicitKind) return explicitKind;
+  if (!end) return "point";
+
+  if (end.getTime() === start.getTime()) {
+    if (isSameDay(start, end) && isStartOfDay(start) && isStartOfDay(end)) {
+      return "allDay";
+    }
+    return "point";
+  }
+
+  if (end.getTime() > start.getTime()) return "range";
+  return "point";
+}
+
+function resolveTimelineInterval(item: ScheduleItem): {
+  temporalKind: ResolvedTemporalKind;
+  start: Date;
+  end?: Date;
+  type: "box" | "range";
+} | null {
+  const startValue = toDate(item.startDate);
+  const endValue = toDate(item.endDate);
+  if (!startValue && !endValue) return null;
+
+  const baseStart = startValue ?? endValue!;
+  const baseEnd = endValue ?? startValue ?? undefined;
+  const kind = inferTemporalKind(baseStart, baseEnd, item.temporalKind);
+
+  if (kind === "point") {
+    return {
+      temporalKind: kind,
+      start: baseStart,
+      type: "box",
+    };
+  }
+
+  if (kind === "allDay") {
+    const normalizedStart = startOfDay(baseStart);
+    const normalizedEnd = baseEnd && baseEnd.getTime() > normalizedStart.getTime()
+      ? baseEnd
+      : addDays(normalizedStart, 1);
+
+    return {
+      temporalKind: kind,
+      start: normalizedStart,
+      end: normalizedEnd,
+      type: "range",
+    };
+  }
+
+  const normalizedEnd = baseEnd && baseEnd.getTime() > baseStart.getTime()
+    ? baseEnd
+    : addMinutes(baseStart, 30);
+
+  return {
+    temporalKind: kind,
+    start: baseStart,
+    end: normalizedEnd,
+    type: "range",
+  };
 }
 
 function resolveInitialWindow(items: DataItem[]): { start: Date; end: Date } {
@@ -123,12 +196,8 @@ export function TimelineCanvas({
   const timelineItems = useMemo(() => {
     return items
       .map((item): DataItem | null => {
-        const start = toDate(item.startDate);
-        const end = toDate(item.endDate);
-        if (!start && !end) return null;
-
-        const normalizedStart = start ?? end!;
-        const normalizedEnd = end ?? start ?? undefined;
+        const interval = resolveTimelineInterval(item);
+        if (!interval) return null;
         const assigneeNames = item.assigneeIds.map((id) => membersMap.get(id)).filter(Boolean).join(", ");
 
         const titleText = assigneeNames
@@ -138,8 +207,9 @@ export function TimelineCanvas({
         return {
           id: item.id,
           content: escapeHtml(item.title),
-          start: normalizedStart,
-          end: normalizedEnd,
+          start: interval.start,
+          end: interval.end,
+          type: interval.type,
           group: groupMode === "workspace" ? item.workspaceId : undefined,
           title: escapeHtml(titleText),
           className: toTimelineClassName(item),

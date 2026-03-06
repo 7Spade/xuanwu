@@ -41,6 +41,14 @@ export interface Location {
 export type ScheduleStatus = 'PROPOSAL' | 'OFFICIAL' | 'REJECTED' | 'COMPLETED';
 
 /**
+ * Temporal semantics of a schedule item.
+ * - point: exact time point, rendered as a box/point marker.
+ * - range: explicit start/end duration.
+ * - allDay: whole-day interval using end-exclusive semantics.
+ */
+export type ScheduleTemporalKind = 'point' | 'range' | 'allDay';
+
+/**
  * Canonical ScheduleItem document shape (single source of truth).
  * Stored at: accounts/{orgId}/schedule_items/{scheduleItemId}
  *
@@ -58,6 +66,7 @@ export interface ScheduleItem {
   updatedAt?: Timestamp;
   startDate: Timestamp;
   endDate: Timestamp;
+  temporalKind?: ScheduleTemporalKind;
   status: ScheduleStatus;
   originType: 'MANUAL' | 'TASK_AUTOMATION';
   originTaskId?: string;

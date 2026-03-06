@@ -7,6 +7,8 @@
  * Constraints: deterministic logic, respect module boundaries
  */
 
+import { addDays, isSameDay, startOfDay } from 'date-fns';
+
 import {
   type CommandResult,
   commandFailureFrom,
@@ -20,6 +22,76 @@ import {
 } from '@/shared/infra/firestore/firestore.facade';
 import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
 
+function isStartOfDay(date: Date): boolean {
+  return (
+    date.getHours() === 0 &&
+    date.getMinutes() === 0 &&
+    date.getSeconds() === 0 &&
+    date.getMilliseconds() === 0
+  );
+}
+
+function resolveTemporalRange(
+  startInput?: Date | null,
+  endInput?: Date | null,
+  now = new Date()
+): {
+  temporalKind: NonNullable<ScheduleItem['temporalKind']>;
+  startDate: Date;
+  endDate: Date;
+} {
+  const hasStart = Boolean(startInput);
+  const hasEnd = Boolean(endInput);
+
+  if (!hasStart && !hasEnd) {
+    return {
+      temporalKind: 'point',
+      startDate: now,
+      endDate: now,
+    };
+  }
+
+  if (hasStart && !hasEnd) {
+    return {
+      temporalKind: 'point',
+      startDate: startInput!,
+      endDate: startInput!,
+    };
+  }
+
+  if (!hasStart && hasEnd) {
+    return {
+      temporalKind: 'point',
+      startDate: endInput!,
+      endDate: endInput!,
+    };
+  }
+
+  const startValue = startInput!;
+  const endValue = endInput!;
+  const [rawStart, rawEnd] = endValue.getTime() < startValue.getTime()
+    ? [endValue, startValue]
+    : [startValue, endValue];
+
+  const sameInstant = rawStart.getTime() === rawEnd.getTime();
+  const allDayCandidate = isSameDay(rawStart, rawEnd) && isStartOfDay(rawStart) && isStartOfDay(rawEnd);
+
+  if (sameInstant || allDayCandidate) {
+    const normalizedStart = startOfDay(rawStart);
+    return {
+      temporalKind: 'allDay',
+      startDate: normalizedStart,
+      endDate: addDays(normalizedStart, 1),
+    };
+  }
+
+  return {
+    temporalKind: 'range',
+    startDate: rawStart,
+    endDate: rawEnd,
+  };
+}
+
 export async function createScheduleItem(
   itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'endDate'> & {
     startDate?: Date | null;
@@ -27,11 +99,12 @@ export async function createScheduleItem(
   }
 ): Promise<CommandResult> {
   try {
-    const now = Timestamp.now();
+    const resolved = resolveTemporalRange(itemData.startDate, itemData.endDate);
     const data: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'> = {
       ...itemData,
-      startDate: itemData.startDate ? Timestamp.fromDate(itemData.startDate) : now,
-      endDate: itemData.endDate ? Timestamp.fromDate(itemData.endDate) : now,
+      temporalKind: resolved.temporalKind,
+      startDate: Timestamp.fromDate(resolved.startDate),
+      endDate: Timestamp.fromDate(resolved.endDate),
     };
     const id = await saveScheduleItem(data);
     return commandSuccess(id, Date.now());
