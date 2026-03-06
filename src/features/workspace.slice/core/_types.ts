@@ -1,4 +1,4 @@
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 
 import type { WorkspaceFile } from '../business.files/_types'
 import type { WorkspaceIssue } from '../business.issues/_types'

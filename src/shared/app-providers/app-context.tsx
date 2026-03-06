@@ -12,7 +12,7 @@
  * without creating a circular dependency.
  *
  * Dependency direction:
- *   Subject Center ?€?€??shared/app-providers/app-context  ?€?€?€ workspace-core
+ *   Subject Center ?Â€?Â€??shared/app-providers/app-context  ?Â€?Â€?Â€ workspace-core
  *
  * NOT a Workspace Container concern ??account selection predates any
  * workspace context and must be accessible to Subject Center slices.

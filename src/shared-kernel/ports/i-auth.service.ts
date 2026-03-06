@@ -1,10 +1,8 @@
 /**
- * i-auth.service.ts — IAuthService Port Interface
- *
- * [D24] Feature slices depend on this interface, NOT on firebase/auth directly.
- * [D25] New auth features must implement this Port in auth.adapter.ts.
- *
- * VS1 identity.slice is the primary consumer.
+ * Module: i-auth.service.ts
+ * Purpose: define SK_PORTS auth interface in shared-kernel
+ * Responsibilities: provide authentication abstractions for feature slices
+ * Constraints: deterministic logic, respect module boundaries
  */
 
 export interface AuthUser {

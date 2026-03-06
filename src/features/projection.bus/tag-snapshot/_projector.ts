@@ -5,7 +5,7 @@
  * Final-consistent snapshot of the global tag dictionary.
  *
  * Per logic-overview.md (VS8 Tag Lifecycle Views):
- *   TAG_SNAPSHOT["projection.tag-snapshot\ntagSlug / label / category\n組�?作用?�快?�\n來�?: TagLifecycleEvent\n消費?�唯讀快�?"]
+ *   TAG_SNAPSHOT["projection.tag-snapshot\ntagSlug / label / category\n蝯?雿?翰?吭n靘?: TagLifecycleEvent\n瘨祥?孵霈敹怠?"]
  *
  * Invariants:
  *   T5 ??TAG_SNAPSHOT is the final-consistent read model; consumers must not write.

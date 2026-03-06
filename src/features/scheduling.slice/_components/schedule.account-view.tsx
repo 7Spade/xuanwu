@@ -5,12 +5,12 @@
  * all write operations (approve/reject/assign).
  *
  * Tabs:
- *   - ?��??��? (Calendar): unified calendar grid + upcoming/present/history tables
- *   - 人�?管�? (Workforce): skill-aware proposal assignment + lifecycle (OrgScheduleGovernance)
+ *   - 排程日曆 (Calendar): unified calendar grid + upcoming/present/history tables
+ *   - 人力管理 (Workforce): skill-aware proposal assignment + lifecycle (OrgScheduleGovernance)
  *
  * Merge rationale:
  *   - DemandBoard (old Tab 2) removed: OrgScheduleGovernance covers the same lifecycle
- *     (PROPOSAL ??assign + approve ??OFFICIAL ??complete) with superior skill-tier matching.
+ *     (PROPOSAL → assign + approve → OFFICIAL → complete) with superior skill-tier matching.
  *   - GovernanceSidebar removed from Calendar tab: having approve/reject in two places
  *     (sidebar + HR tab) fragmented the workflow. Calendar is now a clean read-only view.
  */
@@ -21,8 +21,8 @@ import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users, BookOpen, 
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 
-import type { ScheduleItem } from '@/shared-kernel';
-import type { MemberReference } from "@/shared-kernel";
+import type { ScheduleItem } from '@/features/shared-kernel';
+import type { MemberReference } from "@/features/shared-kernel";
 import { useApp } from "@/shared/app-providers/app-context";
 import { Button } from "@/shared/shadcn-ui/button";
 import {
@@ -69,9 +69,9 @@ function MemberAssignPopover({ item, members, onAssign, onUnassign }: MemberAssi
       </PopoverTrigger>
       <PopoverContent className="w-60 p-0" align="end">
         <Command>
-          <CommandInput placeholder="?��??�員..." />
+          <CommandInput placeholder="搜尋成員..." />
           <CommandList>
-            <CommandEmpty>?�符?��???/CommandEmpty>
+            <CommandEmpty>無符合成員</CommandEmpty>
             <CommandGroup heading="Assign Member">
               {members.map(member => {
                 const isAssigned = item.assigneeIds.includes(member.id);
@@ -153,19 +153,19 @@ export function AccountScheduleSection() {
         <TabsList className="mb-6 w-full justify-start">
           <TabsTrigger value="calendar" className="gap-2">
             <Calendar className="size-4" />
-            ?��??��?
+            排程日曆
           </TabsTrigger>
           <TabsTrigger value="hr-management" className="gap-2">
             <Users className="size-4" />
-            人�?管�?
+            人力管理
           </TabsTrigger>
           <TabsTrigger value="skill-pool" className="gap-2">
             <BookOpen className="size-4" />
-            ?�?�庫
+            技能庫
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Calendar ??full-width grid + upcoming/present/history tables */}
+        {/* Tab 1: Calendar — full-width grid + upcoming/present/history tables */}
         <TabsContent value="calendar" className="flex flex-1 flex-col gap-8">
           <div className="min-h-[60vh] overflow-hidden rounded-xl border bg-card">
             <UnifiedCalendarGrid
@@ -204,7 +204,7 @@ export function AccountScheduleSection() {
           </div>
         </TabsContent>
 
-        {/* Tab 2: 人�?管�? ??unified workforce management
+        {/* Tab 2: 人力管理 — unified workforce management
             Covers: PROPOSAL (skill-aware assign + approve/cancel) + OFFICIAL (mark complete).
             Supersedes the old DemandBoard tab (simple assign) and the GovernanceSidebar
             (approve-only, no assignment) that previously lived in the Calendar tab. */}
@@ -212,7 +212,7 @@ export function AccountScheduleSection() {
           <OrgScheduleGovernance />
         </TabsContent>
 
-        {/* Tab 3: ?�?�庫 ??manage which global skills apply to this organization.
+        {/* Tab 3: 技能庫 — manage which global skills apply to this organization.
             Activated skills appear in ProposalDialog's picker instead of the full
             global library, reducing browsing burden for HR (FR-K5). */}
         <TabsContent value="skill-pool" className="flex-1">

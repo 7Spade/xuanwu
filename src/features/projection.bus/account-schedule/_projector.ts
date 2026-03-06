@@ -9,7 +9,7 @@
  * Per logic-overview.md (PROJ_BUS STD_PROJ):
  *   ACC_SCHED_V["projection.account-schedule"]
  *   EVENT_FUNNEL_INPUT ??ACCOUNT_PROJECTION_SCHEDULE
- *   ORG_SCH -.??ACCOUNT_PROJECTION_SCHEDULE (?�濾?�用帳�?)
+ *   ORG_SCH -.??ACCOUNT_PROJECTION_SCHEDULE (?蕪?舐撣唾?)
  *
  * [S2] SK_VERSION_GUARD: versionGuardAllows enforced before every write.
  * [R8] traceId from the originating EventEnvelope is propagated into the record.

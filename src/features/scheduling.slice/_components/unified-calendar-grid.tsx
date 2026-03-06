@@ -12,8 +12,8 @@ import { Plus, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
-import type { ScheduleItem } from "@/shared-kernel";
-import { type MemberReference } from "@/shared-kernel";
+import type { ScheduleItem } from "@/features/shared-kernel";
+import { type MemberReference } from "@/features/shared-kernel";
 import { findSkill } from "@/shared/constants/skills";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { Badge } from "@/shared/shadcn-ui/badge";
@@ -35,7 +35,7 @@ import {
 } from "./unified-calendar-grid.utils";
 
 
-const DAYS_OF_WEEK = ["??, "一", "�?, "�?, "??, "�?, "??];
+const DAYS_OF_WEEK = ["日", "一", "二", "三", "四", "五", "六"];
 
 interface UnifiedCalendarGridProps {
   items: ScheduleItem[];
@@ -162,7 +162,7 @@ export function UnifiedCalendarGrid({
                                     item.status === 'PROPOSAL' ? 'border-dashed border-primary/50 bg-primary/5' : 'bg-background shadow-sm'
                                 )}
                             >
-                            {/* Section 1: Title ??workspace name prepended in org view */}
+                            {/* Section 1: Title — workspace name prepended in org view */}
                             <div className="rounded-t-md p-2">
                                 <TooltipProvider>
                                     <Tooltip>
@@ -207,7 +207,7 @@ export function UnifiedCalendarGrid({
                                       <div key={req.tagSlug} className="flex items-center gap-1">
                                         <Badge variant="secondary" className="h-4 px-1 text-[8px] font-medium leading-none">
                                           {findSkill(req.tagSlug)?.name ?? req.tagSlug}
-                                          {req.quantity > 1 && ` ?${req.quantity}`}
+                                          {req.quantity > 1 && ` ×${req.quantity}`}
                                         </Badge>
                                         {/* One assign button per skill requirement row */}
                                         {item.status === 'PROPOSAL' && renderItemActions && renderItemActions(item)}

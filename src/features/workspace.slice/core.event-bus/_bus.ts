@@ -1,6 +1,6 @@
-// [?�責] 事件?��?/訂閱引�? (The Bus)
+// [?瑁痊] 鈭辣?澆?/閮撘? (The Bus)
 // Per logic-overview.md:
-//   WORKSPACE_EVENT_BUS -.->|事件契�??�循| SK_EVENT_ENVELOPE
+//   WORKSPACE_EVENT_BUS -.->|鈭辣憟??萄儐| SK_EVENT_ENVELOPE
 //   WORKSPACE_EVENT_BUS --> TRACE_IDENTIFIER (Observability)
 //   WORKSPACE_EVENT_BUS --> DOMAIN_METRICS   (Observability)
 import { recordEventPublished } from "@/features/observability"

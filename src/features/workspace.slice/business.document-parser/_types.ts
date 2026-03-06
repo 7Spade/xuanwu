@@ -1,6 +1,6 @@
 import type { CostItemType } from '@/features/semantic-graph.slice'
 import type { SkillRequirement } from '@/shared-kernel'
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 
 // ParsingIntentSourceType, ParsingIntentReviewStatus, and ParsingIntentStatus are owned by
 // business.parsing-intent/_contract.ts [D20] ??the single source of truth for this sub-domain contract.

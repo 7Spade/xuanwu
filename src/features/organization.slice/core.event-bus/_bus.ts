@@ -7,7 +7,7 @@
  * Per logic-overview.md:
  *   ORGANIZATION_ENTITY ??ORGANIZATION_EVENT_BUS
  *   ORGANIZATION_EVENT_BUS ??all downstream listeners
- *   ORGANIZATION_EVENT_BUS -.??shared-kernel.event-envelope（�?約遵循�?
+ *   ORGANIZATION_EVENT_BUS -.??shared-kernel.event-envelope嚗?蝝敺迎?
  */
 
 import type { ImplementsEventEnvelopeContract } from '@/shared-kernel';

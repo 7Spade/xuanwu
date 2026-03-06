@@ -1,4 +1,4 @@
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 
 export interface DailyLogComment {
   id: string;

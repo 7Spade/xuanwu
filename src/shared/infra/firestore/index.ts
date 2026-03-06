@@ -6,4 +6,4 @@
  * [S2]  All Projection writes must pass through applyVersionGuard before calling IFirestoreRepo.
  */
 
-export type { IFirestoreRepo, FirestoreDoc, WriteOptions } from '@/shared/ports/i-firestore.repo';
+export type { IFirestoreRepo, FirestoreDoc, WriteOptions } from '@/shared-kernel/ports/i-firestore.repo';

@@ -7,8 +7,8 @@
  * onSnapshot on the org account document provides real-time updates.
  *
  * Per logic-overview.md:
- *   ORGANIZATION_PARTNER["organization-governance.partner（�?作夥�?· 外部組�??��?"]
- *   ORGANIZATION_PARTNER -.->|外部帳�??��?標籤（唯讀引用）| SKILL_TAG_POOL
+ *   ORGANIZATION_PARTNER["organization-governance.partner嚗?雿丰隡?繚 憭蝯???"]
+ *   ORGANIZATION_PARTNER -.->|憭撣唾???璅惜嚗霈撘嚗 SKILL_TAG_POOL
  *
  * Boundary constraint:
  *   These queries read ONLY from this org's account document and subcollections.

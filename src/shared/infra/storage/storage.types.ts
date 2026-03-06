@@ -2,7 +2,7 @@
  * storage.types.ts — Firebase Storage Internal Types
  *
  * [D24] These types must NOT be exported outside src/shared/infra/storage/.
- *       Feature slices use IFileStore / UploadOptions from '@/shared/ports'.
+ *       Feature slices use IFileStore / UploadOptions from '@/shared-kernel/ports'.
  */
 
 import type {

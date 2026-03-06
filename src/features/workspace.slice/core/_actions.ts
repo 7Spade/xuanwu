@@ -168,7 +168,7 @@ export async function deleteWorkspace(workspaceId: string): Promise<CommandResul
 
 /**
  * Creates a new sub-location inside a workspace.
- * FR-L1: HR or Workspace OWNER can define sub-locations (zones within 廠�?).
+ * FR-L1: HR or Workspace OWNER can define sub-locations (zones within 撱?).
  */
 export async function createWorkspaceLocation(
   workspaceId: string,

@@ -1,4 +1,4 @@
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 
 export type AuditLogType = 'create' | 'update' | 'delete' | 'security';
 

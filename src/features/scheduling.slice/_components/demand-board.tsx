@@ -40,7 +40,7 @@ import type { ScheduleItem } from '@/shared-kernel';
 import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
 import { SKILLS } from '@/shared/constants/skills';
-import type { Timestamp } from '@/shared/ports';
+import type { Timestamp } from '@/shared-kernel/ports';
 import { Badge } from '@/shared/shadcn-ui/badge';
 import { Button } from '@/shared/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';

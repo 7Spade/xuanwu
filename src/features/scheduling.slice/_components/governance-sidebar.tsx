@@ -27,7 +27,7 @@ export function GovernanceSidebar({ proposals, onApprove, onReject }: Governance
     <Card className="flex h-full flex-col rounded-none border-none shadow-none">
       <CardHeader className="border-b">
         <CardTitle className="text-sm font-bold uppercase tracking-widest">
-          待審?��? ({proposals.length})
+          待審?æ? ({proposals.length})
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-hidden p-0">
@@ -65,7 +65,7 @@ export function GovernanceSidebar({ proposals, onApprove, onReject }: Governance
             ))}
             {proposals.length === 0 && (
               <div className="py-12 text-center text-xs italic text-muted-foreground">
-                ?��??��?審�?案�?
+                ?®å??¡å?審æ?案ã€?
               </div>
             )}
           </div>

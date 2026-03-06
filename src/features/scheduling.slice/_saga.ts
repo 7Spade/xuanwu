@@ -1,7 +1,7 @@
 /**
  * scheduling-saga ??_saga.ts
  *
- * [VS6] è·¨ç?ç¹”æ??­å?ä½?Saga ?”èª¿??
+ * [VS6] é å‡½?èœîƒ??å‰–?é›¿?Saga ?î…çŸ½??
  *
  * Per logic-overview.md VS6:
  *   WorkspaceScheduleProposed ??OrgEligibilityCheck ??ScheduleAssigned

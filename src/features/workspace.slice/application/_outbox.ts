@@ -8,7 +8,7 @@
  * Domain Events are produced only by Aggregates (#4a); Transaction Runner only
  * collects already-produced events and delivers them to the Outbox (#4b).
  *
- * Flow: WORKSPACE_TRANSACTION_RUNNER ?�|彙整事件後寫?�| WORKSPACE_OUTBOX ??WORKSPACE_EVENT_BUS
+ * Flow: WORKSPACE_TRANSACTION_RUNNER ?’|彙整事件後寫?¥| WORKSPACE_OUTBOX ??WORKSPACE_EVENT_BUS
  *
  * Firestore Persistence Layer [S1][E5]:
  * Events flagged in WS_OUTBOX_PERSISTED_EVENTS are ALSO written to the

@@ -13,7 +13,7 @@ import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { PageHeader } from "@/shared/ui/page-header"
 
 /**
- * TeamDetailView - ?�責：管?�特定�??�內?��???(Team Member 清單)
+ * TeamDetailView - ?瑁痊嚗恣?摰??????(Team Member 皜)
  */
 export function TeamDetailView() {
   const { id } = useParams()

@@ -4,7 +4,7 @@
  * Skill Tag Pool: organization-scoped view of the global Tag Authority Center.
  *
  * Per logic-overview.md (VS4):
- *   SKILL_TAG_POOL[("?�能標籤庫\nskill-xp.slice\n= Tag Authority ?��?織�??��?快照\n消費 TagLifecycleEvent 被�??�新")]
+ *   SKILL_TAG_POOL[("?瑁璅惜摨俞nskill-xp.slice\n= Tag Authority ??蝜??典?敹怎\n瘨祥 TagLifecycleEvent 鋡怠??湔")]
  *
  * v5 Role Change:
  *   - CENTRALIZED_TAG_AGGREGATE (centralized-tag) is now the global semantic dictionary

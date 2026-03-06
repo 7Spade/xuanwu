@@ -14,7 +14,7 @@
  * firebase/storage types directly (D24).
  */
 
-import type { IFileStore, UploadOptions } from '@/shared/ports/i-file-store';
+import type { IFileStore, UploadOptions } from '@/shared-kernel/ports/i-file-store';
 
 import { getFileDownloadURL } from './storage.read.adapter';
 import { deleteFile, uploadFile } from './storage.write.adapter';

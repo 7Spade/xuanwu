@@ -1,11 +1,11 @@
-// [?�責] Shared schedule proposal form logic for both canonical and intercepting routes.
+// [職責] Shared schedule proposal form logic for both canonical and intercepting routes.
 "use client"
 
 import { parseISO } from "date-fns"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMemo } from "react"
 
-import type { SkillRequirement } from "@/shared-kernel"
+import type { SkillRequirement } from "@/features/shared-kernel"
 import { useWorkspace } from "@/features/workspace.slice"
 import type { Location } from "@/features/workspace.slice"
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
@@ -66,13 +66,13 @@ export function ScheduleProposalContent({ fullPage = false }: ScheduleProposalCo
       originType: "MANUAL",
       assigneeIds: [],
       ...(effectiveTask?.id ? { originTaskId: effectiveTask.id } : {}),
-      // Omit optional fields rather than passing undefined ??Firestore rejects undefined values.
+      // Omit optional fields rather than passing undefined — Firestore rejects undefined values.
       ...(data.description?.trim() ? { description: data.description.trim() } : {}),
       ...(data.requiredSkills.length > 0 ? { requiredSkills: data.requiredSkills } : {}),
     })
     toast({
-      title: "?��??��?已送出",
-      description: "?��??��?已送至組�?審核??,
+      title: "排程提案已送出",
+      description: "您的申請已送至組織審核。",
     })
     router.back()
   }

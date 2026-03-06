@@ -1,4 +1,4 @@
-// [?�責] 事件?�稱??Payload ??TypeScript 類�?定義 (Contract)
+// [?·責] 事件?稱??Payload ??TypeScript 類å?定義 (Contract)
 import type { CostItemType } from "@/features/semantic-graph.slice"
 import type { SkillRequirement, WorkspaceScheduleProposedPayload } from "@/shared-kernel"
 

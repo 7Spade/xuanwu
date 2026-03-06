@@ -11,7 +11,7 @@ import type { OrgEligibleMemberView } from '@/features/projection.bus';
 import { tierSatisfies } from '@/shared-kernel';
 import type { ScheduleItem, SkillRequirement } from '@/shared-kernel';
 import { findSkill } from '@/shared/constants/skills';
-import type { Timestamp } from '@/shared/ports';
+import type { Timestamp } from '@/shared-kernel/ports';
 import { Avatar, AvatarFallback } from '@/shared/shadcn-ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/shadcn-ui/tooltip';
 

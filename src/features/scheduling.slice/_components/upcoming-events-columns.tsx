@@ -65,7 +65,7 @@ export const upcomingEventsColumns: ColumnDef<UpcomingEventItem>[] = [
     cell: ({ row }) => {
       const requirements = row.original.requiredSkills
       if (!requirements || requirements.length === 0) {
-        return <span className="text-[10px] italic text-muted-foreground/50">??/span>
+        return <span className="text-[10px] italic text-muted-foreground/50">None</span>
       }
       return (
         <div className="flex flex-wrap gap-1">
@@ -73,7 +73,7 @@ export const upcomingEventsColumns: ColumnDef<UpcomingEventItem>[] = [
             const skillName = SKILLS.find(s => s.slug === req.tagSlug)?.name ?? req.tagSlug
             return (
               <Badge key={req.tagSlug} variant="outline" className="text-[9px]">
-                {skillName} · {req.minimumTier} · ?{req.quantity}
+                {skillName} · {req.minimumTier} · x{req.quantity}
               </Badge>
             )
           })}

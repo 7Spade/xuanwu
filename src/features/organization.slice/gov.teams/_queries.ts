@@ -7,8 +7,8 @@
  * onSnapshot on the org account document provides real-time updates.
  *
  * Per logic-overview.md:
- *   ORGANIZATION_TEAM["organization-governance.team（�??�管??· ?�部組�??��?"]
- *   ORGANIZATION_TEAM -.->|組內帳�?標籤?��?視�?（唯讀）| SKILL_TAG_POOL
+ *   ORGANIZATION_TEAM["organization-governance.team嚗??恣??繚 ?折蝯???"]
+ *   ORGANIZATION_TEAM -.->|蝯撣唾?璅惜??閬?嚗霈嚗 SKILL_TAG_POOL
  *
  * Boundary constraint:
  *   These queries read ONLY from this org's account document.

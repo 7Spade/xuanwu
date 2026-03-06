@@ -17,7 +17,7 @@ import {
   updateParsingImportStatus as updateParsingImportStatusFacade,
   updateParsingIntentStatus as updateParsingIntentStatusFacade,
 } from '@/shared/infra/firestore/firestore.facade'
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 
 import type {
   ParsedLineItem,
@@ -110,7 +110,7 @@ export type ParsingImportFinishInput = {
  *
  * **Firestore document ID constraint**: the returned string must never contain
  * forward-slashes (`/`), must not be `.` or `..`, and must not be surrounded
- * by double-underscores (`__?¦__`). The `import:<uuid>:<number>` format
+ * by double-underscores (`__?ï¿½__`). The `import:<uuid>:<number>` format
  * satisfies all of these requirements as long as `intentId` is a valid UUID or
  * Firestore auto-ID (no `/`).  Callers MUST NOT pass a raw path segment as
  * `intentId`.

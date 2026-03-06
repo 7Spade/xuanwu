@@ -9,7 +9,7 @@
  */
 
 import type { AuthoritySnapshot } from '@/shared-kernel';
-import type { Timestamp } from '@/shared/ports';
+import type { Timestamp } from '@/shared-kernel/ports';
 
 export interface WorkspaceScopeGuardView {
   readonly implementsAuthoritySnapshot: true;

@@ -576,10 +576,12 @@ src/shared-infra/firebase/functions/tsconfig.dev.json
 src/shared-infra/firebase/functions/tsconfig.json
 src/shared-infra/firebase/storage/storage.rules
 src/shared-kernel/data-contracts/account/account-contract.ts
+src/shared-kernel/data-contracts/account/skill-grant-contract.ts
 src/shared-kernel/data-contracts/authority-snapshot/index.ts
 src/shared-kernel/data-contracts/command-result-contract/index.ts
 src/shared-kernel/data-contracts/event-envelope/index.ts
 src/shared-kernel/data-contracts/scheduling/schedule-contract.ts
+src/shared-kernel/data-contracts/scheduling/workspace-schedule-proposed.contract.ts
 src/shared-kernel/data-contracts/semantic/semantic-contracts.ts
 src/shared-kernel/data-contracts/skill-tier/index.ts
 src/shared-kernel/data-contracts/tag-authority/index.ts
@@ -590,7 +592,11 @@ src/shared-kernel/infra-contracts/resilience-contract/index.ts
 src/shared-kernel/infra-contracts/staleness-contract/index.ts
 src/shared-kernel/infra-contracts/token-refresh-contract/index.ts
 src/shared-kernel/infra-contracts/version-guard/index.ts
-src/shared-kernel/ports/infrastructure-ports/index.ts
+src/shared-kernel/ports/i-auth.service.ts
+src/shared-kernel/ports/i-file-store.ts
+src/shared-kernel/ports/i-firestore.repo.ts
+src/shared-kernel/ports/i-messaging.ts
+src/shared-kernel/ports/index.ts
 src/shared/app-providers/_queries.ts
 src/shared/app-providers/app-context.tsx
 src/shared/app-providers/auth-provider.tsx
@@ -649,11 +655,6 @@ src/shared/infra/storage/storage.facade.ts
 src/shared/infra/storage/storage.read.adapter.ts
 src/shared/infra/storage/storage.types.ts
 src/shared/infra/storage/storage.write.adapter.ts
-src/shared/ports/i-auth.service.ts
-src/shared/ports/i-file-store.ts
-src/shared/ports/i-firestore.repo.ts
-src/shared/ports/i-messaging.ts
-src/shared/ports/index.ts
 src/shared/ui/language-switcher.tsx
 src/shared/ui/page-header.tsx
 src/shell/app-shell.tsx
@@ -2336,7 +2337,7 @@ export function useDailyUpload()
 
 ## File: src/features/workspace.slice/business.daily/_types.ts
 ```typescript
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 export interface DailyLogComment {
   id: string;
   author: {
@@ -2442,7 +2443,7 @@ export async function uploadRawFile(
 
 ## File: src/features/workspace.slice/business.files/_types.ts
 ```typescript
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 export interface WorkspaceFileVersion {
   versionId: string;
   versionNumber: number;
@@ -2469,7 +2470,7 @@ export interface WorkspaceFile {
 
 ## File: src/features/workspace.slice/business.issues/_types.ts
 ```typescript
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 export interface IssueComment {
   id: string;
   author: string;
@@ -3018,7 +3019,7 @@ onOpenChange={(open) => { if (!open) clearSelection(); }}
 
 ## File: src/features/workspace.slice/gov.audit/_types.ts
 ```typescript
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 export type AuditLogType = 'create' | 'update' | 'delete' | 'security';
 export interface AuditLog {
   id: string;
@@ -3056,7 +3057,7 @@ export interface AuditLog {
 
 ## File: src/features/workspace.slice/gov.role/_types.ts
 ```typescript
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 export type WorkspaceRole = 'Manager' | 'Contributor' | 'Viewer';
 export interface WorkspaceGrant {
   grantId: string;
@@ -3587,6 +3588,170 @@ service firebase.storage {
 }
 ```
 
+## File: src/shared-kernel/data-contracts/account/skill-grant-contract.ts
+```typescript
+import type { Timestamp } from '@/shared-kernel/ports/i-firestore.repo';
+import type { SkillTier } from '../skill-tier';
+import type { TagSlugRef } from '../tag-authority';
+export interface SkillTag {
+  slug: string;
+  name: string;
+  category?: string;
+  description?: string;
+}
+export interface SkillGrant {
+  tagSlug: TagSlugRef;
+  tagName?: string;
+  tagId?: string;
+  tier: SkillTier;
+  xp: number;
+  earnedInOrgId?: string;
+  grantedAt?: Timestamp;
+}
+```
+
+## File: src/shared-kernel/data-contracts/scheduling/workspace-schedule-proposed.contract.ts
+```typescript
+import type { SkillRequirement } from '../skill-tier';
+export interface WorkspaceScheduleProposedPayload {
+  readonly scheduleItemId: string;
+  readonly workspaceId: string;
+  readonly orgId: string;
+  readonly title: string;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly proposedBy: string;
+  readonly intentId?: string;
+  readonly skillRequirements?: SkillRequirement[];
+  readonly locationId?: string;
+  readonly traceId?: string;
+}
+export interface ImplementsScheduleProposedPayloadContract {
+  readonly implementsScheduleProposedPayload: true;
+}
+```
+
+## File: src/shared-kernel/ports/i-auth.service.ts
+```typescript
+export interface AuthUser {
+  readonly uid: string;
+  readonly email: string | null;
+  readonly displayName: string | null;
+  readonly photoURL: string | null;
+}
+export interface IAuthService {
+  signInWithEmailAndPassword(email: string, password: string): Promise<AuthUser>;
+  createUserWithEmailAndPassword(email: string, password: string): Promise<AuthUser>;
+  sendPasswordResetEmail(email: string): Promise<void>;
+  signInAnonymously(): Promise<AuthUser>;
+  updateProfile(user: AuthUser, profile: { displayName?: string; photoURL?: string }): Promise<void>;
+  signOut(): Promise<void>;
+  onAuthStateChanged(callback: (user: AuthUser | null) => void): () => void;
+  getCurrentUser(): AuthUser | null;
+}
+⋮----
+signInWithEmailAndPassword(email: string, password: string): Promise<AuthUser>;
+createUserWithEmailAndPassword(email: string, password: string): Promise<AuthUser>;
+sendPasswordResetEmail(email: string): Promise<void>;
+signInAnonymously(): Promise<AuthUser>;
+updateProfile(user: AuthUser, profile:
+signOut(): Promise<void>;
+onAuthStateChanged(callback: (user: AuthUser | null)
+getCurrentUser(): AuthUser | null;
+```
+
+## File: src/shared-kernel/ports/i-file-store.ts
+```typescript
+export interface UploadOptions {
+  readonly contentType?: string;
+}
+export interface IFileStore {
+  upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>;
+  getDownloadURL(path: string): Promise<string>;
+  deleteFile(path: string): Promise<void>;
+}
+⋮----
+upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>;
+getDownloadURL(path: string): Promise<string>;
+deleteFile(path: string): Promise<void>;
+```
+
+## File: src/shared-kernel/ports/i-firestore.repo.ts
+```typescript
+export interface Timestamp {
+  readonly seconds: number;
+  readonly nanoseconds: number;
+  toDate(): Date;
+  toMillis(): number;
+}
+⋮----
+toDate(): Date;
+toMillis(): number;
+⋮----
+export interface FirestoreDoc<T = Record<string, unknown>> {
+  readonly id: string;
+  readonly data: T;
+}
+export interface WriteOptions {
+  readonly aggregateVersion?: number;
+  readonly merge?: boolean;
+}
+export interface IFirestoreRepo {
+  getDoc<T>(collectionPath: string, docId: string): Promise<FirestoreDoc<T> | null>;
+  getDocs<T>(collectionPath: string): Promise<FirestoreDoc<T>[]>;
+  setDoc<T>(collectionPath: string, docId: string, data: T, opts?: WriteOptions): Promise<void>;
+  deleteDoc(collectionPath: string, docId: string): Promise<void>;
+  onSnapshot<T>(
+    collectionPath: string,
+    callback: (docs: FirestoreDoc<T>[]) => void,
+  ): () => void;
+}
+⋮----
+getDoc<T>(collectionPath: string, docId: string): Promise<FirestoreDoc<T> | null>;
+getDocs<T>(collectionPath: string): Promise<FirestoreDoc<T>[]>;
+setDoc<T>(collectionPath: string, docId: string, data: T, opts?: WriteOptions): Promise<void>;
+deleteDoc(collectionPath: string, docId: string): Promise<void>;
+onSnapshot<T>(
+    collectionPath: string,
+    callback: (docs: FirestoreDoc<T>[]) => void,
+): ()
+```
+
+## File: src/shared-kernel/ports/i-messaging.ts
+```typescript
+export interface PushNotificationPayload {
+  readonly title: string;
+  readonly body: string;
+  readonly data?: Record<string, string>;
+}
+export interface IMessaging {
+  send(
+    fcmToken: string,
+    payload: PushNotificationPayload,
+    traceId: string,
+  ): Promise<void>;
+  getToken(): Promise<string | null>;
+  onForegroundMessage(
+    callback: (payload: PushNotificationPayload) => void,
+  ): () => void;
+}
+⋮----
+send(
+    fcmToken: string,
+    payload: PushNotificationPayload,
+    traceId: string,
+  ): Promise<void>;
+getToken(): Promise<string | null>;
+onForegroundMessage(
+    callback: (payload: PushNotificationPayload) => void,
+): ()
+```
+
+## File: src/shared-kernel/ports/index.ts
+```typescript
+
+```
+
 ## File: src/shared/app-providers/firebase-provider.tsx
 ```typescript
 import { type FirebaseApp } from 'firebase/app';
@@ -3775,7 +3940,7 @@ import { app } from '../app.client';
 ## File: src/shared/infra/auth/auth.types.ts
 ```typescript
 import type { User as FirebaseUser, UserCredential } from 'firebase/auth';
-import type { AuthUser } from '@/shared/ports/i-auth.service';
+import type { AuthUser } from '@/shared-kernel/ports/i-auth.service';
 ⋮----
 export function mapFirebaseUser(user: FirebaseUser): AuthUser
 ```
@@ -4179,7 +4344,7 @@ workspaceDocument(workspaceId: string, fileId: string, versionId: string, fileNa
 
 ## File: src/shared/infra/storage/storage.adapter.ts
 ```typescript
-import type { IFileStore, UploadOptions } from '@/shared/ports/i-file-store';
+import type { IFileStore, UploadOptions } from '@/shared-kernel/ports/i-file-store';
 import { getFileDownloadURL } from './storage.read.adapter';
 import { deleteFile, uploadFile } from './storage.write.adapter';
 export class StorageAdapter implements IFileStore
@@ -4258,127 +4423,6 @@ export const uploadFile = (
   metadata?: UploadMetadata
 ): Promise<UploadResult> =>
 export const deleteFile = (path: string): Promise<void> =>
-```
-
-## File: src/shared/ports/i-auth.service.ts
-```typescript
-export interface AuthUser {
-  readonly uid: string;
-  readonly email: string | null;
-  readonly displayName: string | null;
-  readonly photoURL: string | null;
-}
-export interface IAuthService {
-  signInWithEmailAndPassword(email: string, password: string): Promise<AuthUser>;
-  createUserWithEmailAndPassword(email: string, password: string): Promise<AuthUser>;
-  sendPasswordResetEmail(email: string): Promise<void>;
-  signInAnonymously(): Promise<AuthUser>;
-  updateProfile(user: AuthUser, profile: { displayName?: string; photoURL?: string }): Promise<void>;
-  signOut(): Promise<void>;
-  onAuthStateChanged(callback: (user: AuthUser | null) => void): () => void;
-  getCurrentUser(): AuthUser | null;
-}
-⋮----
-signInWithEmailAndPassword(email: string, password: string): Promise<AuthUser>;
-createUserWithEmailAndPassword(email: string, password: string): Promise<AuthUser>;
-sendPasswordResetEmail(email: string): Promise<void>;
-signInAnonymously(): Promise<AuthUser>;
-updateProfile(user: AuthUser, profile:
-signOut(): Promise<void>;
-onAuthStateChanged(callback: (user: AuthUser | null)
-getCurrentUser(): AuthUser | null;
-```
-
-## File: src/shared/ports/i-file-store.ts
-```typescript
-export interface UploadOptions {
-  readonly contentType?: string;
-}
-export interface IFileStore {
-  upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>;
-  getDownloadURL(path: string): Promise<string>;
-  deleteFile(path: string): Promise<void>;
-}
-⋮----
-upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>;
-getDownloadURL(path: string): Promise<string>;
-deleteFile(path: string): Promise<void>;
-```
-
-## File: src/shared/ports/i-firestore.repo.ts
-```typescript
-export interface Timestamp {
-  readonly seconds: number;
-  readonly nanoseconds: number;
-  toDate(): Date;
-  toMillis(): number;
-}
-⋮----
-toDate(): Date;
-toMillis(): number;
-⋮----
-export interface FirestoreDoc<T = Record<string, unknown>> {
-  readonly id: string;
-  readonly data: T;
-}
-export interface WriteOptions {
-  readonly aggregateVersion?: number;
-  readonly merge?: boolean;
-}
-export interface IFirestoreRepo {
-  getDoc<T>(collectionPath: string, docId: string): Promise<FirestoreDoc<T> | null>;
-  getDocs<T>(collectionPath: string): Promise<FirestoreDoc<T>[]>;
-  setDoc<T>(collectionPath: string, docId: string, data: T, opts?: WriteOptions): Promise<void>;
-  deleteDoc(collectionPath: string, docId: string): Promise<void>;
-  onSnapshot<T>(
-    collectionPath: string,
-    callback: (docs: FirestoreDoc<T>[]) => void
-  ): () => void;
-}
-⋮----
-getDoc<T>(collectionPath: string, docId: string): Promise<FirestoreDoc<T> | null>;
-getDocs<T>(collectionPath: string): Promise<FirestoreDoc<T>[]>;
-setDoc<T>(collectionPath: string, docId: string, data: T, opts?: WriteOptions): Promise<void>;
-deleteDoc(collectionPath: string, docId: string): Promise<void>;
-onSnapshot<T>(
-    collectionPath: string,
-    callback: (docs: FirestoreDoc<T>[]) => void
-): ()
-```
-
-## File: src/shared/ports/i-messaging.ts
-```typescript
-export interface PushNotificationPayload {
-  readonly title: string;
-  readonly body: string;
-  readonly data?: Record<string, string>;
-}
-export interface IMessaging {
-  send(
-    fcmToken: string,
-    payload: PushNotificationPayload,
-    traceId: string
-  ): Promise<void>;
-  getToken(): Promise<string | null>;
-  onForegroundMessage(
-    callback: (payload: PushNotificationPayload) => void
-  ): () => void;
-}
-⋮----
-send(
-    fcmToken: string,
-    payload: PushNotificationPayload,
-    traceId: string
-  ): Promise<void>;
-getToken(): Promise<string | null>;
-onForegroundMessage(
-    callback: (payload: PushNotificationPayload) => void
-): ()
-```
-
-## File: src/shared/ports/index.ts
-```typescript
-
 ```
 
 ## File: src/shared/ui/language-switcher.tsx
@@ -5973,7 +6017,7 @@ export async function queryWorkspaceAccess(
 ## File: src/features/projection.bus/workspace-scope-guard/_read-model.ts
 ```typescript
 import type { AuthoritySnapshot } from '@/shared-kernel';
-import type { Timestamp } from '@/shared/ports';
+import type { Timestamp } from '@/shared-kernel/ports';
 export interface WorkspaceScopeGuardView {
   readonly implementsAuthoritySnapshot: true;
   workspaceId: string;
@@ -6016,17 +6060,6 @@ export interface WriteOp {
 export type ScheduleApprovalResult =
   | { outcome: 'confirmed'; scheduleItemId: string; writeOp: WriteOp }
   | { outcome: 'rejected'; scheduleItemId: string; reason: string; writeOp: WriteOp };
-```
-
-## File: src/features/scheduling.slice/_components/decision-history-columns.tsx
-```typescript
-import { type ColumnDef } from "@tanstack/react-table"
-import { format } from "date-fns"
-import { CheckCircle, XCircle, ArrowUpDown } from "lucide-react"
-import type { ScheduleItem } from '@/shared-kernel'
-import { Badge } from "@/shared/shadcn-ui/badge"
-import { Button } from "@/shared/shadcn-ui/button"
-export type DecisionHistoryItem = Pick<ScheduleItem, 'id' | 'title' | 'workspaceName' | 'status' | 'updatedAt'>
 ```
 
 ## File: src/features/scheduling.slice/_components/governance-sidebar.tsx
@@ -6477,6 +6510,7 @@ interface SkillRow {
   xpNeeded: number;
 }
 function buildRows(entries: AccountSkillEntry[]): SkillRow[]
+export function PersonalSkillPanel()
 ```
 
 ## File: src/features/skill-xp.slice/_projector.ts
@@ -8069,7 +8103,7 @@ const importItems = () =>
 
 ## File: src/features/workspace.slice/core/_types.ts
 ```typescript
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 import type { WorkspaceFile } from '../business.files/_types'
 import type { WorkspaceIssue } from '../business.issues/_types'
 import type { WorkspaceTask } from '../business.tasks/_types'
@@ -8571,11 +8605,6 @@ export function versionGuardAllows(input: VersionGuardInput): boolean
 export interface ImplementsVersionGuard {
   readonly implementsVersionGuard: true;
 }
-```
-
-## File: src/shared-kernel/ports/infrastructure-ports/index.ts
-```typescript
-
 ```
 
 ## File: src/shared/app-providers/app-context.tsx
@@ -9152,6 +9181,35 @@ export function subscribeToWalletTransactions(
 ): Unsubscribe
 ```
 
+## File: src/features/global-search.slice/_components/global-search-dialog.tsx
+```typescript
+import { Globe, Layers, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { type Account, type MemberReference } from "@/shared-kernel";
+import { type Workspace } from "@/features/workspace.slice";
+import { ROUTES } from "@/shared/constants/routes";
+import { Badge } from "@/shared/shadcn-ui/badge";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/shared/shadcn-ui/command";
+export interface GlobalSearchDialogProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  organizations: Account[];
+  workspaces: Workspace[];
+  members: MemberReference[];
+  activeOrganizationId: string | null;
+  onSwitchOrganization: (organization: Account) => void;
+}
+⋮----
+const handleSelect = (callback: () => void) =>
+```
+
 ## File: src/features/identity.slice/_claims-handler.ts
 ```typescript
 import { logDomainError } from '@/features/observability';
@@ -9376,25 +9434,6 @@ export async function dismissMember(
   organizationId: string,
   member: MemberReference
 ): Promise<CommandResult>
-```
-
-## File: src/features/organization.slice/gov.members/_components/members-view.tsx
-```typescript
-import { UserPlus, Trash2, Mail, AlertCircle, Sparkles } from "lucide-react"
-import { useState, useEffect, useMemo } from "react"
-import { useI18n } from "@/config/i18n/i18n-provider"
-import { getAllOrgMembersView } from "@/features/projection.bus"
-import type { OrgEligibleMemberView } from "@/features/projection.bus"
-import { type MemberReference } from "@/shared-kernel"
-import { useApp } from "@/shared/app-providers/app-context"
-import { Badge } from "@/shared/shadcn-ui/badge"
-import { Button } from "@/shared/shadcn-ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/shadcn-ui/card"
-import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
-import { PageHeader } from "@/shared/ui/page-header"
-import { useMemberManagement } from '../_hooks/use-member-management'
-⋮----
-title=
 ```
 
 ## File: src/features/organization.slice/gov.members/_hooks/use-member-management.ts
@@ -9859,6 +9898,17 @@ export async function updateScheduleItemDateRange(
 ): Promise<CommandResult>
 ```
 
+## File: src/features/scheduling.slice/_components/decision-history-columns.tsx
+```typescript
+import { type ColumnDef } from "@tanstack/react-table"
+import { format } from "date-fns"
+import { CheckCircle, XCircle, ArrowUpDown } from "lucide-react"
+import type { ScheduleItem } from '@/shared-kernel'
+import { Badge } from "@/shared/shadcn-ui/badge"
+import { Button } from "@/shared/shadcn-ui/button"
+export type DecisionHistoryItem = Pick<ScheduleItem, 'id' | 'title' | 'workspaceName' | 'status' | 'updatedAt'>
+```
+
 ## File: src/features/scheduling.slice/_components/org-schedule-governance.confirmed-row.tsx
 ```typescript
 import { Flag } from 'lucide-react';
@@ -9914,7 +9964,7 @@ import {
 import { parseISO } from "date-fns"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMemo } from "react"
-import type { SkillRequirement } from "@/shared-kernel"
+import type { SkillRequirement } from "@/features/shared-kernel"
 import { useWorkspace } from "@/features/workspace.slice"
 import type { Location } from "@/features/workspace.slice"
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
@@ -9932,6 +9982,48 @@ const handleSubmit = async (data: {
     location: Location
     requiredSkills: SkillRequirement[]
 }) =>
+```
+
+## File: src/features/scheduling.slice/_components/schedule.account-view.tsx
+```typescript
+import { addMonths, subMonths } from "date-fns";
+import { AlertCircle, UserPlus, Calendar, ListChecks, History, Users, BookOpen, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
+import type { ScheduleItem } from '@/features/shared-kernel';
+import type { MemberReference } from "@/features/shared-kernel";
+import { useApp } from "@/shared/app-providers/app-context";
+import { Button } from "@/shared/shadcn-ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/shared/shadcn-ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/shadcn-ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
+import { useGlobalSchedule } from "../_hooks/use-global-schedule";
+import { useScheduleActions } from "../_hooks/use-schedule-commands";
+import { decisionHistoryColumns } from "./decision-history-columns";
+import { OrgScheduleGovernance } from "./org-schedule-governance";
+import { OrgSkillPoolManager } from "./org-skill-pool-manager";
+import { ScheduleDataTable } from "./schedule-data-table";
+import { UnifiedCalendarGrid } from "./unified-calendar-grid";
+import { upcomingEventsColumns } from "./upcoming-events-columns";
+interface MemberAssignPopoverProps {
+  item: ScheduleItem;
+  members: MemberReference[];
+  onAssign: (item: ScheduleItem, memberId: string) => void;
+  onUnassign: (item: ScheduleItem, memberId: string) => void;
+}
+⋮----
+onUnassign(item, member.id);
+⋮----
+const onItemClick = (item: ScheduleItem) =>
+const handleMonthChange = (direction: 'prev' | 'next') =>
 ```
 
 ## File: src/features/scheduling.slice/_components/upcoming-events-columns.tsx
@@ -10577,7 +10669,7 @@ className=
 ```typescript
 import { useEffect, useState } from "react";
 import type { Account } from "@/shared-kernel";
-import type { Timestamp } from "@/shared/ports";
+import type { Timestamp } from "@/shared-kernel/ports";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { Card } from "@/shared/shadcn-ui/card";
 import { type DailyLog } from "../_types";
@@ -10603,7 +10695,7 @@ import { CornerUpLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Account } from "@/shared-kernel";
 import { useAuth } from "@/shared/app-providers/auth-provider";
-import type { Timestamp } from "@/shared/ports";
+import type { Timestamp } from "@/shared-kernel/ports";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/shadcn-ui/dialog";
@@ -10900,7 +10992,7 @@ className=
 ## File: src/features/workspace.slice/business.tasks/_types.ts
 ```typescript
 import type { Location, SkillRequirement } from '@/shared-kernel'
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 ⋮----
 export interface WorkspaceTask {
   id: string;
@@ -11393,8 +11485,8 @@ export async function revokeWorkspaceRole(input: RevokeWorkspaceRoleInput): Prom
 
 ## File: src/shared-kernel/data-contracts/account/account-contract.ts
 ```typescript
-import type { Timestamp } from '@/shared/ports';
-import type { SkillGrant } from '@/shared-kernel/data-contracts/skill-tier';
+import type { Timestamp } from '@/shared-kernel/ports/i-firestore.repo';
+import type { SkillGrant } from './skill-grant-contract';
 export type AccountType = 'user' | 'organization';
 export type OrganizationRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
 export type Presence = 'active' | 'away' | 'offline';
@@ -11471,7 +11563,7 @@ export interface Account {
 
 ## File: src/shared-kernel/data-contracts/scheduling/schedule-contract.ts
 ```typescript
-import type { Timestamp } from '@/shared/ports';
+import type { Timestamp } from '@/shared-kernel/ports/i-firestore.repo';
 import type { SkillRequirement } from '@/shared-kernel/data-contracts/skill-tier';
 export interface Location {
   building?: string;
@@ -11553,54 +11645,36 @@ const logout = async () =>
 export const useAuth = () =>
 ```
 
-## File: src/shared/constants/status.ts
+## File: src/shared/constants/roles.ts
 ```typescript
-import type { ScheduleStatus, InviteState, NotificationType, Presence } from '@/shared-kernel';
-import type { AuditLogType } from '@/features/workspace.slice';
-import type { WorkspaceLifecycleState } from '@/features/workspace.slice';
+import type { OrganizationRole } from '@/shared-kernel';
+import type { WorkspaceRole } from '@/features/workspace.slice';
 ⋮----
-export interface ScheduleStatusMeta {
-  status: ScheduleStatus;
+export interface OrgRoleMeta {
+  role: OrganizationRole;
   zhLabel: string;
   enLabel: string;
-  colorClass: string;
-  bgClass: string;
-}
-⋮----
-export interface WorkspaceLifecycleStateMeta {
-  state: WorkspaceLifecycleState;
-  zhLabel: string;
-  enLabel: string;
+  rank: 1 | 2 | 3 | 4;
   colorClass: string;
 }
 ⋮----
-export interface AuditLogTypeMeta {
-  type: AuditLogType;
+export function orgRoleAtLeast(
+  actorRole: OrganizationRole,
+  requiredRole: OrganizationRole,
+): boolean
+⋮----
+export interface WorkspaceRoleMeta {
+  role: WorkspaceRole;
   zhLabel: string;
   enLabel: string;
+  rank: 1 | 2 | 3;
   colorClass: string;
 }
 ⋮----
-export interface InviteStateMeta {
-  state: InviteState;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
-⋮----
-export interface PresenceMeta {
-  presence: Presence;
-  zhLabel: string;
-  enLabel: string;
-  dotClass: string;
-}
-⋮----
-export interface NotificationTypeMeta {
-  type: NotificationType;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
+export function workspaceRoleAtLeast(
+  actorRole: WorkspaceRole,
+  requiredRole: WorkspaceRole,
+): boolean
 ```
 
 ## File: src/shared/infra/firestore/repositories/schedule.repository.ts
@@ -11865,6 +11939,25 @@ async function emitTokenRefreshSignal(
 ): Promise<void>
 ```
 
+## File: src/features/organization.slice/gov.members/_components/members-view.tsx
+```typescript
+import { UserPlus, Trash2, Mail, AlertCircle, Sparkles } from "lucide-react"
+import { useState, useEffect, useMemo } from "react"
+import { useI18n } from "@/config/i18n/i18n-provider"
+import { getAllOrgMembersView } from "@/features/projection.bus"
+import type { OrgEligibleMemberView } from "@/features/projection.bus"
+import { type MemberReference } from "@/shared-kernel"
+import { useApp } from "@/shared/app-providers/app-context"
+import { Badge } from "@/shared/shadcn-ui/badge"
+import { Button } from "@/shared/shadcn-ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/shadcn-ui/card"
+import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
+import { PageHeader } from "@/shared/ui/page-header"
+import { useMemberManagement } from '../_hooks/use-member-management'
+⋮----
+title=
+```
+
 ## File: src/features/scheduling.slice/_actions/workspace.ts
 ```typescript
 import { addDays, isSameDay, startOfDay } from 'date-fns';
@@ -11968,92 +12061,13 @@ export async function cancelOrgScheduleAssignment(
 ): Promise<WriteOp>
 ```
 
-## File: src/features/scheduling.slice/_components/demand-board.tsx
-```typescript
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import type { SkillRequirement } from '@/shared-kernel';
-import type { ScheduleItem } from '@/shared-kernel';
-import { useAccount } from '@/features/workspace.slice';
-import { useApp } from '@/shared/app-providers/app-context';
-import { SKILLS } from '@/shared/constants/skills';
-import type { Timestamp } from '@/shared/ports';
-import { Badge } from '@/shared/shadcn-ui/badge';
-import { Button } from '@/shared/shadcn-ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
-import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
-import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/shadcn-ui/select';
-import {
-  approveScheduleItemWithMember,
-  updateScheduleItemStatus,
-} from '../_actions';
-type TimestampLike = { toDate: () => Date };
-function isTimestampLike(value: unknown): value is TimestampLike
-function formatTimestamp(ts: Timestamp | string | undefined): string
-interface OrgMember {
-  id: string;
-  name: string;
-}
-interface DemandRowProps {
-  item: ScheduleItem;
-  orgMembers: OrgMember[];
-  orgId: string;
-}
-⋮----
-
-⋮----
-// ---------------------------------------------------------------------------
-// SortableDemandRow ??thin wrapper that adds drag-handle affordance
-// ---------------------------------------------------------------------------
-⋮----
-{/* Drag handle ??only activates drag; does not capture clicks */}
-⋮----
-// ---------------------------------------------------------------------------
-// Main Demand Board
-// ---------------------------------------------------------------------------
-/**
- * DemandBoard ??real-time org demand board (FR-W0 + FR-W6).
- *
- * Reads directly from accounts/{orgId}/schedule_items via useAccount() ??
- * the same collection used by the Calendar tab ??so all three schedule
- * tabs always show consistent data with zero extra subscriptions.
- *
- * "ĺžć?ć´žé?ćą? cards are drag-sortable so HR can prioritise visually.
- * The sort order is local-only (no server write required for reordering).
- */
-```
-
 ## File: src/features/scheduling.slice/_components/org-schedule-governance.shared.tsx
 ```typescript
 import type { OrgEligibleMemberView } from '@/features/projection.bus';
 import { tierSatisfies } from '@/shared-kernel';
 import type { ScheduleItem, SkillRequirement } from '@/shared-kernel';
 import { findSkill } from '@/shared/constants/skills';
-import type { Timestamp } from '@/shared/ports';
+import type { Timestamp } from '@/shared-kernel/ports';
 import { Avatar, AvatarFallback } from '@/shared/shadcn-ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/shadcn-ui/tooltip';
 type TimestampLike = { toDate: () => Date };
@@ -12357,6 +12371,56 @@ export interface WorkspaceContextType {
   localAuditLogs: import('../../gov.audit/_types').AuditLog[];
 ```
 
+## File: src/shared/constants/status.ts
+```typescript
+import type { ScheduleStatus, InviteState, NotificationType, Presence } from '@/shared-kernel';
+import type { AuditLogType } from '@/features/workspace.slice';
+import type { WorkspaceLifecycleState } from '@/features/workspace.slice';
+⋮----
+export interface ScheduleStatusMeta {
+  status: ScheduleStatus;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+  bgClass: string;
+}
+⋮----
+export interface WorkspaceLifecycleStateMeta {
+  state: WorkspaceLifecycleState;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+⋮----
+export interface AuditLogTypeMeta {
+  type: AuditLogType;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+⋮----
+export interface InviteStateMeta {
+  state: InviteState;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+⋮----
+export interface PresenceMeta {
+  presence: Presence;
+  zhLabel: string;
+  enLabel: string;
+  dotClass: string;
+}
+⋮----
+export interface NotificationTypeMeta {
+  type: NotificationType;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+```
+
 ## File: src/shared/infra/firestore/repositories/workspace-business.document-parser.repository.ts
 ```typescript
 import {
@@ -12401,6 +12465,64 @@ export const getParsingIntentById = async (
   workspaceId: string,
   intentId: string
 ): Promise<ParsingIntent | null> =>
+```
+
+## File: src/features/scheduling.slice/_components/demand-board.tsx
+```typescript
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import type { SkillRequirement } from '@/shared-kernel';
+import type { ScheduleItem } from '@/shared-kernel';
+import { useAccount } from '@/features/workspace.slice';
+import { useApp } from '@/shared/app-providers/app-context';
+import { SKILLS } from '@/shared/constants/skills';
+import type { Timestamp } from '@/shared-kernel/ports';
+import { Badge } from '@/shared/shadcn-ui/badge';
+import { Button } from '@/shared/shadcn-ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
+import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/shadcn-ui/select';
+import {
+  approveScheduleItemWithMember,
+  updateScheduleItemStatus,
+} from '../_actions';
+type TimestampLike = { toDate: () => Date };
+function isTimestampLike(value: unknown): value is TimestampLike
+function formatTimestamp(ts: Timestamp | string | undefined): string
+interface OrgMember {
+  id: string;
+  name: string;
+}
+interface DemandRowProps {
+  item: ScheduleItem;
+  orgMembers: OrgMember[];
+  orgId: string;
+}
+⋮----
 ```
 
 ## File: src/features/semantic-graph.slice/centralized-edges/semantic-edge-store.ts
@@ -12458,7 +12580,7 @@ import { TimelineCanvas } from "./timeline-canvas";
 ```typescript
 import type { CostItemType } from '@/features/semantic-graph.slice'
 import type { SkillRequirement } from '@/shared-kernel'
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 import type {
   ParsingIntentSourceType,
   ParsingIntentReviewStatus,
@@ -12568,7 +12690,7 @@ export async function fetchFinanceStrongReadSnapshot(
 import { useEffect, useMemo, useState } from 'react';
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 import type { OrgEligibleMemberView } from '@/features/projection.bus';
-import type { ScheduleItem } from '@/shared-kernel';
+import type { ScheduleItem } from '@/features/shared-kernel';
 import { useAccount } from '@/features/workspace.slice';
 import { useApp } from '@/shared/app-providers/app-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
@@ -12852,7 +12974,7 @@ import {
   updateParsingImportStatus as updateParsingImportStatusFacade,
   updateParsingIntentStatus as updateParsingIntentStatusFacade,
 } from '@/shared/infra/firestore/firestore.facade'
-import type { Timestamp } from '@/shared/ports'
+import type { Timestamp } from '@/shared-kernel/ports'
 import type {
   ParsedLineItem,
   IntentID,
@@ -12893,7 +13015,7 @@ export type ParsingImportFinishInput = {
  *
  * **Firestore document ID constraint**: the returned string must never contain
  * forward-slashes (`/`), must not be `.` or `..`, and must not be surrounded
- * by double-underscores (`__?¦__`). The `import:<uuid>:<number>` format
+ * by double-underscores (`__?�__`). The `import:<uuid>:<number>` format
  * satisfies all of these requirements as long as `intentId` is a valid UUID or
  * Firestore auto-ID (no `/`).  Callers MUST NOT pass a raw path segment as
  * `intentId`.
@@ -13047,8 +13169,8 @@ import { format, isWeekend, startOfMonth, endOfMonth, eachDayOfInterval, getDay,
 import { Plus, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { type MemberReference } from "@/shared-kernel";
+import type { ScheduleItem } from "@/features/shared-kernel";
+import { type MemberReference } from "@/features/shared-kernel";
 import { findSkill } from "@/shared/constants/skills";
 import { Avatar, AvatarFallback } from "@/shared/shadcn-ui/avatar";
 import { Badge } from "@/shared/shadcn-ui/badge";
@@ -13067,6 +13189,19 @@ import {
   sortSegments,
   toCalendarDate,
 } from "./unified-calendar-grid.utils";
+⋮----
+interface UnifiedCalendarGridProps {
+  items: ScheduleItem[];
+  members: MemberReference[];
+  viewMode: 'workspace' | 'organization';
+  currentDate: Date;
+  onMonthChange: (direction: 'prev' | 'next') => void;
+  onItemClick?: (item: ScheduleItem) => void;
+  onAddClick?: (date: Date) => void;
+  onApproveProposal?: (item: ScheduleItem) => void;
+  onRejectProposal?: (item: ScheduleItem) => void;
+  renderItemActions?: (item: ScheduleItem) => React.ReactNode;
+}
 ⋮----
 <div className=
 ⋮----

@@ -136,10 +136,10 @@ export type {
 	TaxonomyNode,
 } from './data-contracts/semantic/semantic-contracts';
 
-export type { IAuthService, AuthUser } from './ports/infrastructure-ports';
-export type { IFirestoreRepo, FirestoreDoc, Timestamp, WriteOptions } from './ports/infrastructure-ports';
-export type { IMessaging, PushNotificationPayload } from './ports/infrastructure-ports';
-export type { IFileStore, UploadOptions } from './ports/infrastructure-ports';
+export type { IAuthService, AuthUser } from './ports';
+export type { IFirestoreRepo, FirestoreDoc, Timestamp, WriteOptions } from './ports';
+export type { IMessaging, PushNotificationPayload } from './ports';
+export type { IFileStore, UploadOptions } from './ports';
 
 export type {
 	ScheduleStatus,

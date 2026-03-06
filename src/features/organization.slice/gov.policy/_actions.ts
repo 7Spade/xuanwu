@@ -6,7 +6,7 @@
  * Server actions for organization-level policy management.
  *
  * Per logic-overview.md:
- *   ORGANIZATION_EVENT_BUS ?�|?��?變更事件| WORKSPACE_ORG_POLICY_CACHE
+ *   ORGANIZATION_EVENT_BUS ?’|?¿ç?變更事件| WORKSPACE_ORG_POLICY_CACHE
  *   Policy changes flow through the org event bus to update workspace's local org-policy cache.
  *
  * Per logic-overview.md [R4] COMMAND_RESULT_CONTRACT:

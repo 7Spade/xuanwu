@@ -5,8 +5,9 @@
  * Constraints: deterministic logic, respect module boundaries
  */
 
-import type { Timestamp } from '@/shared/ports';
-import type { SkillGrant } from '@/shared-kernel/data-contracts/skill-tier';
+import type { Timestamp } from '@/shared-kernel/ports/i-firestore.repo';
+
+import type { SkillGrant } from './skill-grant-contract';
 
 export type AccountType = 'user' | 'organization';
 export type OrganizationRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
