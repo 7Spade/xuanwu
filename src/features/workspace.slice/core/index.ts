@@ -25,12 +25,14 @@ export { StatCards } from './_components/stat-cards'
 // Hooks
 export { useAccount } from './_hooks/use-account'
 // Shell
-export { ThemeAdapter } from './_components/shell/theme-adapter'
-export { Header } from './_components/shell/header'
-export { NotificationCenter } from './_components/shell/notification-center'
-export { AccountSwitcher } from './_components/shell/account-switcher'
-export { AccountCreateDialog } from './_components/shell/account-create-dialog'
-export { DashboardSidebar } from './_components/shell/dashboard-sidebar'
+export {
+  ThemeAdapter,
+  Header,
+  NotificationCenter,
+  AccountSwitcher,
+  AccountCreateDialog,
+  DashboardSidebar,
+} from './_components/shell'
 // Hooks
 export { useVisibleWorkspaces } from './_hooks/use-visible-workspaces'
 export { useWorkspaceCommands } from './_hooks/use-workspace-commands'

@@ -5,9 +5,9 @@
 `portal.slice` is the **portal domain feature slice (VS-Portal)**. It owns all business logic, state management, actions, and queries for the portal and shell layers. It is the authoritative source of domain rules for the public-facing portal and the authenticated application shell.
 
 ```
-src/portal  /  src/shell     (presentation layers — consume this slice)
-  └─> src/features/portal.slice  ← THIS LAYER (domain logic)
-        └─> src/shared/infra      (Firebase ACL adapters via SK_PORTS)
+src/portal  /  src/app/(shell)     (presentation layers — consume this slice)
+  └─> src/features/portal.slice      ← THIS LAYER (domain logic)
+        └─> src/shared/infra         (Firebase ACL adapters via SK_PORTS)
         └─> src/features/shared-kernel  (contracts)
 ```
 
