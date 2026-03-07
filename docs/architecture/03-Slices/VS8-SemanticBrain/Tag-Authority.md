@@ -1,12 +1,18 @@
-﻿# [索引 ID: @VS8-TA] Tag Authority
+﻿# [索引 ID: @VS8-TA] VS8 Tag Authority
 
-標籤的唯一定義與規範生命週期。
+## Scope
 
-## 1. 唯一註冊律 [D21-A]
-所有跨領域概念，必須先在 VS8 (\core/tag-definitions.ts\ 或 \centralized-tag.aggregate\) 完成註冊，才允許在業務切片使用。禁止任何切片私下創建隱性分類。
+標籤主權由 `centralized-tag.aggregate` 維護，為全域語義真相。
 
-## 2. 標籤生命週期防腐
-- **生命週期**：Draft -> Active -> Stale -> Deprecated。
-- **命名規則 [D21-T]**：\	agSlug\ 作為唯一鍵，創建後永久不可變更。
-- **同義重定向 [D21-S]**：標籤廢併不會消失，而是變為 Alias（別名）重定向至新詞，避免歷史資料斷鏈。
-- **孤立防禦 [D21-C, D21-10]**：系統中不允許沒有連結至 Parent 的節點，拓撲服務 (\indIsolatedNodes\) 必須定期監測回報。
+## Rules
+
+- `D21-A`: 新概念必須先註冊再使用。
+- `D21-T`: tagSlug 永久穩定，不可重命名。
+- `D21-S`: 合併後舊標籤轉 alias，不可直接刪除。
+- `D21-U`: 重複語義需即時提示，不可靜默建立。
+
+## Graph Safety
+
+- `D21-C`: 每個標籤需掛載 parent。
+- `D21-10`: 定期檢測孤立節點並上報。
+- `T5`: 業務端不得直讀 adjacency list，須讀 tag-snapshot。

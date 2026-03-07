@@ -1,13 +1,16 @@
-﻿# [索引 ID: @VS6-Match] Resource Match
+﻿# [索引 ID: @VS6-Match] VS6 Scheduling - Resource Match
 
-VS6 的核心調度邏輯，透過 \workforce-scheduling-saga\ [A5] 來處理。
+## Scope
 
-## 1. 協調需求與分配 (Saga)
-- 接收 \ScheduleProposed\ 事件起手。
-- 發動 \eligibility check\ [#14] 來確保該成員是具備排班資格。
-- 補償機制 (Compensating transactions): 若檢查不通過或發生其他業務異常，觸發 \ScheduleAssignRejected\ 或 \ScheduleProposalCancelled\。
-- **原則**：需求引導執行，執行引導協作。
+由 `workforce-scheduling-saga` 協調排班資格檢查與補償流程。
 
-## 2. 資格查詢 [#14, #15]
-- 必須僅讀取 \ORG_ELIGIBLE_MEMBER_VIEW\ (避免跨區調用內部模組)。
-- eligibility 生命周期（非靜態）：\joined -> true\ -> \ssigned -> false\ -> \completed/cancelled -> true\。
+## Rules
+
+- MUST: 只讀 `ORG_ELIGIBLE_MEMBER_VIEW` 做資格判斷 (`#14`, `#15`)。
+- MUST: 能力需求以 `SK_SKILL_REQ` + `tag-snapshot` 對齊。
+- MUST: 失敗情境產生 compensating events (`#A5`)。
+
+## Forbidden
+
+- 直讀其他 slice 私有模型做資格判定。
+- 繞過 saga 直接寫 OrganizationSchedule。

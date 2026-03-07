@@ -1,9 +1,18 @@
-﻿# [索引 ID: @VS6-Mat] Materialization Gate [D27-Gate]
+﻿# [索引 ID: @VS6-Mat] VS6 Scheduling - Materialization Gate
 
-決定那些需求項目可以正式「物化」成排班任務。
+## Rule
 
-## Layer-3 Semantic Router (D27-Gate)
-- 進入 \shouldMaterializeAsTask(costItemType)\ 判斷。
-- **唯一准入條件**：只有被歸類為 \EXECUTABLE\ 的 costItemType\ 才能被物化為 Tasks（進入 A-track）。
-- 若為非 \EXECUTABLE\ (如 \MANAGEMENT\, \RESOURCE\, \PROFIT\, \ALLOWANCE\ 等) 則「靜默跳過並 toast 提示使用者」，不會形成排程。
-- 此為嚴格的單出入口（唯一物化入口）。
+- MUST: 任務物化一律經 `shouldMaterializeAsTask(costItemType)`。
+- MUST: 只有 `EXECUTABLE` 可物化成 task (`D27-Gate`)。
+- FORBIDDEN: 非 EXECUTABLE 項目直接進排程主鏈。
+
+## Inputs
+
+- `costItemType`
+- `semanticTagSlug`
+- `sourceIntentIndex`
+
+## Outputs
+
+- 可物化: 進 A-track task pipeline
+- 不可物化: 保留為非任務資料並提示使用者

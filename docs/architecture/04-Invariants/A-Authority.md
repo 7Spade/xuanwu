@@ -1,5 +1,4 @@
-﻿otification-hub.slice\ 接手轉拋。
-# [索引 ID: @INV-A] Authority Invariants (A / #A)
+﻿# [索引 ID: @INV-A] Authority Invariants (A / #A)
 
 本檔定義「誰有權做什麼」，任何違反都屬架構違規。
 

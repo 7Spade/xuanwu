@@ -1,14 +1,20 @@
-﻿# [索引 ID: @VS5-Item] WorkspaceItem Lifecycle
+﻿# [索引 ID: @VS5-Item] VS5 Workspace - Item Lifecycle
 
-處理 Bounded Context 內的任務管理、A/B 雙軌流程。
+## A-Track
 
-## 1. A-Track 主流程 (需求引導執行)
-* \workspace.items\ (Source of Work) → \	asks\ → \quality-assurance\ → \cceptance\ → \inance-stage-gateway\。
-* 工作流程由 \workflow.aggregate\ (狀態機) 控管：
-  * \Draft\ → \InProgress\ → \QA\ → \Acceptance(OK)\ → \Finance\ → \Completed\
-  * 必須要有 \Acceptance=OK\ 才可以進入 \Finance\ [A15]。
+`workspace.items -> tasks -> QA -> acceptance -> finance-stage-gateway`
 
-## 2. B-Track 異常處理流程
-* Issue Tracking (\B_ISSUES\) 作為異常阻塞點。
-* 當拋出 Issue，觸發 \lockWorkflow\ [A3]，更新 \workflow.aggregate\ 的 \lockedBy\ 屬性。
-* Issue 解決 (\IssueResolved\) 時，才能 \unblockWorkflow\ (即 \lockedBy.isEmpty() == true\)。
+## B-Track
+
+`issues` 作為阻塞支線，透過 `blockedBy` 與主流程同步 (`#A3`)。
+
+## Invariants
+
+- `D27-Order`: `WorkspaceItem -> WorkspaceTask -> WorkspaceSchedule` 禁止跳級。
+- `#A15`: `Acceptance=OK` 前不得進入 Finance。
+- `#A16`: outstanding amount > 0 時不得 completed。
+
+## Event Discipline
+
+- 主流程與異常流程交互必須事件化。
+- 跨 slice 協作走 IER，不直接 mutate 他 BC 狀態。
