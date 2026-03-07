@@ -39,11 +39,12 @@ export async function addOrgSkillNodeAction(
   input: AddOrgSkillNodeInput
 ): Promise<CommandResult> {
   try {
+    const description = input.description?.trim();
     const node: OrgSkillNode = {
       id: randomUUID(),
       label: input.label.trim(),
       group: input.group,
-      description: input.description?.trim(),
+      ...(description ? { description } : {}),
       addedAt: new Date().toISOString(),
       addedBy: input.actorId,
     };
@@ -72,11 +73,12 @@ export async function editOrgSkillNodeAction(
   input: EditOrgSkillNodeInput
 ): Promise<CommandResult> {
   try {
+    const description = input.description?.trim();
     const node: OrgSkillNode = {
       id: input.nodeId,
       label: input.label.trim(),
       group: input.group,
-      description: input.description?.trim(),
+      ...(description ? { description } : {}),
       addedAt: new Date().toISOString(),
       addedBy: input.actorId,
     };
@@ -125,11 +127,12 @@ export async function addOrgSkillEdgeAction(
   input: AddOrgSkillEdgeInput
 ): Promise<CommandResult> {
   try {
+    const label = input.label?.trim();
     const edge: OrgSkillEdge = {
       id: randomUUID(),
       from: input.from,
       to: input.to,
-      label: input.label?.trim(),
+      ...(label ? { label } : {}),
       addedAt: new Date().toISOString(),
       addedBy: input.actorId,
     };

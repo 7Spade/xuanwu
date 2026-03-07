@@ -251,10 +251,18 @@ export function OrgSkillGraphEditor() {
     setSaving(true)
     try {
       for (const nodeId of selectedNodes) {
-        await deleteOrgSkillNodeAction({ orgId, nodeId: String(nodeId) })
+        const result = await deleteOrgSkillNodeAction({ orgId, nodeId: String(nodeId) })
+        if (!result.success) {
+          toast({ title: result.error.message, variant: "destructive" })
+          return
+        }
       }
       for (const edgeId of selectedEdges) {
-        await deleteOrgSkillEdgeAction({ orgId, edgeId: String(edgeId) })
+        const result = await deleteOrgSkillEdgeAction({ orgId, edgeId: String(edgeId) })
+        if (!result.success) {
+          toast({ title: result.error.message, variant: "destructive" })
+          return
+        }
       }
       toast({ title: t("org.skill.deletedSuccess") })
       network.unselectAll()
@@ -274,16 +282,20 @@ export function OrgSkillGraphEditor() {
     setSaving(true)
     try {
       if (dialogMode === "addNode") {
-        await addOrgSkillNodeAction({
+        const result = await addOrgSkillNodeAction({
           orgId,
           label: nodeForm.label,
           group: nodeForm.group,
           description: nodeForm.description || undefined,
           actorId,
         })
+        if (!result.success) {
+          toast({ title: result.error.message, variant: "destructive" })
+          return
+        }
         toast({ title: t("org.skill.nodeAdded") })
       } else if (dialogMode === "editNode") {
-        await editOrgSkillNodeAction({
+        const result = await editOrgSkillNodeAction({
           orgId,
           nodeId: nodeForm.id,
           label: nodeForm.label,
@@ -291,6 +303,10 @@ export function OrgSkillGraphEditor() {
           description: nodeForm.description || undefined,
           actorId,
         })
+        if (!result.success) {
+          toast({ title: result.error.message, variant: "destructive" })
+          return
+        }
         toast({ title: t("org.skill.nodeUpdated") })
       }
       setDialogMode(null)
@@ -309,13 +325,17 @@ export function OrgSkillGraphEditor() {
     if (!orgId || !pendingEdge) return
     setSaving(true)
     try {
-      await addOrgSkillEdgeAction({
+      const result = await addOrgSkillEdgeAction({
         orgId,
         from: pendingEdge.from,
         to: pendingEdge.to,
         label: edgeLabel || undefined,
         actorId,
       })
+      if (!result.success) {
+        toast({ title: result.error.message, variant: "destructive" })
+        return
+      }
       toast({ title: t("org.skill.edgeAdded") })
       setDialogMode(null)
       setPendingEdge(null)
