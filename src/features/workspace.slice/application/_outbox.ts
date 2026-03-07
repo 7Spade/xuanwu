@@ -20,7 +20,7 @@
  *   WS_OB -->|"STANDARD_LANE [E5]"| IER
  */
 
-import { logDomainError } from '@/shared-kernel/observability';
+import { logDomainError } from '@/shared-infra/observability';
 import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 import { buildIdempotencyKey, type DlqTier } from '@/shared-kernel';
 

@@ -3,7 +3,7 @@
 import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Clock, AlertCircle, ListChecks } from 'lucide-react';
 import { useActionState, useTransition, useRef, useEffect, useCallback, useState, type ChangeEvent } from 'react';
 
-import { logDomainError } from '@/shared-kernel/observability';
+import { logDomainError } from '@/shared-infra/observability';
 import { classifyCostItem } from '@/features/semantic-graph.slice';
 import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
 import { persistWorkspaceOutboxEvent } from '@/features/workspace.slice/application/_outbox';

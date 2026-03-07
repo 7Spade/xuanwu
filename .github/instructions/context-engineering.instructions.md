@@ -34,7 +34,8 @@ Principles for helping GitHub Copilot understand your codebase and provide bette
 ## Multi-File Changes
 
 - **Describe scope first**: Tell Copilot all files involved before asking for changes. "I need to update the User model, API endpoint, and tests."
-- **Work incrementally**: One file at a time, verifying each change. Don't ask for everything at once.
+- **Work by architecture slice**: Complete the full dependency chain for the change (contract, gateway, domain, projection/query, tests/docs) instead of optimizing for tiny diffs.
+- **Correctness over patch size**: If layer/boundary/ownership rules require multi-file updates, do the complete set in one coherent change.
 - **Check understanding**: Ask "What files would you need to see?" before complex refactors.
 
 ## When Copilot Struggles

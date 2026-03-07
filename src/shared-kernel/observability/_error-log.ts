@@ -1,13 +1,8 @@
 /**
- * observability — _error-log.ts
- *
- * DOMAIN_ERROR_LOG node — structured domain error logger. [R8]
- *
- * Per 00-LogicOverview.md (OBSERVABILITY_LAYER):
- *   WORKSPACE_TRANSACTION_RUNNER --> DOMAIN_ERROR_LOG
- *
- * Provides a structured error-logging interface for domain/application errors.
- * In production, forward entries to your preferred logging backend (e.g. Cloud Logging).
+ * Module: _error-log.ts
+ * Purpose: shared-kernel error logging contracts for observability.
+ * Responsibilities: define domain error entry shape and logger interface.
+ * Constraints: contract-only, no sink writes in shared-kernel.
  */
 
 export interface DomainErrorEntry {
@@ -23,10 +18,7 @@ export interface DomainErrorEntry {
   readonly detail?: string;
 }
 
-/**
- * Logs a domain error in a structured format.
- * Currently writes to console.error; swap for a real sink in production.
- */
-export function logDomainError(entry: DomainErrorEntry): void {
-  console.error('[DOMAIN_ERROR_LOG]', JSON.stringify(entry));
+/** Infrastructure error logger contract (implemented in shared-infra). */
+export interface IErrorLogger {
+  logDomainError(entry: DomainErrorEntry): void;
 }
