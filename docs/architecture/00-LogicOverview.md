@@ -32,18 +32,18 @@
 %%    VS0 內部分層（Foundation Plane）:
 %%      src/shared-kernel                   = VS0-Kernel（L1 契約層）
 %%      src/shared-kernel/observability     = VS0-Kernel（L1 Observability Contracts only：types/interfaces，非 runtime node）
-%%      src/shared-infra/*                  = VS0-Infra Plane（L6/L7/L8/L9 執行層）
-%%      L0/L2/L4/L6 基礎設施主路徑：src/shared-infra/{external-triggers|gateway-command|event-router|outbox-relay|gateway-query}
+%%      src/shared-infra/*                  = VS0-Infra Plane（L0/L2/L4/L6/L7/L8/L9 執行層）
+%%      L0/L2/L4/L6 基礎設施主路徑：src/shared-infra/{external-triggers|gateway-command|event-router|outbox-relay|gateway-query|dlq-manager}
 %%      Legacy 相容路徑（僅過渡，不作為目標架構）：src/features/infra.*
 %%      src/features/projection.bus         = L5 Projection Bus（非 VS0）
 %%      src/shared-infra/observability      = VS0-Infra（L9 Observability Runtime）
-%%    命名規則：VS0=Foundation Index（L1+L6+L7+L8+L9）；VS1~VS8=業務切片編號（L3）
+%%    命名規則：VS0=Foundation Index（L1+L0+L2+L4+L6+L7+L8+L9）；VS1~VS8=業務切片編號（L3）
 %%    VS0 識別規格（文件/審查一律使用）:
 %%      VS0-Kernel = src/shared-kernel/*（pure contracts/constants/functions，禁止 I/O）
-%%      VS0-Infra  = src/shared-infra/*（L6/L7/L8/L9 execution plane；包含 adapter/gateway/observability 實作）
+%%      VS0-Infra  = src/shared-infra/*（L0/L2/L4/L6/L7/L8/L9 execution plane；包含 external-trigger/gateway/adapter/observability 實作）
 %%      Observability 分層規則：L1 只允許 observability contracts；L9 runtime sink/counter/trace provider 只允許在 src/shared-infra/observability
 %%      禁止只寫「VS0」而不標註 -Kernel 或 -Infra（避免語義歧義）
-%%      VS0 視圖分拆規則：同一 VS0 會在圖中拆為「L1 VS0-Kernel」與「L6~L9 VS0-Infra」兩塊呈現；
+%%      VS0 視圖分拆規則：同一 VS0 會在圖中拆為「L1 VS0-Kernel」與「L0/L2/L4/L6~L9 VS0-Infra」兩塊呈現；
 %%      此為 Layer 可讀性分圖，非領域切割（Domain Ownership 仍同屬 VS0/Foundation）
 %%  ── Cross-cutting Authorities（跨切片權威）──
 %%    global-search.slice  = 語義門戶（唯一跨域搜尋權威 · 對接 VS8 語義索引）
@@ -57,8 +57,8 @@
 %%    ※ L3 Domain Slices = VS1(Identity) · VS2(Account) · VS3(Skill) ·
 %%                          VS4(Organization) · VS5(Workspace) · VS6(Workforce-Scheduling) ·
 %%                          VS7(Notification) · VS8(SemanticGraph)
-%%    ※ VS0(Foundation) 不屬於 L3 Domain Slices；其中 VS0-Kernel=L1，VS0-Infra=L6/L7/L8/L9
-%%    ※ 邊界澄清：VS0-Kernel=L1（契約）；VS0-Infra=L6/L7/L8/L9（執行層，含觀測）
+%%    ※ VS0(Foundation) 不屬於 L3 Domain Slices；其中 VS0-Kernel=L1，VS0-Infra=L0/L2/L4/L6/L7/L8/L9
+%%    ※ 邊界澄清：VS0-Kernel=L1（契約）；VS0-Infra=L0/L2/L4/L6/L7/L8/L9（執行層，含觀測）
 %%  ── 標準目錄結構（Standard Directory Structure · 單向依賴鏈對齊）──
 %%    src/
 %%      shared-kernel/                          # VS0-Kernel / L1: contracts/constants/pure zone
@@ -72,6 +72,7 @@
 %%      shared-infra/gateway-command/           # VS0-Infra / L2: CBG_ENTRY/CBG_AUTH/CBG_ROUTE orchestration
 %%      shared-infra/event-router/              # VS0-Infra / L4: IER core + lanes
 %%      shared-infra/outbox-relay/              # VS0-Infra / L4: outbox relay worker
+%%      shared-infra/dlq-manager/               # VS0-Infra / L4: DLQ tiering and replay policy center
 %%      shared-infra/gateway-query/             # VS0-Infra / L6: query gateway/read registry
 %%      shared-infra/observability/             # VS0-Infra / L9: metrics/errors/trace observability
 %%      features/
@@ -79,6 +80,7 @@
 %%        infra.gateway-command/                # legacy alias only（遷移期相容）
 %%        infra.event-router/                   # legacy alias only（遷移期相容）
 %%        infra.outbox-relay/                   # legacy alias only（遷移期相容）
+%%        infra.dlq-manager/                    # legacy alias only（遷移期相容）
 %%        infra.gateway-query/                  # legacy alias only（遷移期相容）
 %%        projection.bus/                       # L5: projection funnel + read model materialization
 %%        identity.slice/                       # L3 VS1
@@ -106,7 +108,7 @@
 %%      - Cross-cutting Authority（搜尋/通知）= L3 權威切片，不得寄生 shared-kernel
 %%    C. 通訊與協調機制（Communication & Coordination）
 %%      - 寫入協調 = L2（shared-infra/gateway-command）
-%%      - 事件路由/relay/DLQ = L4（shared-infra/event-router / shared-infra/outbox-relay / infra.dlq-manager）
+%%      - 事件路由/relay/DLQ = L4（shared-infra/event-router / shared-infra/outbox-relay / shared-infra/dlq-manager）
 %%      - 投影物化 = L5（projection.bus）
 %%      - 讀取出口 = L6（shared-infra/gateway-query）
 %%    D. 狀態與副作用（State & Side Effects）
@@ -317,17 +319,6 @@
 flowchart TD
 
 %% ═══════════════════════════════════════════════════════════════
-%% LAYER 0 ── EXTERNAL TRIGGERS（外部觸發入口）
-%% ═══════════════════════════════════════════════════════════════
-
-subgraph EXT["🌐 L0 · External Triggers（app/* + src/shared-infra/external-triggers）"]
-    direction LR
-    EXT_CLIENT["Next.js Client\n_actions.ts [S5]"]
-    EXT_AUTH["Firebase Auth\n登入 / 註冊 / Token"]
-    EXT_WEBHOOK["Webhook / Edge Fn\n[S5] 遵守 SK_RESILIENCE_CONTRACT"]
-end
-
-%% ═══════════════════════════════════════════════════════════════
 %% VS0 FOUNDATION ── SAME DOMAIN, SPLIT VIEW（VS0-Kernel + VS0-Infra）
 %% ═══════════════════════════════════════════════════════════════
 
@@ -380,8 +371,78 @@ subgraph SK["🔷 L1 · Shared Kernel（VS0-Kernel · src/shared-kernel）— �
 
 end
 
-subgraph SHARED_INFRA_PLANE["🧩 Shared Infrastructure Plane（VS0-Infra：L6/L7/L8/L9 Execution Plane；與 VS0-Kernel 同屬 VS0）"]
+subgraph SHARED_INFRA_PLANE["🧩 Shared Infrastructure Plane（VS0-Infra：L0/L2/L4/L6/L7/L8/L9 Execution Plane；與 VS0-Kernel 同屬 VS0）"]
         direction TB
+
+        %% ═══════════════════════════════════════════════════════════════
+        %% LAYER 0 ── EXTERNAL TRIGGERS（外部觸發入口）
+        %% ═══════════════════════════════════════════════════════════════
+
+        subgraph EXT["🌐 L0 · External Triggers（src/shared-infra/external-triggers）"]
+            direction LR
+            EXT_CLIENT["Next.js Client\n_actions.ts [S5]"]
+            EXT_AUTH["Firebase Auth\n登入 / 註冊 / Token"]
+            EXT_WEBHOOK["Webhook / Edge Fn\n[S5] 遵守 SK_RESILIENCE_CONTRACT"]
+
+            subgraph GW_GUARD["🛡️ 入口防護層（src/shared-infra/external-triggers）[S5]"]
+                RATE_LIM["rate-limiter\nper user / per org\n429 + retry-after"]
+                CIRCUIT["circuit-breaker\n5xx → 熔斷 / 半開探針恢復"]
+                BULKHEAD["bulkhead-router\n切片隔板・獨立執行緒池"]
+                RATE_LIM --> CIRCUIT --> BULKHEAD
+            end
+        end
+
+        %% ═══════════════════════════════════════════════════════════════
+        %% LAYER 2 ── COMMAND GATEWAY（統一寫入閘道）
+        %% ═══════════════════════════════════════════════════════════════
+
+        subgraph GW_CMD["🔵 L2 · Command Gateway（src/shared-infra/gateway-command）"]
+            direction LR
+
+            subgraph GW_PIPE["⚙️ Command Pipeline（src/shared-infra/gateway-command）"]
+                CBG_ENTRY["unified-command-gateway\n[R8] TraceID 注入（唯一注入點）\n→ event-envelope.traceId"]
+                CBG_AUTH["authority-interceptor\nAuthoritySnapshot [#A9]\n衝突以 ACTIVE_CTX 為準"]
+                CBG_ROUTE["command-router\n路由至對應切片\n回傳 SK_CMD_RESULT"]
+                CBG_ENTRY --> CBG_AUTH --> CBG_ROUTE
+            end
+
+            BULKHEAD --> CBG_ENTRY
+        end
+
+        %% ═══════════════════════════════════════════════════════════════
+        %% LAYER 4 ── INTEGRATION EVENT ROUTER（事件路由總線）
+        %% ═══════════════════════════════════════════════════════════════
+
+        subgraph GW_IER["🟠 L4 · Integration Event Router（src/shared-infra/event-router + src/shared-infra/outbox-relay + src/shared-infra/dlq-manager）"]
+            direction TB
+
+            RELAY["outbox-relay-worker（src/shared-infra/outbox-relay）\n【共用 Infra・所有 OUTBOX 共享】\n掃描：Firestore onSnapshot (CDC)\n投遞：OUTBOX → IER 對應 Lane\n失敗：retry backoff → 3次失敗 → DLQ\n監控：relay_lag → L9(Observability)"]
+
+            subgraph IER_CORE["⚙️ IER Core（src/shared-infra/event-router）"]
+                IER[["integration-event-router\n統一事件出口 [#9]\n[R8] 保留 envelope.traceId 禁止覆蓋"]]
+            end
+
+            subgraph IER_LANES["🚦 優先級三道分層（src/shared-infra/event-router）[P1]"]
+                CRIT_LANE["🔴 CRITICAL_LANE\n高優先最終一致\nRoleChanged → Claims 刷新 [S6]\nWalletDeducted/Credited\nOrgContextProvisioned\nSLA：盡快投遞"]
+                STD_LANE["🟡 STANDARD_LANE\n非同步最終一致\nSLA < 2s\nSkillXpAdded/Deducted\nScheduleAssigned / ScheduleProposed\nMemberJoined/Left\nAll Domain Events"]
+                BG_LANE["⚪ BACKGROUND_LANE\nSLA < 30s\nTagLifecycleEvent\nAuditEvents"]
+            end
+
+            subgraph DLQ_SYS["💀 DLQ 三級分類（src/shared-infra/dlq-manager）[R5 S1]"]
+                DLQ["dead-letter-queue\n失敗 3 次後收容\n分級標記來自 SK_OUTBOX_CONTRACT"]
+                DLQ_S["🟢 SAFE_AUTO\n自動 Replay（保留 idempotency-key）"]
+                DLQ_R["🟡 REVIEW_REQUIRED\n金融/排班/角色\n人工確認後 Replay"]
+                DLQ_B["🔴 SECURITY_BLOCK\n安全事件\n告警 + 凍結 + 人工確認\n禁止自動 Replay"]
+                DLQ --> DLQ_S & DLQ_R & DLQ_B
+                DLQ_S -.->|"自動 Replay"| IER
+                DLQ_R -.->|"人工確認後 Replay"| IER
+                DLQ_B -.->|"告警"| DOMAIN_ERRORS
+            end
+
+            RELAY -.->|"掃描所有 OUTBOX → 投遞"| IER
+            IER --> IER_LANES
+            IER_LANES -.->|"投遞失敗 3 次"| DLQ
+        end
 
         subgraph GW_QUERY["🟢 L6 · Query Gateway（src/shared-infra/gateway-query；ownership: VS0-Infra）[S2 S3]"]
             direction LR
@@ -577,30 +638,6 @@ subgraph VS8["🧠 VS8 · Semantic Cognition Engine（src/features/semantic-grap
     CTA -.->|"Deprecated 通知 [D21-8]"| TAG_SG
     VS8_NG -.->|"語義路由授權 [D21-5]"| VS8_RL
     CONS_ENG -.->|"治理通過 → BBB 最終裁決 [D21-I D21-K]"| INV_GUARD
-end
-
-%% ═══════════════════════════════════════════════════════════════
-%% LAYER 2 ── COMMAND GATEWAY（統一寫入閘道）
-%% ═══════════════════════════════════════════════════════════════
-
-subgraph GW_CMD["🔵 L2 · Command Gateway（src/shared-infra/gateway-command）"]
-    direction LR
-
-    subgraph GW_GUARD["🛡️ 入口防護層（src/shared-infra/gateway-command）[S5]"]
-        RATE_LIM["rate-limiter\nper user / per org\n429 + retry-after"]
-        CIRCUIT["circuit-breaker\n5xx → 熔斷 / 半開探針恢復"]
-        BULKHEAD["bulkhead-router\n切片隔板・獨立執行緒池"]
-        RATE_LIM --> CIRCUIT --> BULKHEAD
-    end
-
-    subgraph GW_PIPE["⚙️ Command Pipeline（src/shared-infra/gateway-command）"]
-        CBG_ENTRY["unified-command-gateway\n[R8] TraceID 注入（唯一注入點）\n→ event-envelope.traceId"]
-        CBG_AUTH["authority-interceptor\nAuthoritySnapshot [#A9]\n衝突以 ACTIVE_CTX 為準"]
-        CBG_ROUTE["command-router\n路由至對應切片\n回傳 SK_CMD_RESULT"]
-        CBG_ENTRY --> CBG_AUTH --> CBG_ROUTE
-    end
-
-    BULKHEAD --> CBG_ENTRY
 end
 
 %% ═══════════════════════════════════════════════════════════════
@@ -917,41 +954,6 @@ end
 
 USER_NOTIF -.->|"uses IMessaging [R8]"| I_MSG
 NOTIF_HUB_SVC -.->|"標籤感知路由"| VS8
-
-%% ═══════════════════════════════════════════════════════════════
-%% LAYER 4 ── INTEGRATION EVENT ROUTER（事件路由總線）
-%% ═══════════════════════════════════════════════════════════════
-
-subgraph GW_IER["🟠 L4 · Integration Event Router（src/shared-infra/event-router + src/shared-infra/outbox-relay）"]
-    direction TB
-
-    RELAY["outbox-relay-worker\n【共用 Infra・所有 OUTBOX 共享】\n掃描：Firestore onSnapshot (CDC)\n投遞：OUTBOX → IER 對應 Lane\n失敗：retry backoff → 3次失敗 → DLQ\n監控：relay_lag → L9(Observability)"]
-
-    subgraph IER_CORE["⚙️ IER Core（src/shared-infra/event-router）"]
-        IER[["integration-event-router\n統一事件出口 [#9]\n[R8] 保留 envelope.traceId 禁止覆蓋"]]
-    end
-
-    subgraph IER_LANES["🚦 優先級三道分層（src/shared-infra/event-router）[P1]"]
-        CRIT_LANE["🔴 CRITICAL_LANE\n高優先最終一致\nRoleChanged → Claims 刷新 [S6]\nWalletDeducted/Credited\nOrgContextProvisioned\nSLA：盡快投遞"]
-        STD_LANE["🟡 STANDARD_LANE\n非同步最終一致\nSLA < 2s\nSkillXpAdded/Deducted\nScheduleAssigned / ScheduleProposed\nMemberJoined/Left\nAll Domain Events"]
-        BG_LANE["⚪ BACKGROUND_LANE\nSLA < 30s\nTagLifecycleEvent\nAuditEvents"]
-    end
-
-    subgraph DLQ_SYS["💀 DLQ 三級分類（src/shared-infra/dlq-manager）[R5 S1]"]
-        DLQ["dead-letter-queue\n失敗 3 次後收容\n分級標記來自 SK_OUTBOX_CONTRACT"]
-        DLQ_S["🟢 SAFE_AUTO\n自動 Replay（保留 idempotency-key）"]
-        DLQ_R["🟡 REVIEW_REQUIRED\n金融/排班/角色\n人工確認後 Replay"]
-        DLQ_B["🔴 SECURITY_BLOCK\n安全事件\n告警 + 凍結 + 人工確認\n禁止自動 Replay"]
-        DLQ --> DLQ_S & DLQ_R & DLQ_B
-        DLQ_S -.->|"自動 Replay"| IER
-        DLQ_R -.->|"人工確認後 Replay"| IER
-        DLQ_B -.->|"告警"| DOMAIN_ERRORS
-    end
-
-    RELAY -.->|"掃描所有 OUTBOX → 投遞"| IER
-    IER --> IER_LANES
-    IER_LANES -.->|"投遞失敗 3 次"| DLQ
-end
 
 %% 所有 OUTBOX → RELAY
 ACC_OB & ORG_OB & SCH_OB & SKILL_OB & TAG_OB & WS_OB -.->|"被 RELAY 掃描 [R1]"| RELAY
