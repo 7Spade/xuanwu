@@ -11,10 +11,15 @@
  *
  * Sub-slices (projection views):
  *   account-audit            — ACCOUNT_PROJECTION_AUDIT
+ *   account-skill-view       — ACCOUNT_SKILL_VIEW [#12][#13] STD
  *   account-view             — ACCOUNT_PROJECTION_VIEW (FCM token, authority snapshot)
+ *   demand-board             — DEMAND_BOARD_PROJECTION
  *   global-audit-view        — GLOBAL_AUDIT_VIEW [R8]
  *   org-eligible-member-view — ORG_ELIGIBLE_MEMBER_VIEW [#14–#16]
  *   organization-view        — ORGANIZATION_PROJECTION_VIEW
+ *   schedule-calendar-view   — SCHEDULE_CALENDAR_VIEW 日期維度 [S4] STD
+ *   schedule-timeline-view   — SCHEDULE_TIMELINE_VIEW 資源維度 [S4] STD
+ *   semantic-governance-view — SEMANTIC_GOVERNANCE_VIEW 治理頁 [A6] STD
  *   tag-snapshot             — TAG_SNAPSHOT [T5]
  *   workspace-scope-guard    — WORKSPACE_SCOPE_READ_MODEL [#A9]
  *   workspace-view           — WORKSPACE_PROJECTION_VIEW
@@ -127,6 +132,53 @@ export {
   applyDemandProposalCancelled,
   applyDemandAssignRejected,
 } from './demand-board';
+export {
+  getDemandBoardItem,
+  getOpenDemandBoardItems,
+  getDemandBoardItemsByStatus,
+} from './demand-board';
+
+// =================================================================
+// account-skill-view — ACCOUNT_SKILL_VIEW [#12][#13] STD ≤10s
+// =================================================================
+export { applySkillXpAdded, applySkillXpDeducted } from './account-skill-view';
+export { getAccountSkillView, getAccountSkillEntry, getAllAccountSkills } from './account-skill-view';
+export type { AccountSkillEntry, AccountSkillView } from './account-skill-view';
+
+// =================================================================
+// schedule-calendar-view — SCHEDULE_CALENDAR_VIEW 日期維度 [S4] STD ≤10s
+// =================================================================
+export { applyScheduleCalendarUpsert, applyScheduleCalendarRemove } from './schedule-calendar-view';
+export { getScheduleCalendarDay, getAllScheduleCalendarDays } from './schedule-calendar-view';
+export type { CalendarSlot, ScheduleCalendarDayView } from './schedule-calendar-view';
+
+// =================================================================
+// schedule-timeline-view — SCHEDULE_TIMELINE_VIEW 資源維度 [S4] STD ≤10s
+// =================================================================
+export { applyTimelineUpsert, applyTimelineRemove } from './schedule-timeline-view';
+export { getScheduleTimelineForMember, getAllScheduleTimelines } from './schedule-timeline-view';
+export type { TimelineBlock, ScheduleTimelineMemberView } from './schedule-timeline-view';
+
+// =================================================================
+// semantic-governance-view — SEMANTIC_GOVERNANCE_VIEW 治理頁 [A6] STD ≤10s
+// =================================================================
+export {
+  applyTagWikiUpdated,
+  applyGovernanceProposalUpserted,
+  applyTagRelationshipsUpdated,
+} from './semantic-governance-view';
+export {
+  getSemanticGovernanceView,
+  getActiveGovernanceProposals,
+  getTagRelationships,
+  getAllSemanticGovernanceViews,
+} from './semantic-governance-view';
+export type {
+  ProposalStatus,
+  GovernanceProposal,
+  TagRelationshipEntry,
+  SemanticGovernanceTagView,
+} from './semantic-governance-view';
 
 // =================================================================
 // workspace-scope-guard — WORKSPACE_SCOPE_READ_MODEL [#A9] CRITICAL ≤500ms
