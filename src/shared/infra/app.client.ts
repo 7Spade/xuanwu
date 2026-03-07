@@ -1,13 +1,8 @@
 /**
- * @fileoverview Firebase Client Initializer.
- * This file is responsible for initializing the Firebase app singleton
- * and exporting the main app instance.
+ * Module: app.client.ts
+ * Purpose: Backward-compatible export for frontend Firebase App
+ * Responsibilities: re-export app from shared-infra/frontend-firebase
+ * Constraints: deterministic logic, respect module boundaries
  */
-import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 
-import { firebaseConfig } from "./firebase.config";
-
-// Singleton Pattern: Initialize Firebase only once.
-const app: FirebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-
-export { app };
+export { app } from '@/shared-infra/frontend-firebase';

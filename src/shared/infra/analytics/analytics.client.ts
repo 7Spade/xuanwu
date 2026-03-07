@@ -1,18 +1,8 @@
 /**
- * @fileoverview Firebase Analytics Client Initializer.
- * This file is responsible for initializing and exporting the Firebase Analytics instance,
- * making it available for use throughout the application for event logging.
- * It ensures Analytics is only initialized on the client side.
+ * Module: analytics.client.ts
+ * Purpose: Backward-compatible export for frontend Analytics client
+ * Responsibilities: re-export analytics from shared-infra/frontend-firebase
+ * Constraints: deterministic logic, respect module boundaries
  */
-import { getAnalytics, type Analytics } from 'firebase/analytics';
 
-import { app } from '../app.client';
-
-let analytics: Analytics | null = null;
-
-// Ensure Analytics is only initialized in the browser.
-if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
-}
-
-export { analytics };
+export { analytics } from '@/shared-infra/frontend-firebase';

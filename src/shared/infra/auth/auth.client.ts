@@ -1,11 +1,8 @@
 /**
- * @fileoverview Firebase Authentication Client Initializer.
- * This file is responsible for exporting the initialized Auth instance.
+ * Module: auth.client.ts
+ * Purpose: Backward-compatible export for frontend Firebase Auth
+ * Responsibilities: re-export auth from shared-infra/frontend-firebase
+ * Constraints: deterministic logic, respect module boundaries
  */
-import { getAuth, type Auth } from 'firebase/auth';
 
-import { app } from '../app.client';
-
-const auth: Auth = getAuth(app);
-
-export { auth };
+export { auth } from '@/shared-infra/frontend-firebase';

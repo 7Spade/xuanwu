@@ -1,11 +1,8 @@
 /**
- * @fileoverview Cloud Storage Client Initializer.
- * This file is responsible for exporting the initialized Storage instance.
+ * Module: storage.client.ts
+ * Purpose: Backward-compatible export for frontend Storage client
+ * Responsibilities: re-export storage from shared-infra/frontend-firebase
+ * Constraints: deterministic logic, respect module boundaries
  */
-import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
-import { app } from '../app.client';
-
-const storage: FirebaseStorage = getStorage(app);
-
-export { storage };
+export { storage } from '@/shared-infra/frontend-firebase';

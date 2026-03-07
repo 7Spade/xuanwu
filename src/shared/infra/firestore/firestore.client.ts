@@ -1,11 +1,8 @@
 /**
- * @fileoverview Firestore Client Initializer.
- * This file is responsible for exporting the initialized Firestore instance.
+ * Module: firestore.client.ts
+ * Purpose: Backward-compatible export for frontend Firestore client
+ * Responsibilities: re-export db from shared-infra/frontend-firebase
+ * Constraints: deterministic logic, respect module boundaries
  */
-import { getFirestore, type Firestore } from 'firebase/firestore';
 
-import { app } from '../app.client';
-
-const db: Firestore = getFirestore(app);
-
-export { db };
+export { db } from '@/shared-infra/frontend-firebase';

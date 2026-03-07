@@ -7,3 +7,4 @@
  */
 
 export type { IFirestoreRepo, FirestoreDoc, WriteOptions } from '@/shared-kernel/ports/i-firestore.repo';
+export { firestoreRepo } from '@/shared-infra/frontend-firebase';
