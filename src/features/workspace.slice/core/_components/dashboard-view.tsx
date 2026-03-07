@@ -48,6 +48,11 @@ export function DashboardView() {
     [accounts, activeAccount]
   )
 
+  const recentOrganizations = useMemo(() => {
+    if (!activeOrganization) return []
+    return organizationsArray.filter((organization) => organization.id !== activeOrganization.id).slice(0, 3)
+  }, [activeOrganization, organizationsArray])
+
   const currentUserRoleInOrganization = useMemo(() => {
     if (!activeOrganization || !user) return "Guest"
     if (activeOrganization.ownerId === user.id) return "Owner"
@@ -98,7 +103,7 @@ export function DashboardView() {
 
       {isOrganizationContext && (
         <>
-          <AccountGrid accounts={organizationsArray.filter((o) => o.id !== activeOrganization.id).slice(0, 3)} />
+          {recentOrganizations.length > 0 ? <AccountGrid accounts={recentOrganizations} /> : null}
         </>
       )}
 
