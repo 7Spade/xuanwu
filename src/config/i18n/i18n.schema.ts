@@ -233,4 +233,40 @@ export interface TranslationMessages {
     budgetOverflowDescription: string;
     budgetConflict: string;
   };
+  org: {
+    skill: {
+      graphTitle: string;
+      graphSubtitle: string;
+      nodes: string;
+      edges: string;
+      addNode: string;
+      editNode: string;
+      addEdge: string;
+      clickSecondNode: string;
+      deleteSelected: string;
+      addNodeTitle: string;
+      editNodeTitle: string;
+      addEdgeTitle: string;
+      addEdgeDesc: string;
+      labelField: string;
+      labelPlaceholder: string;
+      groupField: string;
+      groupCategory: string;
+      groupSkill: string;
+      descriptionField: string;
+      descriptionPlaceholder: string;
+      edgeLabelField: string;
+      edgeLabelPlaceholder: string;
+      loading: string;
+      graphCanvasLabel: string;
+      selectOneNodeToEdit: string;
+      selectItemsToDelete: string;
+      nodeAdded: string;
+      nodeUpdated: string;
+      edgeAdded: string;
+      deletedSuccess: string;
+      saveFailed: string;
+      deleteFailed: string;
+    };
+  };
 }

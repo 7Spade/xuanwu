@@ -287,5 +287,41 @@
     "budgetOverflow": "超出預算",
     "budgetOverflowDescription": "子任務總和不能超過「{name}」的預算。",
     "budgetConflict": "預算衝突"
+  },
+  "org": {
+    "skill": {
+      "graphTitle": "技能圖譜",
+      "graphSubtitle": "以知識圖譜形式管理您組織的技能分類架構。",
+      "nodes": "節點",
+      "edges": "關係",
+      "addNode": "新增節點",
+      "editNode": "編輯節點",
+      "addEdge": "新增關係",
+      "clickSecondNode": "點擊目標節點…",
+      "deleteSelected": "刪除選取",
+      "addNodeTitle": "新增技能節點",
+      "editNodeTitle": "編輯技能節點",
+      "addEdgeTitle": "新增關係",
+      "addEdgeDesc": "連接「{from}」→「{to}」。可選填關係標籤。",
+      "labelField": "名稱",
+      "labelPlaceholder": "例如：TypeScript",
+      "groupField": "類型",
+      "groupCategory": "分類",
+      "groupSkill": "技能",
+      "descriptionField": "描述",
+      "descriptionPlaceholder": "選填描述…",
+      "edgeLabelField": "關係標籤",
+      "edgeLabelPlaceholder": "例如：需要、包含…",
+      "loading": "載入技能圖譜中…",
+      "graphCanvasLabel": "組織技能圖譜畫布",
+      "selectOneNodeToEdit": "請選取恰好一個節點以進行編輯。",
+      "selectItemsToDelete": "請至少選取一個節點或關係以進行刪除。",
+      "nodeAdded": "技能節點已新增。",
+      "nodeUpdated": "技能節點已更新。",
+      "edgeAdded": "關係已新增。",
+      "deletedSuccess": "已成功刪除。",
+      "saveFailed": "儲存失敗，請重試。",
+      "deleteFailed": "刪除失敗，請重試。"
+    }
   }
 }

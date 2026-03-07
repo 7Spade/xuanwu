@@ -287,5 +287,41 @@
     "budgetOverflow": "Budget Exceeded",
     "budgetOverflowDescription": "Sum of subtasks cannot exceed the budget of \"{name}\".",
     "budgetConflict": "Budget Conflict"
+  },
+  "org": {
+    "skill": {
+      "graphTitle": "Skill Graph",
+      "graphSubtitle": "Manage your organization's skill taxonomy as a knowledge graph.",
+      "nodes": "nodes",
+      "edges": "edges",
+      "addNode": "Add Node",
+      "editNode": "Edit Node",
+      "addEdge": "Add Edge",
+      "clickSecondNode": "Click target node…",
+      "deleteSelected": "Delete Selected",
+      "addNodeTitle": "Add Skill Node",
+      "editNodeTitle": "Edit Skill Node",
+      "addEdgeTitle": "Add Relationship",
+      "addEdgeDesc": "Connect \"{from}\" → \"{to}\". Optionally label the relationship.",
+      "labelField": "Label",
+      "labelPlaceholder": "e.g. TypeScript",
+      "groupField": "Type",
+      "groupCategory": "Category",
+      "groupSkill": "Skill",
+      "descriptionField": "Description",
+      "descriptionPlaceholder": "Optional description…",
+      "edgeLabelField": "Relationship label",
+      "edgeLabelPlaceholder": "e.g. requires, includes…",
+      "loading": "Loading skill graph…",
+      "graphCanvasLabel": "Organization skill graph canvas",
+      "selectOneNodeToEdit": "Select exactly one node to edit.",
+      "selectItemsToDelete": "Select at least one node or edge to delete.",
+      "nodeAdded": "Skill node added.",
+      "nodeUpdated": "Skill node updated.",
+      "edgeAdded": "Relationship added.",
+      "deletedSuccess": "Deleted successfully.",
+      "saveFailed": "Save failed. Please try again.",
+      "deleteFailed": "Delete failed. Please try again."
+    }
   }
 }

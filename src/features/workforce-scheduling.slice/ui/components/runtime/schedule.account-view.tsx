@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 
 import { useApp } from "@/app-runtime/providers/app-provider";
+import { OrgSkillGraphEditor } from "@/features/organization.slice";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn-ui/tabs";
 import type { ScheduleItem } from '@/shared-kernel';
 
@@ -29,9 +30,8 @@ import { useGlobalSchedule } from "../../hooks/runtime/use-global-schedule";
 import { useScheduleActions } from "../../hooks/runtime/use-schedule-commands";
 
 import { decisionHistoryColumns } from "./decision-history-columns";
-import { OrgScheduleGovernance } from "./org-schedule-governance";
-import { OrgSkillPoolManager } from "./org-skill-pool-manager";
 import { MemberAssignPopover } from "./member-assign-popover";
+import { OrgScheduleGovernance } from "./org-schedule-governance";
 import { ScheduleDataTable } from "./schedule-data-table";
 import { UnifiedCalendarGrid } from "./unified-calendar-grid";
 import { upcomingEventsColumns } from "./upcoming-events-columns";
@@ -148,11 +148,10 @@ export function AccountScheduleSection() {
           <OrgScheduleGovernance />
         </TabsContent>
 
-        {/* Tab 3: Skill Pool manage which global skills apply to this organization.
-            Activated skills appear in ProposalDialog's picker instead of the full
-            global library, reducing browsing burden for HR (FR-K5). */}
+        {/* Tab 3: Org-governed skill graph — each organization defines its own skill nodes
+            and relationships using vis-network, replacing the global skills.ts dictionary. */}
         <TabsContent value="skill-pool" className="flex-1">
-          <OrgSkillPoolManager />
+          <OrgSkillGraphEditor />
         </TabsContent>
       </Tabs>
     </div>

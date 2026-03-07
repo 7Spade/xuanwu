@@ -100,3 +100,10 @@ export type { StoredWorkspaceEvent } from './repositories'
 export const getProjectionVersion = repositories.getProjectionVersion
 export const upsertProjectionVersion = repositories.upsertProjectionVersion
 export type { ProjectionVersionRecord } from './repositories'
+
+export const getOrgSkillGraph = repositories.getOrgSkillGraph
+export const subscribeToOrgSkillGraph = repositories.subscribeToOrgSkillGraph
+export const upsertOrgSkillNode = repositories.upsertOrgSkillNode
+export const deleteOrgSkillNode = repositories.deleteOrgSkillNode
+export const upsertOrgSkillEdge = repositories.upsertOrgSkillEdge
+export const deleteOrgSkillEdge = repositories.deleteOrgSkillEdge

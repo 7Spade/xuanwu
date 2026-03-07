@@ -75,3 +75,27 @@ export type {
 } from './gov.policy';
 export { getOrgPolicy, subscribeToOrgPolicies, getOrgPoliciesByScope } from './gov.policy';
 export { useOrgPolicy } from './gov.policy';
+
+// =================================================================
+// Gov Skill (org-managed skill graph — replaces global skills.ts pool)
+// =================================================================
+export { OrgSkillGraphEditor, useOrgSkillGraph } from './gov.skill';
+export type {
+  OrgSkillNode,
+  OrgSkillEdge,
+  OrgSkillGraph,
+  OrgSkillNodeGroup,
+  OrgSkillGraphState,
+  AddOrgSkillNodeInput,
+  EditOrgSkillNodeInput,
+  DeleteOrgSkillNodeInput,
+  AddOrgSkillEdgeInput,
+  DeleteOrgSkillEdgeInput,
+} from './gov.skill';
+export {
+  addOrgSkillNodeAction,
+  editOrgSkillNodeAction,
+  deleteOrgSkillNodeAction,
+  addOrgSkillEdgeAction,
+  deleteOrgSkillEdgeAction,
+} from './gov.skill';

@@ -213,7 +213,7 @@ export default function WikiLandingPage() {
 
           <div className="mt-4 rounded-lg border p-4">
             <p className="text-base font-semibold">
-              [提案 #104] 將 "電動車充電" 歸類至 <code>transportation</code> 而非 <code>utility</code>
+              [提案 #104] 將 &ldquo;電動車充電&rdquo; 歸類至 <code>transportation</code> 而非 <code>utility</code>
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
               提案人: @GreenEnergy | 贊成: 85% | 反對: 5% | 剩餘時間: 14h

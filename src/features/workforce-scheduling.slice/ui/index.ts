@@ -22,7 +22,6 @@ export type { TimelineMember } from './types/timeline.types';
 
 export { AccountScheduleSection } from './components/runtime/schedule.account-view';
 export { OrgScheduleGovernance } from './components/runtime/org-schedule-governance';
-export { OrgSkillPoolManager } from './components/runtime/org-skill-pool-manager';
 export { WorkspaceSchedule } from './components/runtime/schedule.workspace-view';
 export { GovernanceSidebar } from './components/runtime/governance-sidebar';
 export { MemberAssignPopover } from './components/runtime/member-assign-popover';
