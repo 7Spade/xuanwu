@@ -1,181 +1,98 @@
 # 🚀 Copilot 最速理解規則集（Knowledge Graph 驅動版）
 
-> 🎯 本專案所有**事實依據（Single Source of Truth）**統一來自：
+> 🎯 **SSOT（單一事實來源）**：
+> * `docs/knowledge-graph.json` — 實體語義關係
+> * `docs/architecture/00-LogicOverview.md` — 架構規則與不變量
+> * `skills/SKILL.md` — 程式碼庫快照索引
 >
-> * `docs/knowledge-graph.json`
-> * `docs/architecture/00-LogicOverview.md`
-> * `docs/ai/repomix-output.context.md`
->
-> ❗ 任何推論、流程、任務拆解、AI 判斷
-> 都必須以這三份文件為基礎，不得憑空假設。
+> ❗ 任何推論、流程、任務拆解必須基於以上三份文件，不得憑空假設。
 
 ---
 
-# 🏗 系統運作總結（極簡決策版）
+# 🏗 決策規則
 
 ```rules
-IF 任務涉及業務邏輯
-  THEN 先讀 docs/architecture/00-LogicOverview.md
-
-IF 任務涉及實體關係
-  THEN 查 docs/knowledge-graph.json
-
-IF 需要歷史上下文
-  THEN 使用 memory MCP
-
-IF 產生新知識
-  THEN store_memory + 更新 knowledge-graph.json
-
-IF 涉及專案分析
-  THEN 選擇對應 MCP 工具
-
-禁止：
-- 憑空生成未定義邏輯
-- 跳過 Knowledge Graph
-- 未持久化新規則
+IF 業務邏輯     → 先讀 docs/architecture/00-LogicOverview.md
+IF 實體關係     → 查 docs/knowledge-graph.json
+IF 歷史上下文   → 使用 memory MCP
+IF 產生新知識   → store_memory + 更新 knowledge-graph.json
+IF 程式碼查詢   → 使用 skills/SKILL.md（→ references/files.md）
+禁止: 憑空生成邏輯 | 跳過 Knowledge Graph | 未持久化規則
 ```
 
 ---
 
-# 🧠 核心事實來源規則（強制）
+# 🧠 核心規則
 
 ```rules
-1. 所有業務邏輯以 docs/architecture/00-LogicOverview.md 為流程定義依據。
-2. 所有實體關係與知識結構以 docs/knowledge-graph.json 為語義依據。
-3. 所有 AI 判斷與任務拆解以 docs/ai/repomix-output.context.md 為依據。
-4. 不允許跳過文件直接生成邏輯。
-5. 若文件未定義，必須先更新 Knowledge Graph 再實作。
+1. 業務邏輯 SSOT  → docs/architecture/00-LogicOverview.md
+2. 實體關係 SSOT  → docs/knowledge-graph.json
+3. 程式碼分析 SSOT → skills/SKILL.md（詳見 skills/references/files.md）
+4. 文件未定義     → 先更新 Knowledge Graph 再實作
+5. 不允許跳過文件直接生成邏輯
 ```
 
 ---
 
-# 💾 記憶系統使用規則（store_memory × memory MCP）
+# 💾 記憶規則
 
 ```rules
-1. 當產生新業務規則 → 使用 store_memory 寫入 Knowledge Graph。
-2. 當 AI 需要上下文歷史 → 使用 memory MCP 查詢。
-3. 不得直接修改 knowledge-graph.json，必須透過 memory MCP 寫入。
-4. 不得在未同步 Knowledge Graph 情況下生成持久邏輯。
-5. 所有跨對話決策必須來自 memory MCP。
-6. 不得憑空生成未定義邏輯。
+新業務規則     → store_memory 寫入
+上下文歷史     → memory MCP 查詢
+跨對話決策     → 來自 memory MCP
+禁止直接修改 knowledge-graph.json（須透過 memory MCP）
 ```
 
 ---
 
-# 🔤 編碼與語言規範（Encoding & Language Protocol）
+# 🔤 編碼規範
 
 ```rules
-1. 全域編碼：所有原始碼、Markdown、JSON 文件必須強制使用 UTF-8（無 BOM）。
-2. 語言一致性（程式碼）：變數、函式命名與註解（除業務邏輯說明外）優先使用英文。
-3. 語言一致性（業務規則）：涉及台灣建築規範、勞動力調度等核心領域知識，註解可使用繁體中文以確保語義精確。
-4. 亂碼處理：若遇到亂碼，禁止直接刪除，必須先進行語義還原（Semantic Recovery）後再重新編譯或提交。
+UTF-8 無 BOM | 程式碼英文命名 | 業務規則可用繁中 | 亂碼先語義還原再提交
 ```
 
 ---
 
-# 🛠 MCP 使用時機規則句
+# 🛠 MCP 使用速查表
 
-1. **sonarqube**
-
-   * 當需要全面程式碼品質掃描或技術債分析時啟用。
-   * 適合在 CI/CD pipeline 或重大 PR merge 前運行。
-
-2. **shadcn**
-
-   * 當設計或更新 UI 元件時使用，用於查詢、生成與管理 shadcn/ui 元件。
-   * 適合開發新頁面、組件庫更新或 Dark Mode 設計時啟用。
-
-3. **next-devtools**
-
-   * 當需診斷 Next.js App Router、平行路由或 server-side 行為時使用。
-   * 適合本地開發或排查資料渲染/Streaming 問題。
-
-4. **chrome-devtools-mcp**
-
-   * 當需自動化除錯或模擬前端操作時使用。
-   * 適合跨頁面測試、UI 行為驗證或瀏覽器事件監控。
-
-5. **context7**
-
-   * 當需要長上下文記憶或知識檢索時使用。
-   * 適合多步對話、歷史資料參考或知識圖譜查詢。
-
-6. **sequential-thinking**
-
-   * 當需多步推理或複雜決策拆解時啟用。
-   * 適合 Task Planning、Chain-of-thought 推理或 AI workflow 流程控制。
-
-7. **software-planning**
-
-   * 當需軟體專案規劃、任務拆解或 DAG-based 計畫生成時使用。
-   * 適合大型專案設計或需求分析階段。
-
-8. **repomix**
-
-   * 當需分析或摘要整個程式碼庫結構時使用。
-   * 適合專案初期結構理解或重構前評估。
-
-9. **ESLint**
-
-   * 當需靜態程式碼檢查、格式規範或潛在錯誤掃描時使用。
-   * 適合 commit 前、CI/CD pipeline 或本地開發檢查。
-
-10. **memory**
-
-    * 當需存取或更新 Knowledge Graph 記憶時啟用。
-    * 適合 AI 流程的上下文保存與查詢操作。
-
-11. **filesystem**
-
-    * 當需讀寫專案檔案或操作檔案系統時使用。
-    * 適合專案分析、資料導入或生成檔案操作。
-
-12. **codacy**
-
-    * 當需程式碼安全、品質或維護性分析時使用。
-    * 適合大型 PR 審核或 CI/CD pipeline 自動檢查。
+| MCP | 使用時機 |
+|-----|----------|
+| sonarqube | 程式碼品質掃描、技術債分析、CI/CD 前 |
+| shadcn | UI 元件設計更新、新頁面、Dark Mode |
+| next-devtools | Next.js App Router 診斷、SSR 問題 |
+| chrome-devtools-mcp | 前端自動化測試、瀏覽器事件監控 |
+| context7 | 長上下文記憶、知識圖譜查詢 |
+| sequential-thinking | 多步推理、複雜決策拆解 |
+| software-planning | 專案規劃、任務拆解、DAG 計畫 |
+| repomix | 分析摘要程式碼庫結構 |
+| ESLint | 靜態程式碼檢查、格式規範 |
+| memory | 存取更新 Knowledge Graph 記憶 |
+| filesystem | 讀寫專案檔案、操作檔案系統 |
+| codacy | 程式碼安全品質維護性分析 |
 
 ---
 
-# 🧩 Copilot 行為決策流程（Mermaid）
+# 🧩 決策流程
 
 ```mermaid
 flowchart TD
-
-A[接收任務] --> B{是否屬於既有邏輯?}
-
-B -- 是 --> C[查詢 docs/architecture/00-LogicOverview.md]
-C --> D[查詢 docs/knowledge-graph.json]
-D --> E[必要時使用 memory MCP]
-E --> F[產出解決方案]
-
-B -- 否 --> G[設計新邏輯]
-G --> H[更新 knowledge-graph.json]
-H --> I[store_memory 寫入]
-I --> F
-
-F --> J{是否涉及專案工具?}
-J --> K[啟動對應 MCP]
+A[接收任務] --> B{既有邏輯?}
+B -- 是 --> C[00-LogicOverview.md] --> D[knowledge-graph.json] --> E[memory MCP] --> F[產出方案]
+B -- 否 --> G[設計邏輯] --> H[更新 knowledge-graph.json] --> I[store_memory] --> F
+F --> J{涉及工具?} --> K[啟動對應 MCP]
 ```
 
 ---
 
-# 🧬 最終架構哲學
+# 🧬 架構哲學
 
-> 不把 AI 當黑盒
-> 不把邏輯寫死在 Prompt
-> 所有知識可追溯
-> 所有決策可查詢
-> 所有流程可觀測
+> 知識可追溯 · 決策可查詢 · 流程可觀測
 
 ---
 
 ## TypeScript Module Header Rule
 
-When creating or editing a `.ts` or `.tsx` file:
-
-1. If the file does not already have a module header comment at the top, insert one.
-2. Use this concise header template:
+新建或編輯 `.ts`/`.tsx` 時，若無模組標頭則插入：
 
 ```ts
 /**
@@ -185,6 +102,3 @@ When creating or editing a `.ts` or `.tsx` file:
  * Constraints: deterministic logic, respect module boundaries
  */
 ```
-
-* Place the header at the very top of the file.
-* Keep it short, clear, and consistent across the repository.
