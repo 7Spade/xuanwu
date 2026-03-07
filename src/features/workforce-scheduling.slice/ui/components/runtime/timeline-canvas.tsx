@@ -40,6 +40,10 @@ interface TimelineCanvasProps {
     end: Date;
     groupId?: string;
   }) => Promise<boolean>;
+  onDropTask?: (params: {
+    taskId: string;
+    droppedAt: Date;
+  }) => Promise<boolean>;
   className?: string;
 }
 
@@ -50,15 +54,21 @@ export function TimelineCanvas({
   enableDrag = false,
   groupMode = "none",
   onMoveItem,
+  onDropTask,
   className,
 }: TimelineCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const timelineRef = useRef<Timeline | null>(null);
   const onMoveItemRef = useRef(onMoveItem);
+  const onDropTaskRef = useRef(onDropTask);
 
   useEffect(() => {
     onMoveItemRef.current = onMoveItem;
   }, [onMoveItem]);
+
+  useEffect(() => {
+    onDropTaskRef.current = onDropTask;
+  }, [onDropTask]);
 
   const membersMap = useMemo(() => new Map(members.map((member) => [member.id, member.name])), [members]);
 
@@ -158,7 +168,53 @@ export function TimelineCanvas({
       : new Timeline(containerRef.current, dataSet, options);
     timelineRef.current = timeline;
 
+    const container = containerRef.current;
+
+    const handleDragOver = (event: DragEvent) => {
+      if (!event.dataTransfer) return;
+      if (event.dataTransfer.types.includes("application/x-workspace-task")) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+      }
+    };
+
+    const handleDrop = async (event: DragEvent) => {
+      if (!event.dataTransfer) return;
+
+      const payload = event.dataTransfer.getData("application/x-workspace-task");
+      if (!payload) return;
+
+      event.preventDefault();
+
+      let parsed: { taskId?: string } | null = null;
+      try {
+        parsed = JSON.parse(payload) as { taskId?: string };
+      } catch {
+        return;
+      }
+
+      if (!parsed?.taskId) return;
+
+      const timelineInstance = timelineRef.current;
+      const dropHandler = onDropTaskRef.current;
+      if (!timelineInstance || !dropHandler) return;
+
+      const eventProps = timelineInstance.getEventProperties(event as unknown as Event);
+      const dropTime = eventProps.time;
+      if (!(dropTime instanceof Date) || Number.isNaN(dropTime.getTime())) return;
+
+      await dropHandler({
+        taskId: parsed.taskId,
+        droppedAt: dropTime,
+      });
+    };
+
+    container.addEventListener("dragover", handleDragOver);
+    container.addEventListener("drop", handleDrop);
+
     return () => {
+      container.removeEventListener("dragover", handleDragOver);
+      container.removeEventListener("drop", handleDrop);
       timeline.destroy();
       timelineRef.current = null;
     };
