@@ -2276,6 +2276,32 @@ const getAccountInitial = (name?: string)
 ⋮----
 ```
 
+## File: src/features/workspace.slice/core/_components/shell/dashboard-sidebar.tsx
+```typescript
+import { usePathname } from 'next/navigation';
+import { useAuth } from "@/app-runtime/providers/auth-provider";
+import { useI18n } from "@/app-runtime/providers/i18n-provider";
+import { useUser } from "@/features/account.slice";
+import { useOrganizationManagement } from "@/features/organization.slice";
+import { useApp } from "@/features/workspace.slice/core/_hooks/use-app";
+import { useVisibleWorkspaces } from "@/features/workspace.slice/core/_hooks/use-visible-workspaces";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarRail,
+  SidebarSeparator,
+} from "@/shadcn-ui/sidebar";
+import { AccountSwitcher } from "./account-switcher";
+import { NavMain } from "./nav-main";
+import { NavUser } from "./nav-user";
+import { NavWorkspaces } from "./nav-workspaces";
+```
+
 ## File: src/features/workspace.slice/core/_components/shell/index.ts
 ```typescript
 
@@ -5541,69 +5567,6 @@ onForegroundMessage(
 
 ```
 
-## File: src/features/semantic-graph.slice/_actions.ts
-```typescript
-import { commandSuccess, commandFailureFrom } from '@/shared-kernel';
-import type { CommandResult, TagSlugRef } from '@/shared-kernel';
-import type { TaxonomyNode } from '@/shared-kernel';
-import { detectTemporalConflicts, validateTaxonomyAssignment } from './_aggregate';
-import { indexEntity, removeFromIndex } from './_services';
-import type {
-  TemporalTagAssignment,
-  SemanticIndexEntry,
-} from './_types';
-import {
-  addEdge,
-  removeEdge,
-} from './graph/edges/semantic-edge-store';
-import type { SemanticRelationType, TagLifecycleState } from './core/types';
-import {
-  registerTagDraft,
-  activateTag,
-  transitionTagState,
-} from './routing/workflows/tag-lifecycle.workflow';
-import type { OutboxLifecycleEvent } from './routing/workflows/tag-lifecycle.workflow';
-export async function upsertTagWithConflictCheck(
-  node: TaxonomyNode,
-  temporalAssignment: TemporalTagAssignment | null,
-  existingNodes: readonly TaxonomyNode[],
-  existingAssignments: readonly TemporalTagAssignment[]
-): Promise<CommandResult>
-export async function removeTag(tagSlug: string): Promise<CommandResult>
-export async function assignSemanticTag(
-  node: TaxonomyNode,
-  temporalAssignment: TemporalTagAssignment | null,
-  existingNodes: readonly TaxonomyNode[],
-  existingAssignments: readonly TemporalTagAssignment[]
-): Promise<CommandResult>
-export async function addSemanticEdge(
-  fromTagSlug: string,
-  toTagSlug: string,
-  relationType: SemanticRelationType
-): Promise<CommandResult>
-export async function removeSemanticEdge(
-  fromTagSlug: string,
-  toTagSlug: string,
-  relationType: SemanticRelationType
-): Promise<CommandResult>
-export async function registerTagLifecycle(
-  tagSlug: TagSlugRef,
-  triggeredBy: string,
-  aggregateVersion: number
-): Promise<CommandResult &
-export async function activateTagLifecycle(
-  tagSlug: TagSlugRef,
-  triggeredBy: string,
-  nextVersion: number
-): Promise<CommandResult &
-export async function transitionTagLifecycle(
-  tagSlug: TagSlugRef,
-  toState: TagLifecycleState,
-  triggeredBy: string,
-  nextVersion: number
-): Promise<CommandResult &
-```
-
 ## File: src/features/semantic-graph.slice/core/embeddings/vector-store.ts
 ```typescript
 import type { TagSlugRef } from '@/shared-kernel';
@@ -5868,6 +5831,133 @@ export interface CausalityChain {
 }
 ```
 
+## File: src/features/semantic-graph.slice/governance/semantic-governance-portal/consensus-engine/index.ts
+```typescript
+import type { RelationshipProposal } from '../proposal-stream';
+export type ConsensusDecision = 'PASS' | 'REJECTED';
+export type ConsensusRejectionCode =
+  | 'DUPLICATE_PENDING'
+  | 'CONTRADICTORY_PROPOSAL'
+  | 'GOVERNANCE_CONFLICT'
+  | 'INCOMPLETE_PROPOSAL';
+export interface ConsensusResult {
+  readonly decision: ConsensusDecision;
+  readonly rejectionCode?: ConsensusRejectionCode;
+  readonly reason?: string;
+}
+function _isSameTuple(
+  a: RelationshipProposal,
+  b: RelationshipProposal,
+): boolean
+function _isContradictoryPair(
+  incoming: RelationshipProposal,
+  existing: RelationshipProposal,
+): boolean
+function _hasOpposingRelation(
+  incoming: RelationshipProposal,
+  existing: RelationshipProposal,
+): boolean
+export function validateConsensus(
+  incoming: RelationshipProposal,
+  activeProposals: readonly RelationshipProposal[],
+): ConsensusResult
+```
+
+## File: src/features/semantic-graph.slice/governance/semantic-governance-portal/proposal-stream/index.ts
+```typescript
+import type { TagSlugRef } from '@/shared-kernel';
+import type { SemanticRelationType } from '../../../core/types';
+export type ProposalId = string & { readonly _brand: 'ProposalId' };
+export type ProposalStatus = 'pending' | 'approved' | 'rejected';
+export interface RelationshipProposal {
+  readonly proposalId: ProposalId;
+  readonly fromTagSlug: TagSlugRef;
+  readonly toTagSlug: TagSlugRef;
+  readonly relationType: SemanticRelationType;
+  readonly weight: number;
+  readonly proposedBy: string;
+  readonly proposedAt: string;
+  status: ProposalStatus;
+  rejectionReason?: string;
+  resolvedAt?: string;
+}
+⋮----
+function _newId(): ProposalId
+export function enqueueProposal(
+  proposal: Omit<RelationshipProposal, 'proposalId' | 'status'>,
+): ProposalId
+export function approveProposal(proposalId: ProposalId): void
+export function rejectProposal(proposalId: ProposalId, reason: string): void
+export function listPendingProposals(): readonly RelationshipProposal[]
+export function listAllProposals(): readonly RelationshipProposal[]
+export function _clearProposalsForTest(): void
+```
+
+## File: src/features/semantic-graph.slice/governance/semantic-governance-portal/relationship-visualizer/index.ts
+```typescript
+import {
+  buildAdjacencyList,
+  buildIsAAdjacencyList,
+  buildRequiresAdjacencyList,
+} from '../../../graph/edges/adjacency-list';
+import { getAllEdges } from '../../../graph/edges/semantic-edge-store';
+import type { SemanticRelationType } from '../../../core/types';
+export interface VisNode {
+  readonly id: string;
+  readonly label: string;
+  readonly category: 'tag' | 'workspace-tag' | 'global-tag';
+}
+export interface VisEdge {
+  readonly source: string;
+  readonly target: string;
+  readonly relationType: SemanticRelationType;
+}
+export interface GraphSnapshot {
+  readonly nodes: readonly VisNode[];
+  readonly edges: readonly VisEdge[];
+  readonly generatedAt: string;
+}
+function _slugToCategory(slug: string): VisNode['category']
+function _slugToLabel(slug: string): string
+function _buildNodes(adjacency: ReturnType<typeof buildAdjacencyList>): VisNode[]
+// ??? Public API ???????????????????????????????????????????????????????????????
+/**
+ * Build a full graph snapshot (all relation types) from the current edge store.
+ * [D21-I] globally observable.
+ */
+export function buildFullGraphSnapshot(): GraphSnapshot
+/**
+ * Build an IS_A hierarchy snapshot for subsumption tree rendering.
+ */
+export function buildIsAHierarchySnapshot(): GraphSnapshot
+export function buildRequiresDependencySnapshot(): GraphSnapshot
+```
+
+## File: src/features/semantic-graph.slice/governance/semantic-governance-portal/wiki-editor/index.ts
+```typescript
+import type { TagSlugRef } from '@/shared-kernel';
+import type { SemanticRelationType } from '../../../core/types';
+import {
+  type ProposalId,
+  type RelationshipProposal,
+  enqueueProposal,
+  listAllProposals,
+} from '../proposal-stream';
+export interface ProposalSubmission {
+  readonly fromTagSlug: TagSlugRef;
+  readonly toTagSlug: TagSlugRef;
+  readonly relationType: SemanticRelationType;
+  readonly weight: number;
+  readonly submittedBy: string;
+}
+function _validateSubmission(
+  submission: ProposalSubmission,
+  existing: readonly RelationshipProposal[],
+): void
+export function submitProposal(submission: ProposalSubmission): ProposalId
+export function getProposalHistory(tagSlug: TagSlugRef): readonly RelationshipProposal[]
+```
+
 ## File: src/features/semantic-graph.slice/graph/edges/context-attention.ts
 ```typescript
 import type { TagSlugRef } from '@/shared-kernel';
@@ -5879,11 +5969,6 @@ export function filterTagsByWorkspaceContext(
   allSlugs: readonly TagSlugRef[],
   workspaceId: string
 ): TagSlugRef[]
-```
-
-## File: src/features/semantic-graph.slice/index.ts
-```typescript
-
 ```
 
 ## File: src/features/semantic-graph.slice/learning/learning-engine.ts
@@ -5934,6 +6019,218 @@ export async function getTagSnapshotPresentation(tagSlug: string): Promise<TagSn
 export async function getTagSnapshotPresentationMap(
   tagSlugs: readonly string[],
 ): Promise<Record<string, TagSnapshotPresentation>>
+```
+
+## File: src/features/semantic-graph.slice/reasoning/semantic-distance.ts
+```typescript
+import {
+  getAllEdges,
+  getEdgesFrom,
+  getEdgesTo,
+} from '../graph/edges/semantic-edge-store';
+import type { SemanticDistanceEntry } from '../core/types';
+⋮----
+interface _QueueEntry {
+  slug: string;
+  distance: number;
+  hopCount: number;
+}
+function _dijkstra(
+  fromSlug: string,
+  maxHops: number
+): Map<string,
+export function computeSemanticDistance(
+  fromSlug: string,
+  toSlug: string,
+  maxHops = 10
+): SemanticDistanceEntry | null
+export function computeSemanticDistanceMatrix(
+  slugs: readonly string[],
+  maxHops = 10
+): readonly SemanticDistanceEntry[]
+export function isIsolatedNode(tagSlug: string): boolean
+export function findIsolatedNodes(allTagSlugs: readonly string[]): readonly string[]
+export function computeRelationWeight(fromSlug: string, toSlug: string): number
+export function getAllGraphNodes(): readonly string[]
+```
+
+## File: src/features/semantic-graph.slice/routing/dispatch-bridge/index.ts
+```typescript
+import type { TagSlugRef } from '../../core/types';
+import { resolveDispatchPolicy } from '../policy-mapper';
+import type { DispatchPolicy } from '../policy-mapper';
+export interface DispatchCommand {
+  readonly commandId: string;
+  readonly tagSlug: TagSlugRef;
+  readonly policy: DispatchPolicy;
+  readonly createdAt: string;
+  readonly lane: DispatchLane;
+}
+export type DispatchLane =
+  | 'IMMEDIATE'
+  | 'FOREGROUND'
+  | 'BACKGROUND';
+export type DispatchResult =
+  | { readonly success: true; readonly command: DispatchCommand }
+  | { readonly success: false; readonly reason: string };
+⋮----
+function _generateCommandId(tagSlug: TagSlugRef): string
+function _determineLane(priority: number): DispatchLane
+export function dispatchForTag(tagSlug: TagSlugRef): DispatchResult
+export function dispatchForTags(
+  tagSlugs: readonly TagSlugRef[],
+  strict = false
+): readonly DispatchCommand[]
+export function _resetCommandCounterForTest(): void
+```
+
+## File: src/features/semantic-graph.slice/routing/policy-mapper/index.ts
+```typescript
+import type { TagSlugRef } from '../../core/types';
+export type DispatchActionKind =
+  | 'NOTIFY_RESPONSIBLE_PARTY'
+  | 'ASSIGN_TO_WORKER'
+  | 'ESCALATE'
+  | 'ARCHIVE'
+  | 'PROMOTE_TAG'
+  | 'ALERT_ROUTING';
+export interface DispatchPolicy {
+  readonly tagSlug: TagSlugRef;
+  readonly actionKind: DispatchActionKind;
+  readonly priority: number;
+  readonly label: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+export type PolicyResolutionResult =
+  | { readonly found: true; readonly policy: DispatchPolicy }
+  | { readonly found: false; readonly reason: string };
+⋮----
+export function registerPolicy(policy: DispatchPolicy): void
+export function unregisterPolicy(tagSlug: TagSlugRef): boolean
+export function resolveDispatchPolicy(tagSlug: TagSlugRef): PolicyResolutionResult
+export function getAllPolicies(): readonly DispatchPolicy[]
+export function _clearPoliciesForTest(): void
+```
+
+## File: src/features/semantic-graph.slice/routing/tag-lifecycle.workflow.ts
+```typescript
+import { buildIdempotencyKey, StalenessMs } from '@/shared-kernel';
+import type { TagSlugRef } from '@/shared-kernel';
+import type {
+  TagLifecycleRecord,
+  TagLifecycleState,
+  TagLifecycleEvent,
+  TagLifecycleEventType,
+  StaleTagWarning,
+} from '../core/types';
+⋮----
+export interface OutboxLifecycleEvent {
+  readonly outboxLane: 'BACKGROUND_LANE';
+  readonly idempotencyKey: string;
+  readonly payload: TagLifecycleEvent;
+}
+type TransitionMap = Partial<Record<TagLifecycleState, readonly TagLifecycleState[]>>;
+⋮----
+function isAllowed(from: TagLifecycleState, to: TagLifecycleState): boolean
+export function registerTagDraft(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  aggregateVersion: number
+): OutboxLifecycleEvent
+export function transitionTagState(
+  tagSlug: TagSlugRef,
+  toState: TagLifecycleState,
+  triggeredBy: string,
+  nextVersion: number
+): OutboxLifecycleEvent
+export function activateTag(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  nextVersion: number
+): OutboxLifecycleEvent
+export function detectStaleTagWarnings(): readonly StaleTagWarning[]
+export function getLifecycleRecord(tagSlug: TagSlugRef): TagLifecycleRecord | undefined
+export function getAllLifecycleRecords(): readonly TagLifecycleRecord[]
+export function _clearLifecycleRecordsForTest(): void
+function _buildEvent(
+  tagSlug: TagSlugRef,
+  fromState: TagLifecycleState,
+  toState: TagLifecycleState,
+  triggeredBy: string,
+  aggregateVersion: number,
+  transitionedAt: string
+): TagLifecycleEvent
+function _wrapOutbox(payload: TagLifecycleEvent): OutboxLifecycleEvent
+```
+
+## File: src/features/semantic-graph.slice/workflows/alert-routing-flow.ts
+```typescript
+import type { TagSlugRef } from '../core/types';
+import { dispatchForTag } from '../routing/dispatch-bridge';
+import type { DispatchCommand } from '../routing/dispatch-bridge';
+import { resolveDispatchPolicy } from '../routing/policy-mapper';
+export type AlertKind = 'STALE_TAG' | 'INVARIANT_FAIL' | 'CAUSALITY_WARN';
+export interface SemanticGraphAlert {
+  readonly alertId: string;
+  readonly kind: AlertKind;
+  readonly tagSlug?: TagSlugRef;
+  readonly message: string;
+  readonly detectedAt: string;
+  readonly severity: number;
+}
+export interface AlertRoutingResult {
+  readonly alert: SemanticGraphAlert;
+  readonly dispatchCommand: DispatchCommand | null;
+  readonly policyFound: boolean;
+  readonly skipReason?: string;
+}
+⋮----
+export function _resetAlertCounterForTest(): void
+function _generateAlertId(kind: AlertKind): string
+export function routeAlert(alert: SemanticGraphAlert): AlertRoutingResult
+export function routeStaleTagAlert(
+  tagSlug: TagSlugRef,
+  staleAgeMs: number
+): AlertRoutingResult
+export function routeInvariantFailAlert(
+  tagSlug: TagSlugRef | undefined,
+  rejectionReason: string
+): AlertRoutingResult
+export function routeCausalityWarnAlert(
+  tagSlug: TagSlugRef,
+  warningMessage: string
+): AlertRoutingResult
+```
+
+## File: src/features/semantic-graph.slice/workflows/tag-promotion-flow.ts
+```typescript
+import type { TagSlugRef } from '../core/types';
+import { dispatchForTag } from '../routing/dispatch-bridge';
+import type { DispatchCommand } from '../routing/dispatch-bridge';
+import {
+  registerPolicy,
+  type DispatchPolicy,
+  type DispatchActionKind,
+} from '../routing/policy-mapper';
+import { activateTag } from '../routing/tag-lifecycle.workflow';
+import type { OutboxLifecycleEvent } from '../routing/tag-lifecycle.workflow';
+export interface TagPromotionInput {
+  readonly tagSlug: TagSlugRef;
+  readonly triggeredBy: string;
+  readonly nextVersion: number;
+  readonly dispatchConfig: {
+    readonly actionKind: DispatchActionKind;
+    readonly priority: number;
+    readonly label: string;
+    readonly metadata?: Readonly<Record<string, unknown>>;
+  };
+}
+export interface TagPromotionResult {
+  readonly outboxEvent: OutboxLifecycleEvent;
+  readonly dispatchCommand: DispatchCommand | null;
+  readonly registeredPolicy: DispatchPolicy;
+}
+export function promoteTagToActive(input: TagPromotionInput): TagPromotionResult
 ```
 
 ## File: src/features/workforce-scheduling.slice/application/commands/actions/index.ts
@@ -8086,28 +8383,72 @@ export interface NotificationTypeMeta {
 }
 ```
 
-## File: src/features/semantic-graph.slice/_queries.ts
+## File: src/features/semantic-graph.slice/_actions.ts
 ```typescript
-import { querySemanticIndex, getIndexStats } from './_services';
+import { commandSuccess, commandFailureFrom } from '@/shared-kernel';
+import type { CommandResult, TagSlugRef } from '@/shared-kernel';
+import type { TaxonomyNode } from '@/shared-kernel';
+import { detectTemporalConflicts, validateTaxonomyAssignment } from './_aggregate';
+import { indexEntity, removeFromIndex } from './_services';
+import type {
+  TemporalTagAssignment,
+  SemanticIndexEntry,
+} from './_types';
 import {
-  traceAffectedNodes,
-  rankAffectedNodes,
-  buildDownstreamEvents,
-  buildCausalityChain,
-} from './reasoning/causality/causality-tracer';
-import { getEdgesByType } from './graph/edges/semantic-edge-store';
+  addEdge,
+  removeEdge,
+} from './graph/edges/semantic-edge-store';
+import type { SemanticRelationType, TagLifecycleState } from './core/types';
 import {
-  computeSemanticDistance,
-  computeSemanticDistanceMatrix,
-  findIsolatedNodes,
-} from './graph/neural-net/neural-network';
-import type { SemanticEdge, StaleTagWarning } from './core/types';
-import { detectStaleTagWarnings } from './routing/workflows/tag-lifecycle.workflow';
-import { getEligibleTags, satisfiesSemanticRequirement, buildEligibilityMatrix } from './output/projections/graph-selectors';
-⋮----
-export function getIsAEdges(): readonly SemanticEdge[]
-export function getRequiresEdges(): readonly SemanticEdge[]
-export function queryStaleTagWarnings(): readonly StaleTagWarning[]
+  registerTagDraft,
+  activateTag,
+  transitionTagState,
+} from './routing/tag-lifecycle.workflow';
+import type { OutboxLifecycleEvent } from './routing/tag-lifecycle.workflow';
+export async function upsertTagWithConflictCheck(
+  node: TaxonomyNode,
+  temporalAssignment: TemporalTagAssignment | null,
+  existingNodes: readonly TaxonomyNode[],
+  existingAssignments: readonly TemporalTagAssignment[]
+): Promise<CommandResult>
+export async function removeTag(tagSlug: string): Promise<CommandResult>
+export async function assignSemanticTag(
+  node: TaxonomyNode,
+  temporalAssignment: TemporalTagAssignment | null,
+  existingNodes: readonly TaxonomyNode[],
+  existingAssignments: readonly TemporalTagAssignment[]
+): Promise<CommandResult>
+export async function addSemanticEdge(
+  fromTagSlug: string,
+  toTagSlug: string,
+  relationType: SemanticRelationType
+): Promise<CommandResult>
+export async function removeSemanticEdge(
+  fromTagSlug: string,
+  toTagSlug: string,
+  relationType: SemanticRelationType
+): Promise<CommandResult>
+export async function registerTagLifecycle(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  aggregateVersion: number
+): Promise<CommandResult &
+export async function activateTagLifecycle(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  nextVersion: number
+): Promise<CommandResult &
+export async function transitionTagLifecycle(
+  tagSlug: TagSlugRef,
+  toState: TagLifecycleState,
+  triggeredBy: string,
+  nextVersion: number
+): Promise<CommandResult &
+```
+
+## File: src/features/semantic-graph.slice/index.ts
+```typescript
+
 ```
 
 ## File: src/features/workforce-scheduling.slice/application/commands/actions/governance.ts
@@ -8601,17 +8942,6 @@ import { updateTimelineItemDateRange } from '../../../application/commands';
 export function useTimelineCommands()
 ```
 
-## File: src/features/workforce-scheduling.slice/ui/hooks/runtime/use-workspace-timeline.ts
-```typescript
-import { useEffect, useMemo, useState } from 'react';
-import { useApp } from '@/app-runtime/providers/app-provider';
-import { useWorkspace } from '@/features/workspace.slice';
-import type { ScheduleItem } from '@/shared-kernel';
-import { subscribeToWorkspaceTimelineItems } from '../../../application/queries/timeline.queries';
-import type { TimelineMember } from '../../types/timeline.types';
-export function useWorkspaceTimeline()
-```
-
 ## File: src/features/workspace.slice/application/_command-handler.ts
 ```typescript
 import { createTraceContext, logDomainError } from '@/shared-infra/observability';
@@ -8694,30 +9024,61 @@ readonly implementsEventEnvelope = true as const;
 constructor()
 ```
 
-## File: src/features/workspace.slice/core/_components/shell/dashboard-sidebar.tsx
+## File: src/features/workspace.slice/core/_components/workspace-provider.tsx
 ```typescript
-import { usePathname } from 'next/navigation';
-import { useAuth } from "@/app-runtime/providers/auth-provider";
-import { useI18n } from "@/app-runtime/providers/i18n-provider";
-import { useUser } from "@/features/account.slice";
-import { useOrganizationManagement } from "@/features/organization.slice";
-import { useApp } from "@/features/workspace.slice/core/_hooks/use-app";
-import { useVisibleWorkspaces } from "@/features/workspace.slice/core/_hooks/use-visible-workspaces";
+import { Loader2 } from 'lucide-react';
+import type React from 'react';
+import { createContext, useContext, useMemo, useCallback, useEffect, useRef, useState } from 'react';
+import { registerOrgPolicyCache, runTransaction } from '@/features/workspace.slice/application';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarRail,
-  SidebarSeparator,
-} from "@/shadcn-ui/sidebar";
-import { AccountSwitcher } from "./account-switcher";
-import { NavMain } from "./nav-main";
-import { NavUser } from "./nav-user";
-import { NavWorkspaces } from "./nav-workspaces";
+  createIssue as createIssueAction,
+  addCommentToIssue as addCommentToIssueAction,
+  resolveIssue as resolveIssueAction,
+} from '@/features/workspace.slice/business.issues'
+import {
+  createTask as createTaskAction,
+  updateTask as updateTaskAction,
+  deleteTask as deleteTaskAction,
+  getWorkspaceTask as getWorkspaceTaskAction,
+} from '@/features/workspace.slice/business.tasks'
+import type { WorkspaceTask } from '@/features/workspace.slice/business.tasks/_types';
+import { listWorkflowStates } from '@/features/workspace.slice/business.workflow'
+import { WorkspaceEventBus , WorkspaceEventContext, registerWorkspaceFunnel, registerOrganizationFunnel, type WorkspaceEventName, type FileSendToParserPayload } from '@/features/workspace.slice/core.event-bus';
+import { writeAuditLog } from '@/features/workspace.slice/gov.audit/_actions';
+import type { WorkspaceRole } from '@/features/workspace.slice/gov.role/_types';
+import { firestoreTimestampToISO } from '@/shadcn-ui/utils/utils';
+import {
+  dispatchCreateScheduleItemCommand,
+} from '@/shared-infra/gateway-command';
+import type { AuthoritySnapshot } from '@/shared-kernel';
+import {
+  authorizeWorkspaceTeam as authorizeWorkspaceTeamAction,
+  revokeWorkspaceTeam as revokeWorkspaceTeamAction,
+  grantIndividualWorkspaceAccess as grantIndividualWorkspaceAccessAction,
+  revokeIndividualWorkspaceAccess as revokeIndividualWorkspaceAccessAction,
+  mountCapabilities as mountCapabilitiesAction,
+  unmountCapability as unmountCapabilityAction,
+  updateWorkspaceSettings as updateWorkspaceSettingsAction,
+  deleteWorkspace as deleteWorkspaceAction,
+} from '../_actions'
+import { useAccount } from '../_hooks/use-account';
+import { useApp } from '../_hooks/use-app';
+import { subscribeToWorkspaceTasks, subscribeToWorkspaceIssues } from '../_queries';
+import type { WorkspaceLifecycleState, Capability, Address, WorkspacePersonnel } from '../_types';
+import {
+  applyWorkflowBlocked,
+  applyWorkflowUnblocked,
+  deriveWorkflowBlockersFromSources,
+  summarizeWorkflowBlockers,
+  type WorkflowBlockersState,
+} from './workflow-blockers-state';
+import type { CreateScheduleItemInput, WorkspaceContextType } from './workspace-context.types';
+⋮----
+export function WorkspaceProvider(
+⋮----
+const hydrateWorkflowBlockers = async () =>
+⋮----
+export function useWorkspace()
 ```
 
 ## File: src/shared-infra/event-router/index.ts
@@ -8872,6 +9233,30 @@ createTraceContext(source?: string): TraceContext;
 
 ```
 
+## File: src/features/semantic-graph.slice/_queries.ts
+```typescript
+import { querySemanticIndex, getIndexStats } from './_services';
+import {
+  traceAffectedNodes,
+  rankAffectedNodes,
+  buildDownstreamEvents,
+  buildCausalityChain,
+} from './reasoning/causality/causality-tracer';
+import { getEdgesByType } from './graph/edges/semantic-edge-store';
+import {
+  computeSemanticDistance,
+  computeSemanticDistanceMatrix,
+  findIsolatedNodes,
+} from './reasoning/semantic-distance';
+import type { SemanticEdge, StaleTagWarning } from './core/types';
+import { detectStaleTagWarnings } from './routing/tag-lifecycle.workflow';
+import { getEligibleTags, satisfiesSemanticRequirement, buildEligibilityMatrix } from './output/projections/graph-selectors';
+⋮----
+export function getIsAEdges(): readonly SemanticEdge[]
+export function getRequiresEdges(): readonly SemanticEdge[]
+export function queryStaleTagWarnings(): readonly StaleTagWarning[]
+```
+
 ## File: src/features/semantic-graph.slice/core/embeddings/embedding-port.ts
 ```typescript
 import type { TagSlugRef } from '@/shared-kernel';
@@ -8938,38 +9323,6 @@ export function computeStalenessMs(isoTimestamp: string): number
 export function isStale(isoTimestamp: string, thresholdMs: number): boolean
 ⋮----
 export function deriveTierFromXp(xp: number): string
-```
-
-## File: src/features/semantic-graph.slice/governance/consensus-engine/index.ts
-```typescript
-import type { RelationshipProposal } from '../proposal-stream';
-export type ConsensusDecision = 'PASS' | 'REJECTED';
-export type ConsensusRejectionCode =
-  | 'DUPLICATE_PENDING'
-  | 'CONTRADICTORY_PROPOSAL'
-  | 'GOVERNANCE_CONFLICT'
-  | 'INCOMPLETE_PROPOSAL';
-export interface ConsensusResult {
-  readonly decision: ConsensusDecision;
-  readonly rejectionCode?: ConsensusRejectionCode;
-  readonly reason?: string;
-}
-function _isSameTuple(
-  a: RelationshipProposal,
-  b: RelationshipProposal,
-): boolean
-function _isContradictoryPair(
-  incoming: RelationshipProposal,
-  existing: RelationshipProposal,
-): boolean
-function _hasOpposingRelation(
-  incoming: RelationshipProposal,
-  existing: RelationshipProposal,
-): boolean
-export function validateConsensus(
-  incoming: RelationshipProposal,
-  activeProposals: readonly RelationshipProposal[],
-): ConsensusResult
 ```
 
 ## File: src/features/semantic-graph.slice/governance/guards/invariant-guard.ts
@@ -9061,101 +9414,6 @@ export function detectStaleTagWarnings(
 ): readonly StaleTagWarning[]
 export function getAllLifecycleRecords(): readonly TagLifecycleRecord[]
 export function _clearLifecycleRecordsForTest(): void
-```
-
-## File: src/features/semantic-graph.slice/governance/proposal-stream/index.ts
-```typescript
-import type { TagSlugRef } from '@/shared-kernel';
-import type { SemanticRelationType } from '../../core/types';
-export type ProposalId = string & { readonly _brand: 'ProposalId' };
-export type ProposalStatus = 'pending' | 'approved' | 'rejected';
-export interface RelationshipProposal {
-  readonly proposalId: ProposalId;
-  readonly fromTagSlug: TagSlugRef;
-  readonly toTagSlug: TagSlugRef;
-  readonly relationType: SemanticRelationType;
-  readonly weight: number;
-  readonly proposedBy: string;
-  readonly proposedAt: string;
-  status: ProposalStatus;
-  rejectionReason?: string;
-  resolvedAt?: string;
-}
-⋮----
-function _newId(): ProposalId
-export function enqueueProposal(
-  proposal: Omit<RelationshipProposal, 'proposalId' | 'status'>,
-): ProposalId
-export function approveProposal(proposalId: ProposalId): void
-export function rejectProposal(proposalId: ProposalId, reason: string): void
-export function listPendingProposals(): readonly RelationshipProposal[]
-export function listAllProposals(): readonly RelationshipProposal[]
-export function _clearProposalsForTest(): void
-```
-
-## File: src/features/semantic-graph.slice/governance/relationship-visualizer/index.ts
-```typescript
-import {
-  buildAdjacencyList,
-  buildIsAAdjacencyList,
-  buildRequiresAdjacencyList,
-} from '../../graph/edges/adjacency-list';
-import { getAllEdges } from '../../graph/edges/semantic-edge-store';
-import type { SemanticRelationType } from '../../core/types';
-export interface VisNode {
-  readonly id: string;
-  readonly label: string;
-  readonly category: 'tag' | 'workspace-tag' | 'global-tag';
-}
-export interface VisEdge {
-  readonly source: string;
-  readonly target: string;
-  readonly relationType: SemanticRelationType;
-}
-export interface GraphSnapshot {
-  readonly nodes: readonly VisNode[];
-  readonly edges: readonly VisEdge[];
-  readonly generatedAt: string;
-}
-function _slugToCategory(slug: string): VisNode['category']
-function _slugToLabel(slug: string): string
-function _buildNodes(adjacency: ReturnType<typeof buildAdjacencyList>): VisNode[]
-// ??? Public API ???????????????????????????????????????????????????????????????
-/**
- * Build a full graph snapshot (all relation types) from the current edge store.
- * [D21-I] globally observable.
- */
-export function buildFullGraphSnapshot(): GraphSnapshot
-/**
- * Build an IS_A hierarchy snapshot for subsumption tree rendering.
- */
-export function buildIsAHierarchySnapshot(): GraphSnapshot
-export function buildRequiresDependencySnapshot(): GraphSnapshot
-```
-
-## File: src/features/semantic-graph.slice/governance/wiki-editor/index.ts
-```typescript
-import type { TagSlugRef } from '@/shared-kernel';
-import type { SemanticRelationType } from '../../core/types';
-import {
-  type ProposalId,
-  type RelationshipProposal,
-  enqueueProposal,
-  listAllProposals,
-} from '../proposal-stream';
-export interface ProposalSubmission {
-  readonly fromTagSlug: TagSlugRef;
-  readonly toTagSlug: TagSlugRef;
-  readonly relationType: SemanticRelationType;
-  readonly weight: number;
-  readonly submittedBy: string;
-}
-function _validateSubmission(
-  submission: ProposalSubmission,
-  existing: readonly RelationshipProposal[],
-): void
-export function submitProposal(submission: ProposalSubmission): ProposalId
-export function getProposalHistory(tagSlug: TagSlugRef): readonly RelationshipProposal[]
 ```
 
 ## File: src/features/semantic-graph.slice/graph/edges/adjacency-list.ts
@@ -9309,36 +9567,6 @@ export function drainPendingEntries(): OutboxEntry[]
 export function _clearOutboxForTest(): void
 ```
 
-## File: src/features/semantic-graph.slice/output/projections/graph-selectors.ts
-```typescript
-import type { TagCategory } from '@/shared-kernel';
-import { isSupersetOf } from '../../graph/edges/semantic-edge-store';
-import type {
-  EligibleTagsQuery,
-  EligibleTagResult,
-  TagLifecycleRecord,
-  TagEntity,
-} from '../../core/types';
-import { getAllLifecycleRecords } from '../../routing/workflows/tag-lifecycle.workflow';
-export function getEligibleTags(
-  tagEntities: readonly TagEntity[],
-  query: EligibleTagsQuery = {}
-): readonly EligibleTagResult[]
-export function satisfiesSemanticRequirement(
-  candidateTagSlug: string,
-  requiredTagSlug: string
-): boolean
-export function getActiveTagsByCategory(
-  tagEntities: readonly TagEntity[],
-  category: TagCategory
-): readonly EligibleTagResult[]
-export function buildEligibilityMatrix(
-  candidateSlugs: readonly string[],
-  requiredSlugs: readonly string[]
-): Readonly<Record<string, readonly string[]>>
-function _buildLifecycleMap(): Map<string, TagLifecycleRecord>
-```
-
 ## File: src/features/semantic-graph.slice/output/subscribers/lifecycle-subscriber.ts
 ```typescript
 import type { TagLifecycleEvent } from '../../core/types';
@@ -9349,202 +9577,6 @@ export type LifecycleEventSource = (handler: (event: TagLifecycleEvent) => void)
 export function createLifecycleSubscriber(source: LifecycleEventSource): Unsubscribe
 export function onLifecycleEvent(handler: (event: TagLifecycleEvent) => void): Unsubscribe
 export function _clearHandlersForTest(): void
-```
-
-## File: src/features/semantic-graph.slice/reasoning/causality/causality-tracer.ts
-```typescript
-import { tagSlugRef } from '@/shared-kernel';
-import { getEdgesFrom, getEdgesTo } from '../../graph/edges/semantic-edge-store';
-import { computeRelationWeight } from '../../graph/neural-net/neural-network';
-import type {
-  AffectedNode,
-  CausalityChain,
-  CausalityReason,
-  DownstreamEvent,
-  TagLifecycleEvent,
-  TagLifecycleState,
-} from '../../core/types';
-interface _TraversalEntry {
-  slug: string;
-  hopCount: number;
-  directReason: CausalityReason;
-}
-function _bfsAffected(
-  sourceSlug: string,
-  candidateSlugs: ReadonlySet<string>,
-  maxHops: number
-): Map<string, _TraversalEntry>
-function _suggestDownstreamEvent(
-  targetSlug: string,
-  reason: CausalityReason,
-  sourceEventType: TagLifecycleEvent['eventType']
-): DownstreamEvent | null
-export function traceAffectedNodes(
-  event: TagLifecycleEvent,
-  candidateSlugs: readonly string[],
-  maxHops = 5
-): readonly AffectedNode[]
-export function rankAffectedNodes(nodes: readonly AffectedNode[]): readonly AffectedNode[]
-export function buildDownstreamEvents(
-  event: TagLifecycleEvent,
-  affectedNodes: readonly AffectedNode[]
-): readonly DownstreamEvent[]
-export function buildCausalityChain(
-  event: TagLifecycleEvent,
-  candidateSlugs: readonly string[],
-  maxHops = 5
-): CausalityChain
-```
-
-## File: src/features/semantic-graph.slice/routing/workflows/dispatch-bridge/index.ts
-```typescript
-import type { TagSlugRef } from '../../../core/types';
-import { resolveDispatchPolicy } from '../policy-mapper';
-import type { DispatchPolicy } from '../policy-mapper';
-export interface DispatchCommand {
-  readonly commandId: string;
-  readonly tagSlug: TagSlugRef;
-  readonly policy: DispatchPolicy;
-  readonly createdAt: string;
-  readonly lane: DispatchLane;
-}
-export type DispatchLane =
-  | 'IMMEDIATE'
-  | 'FOREGROUND'
-  | 'BACKGROUND';
-export type DispatchResult =
-  | { readonly success: true; readonly command: DispatchCommand }
-  | { readonly success: false; readonly reason: string };
-⋮----
-function _generateCommandId(tagSlug: TagSlugRef): string
-function _determineLane(priority: number): DispatchLane
-export function dispatchForTag(tagSlug: TagSlugRef): DispatchResult
-export function dispatchForTags(
-  tagSlugs: readonly TagSlugRef[],
-  strict = false
-): readonly DispatchCommand[]
-export function _resetCommandCounterForTest(): void
-```
-
-## File: src/features/semantic-graph.slice/routing/workflows/tag-lifecycle.workflow.ts
-```typescript
-import { buildIdempotencyKey, StalenessMs } from '@/shared-kernel';
-import type { TagSlugRef } from '@/shared-kernel';
-import type {
-  TagLifecycleRecord,
-  TagLifecycleState,
-  TagLifecycleEvent,
-  TagLifecycleEventType,
-  StaleTagWarning,
-} from '../../core/types';
-⋮----
-export interface OutboxLifecycleEvent {
-  readonly outboxLane: 'BACKGROUND_LANE';
-  readonly idempotencyKey: string;
-  readonly payload: TagLifecycleEvent;
-}
-type TransitionMap = Partial<Record<TagLifecycleState, readonly TagLifecycleState[]>>;
-⋮----
-function isAllowed(from: TagLifecycleState, to: TagLifecycleState): boolean
-export function registerTagDraft(
-  tagSlug: TagSlugRef,
-  triggeredBy: string,
-  aggregateVersion: number
-): OutboxLifecycleEvent
-export function transitionTagState(
-  tagSlug: TagSlugRef,
-  toState: TagLifecycleState,
-  triggeredBy: string,
-  nextVersion: number
-): OutboxLifecycleEvent
-export function activateTag(
-  tagSlug: TagSlugRef,
-  triggeredBy: string,
-  nextVersion: number
-): OutboxLifecycleEvent
-export function detectStaleTagWarnings(): readonly StaleTagWarning[]
-export function getLifecycleRecord(tagSlug: TagSlugRef): TagLifecycleRecord | undefined
-export function getAllLifecycleRecords(): readonly TagLifecycleRecord[]
-export function _clearLifecycleRecordsForTest(): void
-function _buildEvent(
-  tagSlug: TagSlugRef,
-  fromState: TagLifecycleState,
-  toState: TagLifecycleState,
-  triggeredBy: string,
-  aggregateVersion: number,
-  transitionedAt: string
-): TagLifecycleEvent
-function _wrapOutbox(payload: TagLifecycleEvent): OutboxLifecycleEvent
-```
-
-## File: src/features/semantic-graph.slice/routing/workflows/workflows/alert-routing-flow.ts
-```typescript
-import type { TagSlugRef } from '../../../core/types';
-import { dispatchForTag } from '../dispatch-bridge';
-import type { DispatchCommand } from '../dispatch-bridge';
-import { resolveDispatchPolicy } from '../policy-mapper';
-export type AlertKind = 'STALE_TAG' | 'INVARIANT_FAIL' | 'CAUSALITY_WARN';
-export interface SemanticGraphAlert {
-  readonly alertId: string;
-  readonly kind: AlertKind;
-  readonly tagSlug?: TagSlugRef;
-  readonly message: string;
-  readonly detectedAt: string;
-  readonly severity: number;
-}
-export interface AlertRoutingResult {
-  readonly alert: SemanticGraphAlert;
-  readonly dispatchCommand: DispatchCommand | null;
-  readonly policyFound: boolean;
-  readonly skipReason?: string;
-}
-⋮----
-export function _resetAlertCounterForTest(): void
-function _generateAlertId(kind: AlertKind): string
-export function routeAlert(alert: SemanticGraphAlert): AlertRoutingResult
-export function routeStaleTagAlert(
-  tagSlug: TagSlugRef,
-  staleAgeMs: number
-): AlertRoutingResult
-export function routeInvariantFailAlert(
-  tagSlug: TagSlugRef | undefined,
-  rejectionReason: string
-): AlertRoutingResult
-export function routeCausalityWarnAlert(
-  tagSlug: TagSlugRef,
-  warningMessage: string
-): AlertRoutingResult
-```
-
-## File: src/features/semantic-graph.slice/routing/workflows/workflows/tag-promotion-flow.ts
-```typescript
-import type { TagSlugRef } from '../../../core/types';
-import { dispatchForTag } from '../dispatch-bridge';
-import type { DispatchCommand } from '../dispatch-bridge';
-import {
-  registerPolicy,
-  type DispatchPolicy,
-  type DispatchActionKind,
-} from '../policy-mapper';
-import { activateTag } from '../tag-lifecycle.workflow';
-import type { OutboxLifecycleEvent } from '../tag-lifecycle.workflow';
-export interface TagPromotionInput {
-  readonly tagSlug: TagSlugRef;
-  readonly triggeredBy: string;
-  readonly nextVersion: number;
-  readonly dispatchConfig: {
-    readonly actionKind: DispatchActionKind;
-    readonly priority: number;
-    readonly label: string;
-    readonly metadata?: Readonly<Record<string, unknown>>;
-  };
-}
-export interface TagPromotionResult {
-  readonly outboxEvent: OutboxLifecycleEvent;
-  readonly dispatchCommand: DispatchCommand | null;
-  readonly registeredPolicy: DispatchPolicy;
-}
-export function promoteTagToActive(input: TagPromotionInput): TagPromotionResult
 ```
 
 ## File: src/features/workforce-scheduling.slice/application/queries/index.ts
@@ -9667,50 +9699,16 @@ getEligibleMemberForSchedule(orgId: string, accountId: string): Promise<OrgEligi
 getEligibleMembersForSchedule(orgId: string): Promise<OrgEligibleMemberView[]>;
 ```
 
-## File: src/features/workforce-scheduling.slice/ui/components/runtime/timeline-canvas.tsx
+## File: src/features/workforce-scheduling.slice/ui/hooks/runtime/use-workspace-timeline.ts
 ```typescript
-import { useEffect, useMemo, useRef } from "react";
-import { DataSet } from "vis-data";
-import {
-  Timeline,
-  type DataGroup,
-  type DataItem,
-  type TimelineItem,
-  type TimelineOptions,
-} from "vis-timeline/standalone";
-⋮----
-import { cn } from "@/shadcn-ui/utils/utils";
-import type { ScheduleItem } from "@/shared-kernel";
+import { useEffect, useMemo, useState } from 'react';
+import { useApp } from '@/app-runtime/providers/app-provider';
+import { useWorkspace } from '@/features/workspace.slice';
+import type { ScheduleItem } from '@/shared-kernel';
+import type { WorkspaceTask } from '@/features/workspace.slice';
+import { subscribeToWorkspaceTimelineItems } from '../../../application/queries/timeline.queries';
 import type { TimelineMember } from '../../types/timeline.types';
-import {
-  escapeHtml,
-  resolveInitialWindow,
-  resolveTimelineInterval,
-  toTimelineClassName,
-} from "./timeline-canvas.helpers";
-interface TimelineCanvasProps {
-  items: ScheduleItem[];
-  members: TimelineMember[];
-  enableDrag?: boolean;
-  groupMode?: "none" | "workspace";
-  onMoveItem?: (params: {
-    itemId: string;
-    start: Date;
-    end: Date;
-    groupId?: string;
-  }) => Promise<boolean>;
-  className?: string;
-}
-export function TimelineCanvas({
-  items,
-  members,
-  enableDrag = false,
-  groupMode = "none",
-  onMoveItem,
-  className,
-}: TimelineCanvasProps)
-⋮----
-<div className=
+export function useWorkspaceTimeline()
 ```
 
 ## File: src/features/workspace.slice/business.document-parser/_components/document-parser-view.tsx
@@ -9767,32 +9765,79 @@ const handleImport = async () =>
 
 ```
 
-## File: src/features/semantic-graph.slice/routing/workflows/policy-mapper/index.ts
+## File: src/features/semantic-graph.slice/output/projections/graph-selectors.ts
 ```typescript
-import type { TagSlugRef } from '../../../core/types';
-export type DispatchActionKind =
-  | 'NOTIFY_RESPONSIBLE_PARTY'
-  | 'ASSIGN_TO_WORKER'
-  | 'ESCALATE'
-  | 'ARCHIVE'
-  | 'PROMOTE_TAG'
-  | 'ALERT_ROUTING';
-export interface DispatchPolicy {
-  readonly tagSlug: TagSlugRef;
-  readonly actionKind: DispatchActionKind;
-  readonly priority: number;
-  readonly label: string;
-  readonly metadata?: Readonly<Record<string, unknown>>;
+import type { TagCategory } from '@/shared-kernel';
+import { isSupersetOf } from '../../graph/edges/semantic-edge-store';
+import type {
+  EligibleTagsQuery,
+  EligibleTagResult,
+  TagLifecycleRecord,
+  TagEntity,
+} from '../../core/types';
+import { getAllLifecycleRecords } from '../../routing/tag-lifecycle.workflow';
+export function getEligibleTags(
+  tagEntities: readonly TagEntity[],
+  query: EligibleTagsQuery = {}
+): readonly EligibleTagResult[]
+export function satisfiesSemanticRequirement(
+  candidateTagSlug: string,
+  requiredTagSlug: string
+): boolean
+export function getActiveTagsByCategory(
+  tagEntities: readonly TagEntity[],
+  category: TagCategory
+): readonly EligibleTagResult[]
+export function buildEligibilityMatrix(
+  candidateSlugs: readonly string[],
+  requiredSlugs: readonly string[]
+): Readonly<Record<string, readonly string[]>>
+function _buildLifecycleMap(): Map<string, TagLifecycleRecord>
+```
+
+## File: src/features/semantic-graph.slice/reasoning/causality/causality-tracer.ts
+```typescript
+import { tagSlugRef } from '@/shared-kernel';
+import { getEdgesFrom, getEdgesTo } from '../../graph/edges/semantic-edge-store';
+import { computeRelationWeight } from '../semantic-distance';
+import type {
+  AffectedNode,
+  CausalityChain,
+  CausalityReason,
+  DownstreamEvent,
+  TagLifecycleEvent,
+  TagLifecycleState,
+} from '../../core/types';
+interface _TraversalEntry {
+  slug: string;
+  hopCount: number;
+  directReason: CausalityReason;
 }
-export type PolicyResolutionResult =
-  | { readonly found: true; readonly policy: DispatchPolicy }
-  | { readonly found: false; readonly reason: string };
-⋮----
-export function registerPolicy(policy: DispatchPolicy): void
-export function unregisterPolicy(tagSlug: TagSlugRef): boolean
-export function resolveDispatchPolicy(tagSlug: TagSlugRef): PolicyResolutionResult
-export function getAllPolicies(): readonly DispatchPolicy[]
-export function _clearPoliciesForTest(): void
+function _bfsAffected(
+  sourceSlug: string,
+  candidateSlugs: ReadonlySet<string>,
+  maxHops: number
+): Map<string, _TraversalEntry>
+function _suggestDownstreamEvent(
+  targetSlug: string,
+  reason: CausalityReason,
+  sourceEventType: TagLifecycleEvent['eventType']
+): DownstreamEvent | null
+export function traceAffectedNodes(
+  event: TagLifecycleEvent,
+  candidateSlugs: readonly string[],
+  maxHops = 5
+): readonly AffectedNode[]
+export function rankAffectedNodes(nodes: readonly AffectedNode[]): readonly AffectedNode[]
+export function buildDownstreamEvents(
+  event: TagLifecycleEvent,
+  affectedNodes: readonly AffectedNode[]
+): readonly DownstreamEvent[]
+export function buildCausalityChain(
+  event: TagLifecycleEvent,
+  candidateSlugs: readonly string[],
+  maxHops = 5
+): CausalityChain
 ```
 
 ## File: src/features/workforce-scheduling.slice/application/index.ts
@@ -9805,17 +9850,58 @@ export function _clearPoliciesForTest(): void
 
 ```
 
-## File: src/features/workforce-scheduling.slice/ui/components/runtime/schedule.workspace-view.tsx
+## File: src/features/workforce-scheduling.slice/ui/components/runtime/timeline-canvas.tsx
 ```typescript
-import { Shield } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useWorkspace } from "@/features/workspace.slice";
-import { Button } from "@/shadcn-ui/button";
-import { useWorkspaceSchedule } from "../../hooks/runtime/use-workspace-schedule";
-import { UnifiedCalendarGrid } from "./unified-calendar-grid";
-export function WorkspaceSchedule()
+import { useEffect, useMemo, useRef } from "react";
+import { DataSet } from "vis-data";
+import {
+  Timeline,
+  type DataGroup,
+  type DataItem,
+  type TimelineItem,
+  type TimelineOptions,
+} from "vis-timeline/standalone";
 ⋮----
-onClick=
+import { cn } from "@/shadcn-ui/utils/utils";
+import type { ScheduleItem } from "@/shared-kernel";
+import type { TimelineMember } from '../../types/timeline.types';
+import {
+  escapeHtml,
+  resolveInitialWindow,
+  resolveTimelineInterval,
+  toTimelineClassName,
+} from "./timeline-canvas.helpers";
+interface TimelineCanvasProps {
+  items: ScheduleItem[];
+  members: TimelineMember[];
+  enableDrag?: boolean;
+  groupMode?: "none" | "workspace";
+  onMoveItem?: (params: {
+    itemId: string;
+    start: Date;
+    end: Date;
+    groupId?: string;
+  }) => Promise<boolean>;
+  onDropTask?: (params: {
+    taskId: string;
+    droppedAt: Date;
+  }) => Promise<boolean>;
+  className?: string;
+}
+export function TimelineCanvas({
+  items,
+  members,
+  enableDrag = false,
+  groupMode = "none",
+  onMoveItem,
+  onDropTask,
+  className,
+}: TimelineCanvasProps)
+⋮----
+const handleDragOver = (event: DragEvent) =>
+const handleDrop = async (event: DragEvent) =>
+⋮----
+<div className=
 ```
 
 ## File: src/features/workforce-scheduling.slice/ui/components/runtime/timeline.account-view.tsx
@@ -9827,16 +9913,6 @@ import type { ScheduleItem } from "@/shared-kernel";
 import { useAccountTimeline, useTimelineCommands } from "../../hooks/runtime";
 import { TimelineCanvas } from "./timeline-canvas";
 export function AccountTimelineSection()
-```
-
-## File: src/features/workforce-scheduling.slice/ui/components/runtime/timeline.workspace-view.tsx
-```typescript
-import { Clock3 } from "lucide-react";
-import { useCallback, useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { useTimelineCommands, useWorkspaceTimeline } from "../../hooks/runtime";
-import { TimelineCanvas } from "./timeline-canvas";
-export function WorkspaceTimeline()
 ```
 
 ## File: src/features/workforce-scheduling.slice/ui/hooks/runtime/use-workspace-schedule.ts
@@ -9905,63 +9981,6 @@ flush(publish: (type: string, payload: unknown) => void)
 drain()
 ```
 
-## File: src/features/workspace.slice/core/_components/workspace-provider.tsx
-```typescript
-import { Loader2 } from 'lucide-react';
-import type React from 'react';
-import { createContext, useContext, useMemo, useCallback, useEffect, useRef, useState } from 'react';
-import { registerOrgPolicyCache, runTransaction } from '@/features/workspace.slice/application';
-import {
-  createIssue as createIssueAction,
-  addCommentToIssue as addCommentToIssueAction,
-  resolveIssue as resolveIssueAction,
-} from '@/features/workspace.slice/business.issues'
-import {
-  createTask as createTaskAction,
-  updateTask as updateTaskAction,
-  deleteTask as deleteTaskAction,
-  getWorkspaceTask as getWorkspaceTaskAction,
-} from '@/features/workspace.slice/business.tasks'
-import type { WorkspaceTask } from '@/features/workspace.slice/business.tasks/_types';
-import { listWorkflowStates } from '@/features/workspace.slice/business.workflow'
-import { WorkspaceEventBus , WorkspaceEventContext, registerWorkspaceFunnel, registerOrganizationFunnel, type WorkspaceEventName, type FileSendToParserPayload } from '@/features/workspace.slice/core.event-bus';
-import { writeAuditLog } from '@/features/workspace.slice/gov.audit/_actions';
-import type { WorkspaceRole } from '@/features/workspace.slice/gov.role/_types';
-import { firestoreTimestampToISO } from '@/shadcn-ui/utils/utils';
-import {
-  dispatchCreateScheduleItemCommand,
-} from '@/shared-infra/gateway-command';
-import type { AuthoritySnapshot } from '@/shared-kernel';
-import {
-  authorizeWorkspaceTeam as authorizeWorkspaceTeamAction,
-  revokeWorkspaceTeam as revokeWorkspaceTeamAction,
-  grantIndividualWorkspaceAccess as grantIndividualWorkspaceAccessAction,
-  revokeIndividualWorkspaceAccess as revokeIndividualWorkspaceAccessAction,
-  mountCapabilities as mountCapabilitiesAction,
-  unmountCapability as unmountCapabilityAction,
-  updateWorkspaceSettings as updateWorkspaceSettingsAction,
-  deleteWorkspace as deleteWorkspaceAction,
-} from '../_actions'
-import { useAccount } from '../_hooks/use-account';
-import { useApp } from '../_hooks/use-app';
-import { subscribeToWorkspaceTasks, subscribeToWorkspaceIssues } from '../_queries';
-import type { WorkspaceLifecycleState, Capability, Address, WorkspacePersonnel } from '../_types';
-import {
-  applyWorkflowBlocked,
-  applyWorkflowUnblocked,
-  deriveWorkflowBlockersFromSources,
-  summarizeWorkflowBlockers,
-  type WorkflowBlockersState,
-} from './workflow-blockers-state';
-import type { CreateScheduleItemInput, WorkspaceContextType } from './workspace-context.types';
-⋮----
-export function WorkspaceProvider(
-⋮----
-const hydrateWorkflowBlockers = async () =>
-⋮----
-export function useWorkspace()
-```
-
 ## File: src/shared-infra/gateway-query/index.ts
 ```typescript
 
@@ -10024,6 +10043,14 @@ async function routeToDlq(
 ): Promise<void>
 ```
 
+## File: src/features/workforce-scheduling.slice/ui/components/runtime/schedule.workspace-view.tsx
+```typescript
+import { useWorkspace } from "@/features/workspace.slice";
+import { useWorkspaceSchedule } from "../../hooks/runtime/use-workspace-schedule";
+import { UnifiedCalendarGrid } from "./unified-calendar-grid";
+export function WorkspaceSchedule()
+```
+
 ## File: src/features/workforce-scheduling.slice/ui/components/runtime/org-schedule-governance.tsx
 ```typescript
 import { useEffect, useMemo, useState } from 'react';
@@ -10065,4 +10092,29 @@ const handleMonthChange = (direction: 'prev' | 'next') =>
 ## File: src/features/workforce-scheduling.slice/ui/index.ts
 ```typescript
 
+```
+
+## File: src/features/workforce-scheduling.slice/ui/components/runtime/timeline.workspace-view.tsx
+```typescript
+import { GripVertical, Plus, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useApp } from "@/app-runtime/providers/app-provider";
+import { useWorkspace } from "@/features/workspace.slice";
+import { Badge } from "@/shadcn-ui/badge";
+import { Button } from "@/shadcn-ui/button";
+import { Input } from "@/shadcn-ui/input";
+import { Label } from "@/shadcn-ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shadcn-ui/select";
+import { toast } from "@/shadcn-ui/hooks/use-toast";
+import type { ScheduleItem, SkillRequirement, SkillTier } from "@/shared-kernel";
+import { tagSlugRef } from "@/shared-kernel";
+import { SKILLS } from "@/shared-kernel/constants/skills";
+import { useTimelineCommands, useWorkspaceTimeline } from "../../hooks/runtime";
+import { TimelineCanvas } from "./timeline-canvas";
+⋮----
+function isSkillTier(value: string): value is SkillTier
+⋮----
+const handleDocumentMouseDown = (event: MouseEvent) =>
+⋮----
+<Button type="button" variant="ghost" size="sm" onClick=
 ```
