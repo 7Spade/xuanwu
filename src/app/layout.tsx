@@ -2,7 +2,7 @@
 import type {Metadata} from 'next';
 
 import './globals.css';
-import { I18nProvider } from '@/config/i18n/i18n-provider';
+import { I18nProvider } from '@/shared/app-providers/i18n-provider';
 import { AppProvider } from '@/features/workspace.slice';
 import { AuthProvider } from '@/shared/app-providers/auth-provider';
 import { FirebaseClientProvider } from '@/shared/app-providers/firebase-provider';

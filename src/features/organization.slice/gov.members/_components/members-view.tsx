@@ -3,7 +3,7 @@
 import { UserPlus, Trash2, Mail, AlertCircle, Sparkles } from "lucide-react"
 import { useState, useEffect, useMemo } from "react"
 
-import { useI18n } from "@/config/i18n/i18n-provider"
+import { useI18n } from "@/shared/app-providers/i18n-provider"
 import { getAllOrgMembersView } from "@/features/projection.bus"
 import type { OrgEligibleMemberView } from "@/features/projection.bus"
 import { type MemberReference } from "@/shared-kernel"

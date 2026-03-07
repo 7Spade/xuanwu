@@ -3,7 +3,7 @@
 
 import { Mail, Lock, Loader2 } from "lucide-react";
 
-import { useI18n } from "@/config/i18n/i18n-provider";
+import { useI18n } from "@/shared/app-providers/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/shadcn-ui/input-group";
 import { Label } from "@/shared/shadcn-ui/label";

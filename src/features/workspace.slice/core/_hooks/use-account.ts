@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 
-import { AccountContext } from '../_components/account-provider';
+import { AccountContext } from '@/shared/app-providers/account-context';
 
 export const useAccount = () => {
     const context = useContext(AccountContext);

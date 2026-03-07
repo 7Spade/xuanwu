@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { useI18n } from "@/config/i18n/i18n-provider";
+import { useI18n } from "@/shared/app-providers/i18n-provider";
 import { ROUTES } from "@/shared/constants/routes";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Input } from "@/shared/shadcn-ui/input";

@@ -3,7 +3,7 @@
 import { Mail } from "lucide-react";
 import { useState } from "react";
 
-import { useI18n } from "@/config/i18n/i18n-provider";
+import { useI18n } from "@/shared/app-providers/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/shared/shadcn-ui/input-group";

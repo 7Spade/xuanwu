@@ -4,7 +4,7 @@ import { Users, Plus, FolderTree, ArrowRight, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useMemo } from "react"
 
-import { useI18n } from "@/config/i18n/i18n-provider"
+import { useI18n } from "@/shared/app-providers/i18n-provider"
 import { useTeamManagement } from "@/features/organization.slice"
 import type { Team } from "@/shared-kernel"
 import { useApp } from "@/shared/app-providers/app-provider"

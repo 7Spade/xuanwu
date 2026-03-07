@@ -5,7 +5,7 @@ import { Terminal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-import { useI18n } from "@/config/i18n/i18n-provider";
+import { useI18n } from "@/shared/app-providers/i18n-provider";
 import { ROUTES } from "@/shared/constants/routes";
 import { Button } from "@/shared/shadcn-ui/button";
 

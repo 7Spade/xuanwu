@@ -1,6 +1,6 @@
 "use client"
 
-import { useI18n } from "@/config/i18n/i18n-provider"
+import { useI18n } from "@/shared/app-providers/i18n-provider"
 import { PersonalSkillPanel } from "@/features/skill-xp.slice"
 import { PageHeader } from "@/shared/shadcn-ui/custom-ui/page-header"
 

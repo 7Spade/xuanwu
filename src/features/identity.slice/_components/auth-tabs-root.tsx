@@ -3,7 +3,7 @@
 
 import { Ghost, Loader2 } from "lucide-react";
 
-import { useI18n } from "@/config/i18n/i18n-provider";
+import { useI18n } from "@/shared/app-providers/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/shared/shadcn-ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";

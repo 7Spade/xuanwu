@@ -2,7 +2,7 @@
 
 import { Globe } from "lucide-react"
 
-import { useI18n } from "@/config/i18n/i18n-provider"
+import { useI18n } from "@/shared/app-providers/i18n-provider"
 import { type Locale } from "@/config/i18n/i18n-types"
 import { Button } from "@/shared/shadcn-ui/button"
 import {
