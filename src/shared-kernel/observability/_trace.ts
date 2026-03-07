@@ -1,21 +1,9 @@
 /**
- * observability — _trace.ts
- *
- * TRACE_IDENTIFIER node — correlation/trace ID generation and propagation. [R8]
- *
- * Per 00-LogicOverview.md (OBSERVABILITY_LAYER):
- *   WORKSPACE_COMMAND_HANDLER --> TRACE_IDENTIFIER
- *   WORKSPACE_TRANSACTION_RUNNER --> TRACE_IDENTIFIER
- *   WORKSPACE_EVENT_BUS --> TRACE_IDENTIFIER
+ * Module: _trace.ts
+ * Purpose: shared-kernel trace contracts for observability.
+ * Responsibilities: define trace data structures and trace provider interface.
+ * Constraints: no runtime effects, no clock/random access, contract-only.
  */
-
-/**
- * Generates a unique correlation/trace identifier for a command or event chain.
- * Format: "<timestamp>-<random>" — lightweight, no external dependency.
- */
-export function generateTraceId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-}
 
 /**
  * Structured trace context attached to commands and events.
@@ -29,13 +17,8 @@ export interface TraceContext {
   readonly source?: string;
 }
 
-/**
- * Creates a TraceContext for a new command or event chain.
- */
-export function createTraceContext(source?: string): TraceContext {
-  return {
-    traceId: generateTraceId(),
-    initiatedAt: new Date().toISOString(),
-    source,
-  };
+/** Infrastructure trace provider contract (implemented in shared-infra). */
+export interface ITraceProvider {
+  generateTraceId(): string;
+  createTraceContext(source?: string): TraceContext;
 }

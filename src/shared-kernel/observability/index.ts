@@ -1,19 +1,11 @@
 /**
  * observability — Public API
  *
- * VS9 OBSERVABILITY_LAYER infrastructure engine. [R8]
+ * VS9 OBSERVABILITY_LAYER contract API. [R8]
  *
- * Nodes:
- *   - TRACE_IDENTIFIER: correlation/trace ID generation and propagation
- *   - DOMAIN_METRICS:   in-process domain event counter
- *   - DOMAIN_ERROR_LOG: structured domain error logger
- *
- * Consumers:
- *   - workspace-core.event-bus: recordEventPublished on every event publish.
- *   - workspace-application: createTraceContext at command entry; logDomainError on failure.
- *   - infra.outbox-relay: logDomainError on relay failure.
- *   - identity.slice: logDomainError on claims refresh failure.
+ * This module defines contracts only. Runtime implementations live in:
+ *   src/shared-infra/observability
  */
-export { generateTraceId, createTraceContext, type TraceContext } from './_trace';
-export { recordEventPublished, getEventCounters, resetEventCounters } from './_metrics';
-export { logDomainError, type DomainErrorEntry } from './_error-log';
+export type { TraceContext, ITraceProvider } from './_trace';
+export type { EventCounters, IMetricsRecorder } from './_metrics';
+export type { DomainErrorEntry, IErrorLogger } from './_error-log';
