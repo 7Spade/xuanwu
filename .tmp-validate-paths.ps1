@@ -30,8 +30,12 @@ foreach ($f in $files) {
     if ($candidate -match '^\.\\') { $candidate = $candidate.Substring(2) }
     if ($candidate -match '^\.\.\\') { continue }
 
+    if ($candidate -match '[<>|]') { continue }
+    if ($candidate -match '"') { continue }
+
     $full = if ($candidate -match '^[A-Za-z]:\\') { $candidate } else { Join-Path $root $candidate }
-    $exists = Test-Path $full
+    $exists = $false
+    try { $exists = Test-Path -LiteralPath $full } catch { $exists = $false }
 
     $results += [pscustomobject]@{
       Source = $f
