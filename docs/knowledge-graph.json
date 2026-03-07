@@ -82,34 +82,6 @@
       ]
     },
     {
-      "name": "A11 Occam's Razor",
-      "entityType": "Architecture_Invariant",
-      "observations": [
-        "Simplicity is a hard constraint; validate simplest implementation path before expanding abstractions."
-      ]
-    },
-    {
-      "name": "A12 Global Search Authority",
-      "entityType": "Architecture_Invariant",
-      "observations": [
-        "Global Search = cross-slice authority (語義門戶). Sole cross-domain search outlet; all slices are forbidden from building their own search logic."
-      ]
-    },
-    {
-      "name": "D26 Cross-cutting Authority",
-      "entityType": "Design_Rule",
-      "observations": [
-        "global-search.slice = sole cross-domain search authority [#A12]; notification-hub = sole side-effect outlet [#A13]. Both must own _actions.ts / _services.ts per D3; must not parasitize shared-kernel per D8."
-      ]
-    },
-    {
-      "name": "D27 Type Truth",
-      "entityType": "Design_Rule",
-      "observations": [
-        "Domain entity types are defined once in L1 Shared Kernel and reused without local duplication."
-      ]
-    },
-    {
       "name": "sequential-thinking mcp",
       "entityType": "Tooling_MCP",
       "observations": [
@@ -197,30 +169,6 @@
         "Causality consistency: notification delivery is traceable (traceId from EventEnvelope [R8]) and replayable (idempotency-key).",
         "Replaces scattered sendEmail()/push() calls across _actions.ts files; all notification side-effects route through this hub.",
         "Must own its own _actions.ts and _services.ts per D26 (which enforces D3/D8 compliance); must not parasitize shared-kernel."
-      ]
-    },
-    {
-      "name": "A13 Notification Hub Authority",
-      "entityType": "Architecture_Invariant",
-      "observations": [
-        "Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy."
-      ]
-    },
-    {
-      "name": "A15 Finance Gate + Payload Contract",
-      "entityType": "Architecture_Invariant",
-      "observations": [
-        "Finance entry is gated by Acceptance=OK.",
-        "Claim Preparation requires selected claim line-items with positive quantities."
-      ]
-    },
-    {
-      "name": "A16 Multi-Claim Cycle Contract",
-      "entityType": "Architecture_Invariant",
-      "observations": [
-        "Finance supports multiple claim cycles with fixed per-cycle sequence: Claim Preparation → Claim Submitted → Claim Approved → Invoice Requested → Payment Term(timer-running) → Payment Received.",
-        "Payment Term timing starts at Invoice Requested and stops at PaymentReceived.",
-        "If outstandingClaimableAmount > 0 after Payment Received, workflow must re-enter Claim Preparation; only outstandingClaimableAmount = 0 may transition to Completed."
       ]
     },
     {
@@ -336,7 +284,7 @@
     },
     {
       "from": "sequential-thinking mcp",
-      "to": "A11 Occam's Razor",
+      "to": "A_Category",
       "relationType": "supports"
     },
     {
@@ -346,13 +294,13 @@
     },
     {
       "from": "ESLint mcp",
-      "to": "D26 Cross-cutting Authority",
+      "to": "D_Category",
       "relationType": "enforces",
       "description": "ESLint rules (D24 no-restricted-imports) enforce parts of cross-cutting authority boundaries."
     },
     {
       "from": "software-planning mcp",
-      "to": "A12 Global Search Authority",
+      "to": "A_Category",
       "relationType": "plans"
     },
     {
@@ -362,14 +310,14 @@
     },
     {
       "from": "VS8 Semantic Graph",
-      "to": "VS_Category",
-      "relationType": "provides_scheduling_match_to_VS6",
+      "to": "VS6 Scheduling",
+      "relationType": "provides_scheduling_match_to",
       "description": "VS8 provides scheduling combination matching to VS6 (Scheduling). Target is VS_Category because VS6 is modeled as a member of VS_Category, not a standalone entity."
     },
     {
       "from": "VS8 Semantic Graph",
-      "to": "VS_Category",
-      "relationType": "provides_semantic_tags_to_VS5",
+      "to": "VS5 Workspace",
+      "relationType": "provides_semantic_tags_to",
       "description": "VS8 provides semantic tags to VS5 (Workspace) for task tagging. Target is VS_Category because VS5 is modeled as a member of VS_Category, not a standalone entity."
     },
     {
