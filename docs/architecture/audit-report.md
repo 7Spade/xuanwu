@@ -705,9 +705,6 @@ cat docs/knowledge-graph.json
 - [ ] **A-01 / E-01** Create `src/features/account.slice/account-event-bus.ts` + `acc-outbox.ts`; wire `gov.role/_actions.ts` and `gov.policy/_actions.ts` to write to `acc-outbox` with `CRITICAL_LANE` / `SECURITY_BLOCK` DLQ tier instead of calling `publishOrgEvent` directly
 - [ ] **A-02 / E-01** Create `src/features/skill-xp.slice/skill-outbox.ts`; replace `publishOrgEvent` calls in `_actions.ts` with outbox write, `STANDARD_LANE` / `SAFE_AUTO`
 - [ ] **A-03 / E-01** Create `src/features/workforce-scheduling.slice/sched-outbox.ts`; replace all `publishOrgEvent(...)` calls in `_aggregate.ts` (lines 196, 229, 272, 323, 381) with outbox writes; `ScheduleAssigned → REVIEW_REQUIRED`, compensating events `→ SAFE_AUTO`
-- [ ] **D-01** Remove `import { publishOrgEvent } from '@/features/organization.slice'` from `workforce-scheduling.slice/_aggregate.ts`; route all events through `sched-outbox`
-- [ ] **D-02** Remove `import { publishOrgEvent }` from `skill-xp.slice/_actions.ts` (lines 22, 62, 107) and `_org-recognition.ts` (lines 30, 119, 148); route through `skill-outbox`
-- [ ] **D-03** Remove `import { publishOrgEvent } from '@/features/organization.slice'` from `account.slice/gov.role/_actions.ts` (line 24); route through `acc-outbox`
 - [ ] **D-04** Remove direct `import { createScheduleItem } from '@/features/workforce-scheduling.slice'` from `workspace.slice/core/_components/workspace-provider.tsx` (lines 9–11); route command via `infra.gateway-command` CMD_GWAY → VS6 aggregate
 - [ ] **E-02** Rewrite `notification-hub.slice/gov.notification-router/_router.ts` to subscribe to IER STANDARD_LANE (not VS4 `onOrgEvent`); remove `import { onOrgEvent } from '@/features/organization.slice'`
 - [ ] **E-03** Move `traceId = crypto.randomUUID()` from `workspace-provider.tsx:234` to CBG_ENTRY in `infra.gateway-command`; pass `traceId` down through the command pipeline
@@ -722,7 +719,6 @@ cat docs/knowledge-graph.json
 - [ ] **D-06** Remove `import { onOrgEvent } from '@/features/organization.slice'` from `account.slice/*/_org-policy-cache.ts` (lines 18–19); VS2 subscribes to IER STANDARD_LANE, not VS4's in-process bus
 - [ ] **E-04** Create `organization.slice/org-outbox.ts`; ensure `OrgContextProvisioned` flows to IER CRITICAL_LANE via outbox (not ad-hoc)
 - [ ] **F-02** Delete `NON_TASK_COST_ITEM_TYPES` constant from `workspace.slice/business.finance/_constants.ts` (line 23); export equivalent `NON_EXECUTABLE_COST_TYPES` from `semantic-graph.slice/decision/_cost-classifier.ts` [D27, #A14]
-- [ ] **F-03** Remove `initTagChangedSubscriber` initialization from `workspace-provider.tsx` (line 7, 101); VS7 notification-hub should self-bootstrap on IER BACKGROUND_LANE, not be initialized by VS5
 
 ### 🟡 Medium — Maintenance (code hygiene)
 
@@ -731,10 +727,6 @@ cat docs/knowledge-graph.json
 - [ ] **B-03** Move `portal.slice/` outside of `src/features/`; it has no VS/L designation and is not a domain slice — suitable location: `src/shared/` or `src/app/(shell)/`
 - [ ] **C-01** Rename `src/features/timelineing.slice/` to `src/features/timeline.slice/` (fix typo) or dissolve into `projection.bus/schedule-timeline-view/` (per A-05)
 - [ ] **C-02** Align VS8 directory names to the 8-layer architecture: `centralized-tag-aggregate/` → `core/cta/`; `centralized-guards/` → `governance/bbb-guards/`; `centralized-neural-net/` → `neural-computation/`
-- [ ] **C-03** Delete `src/features/semantic-graph.slice/centralized-neural-net/context-attention.ts` (deprecated shim that duplicates the authoritative file)
-- [ ] **D-07** Remove `import { initTagChangedSubscriber } from '@/features/notification-hub.slice'` from `workspace-provider.tsx` (line 8); VS5 must not own VS7 lifecycle — fix is the same PR as F-03
-- [ ] **D-08** Remove `crypto.randomUUID()` call from `workspace-provider.tsx:234`; same fix as E-03 (move to CBG_ENTRY)
-- [ ] **E-05** Refactor `projection.bus/_workspace-funnel.ts` to remove `import { handleScheduleProposed } from '@/features/workforce-scheduling.slice'` (line 8); the projection bus must only call `ProjectorFn` — it should dispatch `ScheduleProposed` domain event to VS6 via IER, not call VS6 domain actions
 - [ ] **F-04** Rewrite `notification-hub.slice/gov.notification-router/_router.ts` routing logic to invoke VS8 `policy-mapper(semanticTagSlug)` to determine delivery channel (Slack, Email, SMS, etc.) instead of hardcoded `payload.targetAccountId` matching
 - [ ] **F-05** Remove `writeAuditLog` direct import and calls from `workspace.slice/core/_components/workspace-provider.tsx:30`; audit events must be produced by `gov.audit` subscribing IER BACKGROUND_LANE
 

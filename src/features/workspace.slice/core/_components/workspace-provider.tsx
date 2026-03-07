@@ -5,7 +5,6 @@ import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { createContext, useContext, useMemo, useCallback, useEffect, useRef, useState } from 'react';
 
-import { initTagChangedSubscriber } from '@/features/notification-hub.slice';
 import {
   createScheduleItem as createScheduleItemAction,
 } from '@/features/workforce-scheduling.slice'
@@ -93,16 +92,14 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
   }, [workspaceId, accountDispatch, hasWorkspace]);
 
   // Register Event Funnel — routes events from both buses to the Projection Layer
-  // Also register Notification Router (FCM Layer 2) and Org Policy Cache
+  // Also register Org Policy Cache
   useEffect(() => {
     const unsubWorkspace = registerWorkspaceFunnel(eventBus);
     const unsubOrg = registerOrganizationFunnel();
-    const unsubNotif = initTagChangedSubscriber();
     const unsubPolicy = registerOrgPolicyCache();
     return () => {
       unsubWorkspace();
       unsubOrg();
-      unsubNotif();
       unsubPolicy();
     };
   }, [eventBus]);
@@ -228,9 +225,6 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
     // can persist a schedule_item and start the HR governance approval flow.
     if (result.success) {
       if (workspace?.dimensionId) {
-        // [R8] Inject traceId at CBG_ENTRY (this is the top of the scheduling saga chain).
-        // Use Web Crypto API (available in modern browsers and Node 18+).
-        const traceId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
         eventBus.publish('workspace:schedule:proposed', {
           scheduleItemId: result.aggregateId,
           workspaceId: workspaceId,
@@ -240,7 +234,6 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
           endDate: firestoreTimestampToISO(itemData.endDate),
           proposedBy: activeAccount?.id ?? 'system',
           skillRequirements: itemData.requiredSkills,
-          traceId,
         });
       } else {
         // [D22] Do not expose internal aggregate IDs in the production console.

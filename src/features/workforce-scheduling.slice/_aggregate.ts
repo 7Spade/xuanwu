@@ -26,7 +26,6 @@
  *   A5  ??ScheduleAssignRejected is the compensating event when skill validation fails.
  */
 
-import { publishOrgEvent } from '@/features/organization.slice';
 import { getOrgMemberEligibility } from '@/features/projection.bus';
 import { getDocument, Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 import { resolveSkillTier, tierSatisfies } from '@/shared-kernel';
@@ -37,6 +36,7 @@ import {
   type ScheduleApprovalResult,
   type WriteOp,
 } from './_aggregate.types';
+import { enqueueSchedulingOutboxEvent } from './sched-outbox';
 
 export { ORG_SCHEDULE_STATUSES, orgScheduleProposalSchema } from './_aggregate.types';
 export type {
@@ -193,7 +193,7 @@ export async function approveOrgScheduleProposal(
     arrayUnionFields: { assigneeIds: [targetAccountId] },
   };
 
-  await publishOrgEvent('organization:schedule:assigned', {
+  await enqueueSchedulingOutboxEvent('organization:schedule:assigned', {
     scheduleItemId,
     workspaceId: opts.workspaceId,
     orgId: opts.orgId,
@@ -205,6 +205,9 @@ export async function approveOrgScheduleProposal(
     aggregateVersion: nextVersion,
     // [R8] Forward traceId to ScheduleAssigned event for end-to-end trace propagation.
     ...(opts.traceId ? { traceId: opts.traceId } : {}),
+  }, {
+    lane: 'STANDARD_LANE',
+    dlqTier: 'REVIEW_REQUIRED',
   });
 
   return { outcome: 'confirmed', scheduleItemId, writeOp };
@@ -226,7 +229,7 @@ async function _buildCancelWriteOp(
   reason: string
 ): Promise<WriteOp> {
   // Compensating Event (Invariant A5) ??discrete recovery; B-track does NOT flow back to A-track.
-  await publishOrgEvent('organization:schedule:assignRejected', {
+  await enqueueSchedulingOutboxEvent('organization:schedule:assignRejected', {
     scheduleItemId,
     orgId: opts.orgId,
     workspaceId: opts.workspaceId,
@@ -235,6 +238,9 @@ async function _buildCancelWriteOp(
     rejectedAt: Timestamp.now().toDate().toISOString(),
     // [R8] Forward traceId to compensating event for end-to-end trace propagation.
     ...(opts.traceId ? { traceId: opts.traceId } : {}),
+  }, {
+    lane: 'STANDARD_LANE',
+    dlqTier: 'SAFE_AUTO',
   });
 
   return {
@@ -269,7 +275,7 @@ export async function cancelOrgScheduleProposal(
   /** [R8] TraceID propagated from the originating scheduling saga. */
   traceId?: string
 ): Promise<WriteOp> {
-  await publishOrgEvent('organization:schedule:proposalCancelled', {
+  await enqueueSchedulingOutboxEvent('organization:schedule:proposalCancelled', {
     scheduleItemId,
     orgId,
     workspaceId,
@@ -278,6 +284,9 @@ export async function cancelOrgScheduleProposal(
     ...(reason ? { reason } : {}),
     // [R8] Forward traceId to compensating event for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
+  }, {
+    lane: 'STANDARD_LANE',
+    dlqTier: 'SAFE_AUTO',
   });
 
   return {
@@ -320,7 +329,7 @@ export async function completeOrgSchedule(
   }
   const nextVersion = (existing.version ?? 1) + 1;
 
-  await publishOrgEvent('organization:schedule:completed', {
+  await enqueueSchedulingOutboxEvent('organization:schedule:completed', {
     scheduleItemId,
     workspaceId,
     orgId,
@@ -330,6 +339,9 @@ export async function completeOrgSchedule(
     aggregateVersion: nextVersion,
     // [R8] Forward traceId for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
+  }, {
+    lane: 'STANDARD_LANE',
+    dlqTier: 'SAFE_AUTO',
   });
 
   return {
@@ -378,7 +390,7 @@ export async function cancelOrgScheduleAssignment(
   }
   const nextVersion = (existing.version ?? 1) + 1;
 
-  await publishOrgEvent('organization:schedule:assignmentCancelled', {
+  await enqueueSchedulingOutboxEvent('organization:schedule:assignmentCancelled', {
     scheduleItemId,
     workspaceId,
     orgId,
@@ -389,6 +401,9 @@ export async function cancelOrgScheduleAssignment(
     ...(reason ? { reason } : {}),
     // [R8] Forward traceId for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
+  }, {
+    lane: 'STANDARD_LANE',
+    dlqTier: 'SAFE_AUTO',
   });
 
   return {

@@ -21,7 +21,6 @@
  *   R2  ??CRITICAL_LANE semantics: high-priority, not synchronous.
  */
 
-import { publishOrgEvent } from '@/features/organization.slice';
 import { COLLECTIONS } from '@/shared-infra/frontend-firebase/firestore/collection-paths';
 import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 import { setDocument, updateDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
@@ -31,6 +30,8 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/shared-kernel';
+
+import { enqueueAccountOutboxEvent } from '../acc-outbox';
 
 export interface AccountRoleRecord {
   accountId: string;
@@ -75,11 +76,14 @@ export async function assignAccountRole(input: AssignRoleInput): Promise<Command
       record
     );
 
-    await publishOrgEvent('organization:member:joined', {
+    await enqueueAccountOutboxEvent('organization:member:joined', {
       orgId: input.orgId,
       accountId: input.accountId,
       role: input.role,
       joinedBy: input.grantedBy,
+    }, {
+      lane: 'CRITICAL_LANE',
+      dlqTier: 'SECURITY_BLOCK',
     });
 
     // TOKEN_REFRESH_SIGNAL [R2]: notify frontend that claims have changed.
@@ -117,11 +121,14 @@ export async function revokeAccountRole(
       ...(traceId ? { traceId } : {}),
     });
 
-    await publishOrgEvent('organization:member:left', {
+    await enqueueAccountOutboxEvent('organization:member:left', {
       orgId,
       accountId,
       removedBy: revokedBy,
       ...(traceId ? { traceId } : {}),
+    }, {
+      lane: 'CRITICAL_LANE',
+      dlqTier: 'SECURITY_BLOCK',
     });
 
     // TOKEN_REFRESH_SIGNAL [R2]: notify frontend that claims have changed.

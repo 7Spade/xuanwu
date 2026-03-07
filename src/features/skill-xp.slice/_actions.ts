@@ -19,7 +19,6 @@
 
 'use server';
 
-import { publishOrgEvent } from '@/features/organization.slice';
 import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 import {
   type CommandResult,
@@ -29,6 +28,7 @@ import {
 
 import { addXp, deductXp } from './_aggregate';
 import { addSkillTagToPool, removeSkillTagFromPool } from './_tag-pool';
+import { enqueueSkillOutboxEvent } from './skill-outbox';
 
 export interface AddXpInput {
   accountId: string;
@@ -59,7 +59,7 @@ export async function addSkillXp(input: AddXpInput): Promise<CommandResult> {
     // D3: aggregate returns computed state; _actions.ts owns the persistence write.
     await setDocument(result.path, result.record);
     // Application coordinator publishes cross-BC skill event (E1 ??not from aggregate)
-    await publishOrgEvent('organization:skill:xpAdded', {
+    await enqueueSkillOutboxEvent('organization:skill:xpAdded', {
       accountId: input.accountId,
       orgId: input.orgId,
       skillId: input.skillId,
@@ -68,6 +68,9 @@ export async function addSkillXp(input: AddXpInput): Promise<CommandResult> {
       reason: input.reason,
       aggregateVersion: result.version,
       ...(input.traceId ? { traceId: input.traceId } : {}),
+    }, {
+      lane: 'STANDARD_LANE',
+      dlqTier: 'SAFE_AUTO',
     });
     return commandSuccess(input.accountId, Date.now());
   } catch (err) {
@@ -104,7 +107,7 @@ export async function deductSkillXp(input: DeductXpInput): Promise<CommandResult
     // D3: aggregate returns computed state; _actions.ts owns the persistence write.
     await setDocument(result.path, result.record);
     // Application coordinator publishes cross-BC skill event (E1 ??not from aggregate)
-    await publishOrgEvent('organization:skill:xpDeducted', {
+    await enqueueSkillOutboxEvent('organization:skill:xpDeducted', {
       accountId: input.accountId,
       orgId: input.orgId,
       skillId: input.skillId,
@@ -113,6 +116,9 @@ export async function deductSkillXp(input: DeductXpInput): Promise<CommandResult
       reason: input.reason,
       aggregateVersion: result.version,
       ...(input.traceId ? { traceId: input.traceId } : {}),
+    }, {
+      lane: 'STANDARD_LANE',
+      dlqTier: 'SAFE_AUTO',
     });
     return commandSuccess(input.accountId, Date.now());
   } catch (err) {

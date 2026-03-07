@@ -306,7 +306,6 @@ src/features/semantic-graph.slice/centralized-guards/semantic-guard.ts
 src/features/semantic-graph.slice/centralized-guards/staleness-monitor.ts
 src/features/semantic-graph.slice/centralized-learning/decay-service.ts
 src/features/semantic-graph.slice/centralized-learning/learning-engine.ts
-src/features/semantic-graph.slice/centralized-neural-net/context-attention.ts
 src/features/semantic-graph.slice/centralized-neural-net/neural-network.ts
 src/features/semantic-graph.slice/centralized-nodes/hierarchy-manager.ts
 src/features/semantic-graph.slice/centralized-nodes/tag-entity.factory.ts
@@ -3834,9 +3833,8 @@ export function registerAllQueryHandlers(): Array<() => void>
 
 ## File: src/features/projection.bus/_workspace-funnel.ts
 ```typescript
-import { handleScheduleProposed } from '@/features/workforce-scheduling.slice';
 import type { WorkspaceEventBus } from '@/features/workspace.slice';
-import { createVersionStamp, executeAggregateWriteOp } from './_funnel.shared';
+import { createVersionStamp } from './_funnel.shared';
 import { upsertProjectionVersion } from './_registry';
 import { appendAuditEntry } from './account-audit';
 import {
@@ -7790,6 +7788,7 @@ export interface I18nContextValue {
 ```typescript
 import { type ReactNode, useReducer, useEffect } from 'react'
 import { useContext } from 'react'
+import { initTagChangedSubscriber } from '@/features/notification-hub.slice'
 import { AppContext, type AppAction, type AppState } from '../contexts/app-context'
 import { subscribeToAccountsForUser } from './app-provider.queries'
 import { useAuth } from './auth-provider'
@@ -8415,11 +8414,6 @@ export function detectStaleTagWarnings(
 ): readonly StaleTagWarning[]
 export function getAllLifecycleRecords(): readonly TagLifecycleRecord[]
 export function _clearLifecycleRecordsForTest(): void
-```
-
-## File: src/features/semantic-graph.slice/centralized-neural-net/context-attention.ts
-```typescript
-
 ```
 
 ## File: src/features/semantic-graph.slice/centralized-workflows/workflows/alert-routing-flow.ts
@@ -13972,7 +13966,6 @@ href=
 import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { createContext, useContext, useMemo, useCallback, useEffect, useRef, useState } from 'react';
-import { initTagChangedSubscriber } from '@/features/notification-hub.slice';
 import {
   createScheduleItem as createScheduleItemAction,
 } from '@/features/workforce-scheduling.slice'

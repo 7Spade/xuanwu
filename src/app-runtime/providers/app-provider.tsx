@@ -24,6 +24,8 @@
 import { type ReactNode, useReducer, useEffect } from 'react'
 import { useContext } from 'react'
 
+import { initTagChangedSubscriber } from '@/features/notification-hub.slice'
+
 import { AppContext, type AppAction, type AppState } from '../contexts/app-context'
 
 import { subscribeToAccountsForUser } from './app-provider.queries'
@@ -129,6 +131,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (unsubscribe) unsubscribe()
     }
   }, [authInitialized, user])
+
+  useEffect(() => {
+    return initTagChangedSubscriber()
+  }, [])
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

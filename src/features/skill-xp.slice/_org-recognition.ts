@@ -27,13 +27,14 @@
  * Stored at: orgSkillRecognition/{orgId}/members/{accountId}/skills/{skillId}
  */
 
-import { publishOrgEvent } from '@/features/organization.slice';
 import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 import {
   setDocument,
   updateDocument,
 } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 import { findSkill } from '@/shared-kernel/constants/skills';
+
+import { enqueueSkillOutboxEvent } from './skill-outbox';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -116,12 +117,15 @@ export async function grantSkillRecognition(
 
   await setDocument(path, record);
 
-  await publishOrgEvent('organization:skill:recognitionGranted', {
+  await enqueueSkillOutboxEvent('organization:skill:recognitionGranted', {
     organizationId,
     accountId,
     skillId,
     minXpRequired,
     grantedBy,
+  }, {
+    lane: 'STANDARD_LANE',
+    dlqTier: 'SAFE_AUTO',
   });
 }
 
@@ -145,10 +149,13 @@ export async function revokeSkillRecognition(
     revokedAt: new Date().toISOString(),
   });
 
-  await publishOrgEvent('organization:skill:recognitionRevoked', {
+  await enqueueSkillOutboxEvent('organization:skill:recognitionRevoked', {
     organizationId,
     accountId,
     skillId,
     revokedBy,
+  }, {
+    lane: 'STANDARD_LANE',
+    dlqTier: 'SAFE_AUTO',
   });
 }

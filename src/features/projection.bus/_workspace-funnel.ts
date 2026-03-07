@@ -5,10 +5,9 @@
  * Constraints: deterministic logic, respect module boundaries
  */
 
-import { handleScheduleProposed } from '@/features/workforce-scheduling.slice';
 import type { WorkspaceEventBus } from '@/features/workspace.slice';
 
-import { createVersionStamp, executeAggregateWriteOp } from './_funnel.shared';
+import { createVersionStamp } from './_funnel.shared';
 import { upsertProjectionVersion } from './_registry';
 import { appendAuditEntry } from './account-audit';
 import {
@@ -72,8 +71,6 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void {
 
   unsubscribers.push(
     bus.subscribe('workspace:schedule:proposed', async (payload) => {
-      const writeOp = handleScheduleProposed(payload);
-      await executeAggregateWriteOp(writeOp);
       await applyDemandProposed(payload);
 
       const stamp = createVersionStamp();
