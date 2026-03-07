@@ -1,11 +1,11 @@
 /**
- * projection-bus/organization-view —_projector.ts
+ * projection-bus/organization-view — projector.ts
  *
  * Maintains the organization projection read model.
  * Stored at: organizationView/{orgId}
  *
  * Per 00-LogicOverview.md:
- *   EVENT_FUNNEL_INPUT ??ORGANIZATION_PROJECTION_VIEW
+ *   EVENT_FUNNEL_INPUT → ORGANIZATION_PROJECTION_VIEW
  */
 
 
@@ -24,7 +24,7 @@ export interface OrganizationViewRecord {
   partnerCount: number;
   /** Flat list of member account IDs */
   memberIds: string[];
-  /** Map of teamId ??team name */
+  /** Map of teamId → team name */
   teamIndex: Record<string, string>;
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */

@@ -1,5 +1,5 @@
 /**
- * projection-bus/demand-board ??_projector.ts
+ * projection-bus/demand-board — _projector.ts
  *
  * Maintains the Demand Board read model.
  * Per docs/prd-schedule-workforce-skills.md FR-W0 / FR-W6:
@@ -12,15 +12,15 @@
  * domain layers create/enrich), ensuring the UI always reads from one collection.
  *
  * Governance rules applied here:
- *   [S2] SK_VERSION_GUARD ??versionGuardAllows enforced before every Firestore write.
- *   [R8] traceId ??persisted from originating EventEnvelope.
- *   PROJ_STALE_DEMAND_BOARD ??5s (SK_STALENESS_CONTRACT).
+ *   [S2] SK_VERSION_GUARD — versionGuardAllows enforced before every Firestore write.
+ *   [R8] traceId — persisted from originating EventEnvelope.
+ *   PROJ_STALE_DEMAND_BOARD = 5s (SK_STALENESS_CONTRACT).
  *
  * Invariant #1 (cross-BC): this projector only writes to accounts/{orgId}/schedule_items
- *   ??the ScheduleItem SSOT. It does NOT write to any other BC's aggregate.
+ *   — the ScheduleItem SSOT. It does NOT write to any other BC's aggregate.
  *
  * [D3] Projectors in projection-bus are architecturally sanctioned to call updateDocument
- *   directly ??they are the read-model write layer, not an aggregate.
+ *   directly — they are the read-model write layer, not an aggregate.
  */
 
 import type {
@@ -49,7 +49,7 @@ const DEMAND_INITIAL_VERSION = 1;
  *
  * The workspace layer already created the accounts/{orgId}/schedule_items document.
  * handleScheduleProposed (domain aggregate) also runs before this function and
- * sets version/traceId. This function is idempotent ??if the domain already set
+ * sets version/traceId. This function is idempotent — if the domain already set
  * version=1, the version guard on subsequent projector functions will naturally
  * skip stale writes.
  *
@@ -129,7 +129,7 @@ export async function applyDemandAssignmentCancelled(
 /**
  * Marks a schedule item as rejected due to proposal cancellation (REJECTED).
  * Called by projection-bus/event-funnel on 'organization:schedule:proposalCancelled'.
- * [S2] No aggregateVersion in this payload ??guard via status: skip if already closed.
+ * [S2] No aggregateVersion in this payload — guard via status: skip if already closed.
  */
 export async function applyDemandProposalCancelled(
   payload: ScheduleProposalCancelledPayload
@@ -149,7 +149,7 @@ export async function applyDemandProposalCancelled(
 /**
  * Marks a schedule item as rejected due to skill validation failure (REJECTED).
  * Called by projection-bus/event-funnel on 'organization:schedule:assignRejected'.
- * [S2] No aggregateVersion in this payload ??guard via status: skip if already closed.
+ * [S2] No aggregateVersion in this payload — guard via status: skip if already closed.
  */
 export async function applyDemandAssignRejected(
   payload: ScheduleAssignRejectedPayload

@@ -9,18 +9,18 @@
  *   TAG_LIFECYCLE_BUS -> EVENT_FUNNEL_INPUT (v5)
  *
  *   EVENT_FUNNEL_INPUT routes to:
- *     ??WORKSPACE_PROJECTION_VIEW
- *     ??WORKSPACE_SCOPE_READ_MODEL
- *     ??ACCOUNT_PROJECTION_VIEW
- *     ??ACCOUNT_PROJECTION_AUDIT
- *     ??ACCOUNT_PROJECTION_SCHEDULE
- *     ??ORGANIZATION_PROJECTION_VIEW
- *     ??ACCOUNT_SKILL_VIEW
- *     ??ORG_ELIGIBLE_MEMBER_VIEW
+ *     → WORKSPACE_PROJECTION_VIEW
+ *     → WORKSPACE_SCOPE_READ_MODEL
+ *     → ACCOUNT_PROJECTION_VIEW
+ *     → ACCOUNT_PROJECTION_AUDIT
+ *     → ACCOUNT_PROJECTION_SCHEDULE
+ *     → ORGANIZATION_PROJECTION_VIEW
+ *     → ACCOUNT_SKILL_VIEW
+ *     → ORG_ELIGIBLE_MEMBER_VIEW
  *     -> TAG_SNAPSHOT (v5)
- *     ??PROJECTION_VERSION (updates stream offset)
+ *     → PROJECTION_VERSION (updates stream offset)
  *
- *   WORKSPACE_EVENT_STORE -.??EVENT_FUNNEL_INPUT (replay rebuilds all projections)
+ *   WORKSPACE_EVENT_STORE -.-> EVENT_FUNNEL_INPUT (replay rebuilds all projections)
  *
  * Call `registerWorkspaceFunnel(bus)`, `registerOrganizationFunnel()`, and
  * `registerTagFunnel()` once at app startup.
@@ -58,7 +58,7 @@ export function registerOrganizationFunnel(): () => void {
  * Returns a cleanup function.
  *
  * Per 00-LogicOverview.md [R3]:
- *   IER BACKGROUND_LANE ??VS4_TAG_SUBSCRIBER ??SKILL_TAG_POOL
+ *   IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
  *
  * Per 00-LogicOverview.md (L5 · ProjectionBus Infrastructure):
  *   IER ==>|"#9 event write path"| FUNNEL
@@ -72,7 +72,7 @@ export function registerTagFunnel(): () => void {
 
 /**
  * Replays events from the event store to rebuild all workspace projections.
- * Implements: WORKSPACE_EVENT_STORE -.??EVENT_FUNNEL_INPUT
+ * Implements: WORKSPACE_EVENT_STORE -.-> EVENT_FUNNEL_INPUT
  */
 export async function replayWorkspaceProjections(
   workspaceId: string

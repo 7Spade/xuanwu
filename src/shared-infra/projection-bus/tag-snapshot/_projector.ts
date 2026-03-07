@@ -1,16 +1,16 @@
 /**
- * projection-bus/tag-snapshot —_projector.ts
+ * projection-bus/tag-snapshot — projector.ts
  *
  * Tag Authority global read model.
  * Final-consistent snapshot of the global tag dictionary.
  *
  * Per 00-LogicOverview.md (VS8 Tag Lifecycle Views):
- *   TAG_SNAPSHOT["projection-bus/tag-snapshot\ntagSlug / label / category\n蝯?雿?翰?吭n靘?: TagLifecycleEvent\n瘨祥?孵霈敹怠?"]
+ *   TAG_SNAP["projection.tag-snapshot\n[S4: TAG_MAX_STALENESS]\nT5 — consumers must not write"]
  *
  * Invariants:
- *   T5 ??TAG_SNAPSHOT is the final-consistent read model; consumers must not write.
- *   #9  ??Projections must be fully rebuildable from events.
- *   A7  ??Event Funnel composes projections; does not enforce cross-BC invariants.
+ *   T5 — TAG_SNAPSHOT is the final-consistent read model; consumers must not write.
+ *   #9  — Projections must be fully rebuildable from events.
+ *   A7  — Event Funnel composes projections; does not enforce cross-BC invariants.
  *
  * Stored at: tagSnapshot/{tagSlug}
  */
@@ -40,10 +40,10 @@ export interface TagSnapshotEntry {
 }
 
 // ---------------------------------------------------------------------------
-// Projector functions (called by Event Funnel ??Invariant A7)
+// Projector functions (called by Event Funnel — Invariant A7)
 // ---------------------------------------------------------------------------
 
-/** applyTagCreated ??no version guard needed; creates are idempotent. */
+/** applyTagCreated — no version guard needed; creates are idempotent. */
 export async function applyTagCreated(payload: TagCreatedPayload, traceId?: string): Promise<void> {
   await setDocument(`tagSnapshot/${payload.tagSlug}`, {
     tagSlug: payload.tagSlug,
@@ -103,7 +103,7 @@ export async function applyTagDeprecated(
   });
 }
 
-/** applyTagDeleted ??no version guard needed; deletes are final. */
+/** applyTagDeleted — no version guard needed; deletes are final. */
 export async function applyTagDeleted(payload: TagDeletedPayload): Promise<void> {
   await deleteDocument(`tagSnapshot/${payload.tagSlug}`);
 }

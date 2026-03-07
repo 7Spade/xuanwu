@@ -1,21 +1,21 @@
 /**
- * projection-bus/org-eligible-member-view —_projector.ts
+ * projection-bus/org-eligible-member-view — projector.ts
  *
  * Organization-scoped eligible member read model.
  * Used exclusively by organization.schedule to determine assignable members
  * and validate skill tier requirements WITHOUT querying Account aggregates directly.
  *
  * Per 00-LogicOverview.md invariants:
- *   #12 ??Tier is NEVER stored; derived at query time via resolveSkillTier(xp).
- *   #14 ??Schedule reads ONLY this projection (org-eligible-member-view).
+ *   #12 — Tier is NEVER stored; derived at query time via resolveSkillTier(xp).
+ *   #14 — Schedule reads ONLY this projection (org-eligible-member-view).
  *
  * Stored at: orgEligibleMemberView/{orgId}/members/{accountId}
  *
  * Event sources (via EVENT_FUNNEL_INPUT):
- *   organization:skill:xpAdded   ??applyOrgMemberSkillXp
- *   organization:skill:xpDeducted ??applyOrgMemberSkillXp
- *   organization:member:joined    ??initOrgMemberEntry
- *   organization:member:left      ??removeOrgMemberEntry
+ *   organization:skill:xpAdded   → applyOrgMemberSkillXp
+ *   organization:skill:xpDeducted → applyOrgMemberSkillXp
+ *   organization:member:joined    → initOrgMemberEntry
+ *   organization:member:left      → removeOrgMemberEntry
  */
 
 
@@ -27,8 +27,8 @@ import { versionGuardAllows } from '@/shared-kernel';
 /**
  * Per-member entry stored in Firestore.
  *
- * `skills` maps tagSlug ??{ xp }.
- * `tier` is intentionally absent ??derived at read time via resolveSkillTier(xp).
+ * `skills` maps tagSlug → { xp }.
+ * `tier` is intentionally absent — derived at read time via resolveSkillTier(xp).
  * `eligible` is a fast-path flag; consumers SHOULD re-verify via skill requirements.
  * `lastProcessedVersion` is the highest aggregateVersion seen for this member's
  *   eligibility-affecting events; used by ELIGIBLE_UPDATE_GUARD [R7][#19].
@@ -36,7 +36,7 @@ import { versionGuardAllows } from '@/shared-kernel';
 export interface OrgEligibleMemberEntry {
   orgId: string;
   accountId: string;
-  /** Map of skillId (tagSlug) ??{ xp }. Tier must be derived, never stored. */
+  /** Map of skillId (tagSlug) → { xp }. Tier must be derived, never stored. */
   skills: Record<string, { xp: number }>;
   /** True when the member has no active conflicting assignments and is in the org. */
   eligible: boolean;
@@ -100,7 +100,7 @@ export interface ApplyOrgMemberSkillXpInput {
   skillId: string;
   newXp: number;
   traceId?: string;
-  /** Skill aggregate version ??used by S2 XP_VERSION_GUARD. */
+  /** Skill aggregate version — used by S2 XP_VERSION_GUARD. */
   aggregateVersion?: number;
 }
 
@@ -159,11 +159,11 @@ export async function applyOrgMemberSkillXp(
  *
  * Uses SK_VERSION_GUARD [S2] via `versionGuardAllows` to enforce monotonic version.
  * If the incoming version is not strictly greater than the stored version, the event
- * is stale (out-of-order delivery) ??discard silently.
+ * is stale (out-of-order delivery) — discard silently.
  *
  * Called when:
- *   organization:schedule:assigned  ??eligible = false (member is now busy)
- *   organization:schedule:completed / organization:schedule:cancelled ??eligible = true (member is free)
+ *   organization:schedule:assigned  → eligible = false (member is now busy)
+ *   organization:schedule:completed / organization:schedule:cancelled → eligible = true (member is free)
  *
  * Per Invariant #15: eligible must reflect "no active conflicting assignments".
  * Per Invariant #19: eligible update must use aggregateVersion monotonic increase as prerequisite.

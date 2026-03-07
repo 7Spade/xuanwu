@@ -1,5 +1,5 @@
 /**
- * projection-bus/account-view —_queries.ts
+ * projection-bus/account-view — queries.ts
  *
  * Read-side queries for the account projection view.
  */

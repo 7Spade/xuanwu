@@ -1,5 +1,5 @@
 /**
- * projection-bus/workspace-scope-guard —_queries.ts
+ * projection-bus/workspace-scope-guard — queries.ts
  *
  * Read-side queries for the scope guard read model.
  * Used exclusively by workspace-application/_scope-guard.ts.

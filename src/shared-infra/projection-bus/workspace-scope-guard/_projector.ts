@@ -1,5 +1,5 @@
 /**
- * projection-bus/workspace-scope-guard —_projector.ts
+ * projection-bus/workspace-scope-guard — projector.ts
  *
  * Applies workspace domain events to maintain the scope guard read model.
  * Called by the Event Funnel (EVENT_FUNNEL_INPUT) for workspace events.

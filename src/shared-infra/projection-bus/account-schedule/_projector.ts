@@ -1,5 +1,5 @@
 /**
- * projection-bus/account-schedule —_projector.ts
+ * projection-bus/account-schedule — projector.ts
  *
  * Maintains the account schedule projection read model.
  * Tracks active schedule assignments per account for availability filtering.
@@ -8,8 +8,8 @@
  *
  * Per 00-LogicOverview.md (PROJ_BUS STD_PROJ):
  *   ACC_SCHED_V["projection-bus/account-schedule"]
- *   EVENT_FUNNEL_INPUT ??ACCOUNT_PROJECTION_SCHEDULE
- *   ORG_SCH -.??ACCOUNT_PROJECTION_SCHEDULE (?蕪?舐撣唾?)
+ *   EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_SCHEDULE
+ *   ORG_SCH -.->|"schedule delegation [#15]"| ACCOUNT_PROJECTION_SCHEDULE
  *
  * [S2] SK_VERSION_GUARD: versionGuardAllows enforced before every write.
  * [R8] traceId from the originating EventEnvelope is propagated into the record.
@@ -25,7 +25,7 @@ export interface AccountScheduleProjection {
   accountId: string;
   /** Active schedule assignment IDs */
   activeAssignmentIds: string[];
-  /** Map of scheduleItemId ??assignment detail */
+  /** Map of scheduleItemId → assignment detail */
   assignmentIndex: Record<string, AccountScheduleAssignment>;
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */

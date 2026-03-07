@@ -1,5 +1,5 @@
 /**
- * projection-bus/org-eligible-member-view —_queries.ts
+ * projection-bus/org-eligible-member-view — queries.ts
  *
  * Read-side queries for the org eligible member view.
  * Used by organization.schedule to find and validate assignable members.
@@ -8,9 +8,9 @@
  * from shared/lib (Invariant #12).
  *
  * Per 00-LogicOverview.md:
- *   W_B_SCHEDULE -.??ORG_ELIGIBLE_MEMBER_VIEW (?亥岷?舐撣唾? 繚 eligible=true 繚 ?芾?)
+ *   W_B_SCHEDULE -.->|"filter: eligible=true"| ORG_ELIGIBLE_MEMBER_VIEW
  *   ORGANIZATION_SCHEDULE reads this view (Invariant #14)
- *   ORG_ELIGIBLE_MEMBER_VIEW -.??getTier 閮?嚗?摮?DB嚗?
+ *   ORG_ELIGIBLE_MEMBER_VIEW -.-> getTier (computed, no DB read)
  */
 
 import { db } from '@/shared-infra/frontend-firebase';
@@ -22,7 +22,7 @@ import { resolveSkillTier } from '@/shared-kernel';
 import type { OrgEligibleMemberEntry } from './_projector';
 
 // ---------------------------------------------------------------------------
-// Computed view types (tier derived at query time ??never from DB)
+// Computed view types (tier derived at query time — never from DB)
 // ---------------------------------------------------------------------------
 
 /**
@@ -37,7 +37,7 @@ import type { OrgEligibleMemberEntry } from './_projector';
 export interface OrgMemberSkillWithTier {
   skillId: string;
   xp: number;
-  /** Derived at query time via getTier(xp) ??never persisted. */
+  /** Derived at query time via getTier(xp) — never persisted. */
   tier: SkillTier;
 }
 
@@ -60,7 +60,7 @@ export interface OrgEligibleMemberView {
 /**
  * Computes tier for every skill entry in a raw projection record.
  *
- * resolveSkillTier is a pure O(7) linear scan over the 7-tier table ??
+ * resolveSkillTier is a pure O(7) linear scan over the 7-tier table —
  * constant-time per skill.  For typical org sizes this is negligible.
  * Tier is NEVER cached here (Invariant #12); always derived fresh.
  */
@@ -81,7 +81,7 @@ function enrichWithTier(entry: OrgEligibleMemberEntry): OrgEligibleMemberView {
 }
 
 // ---------------------------------------------------------------------------
-// Queries ??raw (for internal projector use)
+// Queries — raw (for internal projector use)
 // ---------------------------------------------------------------------------
 
 /**
@@ -114,7 +114,7 @@ export async function getOrgEligibleMembers(
 }
 
 // ---------------------------------------------------------------------------
-// Queries ??with computed tier (for Schedule / consumer-facing use)
+// Queries — with computed tier (for Schedule / consumer-facing use)
 // ---------------------------------------------------------------------------
 
 /**

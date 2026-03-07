@@ -1,5 +1,5 @@
 /**
- * projection-bus/account-view —_projector.ts
+ * projection-bus/account-view — projector.ts
  *
  * Maintains the account projection read model + authority snapshot.
  * Implements shared-kernel.authority-snapshot contract.
@@ -7,9 +7,9 @@
  * Stored at: accountView/{accountId}
  *
  * Per 00-LogicOverview.md:
- *   EVENT_FUNNEL_INPUT ??ACCOUNT_PROJECTION_VIEW
- *   ACCOUNT_USER_NOTIFICATION -.??ACCOUNT_PROJECTION_VIEW (content filtering by tag)
- *   ACCOUNT_PROJECTION_VIEW -.??shared-kernel.authority-snapshot (contract)
+ *   EVENT_FUNNEL_INPUT → ACCOUNT_PROJECTION_VIEW
+ *   ACCOUNT_USER_NOTIFICATION -.-> ACCOUNT_PROJECTION_VIEW (content filtering by tag)
+ *   ACCOUNT_PROJECTION_VIEW -.-> shared-kernel.authority-snapshot (contract)
  */
 
 
@@ -28,7 +28,7 @@ export interface AccountViewRecord {
   email?: string;
   photoURL?: string;
   /** Roles this account holds across all org memberships (denormalized) */
-  orgRoles: Record<string, string>; // orgId ??role
+  orgRoles: Record<string, string>; // orgId → role
   /** Skill tag slugs granted to this account */
   skillTagSlugs: string[];
   /** Internal/external membership flag for notification content filtering */

@@ -1,5 +1,5 @@
 /**
- * projection-bus/wallet-balance —_projector.ts
+ * projection-bus/wallet-balance — projector.ts
  *
  * Maintains the wallet balance projection read model.
  * Provides a cached EVENTUAL_READ view of account wallet balance

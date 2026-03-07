@@ -1,6 +1,6 @@
 // projection.global-audit-view · VS8 STANDARD_PROJ_LANE · 00-LogicOverview.md [S2][R8]
-// GLOBAL_AUDIT_VIEW ??cross-slice governance audit projection
-// Feed path: AUDIT_COLLECTOR ??IER BACKGROUND_LANE ??FUNNEL ??STANDARD_PROJ_LANE ??here
+// GLOBAL_AUDIT_VIEW — cross-slice governance audit projection
+// Feed path: AUDIT_COLLECTOR → IER BACKGROUND_LANE → FUNNEL → STANDARD_PROJ_LANE → here
 
 import { db } from '@/shared-infra/frontend-firebase';
 import { doc } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
@@ -30,7 +30,7 @@ export interface GlobalAuditQuery {
  *
  * [S2] Idempotency: this projector uses `setDoc(envelope.eventId)` as the
  * document key.  Processing the same event twice overwrites with identical data
- * ??preventing duplicate global-audit entries on event-store replay.
+ * — preventing duplicate global-audit entries on event-store replay.
  * This is the append-only analogue of the versionGuardAllows check used by
  * state-update projections.
  */
