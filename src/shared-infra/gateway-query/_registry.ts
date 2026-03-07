@@ -143,6 +143,12 @@ export const QUERY_ROUTES = {
   WORKSPACE_SCOPE_GUARD: 'workspace-scope-guard',
   /** [Q8][D5] wallet-balance — STRONG_READ back to WALLET_AGG */
   WALLET_BALANCE: 'wallet-balance',
+  /** [S4] schedule-calendar-view — 日期維度 read model (UI 禁止直讀 VS6/Firebase) */
+  SCHEDULE_CALENDAR: 'schedule-calendar',
+  /** [S4] schedule-timeline-view — 資源維度 read model (overlap/grouping 已預計算) */
+  SCHEDULE_TIMELINE: 'schedule-timeline',
+  /** [A6] semantic-governance-view — 語義治理頁讀模型 (提案/共識/關係) */
+  SEMANTIC_GOVERNANCE: 'semantic-governance',
 } as const;
 
 export type QueryRouteName = (typeof QUERY_ROUTES)[keyof typeof QUERY_ROUTES];

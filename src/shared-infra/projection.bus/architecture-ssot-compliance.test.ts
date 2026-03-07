@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 
 const SRC_ROOT = path.resolve(process.cwd(), 'src');
 const FEATURES_ROOT = path.join(SRC_ROOT, 'features');
-const PROJECTION_BUS_ROOT = path.join(FEATURES_ROOT, 'projection.bus');
+const PROJECTION_BUS_ROOT = path.join(SRC_ROOT, 'shared-infra', 'projection.bus');
 
 const APPEND_ONLY_S2_ALLOWLIST = new Set([
   'account-audit/_projector.ts',
