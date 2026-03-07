@@ -28,16 +28,16 @@
  * ONLY.  ZERO infrastructure imports (no Firebase, no React, no I/O).
  */
 
-import type { TagSlugRef } from '../../../core/types';
-import { dispatchForTag } from '../dispatch-bridge';
-import type { DispatchCommand } from '../dispatch-bridge';
+import type { TagSlugRef } from '../core/types';
+import { dispatchForTag } from '../routing/dispatch-bridge';
+import type { DispatchCommand } from '../routing/dispatch-bridge';
 import {
   registerPolicy,
   type DispatchPolicy,
   type DispatchActionKind,
-} from '../policy-mapper';
-import { activateTag } from '../tag-lifecycle.workflow';
-import type { OutboxLifecycleEvent } from '../tag-lifecycle.workflow';
+} from '../routing/policy-mapper';
+import { activateTag } from '../routing/tag-lifecycle.workflow';
+import type { OutboxLifecycleEvent } from '../routing/tag-lifecycle.workflow';
 
 // ??? Types ????????????????????????????????????????????????????????????????????
 

@@ -14,7 +14,7 @@
 
 import type { TagSlugRef } from '@/shared-kernel';
 
-import type { SemanticRelationType } from '../../core/types';
+import type { SemanticRelationType } from '../../../core/types';
 import {
   type ProposalId,
   type RelationshipProposal,

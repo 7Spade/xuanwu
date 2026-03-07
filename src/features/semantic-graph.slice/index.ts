@@ -219,9 +219,9 @@ export type {
 // forwarding to the L5 BBB InvariantGuard.  Call validateConsensus()
 // BEFORE validateEdgeProposal() in the proposal-stream pipeline.
 // =================================================================
-export { validateConsensus } from './governance/consensus-engine';
+export { validateConsensus } from './governance/semantic-governance-portal/consensus-engine';
 export type {
   ConsensusDecision,
   ConsensusRejectionCode,
   ConsensusResult,
-} from './governance/consensus-engine';
+} from './governance/semantic-governance-portal/consensus-engine';

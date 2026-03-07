@@ -28,9 +28,9 @@ import {
   computeSemanticDistance,
   computeSemanticDistanceMatrix,
   findIsolatedNodes,
-} from './graph/neural-net/neural-network';
+} from './reasoning/semantic-distance';
 import type { SemanticEdge, StaleTagWarning } from './core/types';
-import { detectStaleTagWarnings } from './routing/workflows/tag-lifecycle.workflow';
+import { detectStaleTagWarnings } from './routing/tag-lifecycle.workflow';
 import { getEligibleTags, satisfiesSemanticRequirement, buildEligibilityMatrix } from './output/projections/graph-selectors';
 
 

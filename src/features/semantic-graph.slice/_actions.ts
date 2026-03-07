@@ -40,8 +40,8 @@ import {
   registerTagDraft,
   activateTag,
   transitionTagState,
-} from './routing/workflows/tag-lifecycle.workflow';
-import type { OutboxLifecycleEvent } from './routing/workflows/tag-lifecycle.workflow';
+} from './routing/tag-lifecycle.workflow';
+import type { OutboxLifecycleEvent } from './routing/tag-lifecycle.workflow';
 
 // =================================================================
 // Tag Upsert with Conflict Check

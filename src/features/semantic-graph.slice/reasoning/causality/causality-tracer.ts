@@ -19,7 +19,7 @@
 import { tagSlugRef } from '@/shared-kernel';
 
 import { getEdgesFrom, getEdgesTo } from '../../graph/edges/semantic-edge-store';
-import { computeRelationWeight } from '../../graph/neural-net/neural-network';
+import { computeRelationWeight } from '../semantic-distance';
 import type {
   AffectedNode,
   CausalityChain,

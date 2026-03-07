@@ -24,10 +24,10 @@
  * ZERO infrastructure imports (no Firebase, no React, no I/O).
  */
 
-import type { TagSlugRef } from '../../../core/types';
-import { dispatchForTag } from '../dispatch-bridge';
-import type { DispatchCommand } from '../dispatch-bridge';
-import { resolveDispatchPolicy } from '../policy-mapper';
+import type { TagSlugRef } from '../core/types';
+import { dispatchForTag } from '../routing/dispatch-bridge';
+import type { DispatchCommand } from '../routing/dispatch-bridge';
+import { resolveDispatchPolicy } from '../routing/policy-mapper';
 
 // ??? Types ????????????????????????????????????????????????????????????????????
 

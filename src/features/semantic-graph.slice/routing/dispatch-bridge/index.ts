@@ -21,7 +21,7 @@
  * ZERO infrastructure imports (no Firebase, no React, no I/O).
  */
 
-import type { TagSlugRef } from '../../../core/types';
+import type { TagSlugRef } from '../../core/types';
 import { resolveDispatchPolicy } from '../policy-mapper';
 import type { DispatchPolicy } from '../policy-mapper';
 
