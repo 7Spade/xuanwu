@@ -305,6 +305,11 @@ import { getFirestore, type Firestore } from 'firebase/firestore';
 import { app } from '../app.client';
 ```
 
+## File: src/shared-infra/frontend-firebase/firestore/index.ts
+```typescript
+
+```
+
 ## File: src/shared-infra/frontend-firebase/index.ts
 ```typescript
 
@@ -1849,6 +1854,56 @@ fromFirestore(
 ): T
 ```
 
+## File: src/shared-infra/frontend-firebase/firestore/firestore.facade.ts
+```typescript
+
+```
+
+## File: src/shared-infra/frontend-firebase/firestore/firestore.read.adapter.ts
+```typescript
+import {
+	collection,
+	collectionGroup,
+	doc,
+	getDoc,
+	getDocs,
+	onSnapshot,
+	query,
+	where,
+	orderBy,
+	limit,
+	Timestamp,
+	type CollectionReference,
+	type DocumentChange,
+	type DocumentData,
+	type DocumentSnapshot,
+	type FieldPath,
+	type OrderByDirection,
+	type Query,
+	type QueryConstraint,
+	type QueryDocumentSnapshot,
+	type QuerySnapshot,
+	type Unsubscribe,
+	type WhereFilterOp,
+	type FirestoreDataConverter,
+} from 'firebase/firestore';
+import { db } from './firestore.client';
+⋮----
+export const getDocument = async <T>(
+	path: string,
+	converter?: FirestoreDataConverter<T>
+): Promise<T | null> =>
+export const getDocuments = async <T>(query: Query<T>): Promise<T[]> =>
+export const createSubscription = <T>(
+	query: Query<T, DocumentData>,
+	onUpdate: (data: T[]) => void
+): Unsubscribe =>
+export const subscribeToDocument = <T extends object>(
+	path: string,
+	onUpdate: (data: (T & { id: string }) | null) => void
+): Unsubscribe =>
+```
+
 ## File: src/shared-infra/frontend-firebase/firestore/firestore.types.ts
 ```typescript
 import type {
@@ -1876,9 +1931,39 @@ import type { QuerySnapshot } from "firebase/firestore"
 export function snapshotToRecord<T extends
 ```
 
-## File: src/shared-infra/frontend-firebase/firestore/index.ts
+## File: src/shared-infra/frontend-firebase/firestore/firestore.write.adapter.ts
 ```typescript
-
+import {
+	arrayRemove,
+	arrayUnion,
+	collection,
+	doc,
+	addDoc,
+	setDoc,
+	updateDoc,
+	deleteDoc,
+	runTransaction,
+	serverTimestamp,
+	type FieldValue,
+	type Transaction,
+	type WithFieldValue,
+	type DocumentData,
+	type FirestoreDataConverter,
+} from 'firebase/firestore';
+import { db } from './firestore.client';
+⋮----
+export const addDocument = <T>(
+	path: string,
+	data: WithFieldValue<T>,
+	converter?: FirestoreDataConverter<T>
+) =>
+export const setDocument = <T>(
+	path: string,
+	data: WithFieldValue<T>,
+	converter?: FirestoreDataConverter<T>
+) =>
+export const updateDocument = (path: string, data: DocumentData) =>
+export const deleteDocument = (path: string) =>
 ```
 
 ## File: src/shared-infra/frontend-firebase/firestore/repositories/account.repository.ts
@@ -4196,91 +4281,6 @@ onSnapshot<T>(
 ): () => void
 ```
 
-## File: src/shared-infra/frontend-firebase/firestore/firestore.facade.ts
-```typescript
-
-```
-
-## File: src/shared-infra/frontend-firebase/firestore/firestore.read.adapter.ts
-```typescript
-import {
-	collection,
-	collectionGroup,
-	doc,
-	getDoc,
-	getDocs,
-	onSnapshot,
-	query,
-	where,
-	orderBy,
-	limit,
-	Timestamp,
-	type CollectionReference,
-	type DocumentChange,
-	type DocumentData,
-	type DocumentSnapshot,
-	type FieldPath,
-	type OrderByDirection,
-	type Query,
-	type QueryConstraint,
-	type QueryDocumentSnapshot,
-	type QuerySnapshot,
-	type Unsubscribe,
-	type WhereFilterOp,
-	type FirestoreDataConverter,
-} from 'firebase/firestore';
-import { db } from './firestore.client';
-⋮----
-export const getDocument = async <T>(
-	path: string,
-	converter?: FirestoreDataConverter<T>
-): Promise<T | null> =>
-export const getDocuments = async <T>(query: Query<T>): Promise<T[]> =>
-export const createSubscription = <T>(
-	query: Query<T, DocumentData>,
-	onUpdate: (data: T[]) => void
-): Unsubscribe =>
-export const subscribeToDocument = <T extends object>(
-	path: string,
-	onUpdate: (data: (T & { id: string }) | null) => void
-): Unsubscribe =>
-```
-
-## File: src/shared-infra/frontend-firebase/firestore/firestore.write.adapter.ts
-```typescript
-import {
-	arrayRemove,
-	arrayUnion,
-	collection,
-	doc,
-	addDoc,
-	setDoc,
-	updateDoc,
-	deleteDoc,
-	runTransaction,
-	serverTimestamp,
-	type FieldValue,
-	type Transaction,
-	type WithFieldValue,
-	type DocumentData,
-	type FirestoreDataConverter,
-} from 'firebase/firestore';
-import { db } from './firestore.client';
-⋮----
-export const addDocument = <T>(
-	path: string,
-	data: WithFieldValue<T>,
-	converter?: FirestoreDataConverter<T>
-) =>
-export const setDocument = <T>(
-	path: string,
-	data: WithFieldValue<T>,
-	converter?: FirestoreDataConverter<T>
-) =>
-export const updateDocument = (path: string, data: DocumentData) =>
-export const deleteDocument = (path: string) =>
-```
-
 ## File: src/shared-infra/frontend-firebase/firestore/repositories/workspace-business.finance.repository.ts
 ```typescript
 import { getDocument } from '../firestore.read.adapter';
@@ -4585,6 +4585,21 @@ createTraceContext(source?: string): TraceContext;
 
 ```
 
+## File: src/shared-infra/gateway-command/index.ts
+```typescript
+
+```
+
+## File: src/shared-infra/gateway-query/index.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/index.ts
+```typescript
+
+```
+
 ## File: src/features/workforce-scheduling.slice/ui/components/runtime/org-schedule-governance.tsx
 ```typescript
 import { useEffect, useMemo, useState } from 'react';
@@ -4662,6 +4677,7 @@ import { useApp } from "@/app-runtime/providers/app-provider";
 import type { ScheduleItem } from "@/shared-kernel";
 import { useAccountTimeline, useTimelineCommands } from "../../hooks/runtime";
 import { TimelineCanvas } from "./timeline-canvas";
+export function AccountTimelineSection()
 ```
 
 ## File: src/features/workforce-scheduling.slice/ui/components/runtime/timeline.workspace-view.tsx
@@ -4671,6 +4687,7 @@ import { useCallback, useMemo } from "react";
 import type { ScheduleItem } from "@/shared-kernel";
 import { useTimelineCommands, useWorkspaceTimeline } from "../../hooks/runtime";
 import { TimelineCanvas } from "./timeline-canvas";
+export function WorkspaceTimeline()
 ```
 
 ## File: src/features/workforce-scheduling.slice/ui/hooks/runtime/use-workspace-schedule.ts
@@ -4687,21 +4704,6 @@ export function useWorkspaceSchedule()
 ⋮----
 const handleMonthChange = (direction: "prev" | "next") =>
 const handleOpenAddDialog = (date: Date) =>
-```
-
-## File: src/shared-infra/gateway-command/index.ts
-```typescript
-
-```
-
-## File: src/shared-infra/gateway-query/index.ts
-```typescript
-
-```
-
-## File: src/features/workforce-scheduling.slice/index.ts
-```typescript
-
 ```
 
 ## File: src/shared-infra/outbox-relay/_relay.ts

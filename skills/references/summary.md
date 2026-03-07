@@ -45,12 +45,12 @@ This skill contains the following reference files:
 
 ## Statistics
 
-219 files | 3,885 lines
+219 files | 3,887 lines
 
 | Language | Files | Lines |
 |----------|------:|------:|
 | TypeScript | 198 | 3,400 |
-| TypeScript (TSX) | 21 | 485 |
+| TypeScript (TSX) | 21 | 487 |
 
 **Largest files:**
 - `src/features/workforce-scheduling.slice/ports/command.port.ts` (93 lines)
