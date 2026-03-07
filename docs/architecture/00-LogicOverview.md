@@ -445,6 +445,58 @@ subgraph SHARED_INFRA_PLANE["🧩 Shared Infrastructure Plane（VS0-Infra：L0/L
             IER_LANES -.->|"投遞失敗 3 次"| DLQ
         end
 
+        %% ═══════════════════════════════════════════════════════════════
+        %% LAYER 5 ── PROJECTION BUS（事件投影總線）
+        %% ═══════════════════════════════════════════════════════════════
+
+        subgraph PROJ_BUS["🟡 L5 · Projection Bus（src/shared-infra/projection-bus，ownership: VS0-Infra）"]
+            direction TB
+
+            subgraph PROJ_BUS_FUNNEL["▶ Event Funnel（src/shared-infra/projection-bus）[S2 P5 R8]"]
+                direction LR
+                FUNNEL[["event-funnel\n[#9] 唯一 Projection 寫入路徑\n[Q3] upsert by idempotency-key\n[R8] 從 envelope 讀取 traceId → DOMAIN_METRICS\n[S2] 所有 Lane 遵守 SK_VERSION_GUARD\n     event.aggVersion > view.lastVersion\n     → 更新；否則 → 丟棄"]]
+                CRIT_PROJ["🔴 CRITICAL_PROJ_LANE\n[S4: PROJ_STALE_CRITICAL ≤ 500ms]\n獨立重試 / dead-letter"]
+                STD_PROJ["⚪ STANDARD_PROJ_LANE\n[S4: PROJ_STALE_STANDARD ≤ 10s]\n獨立重試 / dead-letter"]
+                FUNNEL --> CRIT_PROJ & STD_PROJ
+            end
+
+            subgraph PROJ_BUS_META["⚙️ Stream Meta（src/shared-infra/projection-bus）"]
+                PROJ_VER["projection.version\n事件串流偏移量"]
+                READ_REG["read-model-registry\n版本目錄"]
+                PROJ_VER -->|version mapping| READ_REG
+            end
+
+            subgraph PROJ_BUS_CRIT["🔴 Critical Projections（src/shared-infra/projection-bus）[S2 S4]"]
+                WS_SCOPE_V["projection.workspace-scope-guard-view\n授權路徑 [#A9]\n[S2: SK_VERSION_GUARD]"]
+                ORG_ELIG_V["projection.org-eligible-member-view\n[S2: SK_VERSION_GUARD]\nskills{tagSlug→xp} / eligible\n[#14 #15 #16 T3]\n→ tag::skill [TE_SK]\n→ tag::skill-tier [TE_ST]"]
+                WALLET_V["projection.wallet-balance\n[S3: EVENTUAL_READ]\n顯示用・精確交易回源 AGG"]
+                TIER_FN[["getTier(xp) → Tier\n純函式 [#12]"]]
+            end
+
+            subgraph PROJ_BUS_STD["⚪ Standard Projections（src/shared-infra/projection-bus）[S4]"]
+                direction LR
+                WS_PROJ["projection.workspace-view"]
+                ACC_SCHED_V["projection.account-schedule"]
+                CAL_PROJ["projection.schedule-calendar-view\n日期維度 Read Model [L5-Bus]\napplyVersionGuard() [S2]"]
+                TL_PROJ["projection.schedule-timeline-view\n資源維度 Read Model [L5-Bus]\noverlap/resource-grouping 下沉 L5\napplyVersionGuard() [S2]"]
+                ACC_PROJ_V["projection.account-view"]
+                ORG_PROJ_V["projection.organization-view"]
+                SKILL_V["projection.account-skill-view\n[S2: SK_VERSION_GUARD]"]
+                AUDIT_V["projection.global-audit-view\n每條記錄含 traceId [R8]"]
+                TAG_SNAP["projection.tag-snapshot\n[S4: TAG_MAX_STALENESS]\nT5 消費方禁止寫入"]
+                SEM_GOV_V["projection.semantic-governance-view\n治理頁 Read Model（wiki/proposal/relationship）\n顯示線路：L5→L6→UI"]
+            end
+
+            IER ==>|"[#9] 唯一 Projection 寫入路徑"| FUNNEL
+            CRIT_PROJ --> WS_SCOPE_V & ORG_ELIG_V & WALLET_V
+            STD_PROJ --> WS_PROJ & ACC_SCHED_V & CAL_PROJ & TL_PROJ & ACC_PROJ_V & ORG_PROJ_V & SKILL_V & AUDIT_V & TAG_SNAP & SEM_GOV_V
+
+            FUNNEL -->|stream offset| PROJ_VER
+            WS_ESTORE -.->|"[#9] replay → rebuild"| FUNNEL
+            SKILL_V -.->|"[#12] getTier"| TIER_FN
+            ORG_ELIG_V -.->|"[#12] getTier"| TIER_FN
+        end
+
         subgraph GW_QUERY["🟢 L6 · Query Gateway（src/shared-infra/gateway-query；ownership: VS0-Infra）[S2 S3]"]
             direction LR
             QGWAY["read-model-registry\n統一讀取入口\n版本對照 / 快照路由\n[S2] 所有 Projection 遵守 SK_VERSION_GUARD"]
@@ -487,8 +539,6 @@ subgraph SHARED_INFRA_PLANE["🧩 Shared Infrastructure Plane（VS0-Infra：L0/L
             DOMAIN_ERRORS["domain-error-log\nWS_TX_RUNNER\nSCHEDULE_SAGA\nDLQ_BLOCK 安全事件 [R5]\nStaleTagWarning\nTOKEN_REFRESH 失敗告警 [S6]"]
         end
 end
-
-SK ~~~ SHARED_INFRA_PLANE
 
 end
 
@@ -646,6 +696,8 @@ end
 %% ── VS1=Identity · VS2=Account · VS3=Skill · VS4=Organization
 %% ── VS5=Workspace · VS6=Workforce-Scheduling · VS7=Notification
 %% ── VS8=Semantic Graph Engine
+%% 語義主幹（邏輯判準）：VS1(登入) → VS2(帳戶) → VS4(組織) → VS5(工作區)
+%% 邊界約束：VS3 僅承載「帳戶技能」；VS6 僅承接 VS5 任務/排班提案；VS7 僅承接帳戶通知投影與事件
 %% ═══════════════════════════════════════════════════════════════
 
 %% ── VS1 Identity ──
@@ -883,6 +935,7 @@ subgraph VS5["🟣 VS5 · Workspace Slice（src/features/workspace.slice）"]
         WF_AGG -->|"blockWorkflow [#A3]"| B_ISSUES
         A_TASKS -.-> W_DAILY
         A_TASKS -.->|任務分配提案（Task→Schedule）| W_SCHED
+        W_SCHED -.->|"WorkspaceScheduleProposed [#A5]"| SCH_SAGA
         PARSE_INT -.->|"職能需求 T4"| W_SCHED
     end
 
@@ -962,6 +1015,7 @@ ACC_OB & ORG_OB & SCH_OB & SKILL_OB & TAG_OB & WS_OB -.->|"被 RELAY 掃描 [R1]
 %% IER → Domain Slice 消費
 CRIT_LANE -.->|"RoleChanged/PolicyChanged [S6]"| CLAIMS_H
 CRIT_LANE -.->|"OrgContextProvisioned [E2]"| ORG_ACL
+ORG_EBUS -.->|"OrgContextProvisioned 事件來源 [E2]"| ORG_ACL
 STD_LANE -.->|"ScheduleAssigned [E3]"| NOTIF_R
 STD_LANE -.->|"ScheduleProposed [#A5]"| SCH_SAGA
 BG_LANE -.->|"TagLifecycleEvent [T1]"| TAG_SUB
@@ -976,58 +1030,6 @@ SKILL_OB -->|"STANDARD_LANE"| IER
 SCH_OB -->|"STANDARD_LANE"| IER
 WS_OB -->|"STANDARD_LANE [E5]"| IER
 TAG_OB -->|"BACKGROUND_LANE"| IER
-
-%% ═══════════════════════════════════════════════════════════════
-%% LAYER 5 ── PROJECTION BUS（事件投影總線）
-%% ═══════════════════════════════════════════════════════════════
-
-subgraph PROJ_BUS["🟡 L5 · Projection Bus（src/shared-infra/projection-bus，ownership: VS0-Infra）"]
-    direction TB
-
-    subgraph PROJ_BUS_FUNNEL["▶ Event Funnel（src/shared-infra/projection-bus）[S2 P5 R8]"]
-        direction LR
-        FUNNEL[["event-funnel\n[#9] 唯一 Projection 寫入路徑\n[Q3] upsert by idempotency-key\n[R8] 從 envelope 讀取 traceId → DOMAIN_METRICS\n[S2] 所有 Lane 遵守 SK_VERSION_GUARD\n     event.aggVersion > view.lastVersion\n     → 更新；否則 → 丟棄"]]
-        CRIT_PROJ["🔴 CRITICAL_PROJ_LANE\n[S4: PROJ_STALE_CRITICAL ≤ 500ms]\n獨立重試 / dead-letter"]
-        STD_PROJ["⚪ STANDARD_PROJ_LANE\n[S4: PROJ_STALE_STANDARD ≤ 10s]\n獨立重試 / dead-letter"]
-        FUNNEL --> CRIT_PROJ & STD_PROJ
-    end
-
-    subgraph PROJ_BUS_META["⚙️ Stream Meta（src/shared-infra/projection-bus）"]
-        PROJ_VER["projection.version\n事件串流偏移量"]
-        READ_REG["read-model-registry\n版本目錄"]
-        PROJ_VER -->|version mapping| READ_REG
-    end
-
-    subgraph PROJ_BUS_CRIT["🔴 Critical Projections（src/shared-infra/projection-bus）[S2 S4]"]
-        WS_SCOPE_V["projection.workspace-scope-guard-view\n授權路徑 [#A9]\n[S2: SK_VERSION_GUARD]"]
-        ORG_ELIG_V["projection.org-eligible-member-view\n[S2: SK_VERSION_GUARD]\nskills{tagSlug→xp} / eligible\n[#14 #15 #16 T3]\n→ tag::skill [TE_SK]\n→ tag::skill-tier [TE_ST]"]
-        WALLET_V["projection.wallet-balance\n[S3: EVENTUAL_READ]\n顯示用・精確交易回源 AGG"]
-        TIER_FN[["getTier(xp) → Tier\n純函式 [#12]"]]
-    end
-
-    subgraph PROJ_BUS_STD["⚪ Standard Projections（src/shared-infra/projection-bus）[S4]"]
-        direction LR
-        WS_PROJ["projection.workspace-view"]
-        ACC_SCHED_V["projection.account-schedule"]
-        CAL_PROJ["projection.schedule-calendar-view\n日期維度 Read Model [L5-Bus]\napplyVersionGuard() [S2]"]
-        TL_PROJ["projection.schedule-timeline-view\n資源維度 Read Model [L5-Bus]\noverlap/resource-grouping 下沉 L5\napplyVersionGuard() [S2]"]
-        ACC_PROJ_V["projection.account-view"]
-        ORG_PROJ_V["projection.organization-view"]
-        SKILL_V["projection.account-skill-view\n[S2: SK_VERSION_GUARD]"]
-        AUDIT_V["projection.global-audit-view\n每條記錄含 traceId [R8]"]
-        TAG_SNAP["projection.tag-snapshot\n[S4: TAG_MAX_STALENESS]\nT5 消費方禁止寫入"]
-        SEM_GOV_V["projection.semantic-governance-view\n治理頁 Read Model（wiki/proposal/relationship）\n顯示線路：L5→L6→UI"]
-    end
-
-    IER ==>|"[#9] 唯一 Projection 寫入路徑"| FUNNEL
-    CRIT_PROJ --> WS_SCOPE_V & ORG_ELIG_V & WALLET_V
-    STD_PROJ --> WS_PROJ & ACC_SCHED_V & CAL_PROJ & TL_PROJ & ACC_PROJ_V & ORG_PROJ_V & SKILL_V & AUDIT_V & TAG_SNAP & SEM_GOV_V
-
-    FUNNEL -->|stream offset| PROJ_VER
-    WS_ESTORE -.->|"[#9] replay → rebuild"| FUNNEL
-    SKILL_V -.->|"[#12] getTier"| TIER_FN
-    ORG_ELIG_V -.->|"[#12] getTier"| TIER_FN
-end
 
 %% ═══════════════════════════════════════════════════════════════
 %% CONNECTIVITY STITCH ZONE（集中連線區塊，避免線段分散）
