@@ -84,8 +84,8 @@
 %%        semantic-graph.slice/                 # L3 VS8 (semantic authority)
 %%        global-search.slice/                  # L3 cross-cut authority (search exit)
 %%    app/                                      # UI entry; read-only via L6
-%%  ── Logic-First Placement Matrix（新增檔案放置判斷：禁止以 token 最小化取代邏輯）──
-%%    最高指標：邏輯正確（Layer+Boundary+Ownership）> 寫法簡短
+%%  ── Logic-First Placement Matrix（新增檔案放置判斷：依六維規則取捨，不以寫法簡短取代邏輯）──
+%%    最高指標：邏輯正確（層級與依賴規則 · 邊界與上下文 · 通訊與協調機制 · 狀態與副作用 · 權力歸屬 · 變動速率）
 %%    A. 層級與依賴規則（Layering & Dependency）
 %%      - 純契約/常數/純函式（無 I/O）→ src/shared-kernel/*（VS0-Kernel / L1）
 %%      - Observability 契約（TraceContext/DomainErrorEntry/interfaces）→ src/shared-kernel/observability/*（L1, contract-only）
