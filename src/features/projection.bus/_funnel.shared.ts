@@ -7,7 +7,11 @@
 
 import { arrayUnion, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
 
-/** Execute a WriteOp returned by an aggregate function. [D3] */
+/**
+ * Execute a WriteOp returned by an aggregate function. [D3]
+ * [S2] This helper is only used by event-funnel writes that already passed
+ * aggregateVersion ordering in upstream handlers.
+ */
 export async function executeAggregateWriteOp(op: {
   path: string;
   data: Record<string, unknown>;
