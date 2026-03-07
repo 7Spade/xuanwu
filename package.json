@@ -28,7 +28,6 @@
     "test": "vitest run",
     "check": "npm install && npm run lint && npm run typecheck",
     "repomix:skill": "repomix --skill-generate xuanwu-skill --skill-output ./skills --force",
-    "repomix:context": "npx repomix --config repomix.config.ts",
     "deploy:functions": "firebase deploy --only functions --config ./src/shared-infra/backend-firebase/firebase.json",
     "deploy:indexes": "firebase deploy --only firestore:indexes --config ./src/shared-infra/backend-firebase/firebase.json",
     "deploy:firestore-rules": "firebase deploy --only firestore:rules --config ./src/shared-infra/backend-firebase/firebase.json",

@@ -10,9 +10,9 @@ You are an expert software architect and automated coding agent. Your task is to
 Execute the following phases sequentially:
 
 ## Phase 1: Preparation & Context Generation
-1. **Run Repomix:** Execute the repomix configuration to generate/update the compressed context file.
+1. **Run Repomix Skill Generation:** Execute Repomix skill generation to produce/update the skill package.
    ```bash
-   npx repomix --config repomix.config.ts
+   repomix --skill-generate xuanwu-skill --skill-output ./skills --force
    ```
 2. **Verify Output:** Ensure `skills\references\files.md` is successfully generated and up-to-date.
 

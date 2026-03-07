@@ -56,4 +56,5 @@ shared-infra
 Each folder has a single responsibility: app = UI, app-runtime = runtime wiring, config = static config, shared-kernel = global contracts, features = business logic, shared = contracts/utils, shared-infra = external adapters.
 
 repomix --skill-generate xuanwu-skill --skill-output ./skills --force
-npx repomix --config repomix.config.ts
+
+Generated output under `skills/` is the skill artifact and should be used directly as the repository skill package.

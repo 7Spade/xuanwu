@@ -1,17 +1,16 @@
 ---
-name: x-repomix-skill-and-context-generate
-description: Invoke the x-repomix-bootstrap prompt to prepare the environment, then generate the Repomix skill package and repository context.
+name: x-repomix-skill-generate
+description: Invoke the x-repomix-bootstrap prompt to prepare the environment, then generate the Repomix skill package.
 ---
 
 # Copilot Browser Agent Task
 
-This prompt coordinates the full Repomix workflow.
+This prompt coordinates the full Repomix skill workflow.
 
 Execution order:
 
 1. Call **x-repomix-bootstrap.prompt.md**
 2. Generate the Repomix skill package
-3. Generate the repository compressed context
 
 Do not skip steps.
 
@@ -53,23 +52,7 @@ If the folder already exists, overwrite using the --force flag.
 
 Verify all files exist before continuing.
 
----
-
-# Phase 3 — Generate Repomix Context
-
-Run:
-
-npx repomix --config repomix.config.ts
-
-Expected output:
-
-skills\references\files.md
-
-Verify the file exists and is not empty.
-
----
-
-# Phase 4 — Output Verification
+# Phase 3 — Output Verification
 
 Confirm the following outputs exist:
 
@@ -79,8 +62,6 @@ skills/references/project-structure.md
 skills/references/summary.md
 skills/references/tech-stack.md
 skills/SKILL.md
-
-skills\references\files.md
 
 If any file is missing:
 
@@ -92,9 +73,6 @@ If any file is missing:
 
 # Final State
 
-The repository must contain:
+The repository must contain a generated skill package at `skills/`.
 
-skills/
-skills\references\files.md
-
-Both must be successfully generated using Repomix.
+The generated files under `skills/` must be successfully produced by Repomix and used directly as the skill artifact.

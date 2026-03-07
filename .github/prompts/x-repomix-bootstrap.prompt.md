@@ -118,7 +118,6 @@ All commands must succeed.
 The environment must be ready for future commands such as:
 
 repomix
-npx repomix --config repomix.config.ts
 repomix --skill-generate <skill-name>
 
 Do not finish the task until Node.js, npm, and Repomix are fully working.

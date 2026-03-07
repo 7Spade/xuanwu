@@ -5,7 +5,7 @@ description: Bootstrap Node.js environment, install Repomix, generate repository
 
 # Repomix Environment Bootstrap + Skill Generation
 
-You are an automated coding agent responsible for preparing the repository environment and generating the Repomix context and skill files.
+You are an automated coding agent responsible for preparing the repository environment and generating the Repomix skill files.
 
 Execute the following phases sequentially.
 
@@ -50,21 +50,7 @@ Ensure installation completes successfully before continuing.
 
 ---
 
-# Phase 4 — Generate Repomix Context
-
-Run the repository context compression using the configuration file.
-
-npx repomix --config repomix.config.ts
-
-Expected output:
-
-skills\references\files.md
-
-Verify that this file exists and is not empty.
-
----
-
-# Phase 5 — Generate Xuanwu Skill
+# Phase 4 — Generate Xuanwu Skill
 
 Generate the Repomix skill package.
 
@@ -76,16 +62,21 @@ skills/
 
 Verify the directory exists and contains generated skill files.
 
+Treat the generated output under `skills/` as the repository skill package.
+
 ---
 
-# Phase 6 — Output Validation
+# Phase 5 — Output Validation
 
 Confirm the following artifacts exist:
 
-skills\references\files.md
 skills/
+skills/SKILL.md
+skills/references/files.md
+skills/references/project-structure.md
+skills/references/summary.md
 
-If either artifact is missing:
+If any artifact is missing:
 1. Re-run the relevant command
 2. Inspect errors
 3. Fix and retry
@@ -106,9 +97,6 @@ Do not finish until both outputs exist.
 
 # Final Result
 
-The repository must contain:
+The repository must contain a generated skill package under `skills/`.
 
-skills\references\files.md
-skills/
-
-Both must be generated successfully using Repomix.
+This package must be generated successfully using Repomix and used directly as the skill artifact.
