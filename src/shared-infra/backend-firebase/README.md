@@ -10,7 +10,7 @@
 
 ## 版本來源
 
-後端 Firebase 版本由 Functions 套件鎖定（`src/shared-infra/firebase/functions/package.json`）：
+後端 Firebase 版本由 Functions 套件鎖定（`src/shared-infra/backend-firebase/functions/package.json`）：
 
 - `firebase-admin`: `^13.6.0`
 - `firebase-functions`: `^7.0.0`

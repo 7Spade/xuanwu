@@ -27,10 +27,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm install && npm run lint && npm run typecheck",
-    "deploy:functions": "firebase deploy --only functions --config ./src/shared-infra/firebase/firebase.json",
-    "deploy:indexes": "firebase deploy --only firestore:indexes --config ./src/shared-infra/firebase/firebase.json",
-    "deploy:firestore-rules": "firebase deploy --only firestore:rules --config ./src/shared-infra/firebase/firebase.json",
-    "deploy:storage-rules": "firebase deploy --only storage --config ./src/shared-infra/firebase/firebase.json"
+    "deploy:functions": "firebase deploy --only functions --config ./src/shared-infra/backend-firebase/firebase.json",
+    "deploy:indexes": "firebase deploy --only firestore:indexes --config ./src/shared-infra/backend-firebase/firebase.json",
+    "deploy:firestore-rules": "firebase deploy --only firestore:rules --config ./src/shared-infra/backend-firebase/firebase.json",
+    "deploy:storage-rules": "firebase deploy --only storage --config ./src/shared-infra/backend-firebase/firebase.json"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

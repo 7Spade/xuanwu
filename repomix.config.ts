@@ -52,7 +52,7 @@ export default defineConfig({
       "README.md",
       "repomix.config.ts",
       "**/node_modules/**",
-      "src/shared-infra/firebase/functions/lib/**",
+      "src/shared-infra/backend-firebase/functions/lib/**",
       "src/shared/shadcn-ui/**",
       "tailwind.config.ts",
       "vitest.config.ts",
