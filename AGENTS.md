@@ -74,6 +74,23 @@ Before making changes, always follow the architecture alignment prompts:
 1. **`.github/prompts/compliance-audit.prompt.md`** — run before PR to verify docs alignment
 2. **`.github/prompts/iterative-alignment-refactor.prompt.md`** — for fixing D-rule violations
 
+## Prompt Routing Guard (MANDATORY)
+
+- Use **`.github/prompts/x-repomix-bootstrap.prompt.md`** only for machine bootstrap (`node`, `npm`, `repomix` install/verify).
+- For structure refactor, D-rule remediation, or slice migration, use **`.github/prompts/x-arch-remediation.prompt.md`**.
+- If the request includes terms like `結構化`, `重構`, `migrate`, `slice`, `D7/D3/D24`, do **not** run bootstrap prompts.
+
+## Large Refactor Transaction Protocol (MANDATORY)
+
+When moving files/folders across architecture layers:
+
+1. Produce a file move map (source -> destination) before editing.
+2. Move files in small batches (max 5 moves/batch).
+3. After each batch, run diagnostics (`get_errors`) and stop on first regression.
+4. Create backward-compatibility shims only after real files are moved and imports are fixed.
+5. Do not leave dual structures (`new layer folders + old runtime folders`) without an explicit TODO plan.
+6. If any tool action is cancelled or fails, stop and report partial state before continuing.
+
 ## Key Files
 
 - `docs\architecture\00-LogicOverview.md` — **SSOT** architecture rules (D1–D25, invariants #1–#19)

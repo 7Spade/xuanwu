@@ -18,8 +18,8 @@ import {
   approveOrgScheduleProposal,
   cancelOrgScheduleProposal,
   completeOrgSchedule,
-} from '../_aggregate';
-import { executeWriteOp } from '../_write-op';
+} from '../../../domain/aggregate';
+import { executeWriteOp } from '../write-op';
 
 export async function manualAssignScheduleMember(
   scheduleItemId: string,

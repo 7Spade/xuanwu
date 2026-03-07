@@ -5,7 +5,7 @@
  * Constraints: deterministic logic, respect module boundaries
  */
 
-export { executeWriteOp } from '../_write-op';
+export { executeWriteOp } from './commands/write-op';
 
 export {
   createScheduleItem,
@@ -17,7 +17,7 @@ export {
   manualAssignScheduleMember,
   cancelScheduleProposalAction,
   completeOrgScheduleAction,
-} from '../_actions';
+} from './commands';
 
 export {
   getScheduleItems,
@@ -35,8 +35,8 @@ export {
   getEligibleMemberForSchedule,
   getEligibleMembersForSchedule,
   DEMAND_BOARD_STALENESS,
-} from '../_queries';
-export type { OrgEligibleMemberView, OrgMemberSkillWithTier } from '../_queries';
+} from './queries';
+export type { OrgEligibleMemberView, OrgMemberSkillWithTier } from './queries';
 
 export {
   selectAllScheduleItems,
@@ -44,11 +44,14 @@ export {
   selectDecisionHistory,
   selectUpcomingEvents,
   selectPresentEvents,
-} from '../_selectors';
-export type { ScheduleItemWithWorkspace, ScheduleItemWithMembers } from '../_selectors';
+} from './selectors';
+export type { ScheduleItemWithWorkspace, ScheduleItemWithMembers } from './selectors';
 
-export { startSchedulingSaga, getSagaState } from '../_saga';
-export type { SagaState, SagaStep, SagaStatus } from '../_saga';
+export { startSchedulingSaga, getSagaState } from './sagas';
+export type { SagaState, SagaStep, SagaStatus } from './sagas';
 
 // Legacy compatibility: projector handlers are implemented in VS0 projection bus.
-export type { AccountScheduleProjection, AccountScheduleAssignment } from '../_projectors/account-schedule';
+export type {
+  AccountScheduleProjection,
+  AccountScheduleAssignment,
+} from './projectors/runtime/account-schedule';

@@ -14,8 +14,8 @@ import type {
 import type {
   AccountScheduleAssignment,
   AccountScheduleProjection,
-} from '../_projectors/account-schedule';
-import type { OrgEligibleMemberView, OrgMemberSkillWithTier } from '../_queries';
+} from '../application/projectors/runtime/account-schedule';
+import type { OrgEligibleMemberView, OrgMemberSkillWithTier } from '../application/queries';
 
 export type QueryUnsubscribe = () => void;
 

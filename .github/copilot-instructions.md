@@ -74,6 +74,35 @@ IF 程式碼查詢   → 使用 skills/SKILL.md（→ references/files.md）
 
 ---
 
+# 🧭 Prompt 路由守門
+
+```rules
+IF 任務包含「bootstrap / 安裝工具 / repomix 可用性」
+	THEN 使用 .github/prompts/x-repomix-bootstrap.prompt.md
+
+IF 任務包含「結構化 / 重構 / migrate / D7-D24 / slice 邊界」
+	THEN 使用 .github/prompts/x-arch-remediation.prompt.md
+
+IF 任務為「合規檢查 / pre-commit 架構守門」
+	THEN 使用 .github/prompts/x-arch-gatekeeper.prompt.md 或 compliance-audit.prompt.md
+
+FORBIDDEN: 使用 x-repomix-bootstrap 執行架構重構或檔案搬遷
+```
+
+---
+
+# 🧱 大型搬遷協定（必遵守）
+
+```rules
+1. 先提交 move-map（source->destination），再開始搬遷
+2. 每批最多 5 個搬遷，批次後必跑錯誤檢查
+3. 檔案實體搬遷完成前，不得僅建立新 barrel 假分層
+4. 相容 shim 僅能在「新路徑可編譯」後建立
+5. 若工具取消/失敗，必須立即回報 partial state 並停止
+```
+
+---
+
 # 🧩 決策流程
 
 ```mermaid

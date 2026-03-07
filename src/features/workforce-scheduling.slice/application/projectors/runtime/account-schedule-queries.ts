@@ -12,4 +12,4 @@
 export {
   getAccountScheduleProjection,
   getAccountActiveAssignments,
-} from '../_queries';
+} from '../../queries';

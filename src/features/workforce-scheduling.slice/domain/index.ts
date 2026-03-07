@@ -13,20 +13,22 @@ export {
   cancelOrgScheduleAssignment,
   orgScheduleProposalSchema,
   ORG_SCHEDULE_STATUSES,
-} from '../_aggregate';
+} from './aggregate';
+
 export type {
   OrgScheduleProposal,
   OrgScheduleStatus,
   ScheduleApprovalResult,
   WriteOp,
-} from '../_aggregate';
+} from './aggregate';
 
-export { canTransitionScheduleStatus, VALID_STATUS_TRANSITIONS } from '../_schedule.rules';
+export { canTransitionScheduleStatus, VALID_STATUS_TRANSITIONS } from './rules/schedule.rules';
 
 export {
   SAGA_TIER_ORDER,
   sagaTierIndex,
   findEligibleCandidate,
   findEligibleCandidatesForRequirements,
-} from '../_eligibility';
-export type { SagaTier, CandidateAssignment } from '../_eligibility';
+} from './eligibility';
+
+export type { SagaTier, CandidateAssignment } from './eligibility';

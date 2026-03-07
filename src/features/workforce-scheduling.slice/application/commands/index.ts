@@ -1,7 +1,7 @@
 /**
- * Module: _actions.ts
- * Purpose: Aggregate schedule action modules.
- * Responsibilities: Re-export workspace, lifecycle, and governance actions.
+ * Module: application/commands/index.ts
+ * Purpose: Command-layer public exports for VS6 workforce scheduling.
+ * Responsibilities: Re-export schedule command use-cases.
  * Constraints: deterministic logic, respect module boundaries
  */
 
@@ -16,4 +16,4 @@ export {
   manualAssignScheduleMember,
   cancelScheduleProposalAction,
   completeOrgScheduleAction,
-} from './_actions/index';
+} from './actions';

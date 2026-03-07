@@ -3,6 +3,11 @@ name: x-repomix-bootstrap
 description: Start from GitHub Copilot Agents Browser and bootstrap a clean machine from zero, installing Node.js, npm, and Repomix.
 ---
 
+> Scope Guard:
+> - This prompt is for environment bootstrap only.
+> - Do NOT use this prompt for architecture refactor, slice restructuring, file migration, or D-rule remediation.
+> - For architecture refactor tasks, use `.github/prompts/x-arch-remediation.prompt.md`.
+
 # Copilot Browser Agent Task
 
 Your task begins from a clean environment inside **GitHub Copilot Agents Browser**.

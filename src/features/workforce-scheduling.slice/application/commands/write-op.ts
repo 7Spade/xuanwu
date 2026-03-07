@@ -13,7 +13,7 @@
 
 import { executeWriteOpThroughGateway } from '@/shared-infra/gateway-command';
 
-import type { WriteOp } from './_aggregate';
+import type { WriteOp } from '../../domain/aggregate';
 
 /**
  * Executes a WriteOp returned by an aggregate function. [D3]

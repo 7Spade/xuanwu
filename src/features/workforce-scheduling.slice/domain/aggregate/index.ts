@@ -27,6 +27,7 @@
  */
 
 import {
+  getDocumentByPathFromGateway,
   getEligibleMemberForScheduleFromGateway,
   getOrgScheduleItemFromGateway,
 } from '@/shared-infra/gateway-query';
@@ -37,16 +38,16 @@ import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
 import {
   type ScheduleApprovalResult,
   type WriteOp,
-} from './_aggregate.types';
-import { enqueueSchedulingOutboxEvent } from './sched-outbox';
+} from '../types/aggregate.types';
+import { enqueueSchedulingOutboxEvent } from '../../application/commands/sched-outbox';
 
-export { ORG_SCHEDULE_STATUSES, orgScheduleProposalSchema } from './_aggregate.types';
+export { ORG_SCHEDULE_STATUSES, orgScheduleProposalSchema } from '../types/aggregate.types';
 export type {
   OrgScheduleProposal,
   OrgScheduleStatus,
   ScheduleApprovalResult,
   WriteOp,
-} from './_aggregate.types';
+} from '../types/aggregate.types';
 
 // =================================================================
 // Aggregate State (DDD state machine)
@@ -160,7 +161,7 @@ export async function approveOrgScheduleProposal(
 
     // Validate each skill requirement; tier derived via getTier(xp), never from DB (Invariant #12)
     for (const req of skillRequirements) {
-      const skillEntry = memberView.skills[req.tagSlug];
+      const skillEntry = memberView.skills.find((skill) => skill.skillId === req.tagSlug);
 
       if (!skillEntry) {
         const reason = `Skill "${req.tagSlug}" is not present in the member's skill projection.`;
@@ -282,7 +283,7 @@ export async function cancelOrgScheduleProposal(
     orgId,
     workspaceId,
     cancelledBy,
-    cancelledAt: Timestamp.now().toDate().toISOString(),
+    cancelledAt: new Date().toISOString(),
     ...(reason ? { reason } : {}),
     // [R8] Forward traceId to compensating event for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
@@ -323,7 +324,9 @@ export async function completeOrgSchedule(
   /** [R8] TraceID propagated from the originating command. */
   traceId?: string
 ): Promise<WriteOp> {
-  const existing = await getDocument<ScheduleItem>(scheduleItemPath(orgId, scheduleItemId));
+  const existing = await getDocumentByPathFromGateway<ScheduleItem>(
+    scheduleItemPath(orgId, scheduleItemId)
+  );
   if (!existing || existing.status !== 'OFFICIAL') {
     throw new Error(
       `completeOrgSchedule: invalid state transition ??scheduleItemId "${scheduleItemId}" is "${existing?.status ?? 'not found'}", expected "OFFICIAL".`
@@ -337,7 +340,7 @@ export async function completeOrgSchedule(
     orgId,
     targetAccountId,
     completedBy,
-    completedAt: Timestamp.now().toDate().toISOString(),
+    completedAt: new Date().toISOString(),
     aggregateVersion: nextVersion,
     // [R8] Forward traceId for end-to-end trace propagation.
     ...(traceId ? { traceId } : {}),
@@ -384,7 +387,9 @@ export async function cancelOrgScheduleAssignment(
   /** [R8] TraceID propagated from the originating command. */
   traceId?: string
 ): Promise<WriteOp> {
-  const existing = await getDocument<ScheduleItem>(scheduleItemPath(orgId, scheduleItemId));
+  const existing = await getDocumentByPathFromGateway<ScheduleItem>(
+    scheduleItemPath(orgId, scheduleItemId)
+  );
   if (!existing || existing.status !== 'OFFICIAL') {
     throw new Error(
       `cancelOrgScheduleAssignment: invalid state transition ??scheduleItemId "${scheduleItemId}" is "${existing?.status ?? 'not found'}", expected "OFFICIAL".`
@@ -398,7 +403,7 @@ export async function cancelOrgScheduleAssignment(
     orgId,
     targetAccountId,
     cancelledBy,
-    cancelledAt: Timestamp.now().toDate().toISOString(),
+    cancelledAt: new Date().toISOString(),
     aggregateVersion: nextVersion,
     ...(reason ? { reason } : {}),
     // [R8] Forward traceId for end-to-end trace propagation.

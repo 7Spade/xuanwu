@@ -21,13 +21,18 @@ import {
   getEligibleMemberForScheduleFromGateway,
   getEligibleMembersForScheduleFromGateway,
   subscribeToWorkspaceScheduleItemsFromGateway,
-  type OrgEligibleMemberView,
-  type OrgMemberSkillWithTier,
 } from '@/shared-infra/gateway-query';
+import type {
+  OrgEligibleMemberView,
+  OrgMemberSkillWithTier,
+} from '@/shared-infra/projection.bus';
 import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
 import type { ImplementsStalenessContract } from '@/shared-kernel';
 
-import type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
+import type {
+  AccountScheduleProjection,
+  AccountScheduleAssignment,
+} from '../projectors/runtime/account-schedule';
 
 type Unsubscribe = () => void;
 

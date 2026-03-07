@@ -28,9 +28,9 @@ import type { WorkspaceScheduleProposedPayload } from '@/shared-kernel';
 import {
   handleScheduleProposed,
   approveOrgScheduleProposal,
-} from './_aggregate';
-import { findEligibleCandidatesForRequirements } from './_eligibility';
-import { executeWriteOp } from './_write-op';
+} from '../../domain/aggregate';
+import { findEligibleCandidatesForRequirements } from '../../domain/eligibility';
+import { executeWriteOp } from '../commands/write-op';
 
 
 // ---------------------------------------------------------------------------
@@ -78,7 +78,10 @@ function sagaPath(sagaId: string): string {
 }
 
 async function persistSaga(state: SagaState): Promise<void> {
-  await setDocumentByPathThroughGateway(sagaPath(state.sagaId), state as Record<string, unknown>);
+  await setDocumentByPathThroughGateway(
+    sagaPath(state.sagaId),
+    state as unknown as Record<string, unknown>
+  );
 }
 
 async function updateSagaStatus(
