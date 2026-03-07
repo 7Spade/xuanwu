@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { useI18n } from "@/app-runtime/providers/i18n-provider"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shadcn-ui/dialog"
 import { toast } from "@/shadcn-ui/hooks/use-toast"
 
 import { completeRegistration , signIn, signInAnonymously } from "../_actions"
@@ -13,6 +19,7 @@ import { completeRegistration , signIn, signInAnonymously } from "../_actions"
 
 import { AuthBackground } from "./auth-background"
 import { AuthTabsRoot } from "./auth-tabs-root"
+import { ResetPasswordForm } from "./reset-password-form"
 
 /**
  * LoginView — The "smart" auth container.
@@ -28,6 +35,7 @@ export function LoginView() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
+  const [isResetOpen, setIsResetOpen] = useState(false)
 
   const handleAuth = async (type: "login" | "register") => {
     setIsLoading(true)
@@ -83,10 +91,25 @@ export function LoginView() {
         setName={setName}
         handleAuth={handleAuth}
         handleAnonymous={handleAnonymous}
-        openResetDialog={() =>
-          router.push(`/reset-password${email ? `?email=${encodeURIComponent(email)}` : ""}`)
-        }
+        openResetDialog={() => setIsResetOpen(true)}
       />
+
+      <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
+        <DialogContent className="max-w-sm rounded-[2rem] border-border/40 bg-card/90 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black uppercase tracking-wide">
+              {t("auth.resetPassword")}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="pt-2">
+            <ResetPasswordForm
+              defaultEmail={email}
+              onSuccess={() => setIsResetOpen(false)}
+              onCancel={() => setIsResetOpen(false)}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
