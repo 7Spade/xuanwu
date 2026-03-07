@@ -59,6 +59,7 @@
 %%    E2=OrgContextProvisioned    E3=ScheduleAssigned    E5=ws-event-flow   E6=claims-refresh
 %%  ── VS6 Workforce Scheduling SSOT（產品推導約束）──
 %%    [D27-Order] 單向鏈：WorkspaceItem → WorkspaceTask → Schedule（禁止跳級）
+%%    健康設計鏈：WorkspaceItem → WorkspaceTask（無時間） → WorkspaceSchedule（有時間） → OrganizationSchedule（人力指派）
 %%    [D27-Gate] 任務物化唯一入口：shouldMaterializeAsTask()；僅 EXECUTABLE 可物化
 %%    [SK_SKILL_REQ] 指派校驗必須引用跨片人力需求契約
 %%    [VS8-Tag] 能力與視覺判定僅可讀 tag-snapshot（禁止讀 Account 原始技能資料）
@@ -664,7 +665,7 @@ subgraph VS5["🟣 VS5 · Workspace Slice（工作區業務）"]
         end
 
         W_DAILY["daily\n施工日誌"]
-        W_SCHED["workspace.schedule.proposal\nWorkspaceScheduleProposed（僅提案）\nTask → Schedule 單向橋接 [D27-Order #A5]"]
+        W_SCHED["workspace.schedule（WorkspaceSchedule）\n任務時間化（有時間）\nWorkspaceScheduleProposed（僅提案）\nTask → WorkspaceSchedule 單向橋接 [D27-Order #A5]"]
 
         PARSE_INT -->|"[Layer-3 Semantic Router]\nshouldMaterializeAsTask(costItemType) [D27-Gate]\n先形成 WorkspaceItem"| A_ITEMS
         A_ITEMS -->|"僅 EXECUTABLE 事項可物化任務\n保留 sourceIntentIndex 排序 [D27-Order]"| A_TASKS
@@ -715,12 +716,12 @@ subgraph VS6["🟨 VS6 · Workforce Scheduling Slice（排班協作）\nsrc/feat
     subgraph VS6_CMD_LAYER["⚙️ Command Layer（寫側）"]
         SCH_CMD["schedule-command-handler\n僅接收排班命令（禁止 UI 直寫）\n回傳 SK_CMD_RESULT"]
         SCH_CONFLICT["schedule-conflict-checker\n時間/資源衝突檢查（寫側守門）"]
-        ORG_SCH["org.schedule.aggregate\nHR Scheduling (tagSlug T4)\n先驗證 SK_SKILL_REQ + TAG_STALE_GUARD\n事件帶 aggregateVersion [R7]"]
+        ORG_SCH["organization.schedule.aggregate（OrganizationSchedule）\n人力指派聚合（依 workspace schedule 提案）\nHR Scheduling (tagSlug T4)\n先驗證 SK_SKILL_REQ + TAG_STALE_GUARD\n事件帶 aggregateVersion [R7]"]
         SCH_CMD --> SCH_CONFLICT --> ORG_SCH
     end
 
     subgraph VS6_SAGA["⚙️ Workforce-Scheduling Saga [#A5]"]
-        SCH_SAGA["workforce-scheduling-saga\n接收 ScheduleProposed\neligibility check [#14]\ncompensating:\n  ScheduleAssignRejected\n  ScheduleProposalCancelled\n（需求引導執行，執行引導協作）"]
+        SCH_SAGA["workforce-scheduling-saga\n接收 WorkspaceScheduleProposed\neligibility check [#14]\ncompensating:\n  ScheduleAssignRejected\n  ScheduleProposalCancelled\n（需求引導執行，執行引導協作）"]
     end
 
     subgraph VS6_OB["📤 Schedule Outbox [S1]"]
