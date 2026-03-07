@@ -1,14 +1,14 @@
 {
-	"servers": {
-		"repomix": {
-			"command": "npx",
-			"args": [
-				"-y",
-				"repomix",
-				"--mcp"
-			],
-			"type": "stdio"
-		},
+  "servers": {
+    "repomix": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "repomix",
+        "--mcp"
+      ],
+      "type": "stdio"
+    },
     "next-devtools": {
       "command": "npx",
       "args": [
@@ -23,11 +23,33 @@
         "@upstash/context7-mcp"
       ]
     },
-
-		"shadcn": {
-			"command": "npx",
-			"args": ["shadcn@latest", "mcp"]
-		}
-	},
-	"inputs": []
+    "shadcn": {
+      "command": "npx",
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "env": {
+        "MEMORY_FILE_PATH": "${workspaceFolder}/docs/knowledge-graph.json"
+      }
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${workspaceFolder}"
+      ]
+    }
+  },
+  "inputs": []
 }

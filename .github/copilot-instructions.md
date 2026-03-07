@@ -3,7 +3,8 @@
 > 🎯 本專案所有**事實依據（Single Source of Truth）**統一來自：
 >
 > * `docs/knowledge-graph.json`
-> * `docs/logic-overview.md`
+> * `docs/architecture/logic-overview.md`
+> * `docs/ai/repomix-output.context.md`
 >
 > ❗ 任何推論、流程、任務拆解、AI 判斷
 > 都必須以這兩份文件為基礎，不得憑空假設。
@@ -13,10 +14,11 @@
 # 🧠 核心事實來源規則（強制）
 
 ```rules
-1. 所有業務邏輯以 docs/logic-overview.md 為流程定義依據。
+1. 所有業務邏輯以 docs/architecture/logic-overview.md 為流程定義依據。
 2. 所有實體關係與知識結構以 docs/knowledge-graph.json 為語義依據。
-3. 不允許跳過文件直接生成邏輯。
-4. 若文件未定義，必須先更新 Knowledge Graph 再實作。
+3. 所有 AI 判斷與任務拆解以 docs/ai/repomix-output.context.md 為依據。
+4. 不允許跳過文件直接生成邏輯。
+5. 若文件未定義，必須先更新 Knowledge Graph 再實作。
 ```
 
 ---
@@ -26,8 +28,10 @@
 ```rules
 1. 當產生新業務規則 → 使用 store_memory 寫入 Knowledge Graph。
 2. 當 AI 需要上下文歷史 → 使用 memory MCP 查詢。
-3. 不得在未同步 Knowledge Graph 情況下生成持久邏輯。
-4. 所有跨對話決策必須來自 memory MCP。
+3. 不得直接修改 knowledge-graph.json，必須透過 memory MCP 寫入。
+4. 不得在未同步 Knowledge Graph 情況下生成持久邏輯。
+5. 所有跨對話決策必須來自 memory MCP。
+6. 不得憑空生成未定義邏輯。
 ```
 
 ---
@@ -39,7 +43,7 @@ flowchart TD
 
 A[接收任務] --> B{是否屬於既有邏輯?}
 
-B -- 是 --> C[查詢 docs/logic-overview.md]
+B -- 是 --> C[查詢 docs/architecture/logic-overview.md]
 C --> D[查詢 docs/knowledge-graph.json]
 D --> E[必要時使用 memory MCP]
 E --> F[產出解決方案]
@@ -125,7 +129,7 @@ J --> K[啟動對應 MCP]
 
 ```rules
 IF 任務涉及業務邏輯
-  THEN 先讀 docs/logic-overview.md
+  THEN 先讀 docs/architecture/logic-overview.md
 
 IF 任務涉及實體關係
   THEN 查 docs/knowledge-graph.json
