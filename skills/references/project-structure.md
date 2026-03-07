@@ -385,18 +385,22 @@ src/
       centralized-causality/
         causality-tracer.ts (41 lines)
       centralized-edges/
+        adjacency-list.ts (12 lines)
+        context-attention.ts (9 lines)
         semantic-edge-store.ts (27 lines)
         weight-calculator.ts (20 lines)
       centralized-embeddings/
         embedding-port.ts (22 lines)
         vector-store.ts (15 lines)
       centralized-guards/
+        invariant-guard.ts (34 lines)
         semantic-guard.ts (34 lines)
+        staleness-monitor.ts (10 lines)
       centralized-learning/
         decay-service.ts (11 lines)
         learning-engine.ts (21 lines)
       centralized-neural-net/
-        context-attention.ts (9 lines)
+        context-attention.ts (0 lines)
         neural-network.ts (29 lines)
       centralized-nodes/
         hierarchy-manager.ts (7 lines)
@@ -411,7 +415,16 @@ src/
       centralized-utils/
         semantic-utils.ts (11 lines)
       centralized-workflows/
+        dispatch-bridge/
+          index.ts (26 lines)
+        policy-mapper/
+          index.ts (24 lines)
+        workflows/
+          alert-routing-flow.ts (35 lines)
+          tag-promotion-flow.ts (27 lines)
         tag-lifecycle.workflow.ts (47 lines)
+      consensus-engine/
+        index.ts (28 lines)
       outbox/
         tag-outbox.ts (28 lines)
       projections/
@@ -420,6 +433,8 @@ src/
         tag-snapshot.slice.ts (16 lines)
       proposal-stream/
         index.ts (26 lines)
+      relationship-visualizer/
+        index.ts (36 lines)
       subscribers/
         lifecycle-subscriber.ts (8 lines)
       wiki-editor/
