@@ -90,8 +90,47 @@ function createIconBadge(label: string, background: string, color: string): HTML
   return icon;
 }
 
+function applyMarqueeIfOverflow(viewport: HTMLSpanElement, track: HTMLSpanElement): void {
+  const update = () => {
+    if (!viewport.isConnected || !track.isConnected) return;
+
+    const overflowWidth = track.scrollWidth - viewport.clientWidth;
+    if (overflowWidth > 2) {
+      const durationSeconds = Math.max(6, Math.min(18, overflowWidth / 22));
+      track.classList.add(styles.marqueeTrackAnimated);
+      track.style.setProperty("--marquee-distance", `${overflowWidth}px`);
+      track.style.setProperty("--marquee-duration", `${durationSeconds}s`);
+      return;
+    }
+
+    track.classList.remove(styles.marqueeTrackAnimated);
+    track.style.removeProperty("--marquee-distance");
+    track.style.removeProperty("--marquee-duration");
+  };
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(update);
+  });
+}
+
+function createMarqueeText(value: string, color?: string): { viewport: HTMLSpanElement; track: HTMLSpanElement } {
+  const track = document.createElement("span");
+  track.textContent = value;
+  track.className = styles.marqueeTrack;
+  if (color) {
+    track.style.color = color;
+  }
+
+  const viewport = document.createElement("span");
+  viewport.className = styles.marqueeViewport;
+  viewport.appendChild(track);
+
+  applyMarqueeIfOverflow(viewport, track);
+
+  return { viewport, track };
+}
+
 function buildTimelineItemElement(taskTitle: string, skillRequirements: DisplaySkillRequirement[]): HTMLElement {
-  const shouldAnimateTitle = taskTitle.length > 28;
   const root = document.createElement("div");
   root.style.display = "flex";
   root.style.flexDirection = "column";
@@ -113,15 +152,7 @@ function buildTimelineItemElement(taskTitle: string, skillRequirements: DisplayS
   titleRow.style.minWidth = "0";
   titleRow.appendChild(createIconBadge("T", "#dbeafe", "#1d4ed8"));
 
-  const titleText = document.createElement("span");
-  titleText.textContent = taskTitle;
-  titleText.className = shouldAnimateTitle
-    ? `${styles.marqueeTrack} ${styles.marqueeTrackAnimated}`
-    : styles.marqueeTrack;
-
-  const titleViewport = document.createElement("span");
-  titleViewport.className = styles.marqueeViewport;
-  titleViewport.appendChild(titleText);
+  const { viewport: titleViewport } = createMarqueeText(taskTitle);
 
   titleRow.appendChild(titleViewport);
   root.appendChild(titleRow);
@@ -137,18 +168,7 @@ function buildTimelineItemElement(taskTitle: string, skillRequirements: DisplayS
 
     row.appendChild(createIconBadge("S", "#dcfce7", "#15803d"));
 
-    const shouldAnimateSkill = requirement.skillName.length > 18;
-
-    const skillText = document.createElement("span");
-    skillText.textContent = requirement.skillName;
-    skillText.style.color = "#166534";
-    skillText.className = shouldAnimateSkill
-      ? `${styles.marqueeTrack} ${styles.marqueeTrackAnimated}`
-      : styles.marqueeTrack;
-
-    const skillViewport = document.createElement("span");
-    skillViewport.className = styles.marqueeViewport;
-    skillViewport.appendChild(skillText);
+    const { viewport: skillViewport } = createMarqueeText(requirement.skillName, "#166534");
     row.appendChild(skillViewport);
 
     const peopleWrap = document.createElement("span");
@@ -262,6 +282,7 @@ export function TimelineCanvas({
     const options: TimelineOptions & { throttleRedraw?: number } = {
       stack: true,
       groupHeightMode: "fitItems",
+      verticalScroll: true,
       selectable: true,
       moveable: enableDrag,
       editable: enableDrag ? { updateTime: true, updateGroup: groupMode === "workspace" } : false,
@@ -399,8 +420,8 @@ export function TimelineCanvas({
   }, [enableDrag, groupMode, initialWindow.end, initialWindow.start, timelineGroups, timelineItems]);
 
   return (
-    <div className={cn("relative min-h-[520px] overflow-hidden rounded-xl border bg-card p-3", className)}>
-      <div ref={containerRef} className="h-[500px] w-full" />
+    <div className={cn("relative min-h-[520px] rounded-xl border bg-card p-3", className)}>
+      <div ref={containerRef} className="min-h-[500px] w-full" />
     </div>
   );
 }

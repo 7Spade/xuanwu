@@ -13,8 +13,12 @@
 }
 
 .marqueeTrackAnimated {
+  padding-right: 1rem;
   will-change: transform;
-  animation: timelineMarquee 10s linear infinite;
+  animation-name: timelineMarquee;
+  animation-duration: var(--marquee-duration, 10s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
 
 @keyframes timelineMarquee {
@@ -23,7 +27,7 @@
   }
 
   100% {
-    transform: translateX(-100%);
+    transform: translateX(calc(-1 * var(--marquee-distance, 100%)));
   }
 }
 
