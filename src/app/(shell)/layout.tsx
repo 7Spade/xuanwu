@@ -20,7 +20,7 @@
 import { Fragment, type ReactNode } from "react";
 
 import { useTokenRefreshListener } from "@/features/identity.slice";
-import { AccountProvider } from "@/features/workspace.slice";
+import { AccountProvider } from "@/shared/app-providers/account-provider";
 import { useAuth } from "@/shared/app-providers/auth-provider";
 import { SidebarProvider } from "@/shared/shadcn-ui/sidebar";
 

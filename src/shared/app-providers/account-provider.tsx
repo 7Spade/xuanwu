@@ -15,7 +15,7 @@ import {
   subscribeToInvitesForAccount,
   subscribeToScheduleItemsForAccount,
   subscribeToWorkspacesForAccount,
-} from '@/features/workspace.slice/core/_queries'
+} from './account-provider.queries'
 
 import { type AccountAction, AccountContext, type AccountState } from './account-context'
 import { useApp } from './app-provider'

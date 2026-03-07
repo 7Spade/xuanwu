@@ -26,7 +26,7 @@ import { useContext } from 'react'
 
 import { AppContext, type AppAction, type AppState } from './app-context'
 
-import { subscribeToAccountsForUser } from './_queries'
+import { subscribeToAccountsForUser } from './app-provider.queries'
 import { useAuth } from './auth-provider'
 
 // ---------------------------------------------------------------------------
