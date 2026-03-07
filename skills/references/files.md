@@ -7639,19 +7639,6 @@ async function handleSaveEdge()
 function cancelEdge()
 ```
 
-## File: src/features/organization.slice/gov.skill/_hooks/use-org-skill-graph.ts
-```typescript
-import { useEffect, useState } from 'react';
-import { subscribeToOrgSkillGraph } from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
-import type { OrgSkillGraph } from '../_types';
-export interface OrgSkillGraphState {
-  graph: OrgSkillGraph;
-  loading: boolean;
-}
-⋮----
-export function useOrgSkillGraph(orgId: string): OrgSkillGraphState
-```
-
 ## File: src/features/organization.slice/gov.skill/_types.ts
 ```typescript
 export type OrgSkillNodeGroup = 'category' | 'skill';
@@ -11203,6 +11190,19 @@ export async function deliverNotification(
  * @returns Sanitized message safe for external account delivery
  */
 function sanitizeForExternal(message: string): string
+```
+
+## File: src/features/organization.slice/gov.skill/_hooks/use-org-skill-graph.ts
+```typescript
+import { useEffect, useState } from 'react';
+import { subscribeToOrgSkillGraph } from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
+import type { OrgSkillGraph } from '../_types';
+export interface OrgSkillGraphState {
+  graph: OrgSkillGraph;
+  loading: boolean;
+}
+⋮----
+export function useOrgSkillGraph(orgId: string): OrgSkillGraphState
 ```
 
 ## File: src/features/organization.slice/gov.teams/_components/team-detail-view.tsx
