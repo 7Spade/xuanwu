@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Search, Command } from "lucide-react";
+import { Search, Command, BookOpen } from "lucide-react";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -121,6 +121,11 @@ export function Header() {
         </Button>
       </div>
       <div className="flex items-center gap-3 pr-4">
+        <Button asChild variant="ghost" size="sm" className="gap-1.5">
+          <Link href="/wiki">
+            <BookOpen className="size-4" />
+          </Link>
+        </Button>
         <NotificationCenter notifications={notifications} dispatch={dispatch} />
       </div>
       <GlobalSearch
