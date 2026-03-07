@@ -1,0 +1,35 @@
+.marqueeViewport {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.marqueeTrack {
+  display: inline-block;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.marqueeTrackAnimated {
+  will-change: transform;
+  animation: timelineMarquee 10s linear infinite;
+}
+
+@keyframes timelineMarquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marqueeTrackAnimated {
+    padding-left: 0;
+    animation: none;
+  }
+}

@@ -20,8 +20,10 @@ import "vis-timeline/styles/vis-timeline-graph2d.min.css";
 
 import { cn } from "@/shadcn-ui/utils/utils";
 import type { ScheduleItem } from "@/shared-kernel";
+import { SKILLS } from "@/shared-kernel/constants/skills";
 
 import type { TimelineMember } from '../../types/timeline.types';
+import styles from "./timeline-canvas.module.css";
 import {
   escapeHtml,
   resolveInitialWindow,
@@ -45,6 +47,137 @@ interface TimelineCanvasProps {
     droppedAt: Date;
   }) => Promise<boolean>;
   className?: string;
+}
+
+interface TimelineRenderableItem extends DataItem {
+  taskTitle?: string;
+  skillRequirements?: DisplaySkillRequirement[];
+}
+
+interface DisplaySkillRequirement {
+  skillName: string;
+  quantity: number;
+}
+
+function formatSkillRequirements(item: ScheduleItem, skillNameBySlug: Map<string, string>): DisplaySkillRequirement[] {
+  const requirements = item.requiredSkills ?? [];
+  if (requirements.length === 0) {
+    return [{ skillName: "Not Set", quantity: 0 }];
+  }
+
+  return requirements.map((requirement) => {
+    const skillName = skillNameBySlug.get(requirement.tagSlug) ?? requirement.tagSlug;
+    const quantity = Math.max(1, requirement.quantity ?? 1);
+    return { skillName, quantity };
+  });
+}
+
+function createIconBadge(label: string, background: string, color: string): HTMLSpanElement {
+  const icon = document.createElement("span");
+  icon.textContent = label;
+  icon.style.display = "inline-flex";
+  icon.style.alignItems = "center";
+  icon.style.justifyContent = "center";
+  icon.style.width = "14px";
+  icon.style.height = "14px";
+  icon.style.borderRadius = "9999px";
+  icon.style.background = background;
+  icon.style.color = color;
+  icon.style.fontSize = "9px";
+  icon.style.fontWeight = "700";
+  icon.style.lineHeight = "1";
+  icon.style.flexShrink = "0";
+  return icon;
+}
+
+function buildTimelineItemElement(taskTitle: string, skillRequirements: DisplaySkillRequirement[]): HTMLElement {
+  const shouldAnimateTitle = taskTitle.length > 28;
+  const root = document.createElement("div");
+  root.style.display = "flex";
+  root.style.flexDirection = "column";
+  root.style.gap = "2px";
+  root.style.whiteSpace = "normal";
+  root.style.width = "100%";
+  root.style.maxWidth = "100%";
+  root.style.minWidth = "0";
+  root.style.overflow = "hidden";
+
+  const titleRow = document.createElement("div");
+  titleRow.style.display = "grid";
+  titleRow.style.gridTemplateColumns = "14px minmax(0, 1fr)";
+  titleRow.style.alignItems = "center";
+  titleRow.style.gap = "6px";
+  titleRow.style.fontWeight = "600";
+  titleRow.style.lineHeight = "1.2";
+  titleRow.style.color = "#0f172a";
+  titleRow.style.minWidth = "0";
+  titleRow.appendChild(createIconBadge("T", "#dbeafe", "#1d4ed8"));
+
+  const titleText = document.createElement("span");
+  titleText.textContent = taskTitle;
+  titleText.className = shouldAnimateTitle
+    ? `${styles.marqueeTrack} ${styles.marqueeTrackAnimated}`
+    : styles.marqueeTrack;
+
+  const titleViewport = document.createElement("span");
+  titleViewport.className = styles.marqueeViewport;
+  titleViewport.appendChild(titleText);
+
+  titleRow.appendChild(titleViewport);
+  root.appendChild(titleRow);
+
+  for (const requirement of skillRequirements) {
+    const row = document.createElement("div");
+    row.style.display = "grid";
+    row.style.gridTemplateColumns = "14px minmax(0, 1fr) auto";
+    row.style.alignItems = "center";
+    row.style.gap = "6px";
+    row.style.lineHeight = "1.2";
+    row.style.minWidth = "0";
+
+    row.appendChild(createIconBadge("S", "#dcfce7", "#15803d"));
+
+    const shouldAnimateSkill = requirement.skillName.length > 18;
+
+    const skillText = document.createElement("span");
+    skillText.textContent = requirement.skillName;
+    skillText.style.color = "#166534";
+    skillText.className = shouldAnimateSkill
+      ? `${styles.marqueeTrack} ${styles.marqueeTrackAnimated}`
+      : styles.marqueeTrack;
+
+    const skillViewport = document.createElement("span");
+    skillViewport.className = styles.marqueeViewport;
+    skillViewport.appendChild(skillText);
+    row.appendChild(skillViewport);
+
+    const peopleWrap = document.createElement("span");
+    peopleWrap.style.display = "inline-flex";
+    peopleWrap.style.alignItems = "center";
+    peopleWrap.style.gap = "4px";
+    peopleWrap.style.color = "#6b21a8";
+    peopleWrap.style.flexShrink = "0";
+
+    peopleWrap.appendChild(createIconBadge("P", "#f3e8ff", "#7e22ce"));
+
+    const peopleCount = document.createElement("span");
+    peopleCount.textContent = requirement.quantity > 0 ? String(requirement.quantity) : "-";
+    peopleWrap.appendChild(peopleCount);
+
+    row.appendChild(peopleWrap);
+    root.appendChild(row);
+  }
+
+  return root;
+}
+
+function buildTimelineItemTitle(item: ScheduleItem, skillRequirements: DisplaySkillRequirement[], assigneeNames: string): string {
+  const skillLines = skillRequirements.map((requirement) => `Skill: ${requirement.skillName} | People: ${requirement.quantity > 0 ? requirement.quantity : "-"}`);
+  const baseLines = [item.title, ...skillLines];
+  if (assigneeNames) {
+    baseLines.push(`Assignees: ${assigneeNames}`);
+  }
+  return baseLines.join("\n");
 }
 
 
@@ -71,6 +204,7 @@ export function TimelineCanvas({
   }, [onDropTask]);
 
   const membersMap = useMemo(() => new Map(members.map((member) => [member.id, member.name])), [members]);
+  const skillNameBySlug = useMemo(() => new Map(SKILLS.map((skill) => [skill.slug, skill.name])), []);
 
   const timelineItems = useMemo(() => {
     return items
@@ -78,14 +212,14 @@ export function TimelineCanvas({
         const interval = resolveTimelineInterval(item);
         if (!interval) return null;
         const assigneeNames = item.assigneeIds.map((id) => membersMap.get(id)).filter(Boolean).join(", ");
+        const skillRequirements = formatSkillRequirements(item, skillNameBySlug);
+        const titleText = buildTimelineItemTitle(item, skillRequirements, assigneeNames);
 
-        const titleText = assigneeNames
-          ? `${item.title}\n${assigneeNames}`
-          : item.title;
-
-        return {
+        const timelineItem: TimelineRenderableItem = {
           id: item.id,
-          content: escapeHtml(item.title),
+          content: item.title,
+          taskTitle: item.title,
+          skillRequirements,
           start: interval.start,
           end: interval.end,
           type: interval.type,
@@ -93,9 +227,11 @@ export function TimelineCanvas({
           title: escapeHtml(titleText),
           className: toTimelineClassName(item),
         };
+
+        return timelineItem;
       })
       .filter((item): item is DataItem => item !== null);
-  }, [groupMode, items, membersMap]);
+  }, [groupMode, items, membersMap, skillNameBySlug]);
 
   const timelineGroups = useMemo<DataGroup[] | undefined>(() => {
     if (groupMode !== "workspace") return undefined;
@@ -118,12 +254,14 @@ export function TimelineCanvas({
 
   useEffect(() => {
     if (!containerRef.current) return;
+    let isEffectActive = true;
 
     const dataSet = new DataSet<DataItem>(timelineItems);
     const groupDataSet = timelineGroups ? new DataSet<DataGroup>(timelineGroups) : undefined;
 
     const options: TimelineOptions & { throttleRedraw?: number } = {
       stack: true,
+      groupHeightMode: "fitItems",
       selectable: true,
       moveable: enableDrag,
       editable: enableDrag ? { updateTime: true, updateGroup: groupMode === "workspace" } : false,
@@ -139,6 +277,12 @@ export function TimelineCanvas({
       orientation: { axis: "top" },
       showCurrentTime: false,
       groupOrder: "content",
+      template: (rawItem) => {
+        const item = rawItem as TimelineRenderableItem | undefined;
+        const taskTitle = typeof item?.taskTitle === "string" ? item.taskTitle : "Untitled";
+        const skillRequirements = Array.isArray(item?.skillRequirements) ? item.skillRequirements : [];
+        return buildTimelineItemElement(taskTitle, skillRequirements);
+      },
       onMove: (movedItem: TimelineItem, callback) => {
         const startDate = new Date(movedItem.start);
         const endDate = movedItem.end ? new Date(movedItem.end) : new Date(startDate);
@@ -146,7 +290,9 @@ export function TimelineCanvas({
         const moveHandler = onMoveItemRef.current;
 
         if (!moveHandler) {
-          callback(movedItem);
+          if (isEffectActive) {
+            callback(movedItem);
+          }
           return;
         }
 
@@ -157,9 +303,13 @@ export function TimelineCanvas({
           groupId: movedItem.group != null ? String(movedItem.group) : undefined,
         })
           .then((ok) => {
+            if (!isEffectActive) return;
             callback(ok ? movedItem : null);
           })
-          .catch(() => callback(null));
+          .catch(() => {
+            if (!isEffectActive) return;
+            callback(null);
+          });
       },
     };
 
@@ -168,7 +318,29 @@ export function TimelineCanvas({
       : new Timeline(containerRef.current, dataSet, options);
     timelineRef.current = timeline;
 
+    let redrawFrame: number | null = null;
+    const scheduleRedraw = () => {
+      if (!isEffectActive) return;
+      if (redrawFrame !== null) {
+        cancelAnimationFrame(redrawFrame);
+      }
+      redrawFrame = requestAnimationFrame(() => {
+        redrawFrame = null;
+        if (!isEffectActive) return;
+        timeline.redraw();
+      });
+    };
+
+    timeline.on("rangechanged", scheduleRedraw);
+
+    // Recalculate stacked item heights after template DOM is mounted.
+    scheduleRedraw();
+
     const container = containerRef.current;
+    const resizeObserver = new ResizeObserver(() => {
+      scheduleRedraw();
+    });
+    resizeObserver.observe(container);
 
     const handleDragOver = (event: DragEvent) => {
       if (!event.dataTransfer) return;
@@ -213,6 +385,12 @@ export function TimelineCanvas({
     container.addEventListener("drop", handleDrop);
 
     return () => {
+      isEffectActive = false;
+      timeline.off("rangechanged", scheduleRedraw);
+      resizeObserver.disconnect();
+      if (redrawFrame !== null) {
+        cancelAnimationFrame(redrawFrame);
+      }
       container.removeEventListener("dragover", handleDragOver);
       container.removeEventListener("drop", handleDrop);
       timeline.destroy();
