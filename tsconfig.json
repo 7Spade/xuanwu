@@ -20,6 +20,10 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
+      "@/shadcn-ui": ["./src/shadcn-ui"],
+      "@/shadcn-ui/*": ["./src/shadcn-ui/*"],
+      "@/shadcn-ui/lib/utils": ["./src/shadcn-ui/utils/utils"],
+      "@/shadcn-ui/hooks": ["./src/shadcn-ui/hooks"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

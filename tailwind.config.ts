@@ -4,7 +4,7 @@ const sansFontStack = ['ui-sans-serif', 'system-ui', 'sans-serif'];
 
 export default {
   darkMode: ['class'],
-  content: ['./src/{app,app-runtime,config,features,shared}/**/*.{ts,tsx,mdx}'],
+  content: ['./src/{app,app-runtime,config,features,portal,shadcn-ui,shared,shell}/**/*.{ts,tsx,mdx}'],
   theme: {
   	extend: {
   		fontFamily: {
