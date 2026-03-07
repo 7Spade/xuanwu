@@ -4242,6 +4242,47 @@ export type DlqTier = "SAFE_AUTO" | "REVIEW_REQUIRED" | "SECURITY_BLOCK";
 export function dlqCollectionName(tier: DlqTier): string
 ```
 
+## File: src/shared-infra/frontend-firebase/analytics/analytics.client.ts
+```typescript
+import { getAnalytics, type Analytics } from 'firebase/analytics';
+import { app } from '../app.client';
+```
+
+## File: src/shared-infra/frontend-firebase/app.client.ts
+```typescript
+import { getApps, initializeApp, type FirebaseApp } from 'firebase/app';
+import { firebaseConfig } from './config/firebase.config';
+```
+
+## File: src/shared-infra/frontend-firebase/auth/auth.client.ts
+```typescript
+import { getAuth, type Auth } from 'firebase/auth';
+import { app } from '../app.client';
+```
+
+## File: src/shared-infra/frontend-firebase/firestore/firestore.client.ts
+```typescript
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { app } from '../app.client';
+```
+
+## File: src/shared-infra/frontend-firebase/index.ts
+```typescript
+
+```
+
+## File: src/shared-infra/frontend-firebase/messaging/messaging.client.ts
+```typescript
+import { getMessaging, type Messaging } from 'firebase/messaging';
+import { app } from '../app.client';
+```
+
+## File: src/shared-infra/frontend-firebase/storage/storage.client.ts
+```typescript
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
+import { app } from '../app.client';
+```
+
 ## File: src/shared-kernel/constants/location-units.ts
 ```typescript
 export type LocationUnitKey =
@@ -6158,52 +6199,6 @@ export async function enqueueSkillOutboxEvent<K extends OrganizationEventKey>(
 ): Promise<SkillOutboxAck>
 ```
 
-## File: src/features/workforce-scheduling.slice/application/commands/actions/governance.ts
-```typescript
-import {
-  type CommandResult,
-  type SkillRequirement,
-  commandFailureFrom,
-  commandSuccess,
-} from '@/shared-kernel';
-import {
-  approveOrgScheduleProposal,
-  cancelOrgScheduleProposal,
-  completeOrgSchedule,
-} from '../_aggregate';
-import { executeWriteOp } from '../_write-op';
-export async function manualAssignScheduleMember(
-  scheduleItemId: string,
-  targetAccountId: string,
-  assignedBy: string,
-  opts: {
-    workspaceId: string;
-    orgId: string;
-    title: string;
-    startDate: string;
-    endDate: string;
-    traceId?: string;
-  },
-  skillRequirements?: SkillRequirement[]
-): Promise<CommandResult>
-export async function cancelScheduleProposalAction(
-  scheduleItemId: string,
-  orgId: string,
-  workspaceId: string,
-  cancelledBy: string,
-  reason?: string,
-  traceId?: string
-): Promise<CommandResult>
-export async function completeOrgScheduleAction(
-  scheduleItemId: string,
-  orgId: string,
-  workspaceId: string,
-  targetAccountId: string,
-  completedBy: string,
-  traceId?: string
-): Promise<CommandResult>
-```
-
 ## File: src/features/workforce-scheduling.slice/application/commands/actions/index.ts
 ```typescript
 
@@ -6293,11 +6288,6 @@ export async function unassignMember(
 ): Promise<CommandResult>
 ```
 
-## File: src/features/workforce-scheduling.slice/application/commands/index.ts
-```typescript
-
-```
-
 ## File: src/features/workforce-scheduling.slice/application/commands/sched-outbox.ts
 ```typescript
 import {
@@ -6323,18 +6313,6 @@ export async function enqueueSchedulingOutboxEvent<K extends OrganizationEventKe
 ): Promise<SchedulingOutboxAck>
 ```
 
-## File: src/features/workforce-scheduling.slice/application/commands/write-op.ts
-```typescript
-import { executeWriteOpThroughGateway } from '@/shared-infra/gateway-command';
-import type { WriteOp } from './_aggregate';
-export async function executeWriteOp(op: WriteOp): Promise<void>
-```
-
-## File: src/features/workforce-scheduling.slice/application/projectors/runtime/account-schedule-queries.ts
-```typescript
-
-```
-
 ## File: src/features/workforce-scheduling.slice/application/projectors/runtime/account-schedule.ts
 ```typescript
 type ProjectionUpdatedAt = unknown;
@@ -6356,77 +6334,6 @@ export interface AccountScheduleAssignment {
 }
 ```
 
-## File: src/features/workforce-scheduling.slice/application/queries/index.ts
-```typescript
-import {
-  getScheduleItemsFromGateway,
-  getOrgScheduleItemFromGateway,
-  subscribeToOrgScheduleProposalsFromGateway,
-  getActiveDemandsFromGateway,
-  subscribeToDemandBoardFromGateway,
-  getAllDemandsFromGateway,
-  getAccountScheduleProjectionRawFromGateway,
-  getEligibleMemberForScheduleFromGateway,
-  getEligibleMembersForScheduleFromGateway,
-  subscribeToWorkspaceScheduleItemsFromGateway,
-  type OrgEligibleMemberView,
-  type OrgMemberSkillWithTier,
-} from '@/shared-infra/gateway-query';
-import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
-import type { ImplementsStalenessContract } from '@/shared-kernel';
-import type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
-type Unsubscribe = () => void;
-⋮----
-export async function getScheduleItems(
-  accountId: string,
-  workspaceId?: string
-): Promise<ScheduleItem[]>
-export async function getOrgScheduleItem(
-  orgId: string,
-  scheduleItemId: string
-): Promise<ScheduleItem | null>
-⋮----
-export function subscribeToOrgScheduleProposals(
-  orgId: string,
-  onUpdate: (items: ScheduleItem[]) => void,
-  opts?: { status?: ScheduleStatus; maxItems?: number }
-): Unsubscribe
-export function subscribeToPendingProposals(
-  orgId: string,
-  onUpdate: (items: ScheduleItem[]) => void
-): Unsubscribe
-export function subscribeToConfirmedProposals(
-  orgId: string,
-  onUpdate: (items: ScheduleItem[]) => void
-): Unsubscribe
-export async function getActiveDemands(orgId: string): Promise<ScheduleItem[]>
-export function subscribeToDemandBoard(
-  orgId: string,
-  onChange: (items: ScheduleItem[]) => void
-): Unsubscribe
-export async function getAllDemands(orgId: string): Promise<ScheduleItem[]>
-export async function getAccountScheduleProjection(
-  accountId: string
-): Promise<AccountScheduleProjection | null>
-export async function getAccountActiveAssignments(
-  accountId: string
-): Promise<AccountScheduleAssignment[]>
-⋮----
-export async function getEligibleMemberForSchedule(
-  orgId: string,
-  accountId: string
-): Promise<OrgEligibleMemberView | null>
-export async function getEligibleMembersForSchedule(
-  orgId: string
-): Promise<OrgEligibleMemberView[]>
-export function subscribeToWorkspaceScheduleItems(
-  dimensionId: string,
-  workspaceId: string,
-  onUpdate: (items: ScheduleItem[]) => void,
-  onError?: (err: Error) => void,
-): Unsubscribe
-```
-
 ## File: src/features/workforce-scheduling.slice/application/queries/timeline.queries.ts
 ```typescript
 import { subscribeToWorkspaceTimelineItemsFromGateway } from '@/shared-infra/gateway-query';
@@ -6438,65 +6345,6 @@ export function subscribeToWorkspaceTimelineItems(
   onUpdate: (items: ScheduleItem[]) => void,
   onError?: (error: Error) => void
 ): Unsubscribe
-```
-
-## File: src/features/workforce-scheduling.slice/application/sagas/index.ts
-```typescript
-import {
-  getEligibleMembersForScheduleFromGateway,
-  getDocumentByPathFromGateway,
-} from '@/shared-infra/gateway-query';
-import {
-  setDocumentByPathThroughGateway,
-  updateDocumentByPathThroughGateway,
-} from '@/shared-infra/gateway-command';
-import type { WorkspaceScheduleProposedPayload } from '@/shared-kernel';
-import {
-  handleScheduleProposed,
-  approveOrgScheduleProposal,
-} from './_aggregate';
-import { findEligibleCandidatesForRequirements } from './_eligibility';
-import { executeWriteOp } from './_write-op';
-export type SagaStep =
-  | 'receive_proposal'
-  | 'eligibility_check'
-  | 'assign'
-  | 'compensate';
-export type SagaStatus =
-  | 'pending'
-  | 'eligibility_check'
-  | 'assigned'
-  | 'compensated';
-export interface SagaState {
-  readonly sagaId: string;
-  readonly scheduleItemId: string;
-  readonly workspaceId: string;
-  readonly orgId: string;
-  status: SagaStatus;
-  currentStep: SagaStep;
-  startedAt: string;
-  updatedAt: string;
-  completedAt?: string;
-  compensationReason?: string;
-  traceId?: string;
-}
-⋮----
-function sagaPath(sagaId: string): string
-async function persistSaga(state: SagaState): Promise<void>
-async function updateSagaStatus(
-  sagaId: string,
-  patch: Partial<
-    Pick<
-      SagaState,
-      'status' | 'currentStep' | 'completedAt' | 'compensationReason' | 'updatedAt'
-    >
-  >
-): Promise<void>
-export async function getSagaState(sagaId: string): Promise<SagaState | null>
-export async function startSchedulingSaga(
-  event: WorkspaceScheduleProposedPayload,
-  sagaId: string
-): Promise<SagaState>
 ```
 
 ## File: src/features/workforce-scheduling.slice/application/selectors/index.ts
@@ -6527,98 +6375,6 @@ export function selectPresentEvents<M>(
   items: ScheduleItemWithWorkspace[],
   members: M[]
 ): ScheduleItemWithMembers<M>[]
-```
-
-## File: src/features/workforce-scheduling.slice/domain/aggregate/index.ts
-```typescript
-import {
-  getEligibleMemberForScheduleFromGateway,
-  getOrgScheduleItemFromGateway,
-} from '@/shared-infra/gateway-query';
-import { resolveSkillTier, tierSatisfies } from '@/shared-kernel';
-import type { WorkspaceScheduleProposedPayload, SkillRequirement } from '@/shared-kernel';
-import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
-import {
-  type ScheduleApprovalResult,
-  type WriteOp,
-} from './_aggregate.types';
-import { enqueueSchedulingOutboxEvent } from './sched-outbox';
-⋮----
-function scheduleItemPath(orgId: string, scheduleItemId: string): string
-export function handleScheduleProposed(
-  payload: WorkspaceScheduleProposedPayload
-): WriteOp
-export async function approveOrgScheduleProposal(
-  scheduleItemId: string,
-  targetAccountId: string,
-  assignedBy: string,
-  opts: {
-    workspaceId: string;
-    orgId: string;
-    title: string;
-    startDate: string;
-    endDate: string;
-    traceId?: string;
-  },
-  skillRequirements?: SkillRequirement[]
-): Promise<ScheduleApprovalResult>
-async function _buildCancelWriteOp(
-  scheduleItemId: string,
-  targetAccountId: string,
-  opts: { workspaceId: string; orgId: string; traceId?: string },
-  reason: string
-): Promise<WriteOp>
-export async function cancelOrgScheduleProposal(
-  scheduleItemId: string,
-  orgId: string,
-  workspaceId: string,
-  cancelledBy: string,
-  reason?: string,
-  traceId?: string
-): Promise<WriteOp>
-export async function completeOrgSchedule(
-  scheduleItemId: string,
-  orgId: string,
-  workspaceId: string,
-  targetAccountId: string,
-  completedBy: string,
-  traceId?: string
-): Promise<WriteOp>
-export async function cancelOrgScheduleAssignment(
-  scheduleItemId: string,
-  orgId: string,
-  workspaceId: string,
-  targetAccountId: string,
-  cancelledBy: string,
-  reason?: string,
-  traceId?: string
-): Promise<WriteOp>
-```
-
-## File: src/features/workforce-scheduling.slice/domain/eligibility/index.ts
-```typescript
-import type { OrgEligibleMemberView } from './_queries';
-import type { SkillRequirement } from '@/shared-kernel';
-⋮----
-export type SagaTier = (typeof SAGA_TIER_ORDER)[number];
-export function sagaTierIndex(tier: string): number
-export function findEligibleCandidate(
-  members: OrgEligibleMemberView[],
-  requirements: SkillRequirement[]
-): OrgEligibleMemberView | undefined
-export interface CandidateAssignment {
-  candidate: OrgEligibleMemberView;
-  requirement: SkillRequirement | null;
-}
-export function findEligibleCandidatesForRequirements(
-  members: OrgEligibleMemberView[],
-  requirements: SkillRequirement[]
-): CandidateAssignment[] | undefined
-```
-
-## File: src/features/workforce-scheduling.slice/domain/index.ts
-```typescript
-
 ```
 
 ## File: src/features/workforce-scheduling.slice/domain/policy-mapper/index.ts
@@ -6819,70 +6575,39 @@ enqueueSchedulingOutboxEvent<K extends OrganizationEventKey>(
 
 ```
 
-## File: src/features/workforce-scheduling.slice/ports/query.port.ts
+## File: src/features/workforce-scheduling.slice/ui/components/_actions.ts
 ```typescript
-import type {
-  ImplementsStalenessContract,
-  ScheduleItem,
-  ScheduleStatus,
-} from '@/shared-kernel';
-import type {
-  AccountScheduleAssignment,
-  AccountScheduleProjection,
-} from '../_projectors/account-schedule';
-import type { OrgEligibleMemberView, OrgMemberSkillWithTier } from '../_queries';
-export type QueryUnsubscribe = () => void;
-export interface SchedulingQueryPort {
-  getScheduleItems(accountId: string, workspaceId?: string): Promise<ScheduleItem[]>;
-  getOrgScheduleItem(orgId: string, scheduleItemId: string): Promise<ScheduleItem | null>;
-  subscribeToOrgScheduleProposals(
-    orgId: string,
-    onUpdate: (items: ScheduleItem[]) => void,
-    opts?: { status?: ScheduleStatus; maxItems?: number }
-  ): QueryUnsubscribe;
-  subscribeToPendingProposals(orgId: string, onUpdate: (items: ScheduleItem[]) => void): QueryUnsubscribe;
-  subscribeToConfirmedProposals(orgId: string, onUpdate: (items: ScheduleItem[]) => void): QueryUnsubscribe;
-  getActiveDemands(orgId: string): Promise<ScheduleItem[]>;
-  subscribeToDemandBoard(orgId: string, onChange: (items: ScheduleItem[]) => void): QueryUnsubscribe;
-  getAllDemands(orgId: string): Promise<ScheduleItem[]>;
-  getAccountScheduleProjection(accountId: string): Promise<AccountScheduleProjection | null>;
-  getAccountActiveAssignments(accountId: string): Promise<AccountScheduleAssignment[]>;
-  subscribeToWorkspaceScheduleItems(
-    dimensionId: string,
-    workspaceId: string,
-    onUpdate: (items: ScheduleItem[]) => void,
-    onError?: (err: Error) => void
-  ): QueryUnsubscribe;
-  getEligibleMemberForSchedule(orgId: string, accountId: string): Promise<OrgEligibleMemberView | null>;
-  getEligibleMembersForSchedule(orgId: string): Promise<OrgEligibleMemberView[]>;
-}
-⋮----
-getScheduleItems(accountId: string, workspaceId?: string): Promise<ScheduleItem[]>;
-getOrgScheduleItem(orgId: string, scheduleItemId: string): Promise<ScheduleItem | null>;
-subscribeToOrgScheduleProposals(
-    orgId: string,
-    onUpdate: (items: ScheduleItem[]) => void,
-    opts?: { status?: ScheduleStatus; maxItems?: number }
-  ): QueryUnsubscribe;
-subscribeToPendingProposals(orgId: string, onUpdate: (items: ScheduleItem[])
-subscribeToConfirmedProposals(orgId: string, onUpdate: (items: ScheduleItem[])
-getActiveDemands(orgId: string): Promise<ScheduleItem[]>;
-subscribeToDemandBoard(orgId: string, onChange: (items: ScheduleItem[])
-getAllDemands(orgId: string): Promise<ScheduleItem[]>;
-getAccountScheduleProjection(accountId: string): Promise<AccountScheduleProjection | null>;
-getAccountActiveAssignments(accountId: string): Promise<AccountScheduleAssignment[]>;
-subscribeToWorkspaceScheduleItems(
-    dimensionId: string,
-    workspaceId: string,
-    onUpdate: (items: ScheduleItem[]) => void,
-    onError?: (err: Error) => void
-  ): QueryUnsubscribe;
-getEligibleMemberForSchedule(orgId: string, accountId: string): Promise<OrgEligibleMemberView | null>;
-getEligibleMembersForSchedule(orgId: string): Promise<OrgEligibleMemberView[]>;
-⋮----
-export interface SchedulingStalenessContractPort {
-  DEMAND_BOARD_STALENESS: ImplementsStalenessContract;
-}
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/components/_hooks.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/components/_hooks/use-global-schedule.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/components/_hooks/use-schedule-commands.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/components/_hooks/use-workspace-schedule.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/components/_queries.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/components/_timeline.types.ts
+```typescript
+
 ```
 
 ## File: src/features/workforce-scheduling.slice/ui/components/runtime/decision-history-columns.tsx
@@ -7477,6 +7202,36 @@ import { SKILLS } from "@/shared-kernel/constants/skills"
 export type UpcomingEventItem = Pick<ScheduleItem, 'id' | 'title' | 'workspaceName' | 'startDate' | 'endDate' | 'assigneeIds' | 'requiredSkills'> & { members: MemberReference[] }
 ```
 
+## File: src/features/workforce-scheduling.slice/ui/hooks/_actions.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/hooks/_queries.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/hooks/_schedule.rules.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/hooks/_selectors.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/hooks/_timeline.queries.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ui/hooks/_timeline.types.ts
+```typescript
+
+```
+
 ## File: src/features/workforce-scheduling.slice/ui/hooks/runtime/index.ts
 ```typescript
 
@@ -7584,11 +7339,6 @@ import type { ScheduleItem } from '@/shared-kernel';
 import { subscribeToWorkspaceTimelineItems } from '../_timeline.queries';
 import type { TimelineMember } from '../_timeline.types';
 export function useWorkspaceTimeline()
-```
-
-## File: src/features/workforce-scheduling.slice/ui/index.ts
-```typescript
-
 ```
 
 ## File: src/features/workforce-scheduling.slice/ui/types/timeline.types.ts
@@ -9401,24 +9151,6 @@ import { analytics } from './analytics.client';
 export const logAnalyticsEvent = (eventName: string, eventParams?: Record<string, unknown>) =>
 ```
 
-## File: src/shared-infra/frontend-firebase/analytics/analytics.client.ts
-```typescript
-import { getAnalytics, type Analytics } from 'firebase/analytics';
-import { app } from '../app.client';
-```
-
-## File: src/shared-infra/frontend-firebase/app.client.ts
-```typescript
-import { getApps, initializeApp, type FirebaseApp } from 'firebase/app';
-import { firebaseConfig } from './config/firebase.config';
-```
-
-## File: src/shared-infra/frontend-firebase/auth/auth.client.ts
-```typescript
-import { getAuth, type Auth } from 'firebase/auth';
-import { app } from '../app.client';
-```
-
 ## File: src/shared-infra/frontend-firebase/auth/auth.types.ts
 ```typescript
 import type { User as FirebaseUser, UserCredential } from 'firebase/auth';
@@ -9440,12 +9172,6 @@ export function mapFirebaseUser(user: FirebaseUser): AuthUser
 ## File: src/shared-infra/frontend-firebase/firebase.config.ts
 ```typescript
 
-```
-
-## File: src/shared-infra/frontend-firebase/firestore/firestore.client.ts
-```typescript
-import { getFirestore, type Firestore } from 'firebase/firestore';
-import { app } from '../app.client';
 ```
 
 ## File: src/shared-infra/frontend-firebase/firestore/firestore.converter.ts
@@ -10038,20 +9764,25 @@ export function allowFirestoreWrite(
 ): boolean
 ```
 
-## File: src/shared-infra/frontend-firebase/index.ts
-```typescript
-
-```
-
 ## File: src/shared-infra/frontend-firebase/messaging/index.ts
 ```typescript
 
 ```
 
-## File: src/shared-infra/frontend-firebase/messaging/messaging.client.ts
+## File: src/shared-infra/frontend-firebase/messaging/messaging.adapter.ts
 ```typescript
-import { getMessaging, type Messaging } from 'firebase/messaging';
-import { app } from '../app.client';
+import { getToken, onMessage } from 'firebase/messaging';
+import type { IMessaging, PushNotificationPayload } from '@/shared-kernel/ports';
+import { messaging } from './messaging.client';
+class FrontendMessagingAdapter implements IMessaging
+⋮----
+async send(
+    _fcmToken: string,
+    _payload: PushNotificationPayload,
+    _traceId: string,
+): Promise<void>
+async getToken(): Promise<string | null>
+onForegroundMessage(callback: (payload: PushNotificationPayload) => void): () => void
 ```
 
 ## File: src/shared-infra/frontend-firebase/messaging/messaging.types.ts
@@ -10074,10 +9805,16 @@ export interface FcmMessage {
 
 ```
 
-## File: src/shared-infra/frontend-firebase/storage/storage.client.ts
+## File: src/shared-infra/frontend-firebase/storage/storage.adapter.ts
 ```typescript
-import { getStorage, type FirebaseStorage } from 'firebase/storage';
-import { app } from '../app.client';
+import type { IFileStore, UploadOptions } from '@/shared-kernel/ports/i-file-store';
+import { getFileDownloadURL } from './storage.read.adapter';
+import { deleteFile, uploadFile } from './storage.write.adapter';
+export class StorageAdapter implements IFileStore
+⋮----
+async upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>
+async getDownloadURL(path: string): Promise<string>
+async deleteFile(path: string): Promise<void>
 ```
 
 ## File: src/shared-infra/frontend-firebase/storage/storage.facade.ts
@@ -11466,7 +11203,364 @@ export async function applySkillXpDeducted(
 ): Promise<void>
 ```
 
-## File: src/features/workforce-scheduling.slice/application/index.ts
+## File: src/features/workforce-scheduling.slice/application/commands/actions/governance.ts
+```typescript
+import {
+  type CommandResult,
+  type SkillRequirement,
+  commandFailureFrom,
+  commandSuccess,
+} from '@/shared-kernel';
+import {
+  approveOrgScheduleProposal,
+  cancelOrgScheduleProposal,
+  completeOrgSchedule,
+} from '../../../domain/aggregate';
+import { executeWriteOp } from '../write-op';
+export async function manualAssignScheduleMember(
+  scheduleItemId: string,
+  targetAccountId: string,
+  assignedBy: string,
+  opts: {
+    workspaceId: string;
+    orgId: string;
+    title: string;
+    startDate: string;
+    endDate: string;
+    traceId?: string;
+  },
+  skillRequirements?: SkillRequirement[]
+): Promise<CommandResult>
+export async function cancelScheduleProposalAction(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  cancelledBy: string,
+  reason?: string,
+  traceId?: string
+): Promise<CommandResult>
+export async function completeOrgScheduleAction(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  targetAccountId: string,
+  completedBy: string,
+  traceId?: string
+): Promise<CommandResult>
+```
+
+## File: src/features/workforce-scheduling.slice/application/commands/index.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/application/commands/write-op.ts
+```typescript
+import { executeWriteOpThroughGateway } from '@/shared-infra/gateway-command';
+import type { WriteOp } from '../../domain/aggregate';
+export async function executeWriteOp(op: WriteOp): Promise<void>
+```
+
+## File: src/features/workforce-scheduling.slice/application/projectors/runtime/account-schedule-queries.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/application/queries/index.ts
+```typescript
+import {
+  getScheduleItemsFromGateway,
+  getOrgScheduleItemFromGateway,
+  subscribeToOrgScheduleProposalsFromGateway,
+  getActiveDemandsFromGateway,
+  subscribeToDemandBoardFromGateway,
+  getAllDemandsFromGateway,
+  getAccountScheduleProjectionRawFromGateway,
+  getEligibleMemberForScheduleFromGateway,
+  getEligibleMembersForScheduleFromGateway,
+  subscribeToWorkspaceScheduleItemsFromGateway,
+} from '@/shared-infra/gateway-query';
+import type {
+  OrgEligibleMemberView,
+  OrgMemberSkillWithTier,
+} from '@/shared-infra/projection.bus';
+import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
+import type { ImplementsStalenessContract } from '@/shared-kernel';
+import type {
+  AccountScheduleProjection,
+  AccountScheduleAssignment,
+} from '../projectors/runtime/account-schedule';
+type Unsubscribe = () => void;
+⋮----
+export async function getScheduleItems(
+  accountId: string,
+  workspaceId?: string
+): Promise<ScheduleItem[]>
+export async function getOrgScheduleItem(
+  orgId: string,
+  scheduleItemId: string
+): Promise<ScheduleItem | null>
+⋮----
+export function subscribeToOrgScheduleProposals(
+  orgId: string,
+  onUpdate: (items: ScheduleItem[]) => void,
+  opts?: { status?: ScheduleStatus; maxItems?: number }
+): Unsubscribe
+export function subscribeToPendingProposals(
+  orgId: string,
+  onUpdate: (items: ScheduleItem[]) => void
+): Unsubscribe
+export function subscribeToConfirmedProposals(
+  orgId: string,
+  onUpdate: (items: ScheduleItem[]) => void
+): Unsubscribe
+export async function getActiveDemands(orgId: string): Promise<ScheduleItem[]>
+export function subscribeToDemandBoard(
+  orgId: string,
+  onChange: (items: ScheduleItem[]) => void
+): Unsubscribe
+export async function getAllDemands(orgId: string): Promise<ScheduleItem[]>
+export async function getAccountScheduleProjection(
+  accountId: string
+): Promise<AccountScheduleProjection | null>
+export async function getAccountActiveAssignments(
+  accountId: string
+): Promise<AccountScheduleAssignment[]>
+⋮----
+export async function getEligibleMemberForSchedule(
+  orgId: string,
+  accountId: string
+): Promise<OrgEligibleMemberView | null>
+export async function getEligibleMembersForSchedule(
+  orgId: string
+): Promise<OrgEligibleMemberView[]>
+export function subscribeToWorkspaceScheduleItems(
+  dimensionId: string,
+  workspaceId: string,
+  onUpdate: (items: ScheduleItem[]) => void,
+  onError?: (err: Error) => void,
+): Unsubscribe
+```
+
+## File: src/features/workforce-scheduling.slice/application/sagas/index.ts
+```typescript
+import {
+  getEligibleMembersForScheduleFromGateway,
+  getDocumentByPathFromGateway,
+} from '@/shared-infra/gateway-query';
+import {
+  setDocumentByPathThroughGateway,
+  updateDocumentByPathThroughGateway,
+} from '@/shared-infra/gateway-command';
+import type { WorkspaceScheduleProposedPayload } from '@/shared-kernel';
+import {
+  handleScheduleProposed,
+  approveOrgScheduleProposal,
+} from '../../domain/aggregate';
+import { findEligibleCandidatesForRequirements } from '../../domain/eligibility';
+import { executeWriteOp } from '../commands/write-op';
+export type SagaStep =
+  | 'receive_proposal'
+  | 'eligibility_check'
+  | 'assign'
+  | 'compensate';
+export type SagaStatus =
+  | 'pending'
+  | 'eligibility_check'
+  | 'assigned'
+  | 'compensated';
+export interface SagaState {
+  readonly sagaId: string;
+  readonly scheduleItemId: string;
+  readonly workspaceId: string;
+  readonly orgId: string;
+  status: SagaStatus;
+  currentStep: SagaStep;
+  startedAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  compensationReason?: string;
+  traceId?: string;
+}
+⋮----
+function sagaPath(sagaId: string): string
+async function persistSaga(state: SagaState): Promise<void>
+async function updateSagaStatus(
+  sagaId: string,
+  patch: Partial<
+    Pick<
+      SagaState,
+      'status' | 'currentStep' | 'completedAt' | 'compensationReason' | 'updatedAt'
+    >
+  >
+): Promise<void>
+export async function getSagaState(sagaId: string): Promise<SagaState | null>
+export async function startSchedulingSaga(
+  event: WorkspaceScheduleProposedPayload,
+  sagaId: string
+): Promise<SagaState>
+```
+
+## File: src/features/workforce-scheduling.slice/domain/aggregate/index.ts
+```typescript
+import {
+  getDocumentByPathFromGateway,
+  getEligibleMemberForScheduleFromGateway,
+  getOrgScheduleItemFromGateway,
+} from '@/shared-infra/gateway-query';
+import { resolveSkillTier, tierSatisfies } from '@/shared-kernel';
+import type { WorkspaceScheduleProposedPayload, SkillRequirement } from '@/shared-kernel';
+import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
+import {
+  type ScheduleApprovalResult,
+  type WriteOp,
+} from '../types/aggregate.types';
+import { enqueueSchedulingOutboxEvent } from '../../application/commands/sched-outbox';
+⋮----
+function scheduleItemPath(orgId: string, scheduleItemId: string): string
+export function handleScheduleProposed(
+  payload: WorkspaceScheduleProposedPayload
+): WriteOp
+export async function approveOrgScheduleProposal(
+  scheduleItemId: string,
+  targetAccountId: string,
+  assignedBy: string,
+  opts: {
+    workspaceId: string;
+    orgId: string;
+    title: string;
+    startDate: string;
+    endDate: string;
+    traceId?: string;
+  },
+  skillRequirements?: SkillRequirement[]
+): Promise<ScheduleApprovalResult>
+async function _buildCancelWriteOp(
+  scheduleItemId: string,
+  targetAccountId: string,
+  opts: { workspaceId: string; orgId: string; traceId?: string },
+  reason: string
+): Promise<WriteOp>
+export async function cancelOrgScheduleProposal(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  cancelledBy: string,
+  reason?: string,
+  traceId?: string
+): Promise<WriteOp>
+export async function completeOrgSchedule(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  targetAccountId: string,
+  completedBy: string,
+  traceId?: string
+): Promise<WriteOp>
+export async function cancelOrgScheduleAssignment(
+  scheduleItemId: string,
+  orgId: string,
+  workspaceId: string,
+  targetAccountId: string,
+  cancelledBy: string,
+  reason?: string,
+  traceId?: string
+): Promise<WriteOp>
+```
+
+## File: src/features/workforce-scheduling.slice/domain/eligibility/index.ts
+```typescript
+import type { OrgEligibleMemberView } from '@/shared-infra/projection.bus';
+import type { SkillRequirement } from '@/shared-kernel';
+⋮----
+export type SagaTier = (typeof SAGA_TIER_ORDER)[number];
+export function sagaTierIndex(tier: string): number
+export function findEligibleCandidate(
+  members: OrgEligibleMemberView[],
+  requirements: SkillRequirement[]
+): OrgEligibleMemberView | undefined
+export interface CandidateAssignment {
+  candidate: OrgEligibleMemberView;
+  requirement: SkillRequirement | null;
+}
+export function findEligibleCandidatesForRequirements(
+  members: OrgEligibleMemberView[],
+  requirements: SkillRequirement[]
+): CandidateAssignment[] | undefined
+```
+
+## File: src/features/workforce-scheduling.slice/domain/index.ts
+```typescript
+
+```
+
+## File: src/features/workforce-scheduling.slice/ports/query.port.ts
+```typescript
+import type {
+  ImplementsStalenessContract,
+  ScheduleItem,
+  ScheduleStatus,
+} from '@/shared-kernel';
+import type {
+  AccountScheduleAssignment,
+  AccountScheduleProjection,
+} from '../application/projectors/runtime/account-schedule';
+import type { OrgEligibleMemberView, OrgMemberSkillWithTier } from '../application/queries';
+export type QueryUnsubscribe = () => void;
+export interface SchedulingQueryPort {
+  getScheduleItems(accountId: string, workspaceId?: string): Promise<ScheduleItem[]>;
+  getOrgScheduleItem(orgId: string, scheduleItemId: string): Promise<ScheduleItem | null>;
+  subscribeToOrgScheduleProposals(
+    orgId: string,
+    onUpdate: (items: ScheduleItem[]) => void,
+    opts?: { status?: ScheduleStatus; maxItems?: number }
+  ): QueryUnsubscribe;
+  subscribeToPendingProposals(orgId: string, onUpdate: (items: ScheduleItem[]) => void): QueryUnsubscribe;
+  subscribeToConfirmedProposals(orgId: string, onUpdate: (items: ScheduleItem[]) => void): QueryUnsubscribe;
+  getActiveDemands(orgId: string): Promise<ScheduleItem[]>;
+  subscribeToDemandBoard(orgId: string, onChange: (items: ScheduleItem[]) => void): QueryUnsubscribe;
+  getAllDemands(orgId: string): Promise<ScheduleItem[]>;
+  getAccountScheduleProjection(accountId: string): Promise<AccountScheduleProjection | null>;
+  getAccountActiveAssignments(accountId: string): Promise<AccountScheduleAssignment[]>;
+  subscribeToWorkspaceScheduleItems(
+    dimensionId: string,
+    workspaceId: string,
+    onUpdate: (items: ScheduleItem[]) => void,
+    onError?: (err: Error) => void
+  ): QueryUnsubscribe;
+  getEligibleMemberForSchedule(orgId: string, accountId: string): Promise<OrgEligibleMemberView | null>;
+  getEligibleMembersForSchedule(orgId: string): Promise<OrgEligibleMemberView[]>;
+}
+⋮----
+getScheduleItems(accountId: string, workspaceId?: string): Promise<ScheduleItem[]>;
+getOrgScheduleItem(orgId: string, scheduleItemId: string): Promise<ScheduleItem | null>;
+subscribeToOrgScheduleProposals(
+    orgId: string,
+    onUpdate: (items: ScheduleItem[]) => void,
+    opts?: { status?: ScheduleStatus; maxItems?: number }
+  ): QueryUnsubscribe;
+subscribeToPendingProposals(orgId: string, onUpdate: (items: ScheduleItem[])
+subscribeToConfirmedProposals(orgId: string, onUpdate: (items: ScheduleItem[])
+getActiveDemands(orgId: string): Promise<ScheduleItem[]>;
+subscribeToDemandBoard(orgId: string, onChange: (items: ScheduleItem[])
+getAllDemands(orgId: string): Promise<ScheduleItem[]>;
+getAccountScheduleProjection(accountId: string): Promise<AccountScheduleProjection | null>;
+getAccountActiveAssignments(accountId: string): Promise<AccountScheduleAssignment[]>;
+subscribeToWorkspaceScheduleItems(
+    dimensionId: string,
+    workspaceId: string,
+    onUpdate: (items: ScheduleItem[]) => void,
+    onError?: (err: Error) => void
+  ): QueryUnsubscribe;
+getEligibleMemberForSchedule(orgId: string, accountId: string): Promise<OrgEligibleMemberView | null>;
+getEligibleMembersForSchedule(orgId: string): Promise<OrgEligibleMemberView[]>;
+⋮----
+export interface SchedulingStalenessContractPort {
+  DEMAND_BOARD_STALENESS: ImplementsStalenessContract;
+}
+```
+
+## File: src/features/workforce-scheduling.slice/ui/index.ts
 ```typescript
 
 ```
@@ -11882,9 +11976,50 @@ export async function revokeWorkspaceRole(input: RevokeWorkspaceRoleInput): Prom
 
 ```
 
+## File: src/shared-infra/frontend-firebase/auth/auth.adapter.ts
+```typescript
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInAnonymously,
+  updateProfile,
+  verifyBeforeUpdateEmail,
+  signOut,
+  onAuthStateChanged,
+  type User as FirebaseUser,
+} from 'firebase/auth';
+import { auth } from './auth.client';
+```
+
 ## File: src/shared-infra/frontend-firebase/firestore/collection-paths.ts
 ```typescript
 
+```
+
+## File: src/shared-infra/frontend-firebase/firestore/firestore.adapter.ts
+```typescript
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  setDoc,
+} from 'firebase/firestore';
+import type { FirestoreDoc, IFirestoreRepo, WriteOptions } from '@/shared-kernel/ports';
+import { db } from './firestore.client';
+class FirebaseFirestoreRepo implements IFirestoreRepo
+⋮----
+async getDoc<T>(collectionPath: string, docId: string): Promise<FirestoreDoc<T> | null>
+async getDocs<T>(collectionPath: string): Promise<FirestoreDoc<T>[]>
+async setDoc<T>(collectionPath: string, docId: string, data: T, opts?: WriteOptions): Promise<void>
+async deleteDoc(collectionPath: string, docId: string): Promise<void>
+onSnapshot<T>(
+    collectionPath: string,
+    callback: (docs: FirestoreDoc<T>[]) => void,
+): () => void
 ```
 
 ## File: src/shared-infra/frontend-firebase/firestore/firestore.facade.ts
@@ -12030,40 +12165,12 @@ export async function saveFinanceAggregateState(
 ): Promise<void>
 ```
 
-## File: src/shared-infra/frontend-firebase/messaging/messaging.adapter.ts
-```typescript
-import { getToken, onMessage } from 'firebase/messaging';
-import type { IMessaging, PushNotificationPayload } from '@/shared-kernel/ports';
-import { messaging } from './messaging.client';
-class FrontendMessagingAdapter implements IMessaging
-⋮----
-async send(
-    _fcmToken: string,
-    _payload: PushNotificationPayload,
-    _traceId: string,
-): Promise<void>
-async getToken(): Promise<string | null>
-onForegroundMessage(callback: (payload: PushNotificationPayload) => void): () => void
-```
-
 ## File: src/shared-infra/frontend-firebase/storage/storage-path.resolver.ts
 ```typescript
 dailyPhoto(accountId: string, workspaceId: string, fileId: string, fileName: string): string
 taskAttachment(workspaceId: string, fileId: string, fileName: string): string
 userAvatar(userId: string): string
 workspaceDocument(workspaceId: string, fileId: string, versionId: string, fileName: string): string
-```
-
-## File: src/shared-infra/frontend-firebase/storage/storage.adapter.ts
-```typescript
-import type { IFileStore, UploadOptions } from '@/shared-kernel/ports/i-file-store';
-import { getFileDownloadURL } from './storage.read.adapter';
-import { deleteFile, uploadFile } from './storage.write.adapter';
-export class StorageAdapter implements IFileStore
-⋮----
-async upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>
-async getDownloadURL(path: string): Promise<string>
-async deleteFile(path: string): Promise<void>
 ```
 
 ## File: src/shared-infra/projection.bus/_funnel.ts
@@ -13320,6 +13427,11 @@ export async function syncTagDeletionToPool(
 ): Promise<void>
 ```
 
+## File: src/features/workforce-scheduling.slice/application/index.ts
+```typescript
+
+```
+
 ## File: src/features/workspace.slice/business.document-parser/_intent-actions.ts
 ```typescript
 import {
@@ -13583,47 +13695,6 @@ import { AccountSwitcher } from "./account-switcher";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { NavWorkspaces } from "./nav-workspaces";
-```
-
-## File: src/shared-infra/frontend-firebase/auth/auth.adapter.ts
-```typescript
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signInAnonymously,
-  updateProfile,
-  verifyBeforeUpdateEmail,
-  signOut,
-  onAuthStateChanged,
-  type User as FirebaseUser,
-} from 'firebase/auth';
-import { auth } from './auth.client';
-```
-
-## File: src/shared-infra/frontend-firebase/firestore/firestore.adapter.ts
-```typescript
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  setDoc,
-} from 'firebase/firestore';
-import type { FirestoreDoc, IFirestoreRepo, WriteOptions } from '@/shared-kernel/ports';
-import { db } from './firestore.client';
-class FirebaseFirestoreRepo implements IFirestoreRepo
-⋮----
-async getDoc<T>(collectionPath: string, docId: string): Promise<FirestoreDoc<T> | null>
-async getDocs<T>(collectionPath: string): Promise<FirestoreDoc<T>[]>
-async setDoc<T>(collectionPath: string, docId: string, data: T, opts?: WriteOptions): Promise<void>
-async deleteDoc(collectionPath: string, docId: string): Promise<void>
-onSnapshot<T>(
-    collectionPath: string,
-    callback: (docs: FirestoreDoc<T>[]) => void,
-): () => void
 ```
 
 ## File: src/shared-infra/gateway-command/index.ts
