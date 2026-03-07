@@ -5,7 +5,7 @@
  * Constraints: deterministic logic, respect module boundaries
  */
 
-import { getTagSnapshot } from '@/shared-infra/projection.bus';
+import { getTagSnapshot } from '@/shared-infra/projection-bus';
 
 export type TagSnapshotColorToken = 'neutral' | 'warning' | 'info' | 'success';
 export type TagSnapshotIconToken = 'hammer' | 'briefcase' | 'shield' | 'coins';

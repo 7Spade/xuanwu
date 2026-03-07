@@ -12,7 +12,7 @@
  */
 import { describe, it, expect } from 'vitest';
 
-import type { OrgEligibleMemberView } from '@/shared-infra/projection.bus';
+import type { OrgEligibleMemberView } from '@/shared-infra/projection-bus';
 import type { SkillRequirement } from '@/shared-kernel';
 import { tierSatisfies, TIER_DEFINITIONS, tagSlugRef } from '@/shared-kernel';
 

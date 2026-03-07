@@ -15,7 +15,7 @@ import {
   getOrgEligibleMembersWithTier,
   type OrgEligibleMemberView,
   type OrgMemberSkillWithTier,
-} from '@/shared-infra/projection.bus';
+} from '@/shared-infra/projection-bus';
 import { db } from '@/shared-infra/frontend-firebase';
 import { fetchScheduleItems } from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
 import {

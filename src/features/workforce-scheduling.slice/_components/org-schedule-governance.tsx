@@ -22,8 +22,8 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { useApp } from '@/app-runtime/providers/app-provider';
-import { getOrgEligibleMembersWithTier } from '@/shared-infra/projection.bus';
-import type { OrgEligibleMemberView } from '@/shared-infra/projection.bus';
+import { getOrgEligibleMembersWithTier } from '@/shared-infra/projection-bus';
+import type { OrgEligibleMemberView } from '@/shared-infra/projection-bus';
 import { useAccount } from '@/features/workspace.slice';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn-ui/card';
 import { PageHeader } from '@/shadcn-ui/custom-ui/page-header';

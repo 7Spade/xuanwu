@@ -15,7 +15,7 @@
  * Persistence: sagaStates/{sagaId} in Firestore.
  */
 
-import { getOrgEligibleMembersWithTier } from '@/shared-infra/projection.bus';
+import { getOrgEligibleMembersWithTier } from '@/shared-infra/projection-bus';
 import { getDocument, Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 import { setDocument, updateDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 import type { WorkspaceScheduleProposedPayload } from '@/shared-kernel';

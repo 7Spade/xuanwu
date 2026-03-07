@@ -12,7 +12,7 @@ import { useCallback } from "react";
 
 import { useApp } from "@/app-runtime/providers/app-provider";
 import { useAuth } from "@/app-runtime/providers/auth-provider";
-import { getOrgMemberEligibilityWithTier } from "@/shared-infra/projection.bus";
+import { getOrgMemberEligibilityWithTier } from "@/shared-infra/projection-bus";
 import { toast } from "@/shadcn-ui/hooks/use-toast";
 import { tierSatisfies } from "@/shared-kernel";
 import type { ScheduleItem } from '@/shared-kernel';

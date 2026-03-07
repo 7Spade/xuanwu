@@ -9,4 +9,4 @@ export {
   applyDemandAssignmentCancelled,
   applyDemandProposalCancelled,
   applyDemandAssignRejected,
-} from '@/shared-infra/projection.bus';
+} from '@/shared-infra/projection-bus';

@@ -1,7 +1,7 @@
 /**
  * workspace-core.event-bus — _event-funnel.ts
  *
- * Re-exports the Event Funnel from its canonical location: `projection.bus`.
+ * Re-exports the Event Funnel from its canonical location: `projection-bus`.
  *
  * Per 00-LogicOverview.md, EVENT_FUNNEL_INPUT belongs to the PROJECTION_LAYER subgraph,
  * not the WORKSPACE_CONTAINER. This file exists solely for backwards compatibility
@@ -11,4 +11,4 @@ export {
   registerWorkspaceFunnel,
   registerOrganizationFunnel,
   replayWorkspaceProjections,
-} from '@/shared-infra/projection.bus';
+} from '@/shared-infra/projection-bus';

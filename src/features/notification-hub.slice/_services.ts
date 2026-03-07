@@ -182,7 +182,7 @@ export async function processNotificationEvent(
 // =================================================================
 
 /**
- * Event key for tag lifecycle events from projection.bus.
+ * Event key for tag lifecycle events from projection-bus.
  * The notification hub subscribes to these events for tag-aware routing.
  */
 export const TAG_CHANGED_EVENT_KEY = 'projection:tag:changed';
