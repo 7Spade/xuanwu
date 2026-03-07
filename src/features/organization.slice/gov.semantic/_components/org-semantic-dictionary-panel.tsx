@@ -118,12 +118,12 @@ const GRAPH_OPTIONS = {
     size: 18,
     borderWidth: 2,
     shadow: true,
-    font: { size: 12 },
+    font: { size: 12, multi: true },
   },
   edges: {
     arrows: { to: { enabled: true, scaleFactor: 0.6 } },
     smooth: { type: 'curvedCW', roundness: 0.18 } as never,
-    font: { size: 10, align: 'middle' },
+    font: { size: 10, align: 'middle', multi: true },
     shadow: true,
   },
   physics: {
@@ -166,6 +166,21 @@ function toSkillRequirements(input: SkillRequirementDraft[]): SkillRequirement[]
       quantity: Math.max(1, Number(skill.quantity) || 1),
       ...(skill.minXp.trim() !== '' ? { minXp: Math.max(0, Number(skill.minXp) || 0) } : {}),
     }));
+}
+
+function buildTaskNodeLabel(task: OrgTaskTypeEntry): string {
+  const status = task.active ? 'active' : 'inactive';
+  return [task.name, task.slug, `${status} | req: ${task.requiredSkills.length}`].join('\n');
+}
+
+function buildSkillNodeLabel(skill: OrgSkillTypeEntry): string {
+  const status = skill.active ? 'active' : 'inactive';
+  return [skill.name, skill.slug, status].join('\n');
+}
+
+function buildEdgeLabel(requirement: SkillRequirement): string {
+  const xpLine = requirement.minXp !== undefined ? `minXP: ${requirement.minXp}` : 'minXP: optional';
+  return [`qty: ${requirement.quantity} | tier: ${requirement.minimumTier}`, xpLine].join('\n');
 }
 
 export function OrgSemanticDictionaryPanel() {
@@ -329,7 +344,7 @@ export function OrgSemanticDictionaryPanel() {
       skillBySlug.set(skill.slug, skill);
       nodes.push({
         id: `skill:${skill.slug}`,
-        label: skill.name,
+        label: buildSkillNodeLabel(skill),
         title: `${skill.slug}${skill.active ? '' : ' (inactive)'}`,
         group: 'skill',
         color: GRAPH_NODE_COLORS.skill,
@@ -341,7 +356,7 @@ export function OrgSemanticDictionaryPanel() {
       const taskNodeId = `task:${task.slug}`;
       nodes.push({
         id: taskNodeId,
-        label: task.name,
+        label: buildTaskNodeLabel(task),
         title: `${task.slug}${task.active ? '' : ' (inactive)'}`,
         group: 'task',
         color: GRAPH_NODE_COLORS.task,
@@ -357,7 +372,7 @@ export function OrgSemanticDictionaryPanel() {
           id: `${task.slug}=>${requirement.tagSlug}#${requirementIndex}`,
           from: taskNodeId,
           to: targetId,
-          label: `x${requirement.quantity} · ${requirement.minimumTier}`,
+          label: buildEdgeLabel(requirement),
         });
       });
     }
@@ -365,7 +380,7 @@ export function OrgSemanticDictionaryPanel() {
     for (const missingSlug of unresolvedSkillSlugs) {
       nodes.push({
         id: `missing:${missingSlug}`,
-        label: missingSlug,
+        label: ['Missing Skill', missingSlug].join('\n'),
         title: `Missing skill-type entry: ${missingSlug}`,
         group: 'unresolved',
         color: GRAPH_NODE_COLORS.unresolved,
