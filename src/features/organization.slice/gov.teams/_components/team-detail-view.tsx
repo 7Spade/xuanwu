@@ -10,7 +10,7 @@ import { useApp } from "@/shared/app-providers/app-context"
 import { Button } from "@/shared/shadcn-ui/button"
 import { Card, CardContent } from "@/shared/shadcn-ui/card"
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
-import { PageHeader } from "@/shared/custom-ui/page-header"
+import { PageHeader } from "@/shared/shadcn-ui/custom-ui/page-header"
 
 /**
  * TeamDetailView - ?瑁痊嚗恣?摰??????(Team Member 皜)

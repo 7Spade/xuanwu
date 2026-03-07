@@ -2,7 +2,7 @@
 
 import { useI18n } from "@/config/i18n/i18n-provider"
 import { PersonalSkillPanel } from "@/features/skill-xp.slice"
-import { PageHeader } from "@/shared/custom-ui/page-header"
+import { PageHeader } from "@/shared/shadcn-ui/custom-ui/page-header"
 
 export function AccountSkillsSection() {
   const { t } = useI18n()

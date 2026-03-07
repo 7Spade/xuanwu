@@ -30,7 +30,7 @@ import {
 } from '@/shared/shadcn-ui/dropdown-menu';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/shared/shadcn-ui/empty';
 import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
-import { PageHeader } from '@/shared/custom-ui/page-header';
+import { PageHeader } from '@/shared/shadcn-ui/custom-ui/page-header';
 
 import { buildTaskTree } from '../../_task.rules';
 import { useStorage } from '../../business.files';

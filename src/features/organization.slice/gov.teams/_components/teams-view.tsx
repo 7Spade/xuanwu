@@ -21,7 +21,7 @@ import {
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { Input } from "@/shared/shadcn-ui/input"
 import { Label } from "@/shared/shadcn-ui/label"
-import { PageHeader } from "@/shared/custom-ui/page-header"
+import { PageHeader } from "@/shared/shadcn-ui/custom-ui/page-header"
 
 /**
  * TeamsView - Manages the logical groupings of INTERNAL members within the dimension.

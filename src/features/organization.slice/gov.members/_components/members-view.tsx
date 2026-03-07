@@ -12,7 +12,7 @@ import { Badge } from "@/shared/shadcn-ui/badge"
 import { Button } from "@/shared/shadcn-ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/shadcn-ui/card"
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
-import { PageHeader } from "@/shared/custom-ui/page-header"
+import { PageHeader } from "@/shared/shadcn-ui/custom-ui/page-header"
 
 import { useMemberManagement } from '../_hooks/use-member-management'
 

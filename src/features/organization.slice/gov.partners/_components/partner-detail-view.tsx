@@ -29,7 +29,7 @@ import { toast } from "@/shared/shadcn-ui/hooks/use-toast"
 import { Input } from "@/shared/shadcn-ui/input"
 import { Label } from "@/shared/shadcn-ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs"
-import { PageHeader } from "@/shared/custom-ui/page-header"
+import { PageHeader } from "@/shared/shadcn-ui/custom-ui/page-header"
 
 import { usePartnerManagement } from "../_hooks/use-partner-management"
 import { subscribeToOrgPartnerInvites } from "../_queries"

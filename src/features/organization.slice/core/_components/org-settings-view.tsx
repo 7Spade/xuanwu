@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/config/i18n/i18n-provider";
-import { PageHeader } from "@/shared/custom-ui/page-header";
+import { PageHeader } from "@/shared/shadcn-ui/custom-ui/page-header";
 
 import { OrgSettings } from "./org-settings";
 

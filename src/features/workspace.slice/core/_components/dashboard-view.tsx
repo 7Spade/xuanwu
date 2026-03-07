@@ -10,7 +10,7 @@ import { PermissionTree } from "@/features/account.slice"
 import { AccountGrid } from "@/features/organization.slice"
 import { useAuth } from "@/shared/app-providers/auth-provider"
 import { Badge } from "@/shared/shadcn-ui/badge"
-import { PageHeader } from "@/shared/custom-ui/page-header"
+import { PageHeader } from "@/shared/shadcn-ui/custom-ui/page-header"
 
 import { useApp } from "../_hooks/use-app"
 import { useVisibleWorkspaces } from "../_hooks/use-visible-workspaces"

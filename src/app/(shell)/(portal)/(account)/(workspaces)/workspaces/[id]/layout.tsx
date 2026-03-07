@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, use } from "react";
 
 import { WorkspaceProvider, useWorkspace , useWorkspaceEventHandler , WorkspaceStatusBar , WorkspaceNavTabs , useApp } from "@/features/workspace.slice"
 import { Button } from "@/shared/shadcn-ui/button";
-import { PageHeader } from "@/shared/custom-ui/page-header";
+import { PageHeader } from "@/shared/shadcn-ui/custom-ui/page-header";
 
 const PERMANENT_CAPABILITY_IDS = ["capabilities", "audit"];
 const GOVERNANCE_CAPABILITY_ID = "members";

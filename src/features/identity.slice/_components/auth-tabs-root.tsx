@@ -7,7 +7,7 @@ import { useI18n } from "@/config/i18n/i18n-provider";
 import { Button } from "@/shared/shadcn-ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/shared/shadcn-ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/shadcn-ui/tabs";
-import { LanguageSwitcher } from "@/shared/custom-ui/language-switcher";
+import { LanguageSwitcher } from "@/shared/shadcn-ui/custom-ui/language-switcher";
 
 import { LoginForm } from "./login-form";
 import { RegisterForm } from "./register-form";
