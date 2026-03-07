@@ -7773,21 +7773,6 @@ export interface AuthContextValue {
 }
 ```
 
-## File: src/app-runtime/contexts/firebase-context.ts
-```typescript
-import { type FirebaseApp } from 'firebase/app'
-import { type Auth } from 'firebase/auth'
-import { type Firestore } from 'firebase/firestore'
-import { type FirebaseStorage } from 'firebase/storage'
-import { createContext } from 'react'
-export interface FirebaseContextType {
-  app: FirebaseApp
-  db: Firestore
-  auth: Auth
-  storage: FirebaseStorage
-}
-```
-
 ## File: src/app-runtime/contexts/i18n-context.ts
 ```typescript
 import { createContext } from 'react'
@@ -8146,39 +8131,6 @@ export async function executeAggregateWriteOp(op: {
   arrayUnionFields?: Record<string, string[]>;
 }): Promise<void>
 export function createVersionStamp():
-```
-
-## File: src/features/projection.bus/_funnel.ts
-```typescript
-import type { WorkspaceEventBus } from '@/features/workspace.slice';
-import { registerOrganizationFunnel as registerOrganizationFunnelImpl } from './_organization-funnel';
-import { upsertProjectionVersion } from './_registry';
-import { registerTagFunnel as registerTagFunnelImpl } from './_tag-funnel';
-import { registerWorkspaceFunnel as registerWorkspaceFunnelImpl } from './_workspace-funnel';
-export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void
-export function registerOrganizationFunnel(): () => void
-export function registerTagFunnel(): () => void
-export async function replayWorkspaceProjections(
-  workspaceId: string
-): Promise<
-```
-
-## File: src/features/projection.bus/_registry.ts
-```typescript
-import {
-  getProjectionVersion as getProjectionVersionRepo,
-  upsertProjectionVersion as upsertProjectionVersionRepo,
-  type ProjectionVersionRecord,
-} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
-⋮----
-export async function getProjectionVersion(
-  projectionName: string
-): Promise<ProjectionVersionRecord | null>
-export async function upsertProjectionVersion(
-  projectionName: string,
-  lastEventOffset: number,
-  readModelVersion: string
-): Promise<void>
 ```
 
 ## File: src/features/projection.bus/account-view/_queries.ts
@@ -10245,6 +10197,18 @@ export interface AccountContextValue {
 }
 ```
 
+## File: src/app-runtime/contexts/firebase-context.ts
+```typescript
+import { createContext } from 'react'
+import { app, auth, db, storage } from '@/shared-infra/frontend-firebase'
+export interface FirebaseContextType {
+  app: typeof app
+  db: typeof db
+  auth: typeof auth
+  storage: typeof storage
+}
+```
+
 ## File: src/app-runtime/providers/account-provider.tsx
 ```typescript
 import { type ReactNode, useEffect, useReducer } from 'react'
@@ -10260,22 +10224,6 @@ import { useApp } from './app-provider'
 ⋮----
 const accountReducer = (state: AccountState, action: AccountAction): AccountState =>
 export function AccountProvider(
-```
-
-## File: src/app-runtime/providers/auth-provider.tsx
-```typescript
-import { type User as FirebaseUser } from "firebase/auth";
-import {type ReactNode} from 'react';
-import { useReducer, useContext, useEffect } from 'react';
-import { authAdapter } from '@/shared-infra/frontend-firebase/auth/auth.adapter';
-import { AuthContext, type AuthAction, type AuthState } from '../contexts/auth-context';
-const authReducer = (state: AuthState, action: AuthAction): AuthState =>
-⋮----
-export const AuthProvider = (
-⋮----
-const logout = async () =>
-⋮----
-export const useAuth = () =>
 ```
 
 ## File: src/app-runtime/providers/firebase-provider.tsx
@@ -10806,58 +10754,6 @@ export function getHubStats(): NotificationHubStats
 function generateDispatchId(): string
 ```
 
-## File: src/features/notification-hub.slice/user.notification/_delivery.ts
-```typescript
-import { db } from '@/shared-infra/frontend-firebase';
-import {
-  collection,
-  doc,
-  getDoc,
-} from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
-import { addDoc, serverTimestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
-export interface NotificationDeliveryInput {
-  title: string;
-  message: string;
-  type: 'info' | 'alert' | 'success';
-  sourceEvent: string;
-  sourceId: string;
-  workspaceId: string;
-  traceId?: string;
-}
-export interface DeliveryResult {
-  notificationId: string;
-  delivered: boolean;
-  fcmSent: boolean;
-}
-export async function deliverNotification(
-  targetAccountId: string,
-  input: NotificationDeliveryInput
-): Promise<DeliveryResult>
-⋮----
-// Example FCM Admin SDK call (server-side):
-//   await fcmAdmin.send({
-//     token: fcmToken,
-//     notification: { title: sanitizedTitle, body: sanitizedMessage },
-//     data: { traceId },   // ??[R8] required field
-//   });
-⋮----
-// FCM failure is non-fatal ??notification is already persisted
-⋮----
-/**
- * Sanitizes notification content for external account recipients.
- * Redacts internal workspace IDs, financial amounts, and internal-only details
- * to prevent leaking sensitive workspace-internal data to external participants.
- *
- * @example
- * sanitizeForExternal('Workspace abc12345-... has $1,234.56 balance')
- *
- *
- * @param message - Raw notification message text
- * @returns Sanitized message safe for external account delivery
- */
-function sanitizeForExternal(message: string): string
-```
-
 ## File: src/features/notification-hub.slice/user.notification/_queries.ts
 ```typescript
 import { db } from '@/shared-infra/frontend-firebase';
@@ -11104,6 +11000,39 @@ export async function updateTeamMembers(
   memberId: string,
   action: "add" | "remove"
 ): Promise<CommandResult>
+```
+
+## File: src/features/projection.bus/_funnel.ts
+```typescript
+import type { WorkspaceEventBus } from '@/features/workspace.slice';
+import { registerOrganizationFunnel as registerOrganizationFunnelImpl } from './_organization-funnel';
+import { upsertProjectionVersion } from './_registry';
+import { registerTagFunnel as registerTagFunnelImpl } from './_tag-funnel';
+import { registerWorkspaceFunnel as registerWorkspaceFunnelImpl } from './_workspace-funnel';
+export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void
+export function registerOrganizationFunnel(): () => void
+export function registerTagFunnel(): () => void
+export async function replayWorkspaceProjections(
+  workspaceId: string
+): Promise<
+```
+
+## File: src/features/projection.bus/_registry.ts
+```typescript
+import {
+  getProjectionVersion as getProjectionVersionRepo,
+  upsertProjectionVersion as upsertProjectionVersionRepo,
+  type ProjectionVersionRecord,
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
+⋮----
+export async function getProjectionVersion(
+  projectionName: string
+): Promise<ProjectionVersionRecord | null>
+export async function upsertProjectionVersion(
+  projectionName: string,
+  lastEventOffset: number,
+  readModelVersion: string
+): Promise<void>
 ```
 
 ## File: src/features/projection.bus/account-audit/_projector.ts
@@ -11528,37 +11457,6 @@ export async function applySkillXpDeducted(
   aggregateVersion?: number,
   traceId?: string
 ): Promise<void>
-```
-
-## File: src/features/skill-xp.slice/_queries.ts
-```typescript
-import { db } from '@/shared-infra/frontend-firebase';
-import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
-import type { OrgSkillRecognitionRecord } from './_org-recognition';
-import type { AccountSkillEntry } from './_projector';
-import type { OrgSkillTagEntry } from './_tag-pool';
-export async function getAccountSkillEntry(
-  accountId: string,
-  skillId: string
-): Promise<AccountSkillEntry | null>
-export async function getAccountSkillView(
-  accountId: string
-): Promise<AccountSkillEntry[]>
-export async function getOrgSkillTag(
-  orgId: string,
-  tagSlug: string
-): Promise<OrgSkillTagEntry | null>
-export async function getOrgSkillTags(orgId: string): Promise<OrgSkillTagEntry[]>
-export async function getSkillRecognition(
-  organizationId: string,
-  accountId: string,
-  skillId: string
-): Promise<OrgSkillRecognitionRecord | null>
-export async function getMemberSkillRecognitions(
-  organizationId: string,
-  accountId: string
-): Promise<OrgSkillRecognitionRecord[]>
 ```
 
 ## File: src/features/skill-xp.slice/_tag-pool.ts
@@ -12527,6 +12425,22 @@ export interface ImplementsScheduleProposedPayloadContract {
 }
 ```
 
+## File: src/app-runtime/providers/auth-provider.tsx
+```typescript
+import {type ReactNode} from 'react';
+import { useReducer, useContext, useEffect } from 'react';
+import { authAdapter } from '@/shared-infra/frontend-firebase/auth/auth.adapter';
+import { AuthContext, type AuthAction, type AuthState } from '../contexts/auth-context';
+type FirebaseUser = NonNullable<ReturnType<typeof authAdapter.getCurrentUser>>;
+const authReducer = (state: AuthState, action: AuthAction): AuthState =>
+⋮----
+export const AuthProvider = (
+⋮----
+const logout = async () =>
+⋮----
+export const useAuth = () =>
+```
+
 ## File: src/app/(shell)/(portal)/page.tsx
 ```typescript
 import { useRouter } from "next/navigation";
@@ -12612,6 +12526,58 @@ import { onSnapshot, doc } from '@/shared-infra/frontend-firebase/firestore/fire
 import type { ImplementsTokenRefreshContract } from '@/shared-kernel';
 ⋮----
 export function useTokenRefreshListener(accountId: string | null | undefined): void
+```
+
+## File: src/features/notification-hub.slice/user.notification/_delivery.ts
+```typescript
+import { db } from '@/shared-infra/frontend-firebase';
+import {
+  collection,
+  doc,
+  getDoc,
+} from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { addDoc, serverTimestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
+export interface NotificationDeliveryInput {
+  title: string;
+  message: string;
+  type: 'info' | 'alert' | 'success';
+  sourceEvent: string;
+  sourceId: string;
+  workspaceId: string;
+  traceId?: string;
+}
+export interface DeliveryResult {
+  notificationId: string;
+  delivered: boolean;
+  fcmSent: boolean;
+}
+export async function deliverNotification(
+  targetAccountId: string,
+  input: NotificationDeliveryInput
+): Promise<DeliveryResult>
+⋮----
+// Example FCM Admin SDK call (server-side):
+//   await fcmAdmin.send({
+//     token: fcmToken,
+//     notification: { title: sanitizedTitle, body: sanitizedMessage },
+//     data: { traceId },   // ??[R8] required field
+//   });
+⋮----
+// FCM failure is non-fatal ??notification is already persisted
+⋮----
+/**
+ * Sanitizes notification content for external account recipients.
+ * Redacts internal workspace IDs, financial amounts, and internal-only details
+ * to prevent leaking sensitive workspace-internal data to external participants.
+ *
+ * @example
+ * sanitizeForExternal('Workspace abc12345-... has $1,234.56 balance')
+ *
+ *
+ * @param message - Raw notification message text
+ * @returns Sanitized message safe for external account delivery
+ */
+function sanitizeForExternal(message: string): string
 ```
 
 ## File: src/features/organization.slice/core/_components/account-grid.tsx
@@ -12791,6 +12757,37 @@ export async function revokeSkillRecognition(
   skillId: string,
   revokedBy: string
 ): Promise<void>
+```
+
+## File: src/features/skill-xp.slice/_queries.ts
+```typescript
+import { db } from '@/shared-infra/frontend-firebase';
+import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import type { OrgSkillRecognitionRecord } from './_org-recognition';
+import type { AccountSkillEntry } from './_projector';
+import type { OrgSkillTagEntry } from './_tag-pool';
+export async function getAccountSkillEntry(
+  accountId: string,
+  skillId: string
+): Promise<AccountSkillEntry | null>
+export async function getAccountSkillView(
+  accountId: string
+): Promise<AccountSkillEntry[]>
+export async function getOrgSkillTag(
+  orgId: string,
+  tagSlug: string
+): Promise<OrgSkillTagEntry | null>
+export async function getOrgSkillTags(orgId: string): Promise<OrgSkillTagEntry[]>
+export async function getSkillRecognition(
+  organizationId: string,
+  accountId: string,
+  skillId: string
+): Promise<OrgSkillRecognitionRecord | null>
+export async function getMemberSkillRecognitions(
+  organizationId: string,
+  accountId: string
+): Promise<OrgSkillRecognitionRecord[]>
 ```
 
 ## File: src/features/skill-xp.slice/_tag-lifecycle.ts
@@ -13896,32 +13893,6 @@ const getAccountInitial = (name?: string)
 ⋮----
 ```
 
-## File: src/features/workspace.slice/core/_components/shell/dashboard-sidebar.tsx
-```typescript
-import { usePathname } from 'next/navigation';
-import { useAuth } from "@/app-runtime/providers/auth-provider";
-import { useI18n } from "@/app-runtime/providers/i18n-provider";
-import { useUser } from "@/features/account.slice";
-import { useOrganizationManagement } from "@/features/organization.slice";
-import { useApp } from "@/features/workspace.slice/core/_hooks/use-app";
-import { useVisibleWorkspaces } from "@/features/workspace.slice/core/_hooks/use-visible-workspaces";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarRail,
-  SidebarSeparator,
-} from "@/shadcn-ui/sidebar";
-import { AccountSwitcher } from "./account-switcher";
-import { NavMain } from "./nav-main";
-import { NavUser } from "./nav-user";
-import { NavWorkspaces } from "./nav-workspaces";
-```
-
 ## File: src/features/workspace.slice/core/_components/workspace-card.tsx
 ```typescript
 import {
@@ -14412,6 +14383,32 @@ import {
   type SkillGroup,
   type SkillSubCategory,
 } from '@/shared-kernel/constants/skills';
+```
+
+## File: src/features/workspace.slice/core/_components/shell/dashboard-sidebar.tsx
+```typescript
+import { usePathname } from 'next/navigation';
+import { useAuth } from "@/app-runtime/providers/auth-provider";
+import { useI18n } from "@/app-runtime/providers/i18n-provider";
+import { useUser } from "@/features/account.slice";
+import { useOrganizationManagement } from "@/features/organization.slice";
+import { useApp } from "@/features/workspace.slice/core/_hooks/use-app";
+import { useVisibleWorkspaces } from "@/features/workspace.slice/core/_hooks/use-visible-workspaces";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarRail,
+  SidebarSeparator,
+} from "@/shadcn-ui/sidebar";
+import { AccountSwitcher } from "./account-switcher";
+import { NavMain } from "./nav-main";
+import { NavUser } from "./nav-user";
+import { NavWorkspaces } from "./nav-workspaces";
 ```
 
 ## File: src/features/workspace.slice/core/_components/workspace-list-header.tsx

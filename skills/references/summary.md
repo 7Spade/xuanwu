@@ -45,21 +45,21 @@ This skill contains the following reference files:
 
 ## Statistics
 
-686 files | 11,032 lines
+676 files | 11,015 lines
 
 | Language | Files | Lines |
 |----------|------:|------:|
-| TypeScript | 439 | 7,626 |
-| TypeScript (TSX) | 247 | 3,406 |
+| TypeScript | 429 | 7,585 |
+| TypeScript (TSX) | 247 | 3,430 |
 
 **Largest files:**
 - `src/features/workspace.slice/core/_components/workspace-settings.tsx` (340 lines)
 - `src/config/i18n/i18n.schema.ts` (236 lines)
 - `src/features/workspace.slice/core.event-bus/_events.ts` (172 lines)
-- `src/features/semantic-graph.slice/centralized-types/index.ts` (138 lines)
+- `src/features/semantic-graph.slice/centralized-types/index.ts` (139 lines)
 - `src/features/workspace.slice/business.document-parser/_intent-actions.ts` (136 lines)
 - `src/features/organization.slice/core.event-bus/_events.ts` (126 lines)
-- `src/shared/infra/firestore/repositories/workspace-core.repository.ts` (87 lines)
+- `src/shared-infra/frontend-firebase/firestore/repositories/workspace-core.repository.ts` (87 lines)
 - `src/features/workspace.slice/core/_actions.ts` (76 lines)
 - `src/features/workforce-scheduling.slice/_components/proposal-dialog.tsx` (75 lines)
 - `src/shared-kernel/data-contracts/account/account-contract.ts` (74 lines)
