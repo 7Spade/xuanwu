@@ -39,7 +39,16 @@ function WorkspaceLayoutInner({ workspaceId, businesstab, modal, panel }: { work
       .map((cap) => cap.id)
       .filter((capId) => !NON_BUSINESS_CAPABILITY_IDS.includes(capId));
 
-    return new Set([...PERMANENT_CAPABILITY_IDS, ...governance, ...mountedBusiness]);
+    // Treat schedule and timeline as paired runtime views of the same business domain.
+    const mountedWithAliases = new Set(mountedBusiness);
+    if (mountedWithAliases.has("schedule")) {
+      mountedWithAliases.add("timeline");
+    }
+    if (mountedWithAliases.has("timeline")) {
+      mountedWithAliases.add("schedule");
+    }
+
+    return new Set([...PERMANENT_CAPABILITY_IDS, ...governance, ...mountedWithAliases]);
   }, [state.activeAccount, workspace.dimensionId, workspace.capabilities]);
 
   useEffect(() => {
