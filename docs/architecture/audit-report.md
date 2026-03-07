@@ -71,33 +71,31 @@ Completed sequential phases from the requested prompt:
 
 ### E. Event Flow Gaps
 
-1. Outbox status contract drift between shared contract and relay implementation.
-	 - Shared contract: `OutboxStatus = 'pending' | 'relayed' | 'dlq'`
-		 - Evidence: `docs/ai/repomix-output.context.md:3283`
-	 - Relay implementation: `OutboxStatus = 'pending' | 'delivered' | 'dlq'`
-		 - Evidence: `docs/ai/repomix-output.context.md:11007`
-	 - Rule reference: `S1` (OUTBOX contract single source), consistency invariants.
-	 - Impact:
-		 - Status mismatch risks relay/read-model confusion and monitoring inconsistency.
+1. Outbox status contract drift resolved.
+	 - Current status: relay implementation now aligns to shared contract value `relayed`.
+	 - Files aligned:
+		 - `src/shared-kernel/infra-contracts/outbox-contract/index.ts`
+		 - `src/features/infra.outbox-relay/_relay.ts`
+	 - Rule reference: `S1` (OUTBOX contract single source).
 
 ### F. Responsibility Violations
 
-1. Semantic tag persistence still uses weak string typing in infrastructure DTOs.
-	 - Evidence:
-		 - `semanticTagSlug: string` and `costItemType: string`
+1. Finance semantic persistence typing resolved at repository boundary.
+	 - Current status:
+		 - `semanticTagSlug` is persisted as `TagSlugRef`.
+		 - `costItemType` is constrained to explicit semantic literals.
+		 - repository save path normalizes incoming slug strings via `tagSlugRef(...)` before persistence.
+	 - File aligned:
 		 - `src/shared-infra/frontend-firebase/firestore/repositories/workspace-business.finance.repository.ts`
-		 - Snapshot lines: `docs/ai/repomix-output.context.md:7491`-`docs/ai/repomix-output.context.md:7492`
-	 - Rule reference: `D22` (strong typed tag reference), `D21-2`.
-	 - Impact:
-		 - Increased semantic drift risk and weaker compile-time safety.
+	 - Rule reference: `D22`, `D21-2`.
 
 ## 3. Actionable Refactoring Checklist
 
 - [ ] Replace direct `@/shared-infra/*` imports in feature slices with SK_PORTS interfaces (`D24`).
 - [ ] Move `workforce-scheduling.slice/_projectors/*` into `projection.bus` and keep VS6 command/domain focused (`L5-Bus`, `S2`, `P5`).
 - [x] Normalize `timelineing.slice` naming by consolidating into `workforce-scheduling.slice/timeline`.
-- [ ] Unify outbox status enum with shared contract (`relayed` vs `delivered`) across relay, projectors, and monitoring (`S1`).
-- [ ] Replace weak semantic strings with typed semantic refs where applicable (`D22`, `D21-2`).
+- [x] Unify outbox status enum with shared contract (`relayed` vs `delivered`) across relay, projectors, and monitoring (`S1`).
+- [x] Replace weak semantic strings with typed semantic refs where applicable (`D22`, `D21-2`).
 - [ ] Run post-migration architecture checks for `D7/D24/D26` and regression tests on gateway-command -> IER -> projection -> query flow.
 
 ## 4. Summary
@@ -106,5 +104,4 @@ The repository has strong foundational alignment with SSOT (L2/L4/L5/L6 modules,
 
 1. Infrastructure boundary import discipline (`D24`),
 2. Projection responsibility placement (L5 consolidation),
-3. Contract consistency (outbox status enum),
-4. Strong typed semantic references (`D22`).
+3. Strong typed semantic references (`D22`).

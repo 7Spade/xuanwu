@@ -4,7 +4,7 @@
  * OUTBOX_RELAY_WORKER [R1] ??shared Relay Worker used by ALL outbox collections.
  *
  * Per 00-LogicOverview.md [R1] OUTBOX_RELAY_WORKER and tree.md:
- *   infra.outbox-relay = [R1] ?¬é?å·?(?ƒæ??€??OUTBOX ?•é???IER)
+ *   infra.outbox-relay = [R1] ?ï¿½ï¿½?ï¿½?(?ï¿½ï¿½??ï¿½??OUTBOX ?ï¿½ï¿½???IER)
  *
  *   - Scan strategy: Firestore onSnapshot (CDC) ??listens for `pending` entries
  *   - Delivery: OUTBOX ??IER corresponding Lane
@@ -23,6 +23,7 @@
 
 import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
 import { logDomainError } from '@/features/observability';
+import type { OutboxStatus as SharedOutboxStatus } from '@/shared-kernel';
 import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
@@ -38,7 +39,7 @@ import {
 import { updateDoc, setDoc, type serverTimestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 /** Delivery status of an outbox entry. */
-export type OutboxStatus = 'pending' | 'delivered' | 'dlq';
+export type OutboxStatus = SharedOutboxStatus;
 
 /** Shape of a document stored in any OUTBOX collection. */
 export interface OutboxDocument {
@@ -202,7 +203,7 @@ async function relayEntry(
     await deliver(data.lane, envelope);
 
     await updateDoc(docRef, {
-      status: 'delivered' as OutboxStatus,
+      status: 'relayed' as OutboxStatus,
       attemptCount: attempt,
       lastAttemptAt: new Date().toISOString(),
     });
