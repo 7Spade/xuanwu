@@ -20,7 +20,7 @@ const {
   mockGetParsingIntentById: vi.fn(),
 }))
 
-vi.mock('@/shared/infra/firestore/firestore.facade', () => ({
+vi.mock('@/shared-infra/frontend-firebase/firestore/firestore.facade', () => ({
   createParsingIntent: mockCreateParsingIntent,
   updateParsingIntentStatus: mockUpdateParsingIntentStatus,
   supersedeParsingIntent: mockSupersedeParsingIntent,
@@ -106,13 +106,13 @@ describe('workspace document-parser intent actions', () => {
     // the newly computed hash to trigger the secondary idempotency guard.
     const lineItems = [{ name: 'item', quantity: 1, unitPrice: 100, subtotal: 100, costItemType: CostItemType.EXECUTABLE, semanticTagSlug: 'cost-item-executable', sourceIntentIndex: 0 }]
 
-    // First save — captures the deterministic semanticHash produced for these lineItems.
+    // First save ??captures the deterministic semanticHash produced for these lineItems.
     mockCreateParsingIntent.mockResolvedValue('intent-1')
     await saveParsingIntent('workspace-1', 'invoice.pdf', lineItems)
     const capturedHash: string = mockCreateParsingIntent.mock.calls[0][1].semanticHash
     expect(capturedHash).toMatch(/^[a-f0-9]{64}$/)
 
-    // Second save with same content — mockGetParsingIntentById returns the
+    // Second save with same content ??mockGetParsingIntentById returns the
     // previous intent with the identical hash so the guard fires.
     mockCreateParsingIntent.mockReset()
     mockGetParsingIntentById.mockResolvedValue({
@@ -124,7 +124,7 @@ describe('workspace document-parser intent actions', () => {
       previousIntentId: 'intent-1' as IntentID,
     })
 
-    // Guard fires → existing intentId returned, no new document created.
+    // Guard fires ??existing intentId returned, no new document created.
     expect(result).toEqual({ intentId: 'intent-1' })
     expect(mockCreateParsingIntent).not.toHaveBeenCalled()
     expect(mockSupersedeParsingIntent).not.toHaveBeenCalled()

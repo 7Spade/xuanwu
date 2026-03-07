@@ -9,8 +9,8 @@
 import type { Account } from "@/shared-kernel"
 import {
   getUserProfile as getUserProfileFacade,
-} from "@/shared/infra/firestore/firestore.facade"
-import { subscribeToDocument } from '@/shared/infra/firestore/firestore.read.adapter'
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade"
+import { subscribeToDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter'
 
 /**
  * Fetches the user account/profile document by userId.

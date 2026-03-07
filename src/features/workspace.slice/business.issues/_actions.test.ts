@@ -6,7 +6,7 @@ const { mockCreateIssueFacade, mockAddCommentFacade, mockResolveIssueFacade } = 
   mockResolveIssueFacade: vi.fn(),
 }))
 
-vi.mock('@/shared/infra/firestore/firestore.facade', () => ({
+vi.mock('@/shared-infra/frontend-firebase/firestore/firestore.facade', () => ({
   createIssue: mockCreateIssueFacade,
   addCommentToIssue: mockAddCommentFacade,
   resolveIssue: mockResolveIssueFacade,

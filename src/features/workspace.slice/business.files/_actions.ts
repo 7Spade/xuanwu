@@ -19,8 +19,8 @@ import {
   createWorkspaceFile as createFileFacade,
   addWorkspaceFileVersion as addVersionFacade,
   restoreWorkspaceFileVersion as restoreVersionFacade,
-} from '@/shared/infra/firestore/firestore.facade';
-import { serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
+import { serverTimestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 import type { WorkspaceFile, WorkspaceFileVersion } from './_types';
 

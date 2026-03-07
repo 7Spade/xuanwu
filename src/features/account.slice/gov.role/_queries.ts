@@ -1,12 +1,12 @@
 /**
- * account-governance.role — _queries.ts
+ * account-governance.role ??_queries.ts
  *
  * Read queries for account role management.
  */
 
 import { db } from '@/shared-infra/frontend-firebase';
-import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 import type { AccountRoleRecord } from './_actions';
 

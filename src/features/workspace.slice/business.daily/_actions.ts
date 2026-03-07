@@ -16,7 +16,7 @@ import {
 import {
   toggleDailyLogLike,
   addDailyLogComment as addDailyLogCommentFacade,
-} from "@/shared/infra/firestore/firestore.facade";
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade";
 
 /**
  * Toggles a like on a daily log entry.

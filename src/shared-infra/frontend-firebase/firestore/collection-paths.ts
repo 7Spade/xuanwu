@@ -1,11 +1,11 @@
 /**
- * collection-paths.ts — Firestore Collection Path Constants
+ * collection-paths.ts ??Firestore Collection Path Constants
  *
  * [D24] All Firestore collection paths must be defined here.
  *       Feature slices must NOT hardcode collection paths directly.
  *
  * Usage:
- *   import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
+ *   import { COLLECTIONS } from '@/shared-infra/frontend-firebase/firestore/collection-paths';
  *   const ref = db.collection(COLLECTIONS.accounts).doc(orgId);
  */
 
@@ -13,7 +13,7 @@
 export const COLLECTIONS = {
   /** VS2 Account aggregate root. */
   accounts: 'accounts',
-  /** VS2 User profiles (sub-collection not listed — use SUBCOLLECTIONS). */
+  /** VS2 User profiles (sub-collection not listed ??use SUBCOLLECTIONS). */
   userProfiles: 'user_profiles',
   /**
    * Account-role grant records.
@@ -49,13 +49,13 @@ export const COLLECTIONS = {
 export const SUBCOLLECTIONS = {
   /** accounts/{orgId}/workspaces */
   workspaces: 'workspaces',
-  /** accounts/{orgId}/schedule_items — VS6 SSOT [S4] */
+  /** accounts/{orgId}/schedule_items ??VS6 SSOT [S4] */
   scheduleItems: 'schedule_items',
   /** accounts/{orgId}/audit_logs */
   auditLogs: 'audit_logs',
   /** accounts/{orgId}/daily_logs */
   dailyLogs: 'daily_logs',
-  /** workspaces/{workspaceId}/events — VS5 event store */
+  /** workspaces/{workspaceId}/events ??VS5 event store */
   workspaceEvents: 'events',
   /** workspaces/{workspaceId}/tasks */
   workspaceTasks: 'tasks',

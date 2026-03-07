@@ -1,5 +1,5 @@
 /**
- * workspace.slice/core — Firestore subscription factories (D5-compliant)
+ * workspace.slice/core ??Firestore subscription factories (D5-compliant)
  *
  * This module now contains only workspace subcollection subscriptions used by
  * `workspace-provider.tsx`. Account-scoped subscriptions were migrated to
@@ -13,8 +13,8 @@ import {
   orderBy,
   type Unsubscribe,
   query,
-} from '@/shared/infra/firestore/firestore.read.adapter';
-import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { snapshotToRecord } from '@/shared-infra/frontend-firebase/firestore/firestore.utils';
 
 import type { WorkspaceIssue } from '../business.issues/_types';
 import type { WorkspaceTask } from '../business.tasks/_types';

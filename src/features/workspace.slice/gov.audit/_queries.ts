@@ -1,12 +1,12 @@
 /**
- * @fileoverview _queries.ts — Read-only queries for audit log retrieval.
+ * @fileoverview _queries.ts ??Read-only queries for audit log retrieval.
  * @description Provides server-side read functions for fetching audit log history.
  * Callable from RSC pages, hooks, and context without React dependencies.
  */
 
 import {
   getAuditLogs as getAuditLogsFacade,
-} from "@/shared/infra/firestore/firestore.facade"
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade"
 
 import type { AuditLog } from "./_types"
 

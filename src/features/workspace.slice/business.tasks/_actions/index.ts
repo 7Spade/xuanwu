@@ -16,7 +16,7 @@ import {
   deleteTask as deleteTaskFacade,
   getTasksBySourceIntentId as getTasksBySourceIntentIdFacade,
   reconcileTask as reconcileTaskFacade,
-} from '@/shared/infra/firestore/firestore.facade';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
 
 import type { WorkspaceTask } from '../_types';
 

@@ -15,8 +15,8 @@ import {
   onSnapshot,
   doc,
   type Unsubscribe,
-} from '@/shared/infra/firestore/firestore.read.adapter';
-import { updateDoc } from '@/shared/infra/firestore/firestore.write.adapter';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { updateDoc } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 /**
  * Subscribes to the latest notifications for a user.

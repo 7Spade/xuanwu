@@ -6,8 +6,8 @@
 
 import type { Account, Wallet } from '@/shared-kernel';
 import { db } from '@/shared-infra/frontend-firebase';
-import { doc, collection, query, orderBy, limit, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { doc, collection, query, orderBy, limit, onSnapshot, type Unsubscribe } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 /**
  * Fetches the wallet balance for a user account.

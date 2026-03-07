@@ -1,5 +1,5 @@
 /**
- * workforce-scheduling.slice/_projectors — account-schedule.ts
+ * workforce-scheduling.slice/_projectors ??account-schedule.ts
  *
  * Type definitions for the account schedule projection read model.
  * Projection write logic has been migrated to projection.bus/account-schedule/_projector.ts
@@ -10,13 +10,13 @@
  * on projection.bus.
  */
 
-import type { FieldValue } from '@/shared/infra/firestore/firestore.write.adapter';
+import type { FieldValue } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 export interface AccountScheduleProjection {
   accountId: string;
   /** Active schedule assignment IDs */
   activeAssignmentIds: string[];
-  /** Map of scheduleItemId → { workspaceId, startDate, endDate } */
+  /** Map of scheduleItemId ??{ workspaceId, startDate, endDate } */
   assignmentIndex: Record<string, AccountScheduleAssignment>;
   readModelVersion: number;
   /** Last aggregate version processed by this projection [S2] */

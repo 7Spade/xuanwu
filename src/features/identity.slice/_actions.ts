@@ -11,7 +11,7 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/shared-kernel'
-import { authAdapter } from "@/shared/infra/auth/auth.adapter"
+import { authAdapter } from "@/shared-infra/frontend-firebase/auth/auth.adapter"
 
 /**
  * Signs in an existing user with email and password.

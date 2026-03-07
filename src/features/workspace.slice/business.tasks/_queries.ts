@@ -1,5 +1,5 @@
 /**
- * @fileoverview workspace-business.tasks — Read-only queries.
+ * @fileoverview workspace-business.tasks ??Read-only queries.
  * @description Server-side read functions for fetching workspace tasks.
  * Callable from RSC pages, hooks, and context without React dependencies.
  *
@@ -11,7 +11,7 @@ import {
   getWorkspaceTask as getWorkspaceTaskFacade,
   getTaskBySourceIntentId as getTaskBySourceIntentIdFacade,
   getTasksBySourceIntentId as getTasksBySourceIntentIdFacade,
-} from "@/shared/infra/firestore/firestore.facade";
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade";
 
 import type { WorkspaceTask } from "./_types";
 
@@ -40,7 +40,7 @@ export async function getWorkspaceTask(
 
 /**
  * Returns `true` when at least one task with the given `sourceIntentId` already
- * exists in the workspace — used to enforce source-based deduplication [D14]
+ * exists in the workspace ??used to enforce source-based deduplication [D14]
  * and prevent a re-import of the same `ParsingIntent` from creating duplicate tasks.
  *
  * @param workspaceId   The workspace to query.

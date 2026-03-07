@@ -16,7 +16,7 @@ import {
   supersedeParsingIntent as supersedeParsingIntentFacade,
   updateParsingImportStatus as updateParsingImportStatusFacade,
   updateParsingIntentStatus as updateParsingIntentStatusFacade,
-} from '@/shared/infra/firestore/firestore.facade'
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade'
 import type { Timestamp } from '@/shared-kernel/ports'
 
 import type {

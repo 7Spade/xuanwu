@@ -26,12 +26,12 @@ import {
   type CommandResult,
 } from '@/shared-kernel';
 import { publishTagEvent } from './_bus';
-import { Timestamp, getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { Timestamp, getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 import {
   setDocument,
   updateDocument,
   deleteDocument,
-} from '@/shared/infra/firestore/firestore.write.adapter';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 // ---------------------------------------------------------------------------
 // Outbox helper [Q2][S1][R8]

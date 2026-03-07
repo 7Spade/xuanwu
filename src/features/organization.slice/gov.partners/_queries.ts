@@ -7,8 +7,8 @@
  * onSnapshot on the org account document provides real-time updates.
  *
  * Per 00-LogicOverview.md:
- *   ORGANIZATION_PARTNER["organization-governance.partneråš—ïŽ†?é›¿î°ªä¸°éš¡?ç¹š æ†­î¢€ï€¸è¯ï„•??î¢†?"]
- *   ORGANIZATION_PARTNER -.->|æ†­î¢€ï€¸æ’£å”¾??î¼¼?ç’…î©•æƒœåš—ïŽ†îœŒéœˆÂ€æ’˜îŸ¡îœ…åš—ïœ SKILL_TAG_POOL
+ *   ORGANIZATION_PARTNER["organization-governance.partner?—ï???¿î°ªä¸°éš¡?ç¹??­î??¸è¯???î¢?"]
+ *   ORGANIZATION_PARTNER -.->|?­î??¸æ’£???î¼??…î??œå??†î??ˆÂ€?˜îŸ¡?…å???SKILL_TAG_POOL
  *
  * Boundary constraint:
  *   These queries read ONLY from this org's account document and subcollections.
@@ -17,8 +17,8 @@
 
 import type { Account, PartnerInvite, Team } from '@/shared-kernel';
 import { db } from '@/shared-infra/frontend-firebase';
-import { collection, doc, onSnapshot, orderBy, query, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { collection, doc, onSnapshot, orderBy, query, type Unsubscribe } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 /**
  * Fetches all external partner groups for an organization.

@@ -13,7 +13,7 @@
 
 import { commandSuccess, commandFailureFrom } from '@/shared-kernel';
 import type { CommandResult } from '@/shared-kernel';
-import { addDocument, serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
+import { addDocument, serverTimestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 import type { AuditLog } from './_types';
 

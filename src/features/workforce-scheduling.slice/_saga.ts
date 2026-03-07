@@ -1,7 +1,7 @@
 /**
  * scheduling-saga ??_saga.ts
  *
- * [VS6] 頝函?蝜??剖?雿?Saga ?矽??
+ * [VS6] ?�函??��???????Saga ??�矽??
  *
  * Per 00-LogicOverview.md VS6:
  *   WorkspaceScheduleProposed ??OrgEligibilityCheck ??ScheduleAssigned
@@ -17,8 +17,8 @@
 
 import { getOrgEligibleMembersWithTier } from '@/features/projection.bus';
 import type { WorkspaceScheduleProposedPayload } from '@/shared-kernel';
-import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { getDocument, Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { setDocument, updateDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 import {
   handleScheduleProposed,

@@ -1,23 +1,23 @@
 /**
- * infra.outbox-relay — _relay.ts
+ * infra.outbox-relay ??_relay.ts
  *
- * OUTBOX_RELAY_WORKER [R1] — shared Relay Worker used by ALL outbox collections.
+ * OUTBOX_RELAY_WORKER [R1] ??shared Relay Worker used by ALL outbox collections.
  *
  * Per 00-LogicOverview.md [R1] OUTBOX_RELAY_WORKER and tree.md:
- *   infra.outbox-relay = [R1] 搬運工 (掃描所有 OUTBOX 投遞至 IER)
+ *   infra.outbox-relay = [R1] ?��?�?(?��??�??OUTBOX ?��???IER)
  *
- *   - Scan strategy: Firestore onSnapshot (CDC) — listens for `pending` entries
- *   - Delivery: OUTBOX → IER corresponding Lane
- *   - Failure handling: retry with exponential backoff; after 3 attempts → DLQ
+ *   - Scan strategy: Firestore onSnapshot (CDC) ??listens for `pending` entries
+ *   - Delivery: OUTBOX ??IER corresponding Lane
+ *   - Failure handling: retry with exponential backoff; after 3 attempts ??DLQ
  *   - Listener resilience: auto-reconnect with exponential backoff on `onError` [D11]
- *   - Monitoring: relay_lag / relay_error_rate → VS9 DOMAIN_METRICS
+ *   - Monitoring: relay_lag / relay_error_rate ??VS9 DOMAIN_METRICS
  *
- * All OUTBOX collections share this single Relay Worker — no per-BC duplication.
+ * All OUTBOX collections share this single Relay Worker ??no per-BC duplication.
  *
  * Invariants:
- *   D8  — idempotencyKey must be preserved on DLQ entry (never regenerated).
- *   R5  — DLQ entries carry a `dlqLevel` tag (SAFE_AUTO / REVIEW_REQUIRED / SECURITY_BLOCK).
- *   D9  — traceId is read from the envelope and forwarded; never overwritten.
+ *   D8  ??idempotencyKey must be preserved on DLQ entry (never regenerated).
+ *   R5  ??DLQ entries carry a `dlqLevel` tag (SAFE_AUTO / REVIEW_REQUIRED / SECURITY_BLOCK).
+ *   D9  ??traceId is read from the envelope and forwarded; never overwritten.
  */
 
 
@@ -34,8 +34,8 @@ import {
   type QuerySnapshot,
   type DocumentData,
   type DocumentChange,
-} from '@/shared/infra/firestore/firestore.read.adapter';
-import { updateDoc, setDoc, type serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { updateDoc, setDoc, type serverTimestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 /** Delivery status of an outbox entry. */
 export type OutboxStatus = 'pending' | 'delivered' | 'dlq';
@@ -44,7 +44,7 @@ export type OutboxStatus = 'pending' | 'delivered' | 'dlq';
 export interface OutboxDocument {
   readonly outboxId: string;
   readonly eventType: string;
-  /** Serialized EventEnvelope — includes idempotencyKey and traceId [D8][D9]. */
+  /** Serialized EventEnvelope ??includes idempotencyKey and traceId [D8][D9]. */
   readonly envelopeJson: string;
   /** Destination IER lane. */
   readonly lane: 'CRITICAL_LANE' | 'STANDARD_LANE' | 'BACKGROUND_LANE';
@@ -117,7 +117,7 @@ export function startOutboxRelay(
     currentUnsubscribe = onSnapshot(
       q,
       (snapshot: QuerySnapshot<DocumentData>) => {
-        // Successful snapshot — connection is healthy; reset the backoff counter.
+        // Successful snapshot ??connection is healthy; reset the backoff counter.
         retryCount = 0;
 
         snapshot.docChanges().forEach((change: DocumentChange<DocumentData>) => {
@@ -129,13 +129,13 @@ export function startOutboxRelay(
         });
       },
       (err: Error) => {
-        // Listener has permanently terminated after this callback — re-install
+        // Listener has permanently terminated after this callback ??re-install
         // with exponential backoff capped at 30 s. [D11 resilience]
         logDomainError({
           occurredAt: new Date().toISOString(),
           traceId: `relay:${outboxCollectionPath}`,
           source: 'infra.outbox-relay:onSnapshot:error',
-          message: `CDC listener error on "${outboxCollectionPath}" — scheduling reconnect (attempt ${retryCount + 1})`,
+          message: `CDC listener error on "${outboxCollectionPath}" ??scheduling reconnect (attempt ${retryCount + 1})`,
           detail: err.message,
         });
 
@@ -144,9 +144,9 @@ export function startOutboxRelay(
         if (stopped) return;
 
         // Increment first so that the log message and backoff calculation are
-        // consistent: attempt 1 → 1 s, attempt 2 → 2 s, attempt 3 → 4 s …
+        // consistent: attempt 1 ??1 s, attempt 2 ??2 s, attempt 3 ??4 s ??
         retryCount += 1;
-        // Exponential backoff: 1 s → 2 s → 4 s … capped at 30 s.
+        // Exponential backoff: 1 s ??2 s ??4 s ??capped at 30 s.
         const backoffMs = Math.min(1_000 * 2 ** (retryCount - 1), 30_000);
 
         retryTimeoutId = setTimeout(() => {
@@ -183,7 +183,7 @@ async function relayEntry(
   const docRef = doc(db, collectionPath, docId);
   const attempt = (data.attemptCount ?? 0) + 1;
 
-  // Malformed JSON is a data-corruption issue — skip retries and go directly to DLQ.
+  // Malformed JSON is a data-corruption issue ??skip retries and go directly to DLQ.
   let envelope: unknown;
   try {
     envelope = JSON.parse(data.envelopeJson);
@@ -193,7 +193,7 @@ async function relayEntry(
       docId,
       data,
       attempt,
-      'Malformed envelopeJson — JSON.parse failed; data corruption suspected'
+      'Malformed envelopeJson ??JSON.parse failed; data corruption suspected'
     );
     return;
   }
@@ -262,7 +262,7 @@ async function routeToDlq(
   });
 
   // [GEMINI.md §4][S6] SECURITY_BLOCK tier: fire VS9 domain-error-log alert immediately.
-  // Auto-replay is FORBIDDEN for SECURITY_BLOCK — alert must be raised so ops can review.
+  // Auto-replay is FORBIDDEN for SECURITY_BLOCK ??alert must be raised so ops can review.
   if (dlqLevel === 'SECURITY_BLOCK') {
     let resolvedTraceId = dlqId;
     try {
@@ -271,7 +271,7 @@ async function routeToDlq(
     } catch (parseErr) {
       // Log parse failure so operators know the envelope was malformed on the alert path
       console.error(
-        `[outbox-relay] SECURITY_BLOCK: could not parse envelopeJson for traceId — dlqId="${dlqId}":`,
+        `[outbox-relay] SECURITY_BLOCK: could not parse envelopeJson for traceId ??dlqId="${dlqId}":`,
         parseErr
       );
     }
@@ -279,7 +279,7 @@ async function routeToDlq(
       occurredAt: new Date().toISOString(),
       traceId: resolvedTraceId,
       source: 'infra.outbox-relay:SECURITY_BLOCK',
-      message: `SECURITY_BLOCK DLQ — eventType="${data.eventType}" lane="${data.lane}" dlqId="${dlqId}". ` +
+      message: `SECURITY_BLOCK DLQ ??eventType="${data.eventType}" lane="${data.lane}" dlqId="${dlqId}". ` +
         `Auto-replay is FORBIDDEN. Manual review required. lastError: ${lastError}`,
       detail: `collection=${collectionPath} docId=${docId} attempts=${attemptCount}`,
     });

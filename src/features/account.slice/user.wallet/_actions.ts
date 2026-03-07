@@ -22,8 +22,8 @@ import {
   commandFailureFrom,
 } from '@/shared-kernel';
 import { db } from '@/shared-infra/frontend-firebase';
-import { collection, doc } from '@/shared/infra/firestore/firestore.read.adapter';
-import { runTransaction, serverTimestamp, type Transaction } from '@/shared/infra/firestore/firestore.write.adapter';
+import { collection, doc } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { runTransaction, serverTimestamp, type Transaction } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 
 export interface WalletTransaction {

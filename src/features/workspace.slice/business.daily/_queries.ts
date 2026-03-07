@@ -1,5 +1,5 @@
 /**
- * @fileoverview workspace-business.daily — Read-only queries.
+ * @fileoverview workspace-business.daily ??Read-only queries.
  * @description Server-side read functions for fetching daily log entries.
  * Callable from RSC pages, hooks, and context without React dependencies.
  *
@@ -7,14 +7,14 @@
  */
 
 import { db } from '@/shared-infra/frontend-firebase';
-import { getDailyLogs as getDailyLogsFacade } from "@/shared/infra/firestore/firestore.facade";
+import { getDailyLogs as getDailyLogsFacade } from "@/shared-infra/frontend-firebase/firestore/firestore.facade";
 import {
   collection,
   onSnapshot,
   orderBy,
   query,
   type Unsubscribe,
-} from "@/shared/infra/firestore/firestore.read.adapter";
+} from "@/shared-infra/frontend-firebase/firestore/firestore.read.adapter";
 
 import type { DailyLog, DailyLogComment } from "./_types";
 

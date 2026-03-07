@@ -7,8 +7,8 @@
  * onSnapshot on the org account document provides real-time updates.
  *
  * Per 00-LogicOverview.md:
- *   ORGANIZATION_TEAM["organization-governance.teamåš—ïŽ†??ï“‚æ£??ç¹š ?æŠ˜ï€¸è¯ï„•??î¢†?"]
- *   ORGANIZATION_TEAM -.->|è¯ï„’ï…±æ’£å”¾?ç’…î©•æƒœ?î«°?é–¬î¡¼?åš—ïŽ†îœŒéœˆÂ€åš—ïœ SKILL_TAG_POOL
+ *   ORGANIZATION_TEAM["organization-governance.team?—ï????‚æ£??ç¹???˜ï€¸è¯???î¢?"]
+ *   ORGANIZATION_TEAM -.->|?¯ï??±æ’£???…î???î«??¬î¡¼??—ï??Œé???—ï? SKILL_TAG_POOL
  *
  * Boundary constraint:
  *   These queries read ONLY from this org's account document.
@@ -17,8 +17,8 @@
 
 import type { Account, Team } from '@/shared-kernel';
 import { db } from '@/shared-infra/frontend-firebase';
-import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { doc, onSnapshot, type Unsubscribe } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 /**
  * Fetches all internal teams for an organization.

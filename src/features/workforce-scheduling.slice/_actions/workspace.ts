@@ -19,8 +19,8 @@ import {
   assignMemberToScheduleItem,
   saveScheduleItem,
   unassignMemberFromScheduleItem,
-} from '@/shared/infra/firestore/firestore.facade';
-import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
+import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 function isStartOfDay(date: Date): boolean {
   return (

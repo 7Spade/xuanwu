@@ -20,7 +20,7 @@ import type { MemberReference } from "@/shared-kernel";
 import {
   recruitOrganizationMember,
   dismissOrganizationMember,
-} from "@/shared/infra/firestore/firestore.facade";
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade";
 
 export async function recruitMember(
   organizationId: string,

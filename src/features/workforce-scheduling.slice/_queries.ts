@@ -19,7 +19,7 @@ import {
 import type { ImplementsStalenessContract } from '@/shared-kernel';
 import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
 import { db } from '@/shared-infra/frontend-firebase';
-import { fetchScheduleItems } from '@/shared/infra/firestore/firestore.facade';
+import { fetchScheduleItems } from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
 import {
   collection,
   query,
@@ -31,8 +31,8 @@ import {
   type Unsubscribe,
   type QueryDocumentSnapshot,
   type QuerySnapshot,
-} from '@/shared/infra/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 import type { AccountScheduleProjection, AccountScheduleAssignment } from './_projectors/account-schedule';
 

@@ -1,12 +1,12 @@
 /**
- * @fileoverview _queries.ts — Read-only queries for workspace member retrieval.
+ * @fileoverview _queries.ts ??Read-only queries for workspace member retrieval.
  * @description Provides server-side read functions for fetching workspace access grants.
  * Callable from RSC pages, hooks, and context without React dependencies.
  */
 
 import {
   getWorkspaceGrants as getWorkspaceGrantsFacade,
-} from "@/shared/infra/firestore/firestore.facade"
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade"
 
 import type { WorkspaceGrant } from "../gov.role/_types"
 

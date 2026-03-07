@@ -1,27 +1,27 @@
 /**
- * skill-xp.slice — _aggregate.ts
+ * skill-xp.slice ??_aggregate.ts
  *
  * AccountSkill Aggregate Root.
  *
  * Schema (stored at: accountSkills/{accountId}/skills/{skillId}):
- *   accountId — owner
- *   skillId   — tagSlug (portable identifier)
- *   xp        — accumulated XP, clamped 0–525 (Invariant #13)
- *   version   — optimistic concurrency counter
+ *   accountId ??owner
+ *   skillId   ??tagSlug (portable identifier)
+ *   xp        ??accumulated XP, clamped 0??25 (Invariant #13)
+ *   version   ??optimistic concurrency counter
  *
  * Invariants enforced:
- *   #11 — XP belongs to Account BC; published to Organization via events only.
- *   #12 — Tier is NEVER stored here. Derive via resolveSkillTier(xp) / getTier(xp).
- *   #13 — Every xp change MUST write a ledger entry BEFORE updating the aggregate.
+ *   #11 ??XP belongs to Account BC; published to Organization via events only.
+ *   #12 ??Tier is NEVER stored here. Derive via resolveSkillTier(xp) / getTier(xp).
+ *   #13 ??Every xp change MUST write a ledger entry BEFORE updating the aggregate.
  *
  * Write path per 00-LogicOverview.md [E1]:
- *   Server Action → addXp/deductXp → clamp 0~525 → appendXpLedgerEntry
- *     → setDocument(aggregate) → return { newXp, xpDelta, version }
- *   Cross-BC event publishing (SkillXpAdded/Deducted → IER → ORG_EVENT_BUS) is handled
+ *   Server Action ??addXp/deductXp ??clamp 0~525 ??appendXpLedgerEntry
+ *     ??setDocument(aggregate) ??return { newXp, xpDelta, version }
+ *   Cross-BC event publishing (SkillXpAdded/Deducted ??IER ??ORG_EVENT_BUS) is handled
  *   by _actions.ts (application coordinator), NOT the aggregate (Invariant #3, E1).
  */
 
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 import { appendXpLedgerEntry } from './_ledger';
 
@@ -29,24 +29,24 @@ import { appendXpLedgerEntry } from './_ledger';
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Maximum XP value per skill — matches TIER_DEFINITIONS cap (Titan tier). */
+/** Maximum XP value per skill ??matches TIER_DEFINITIONS cap (Titan tier). */
 export const SKILL_XP_MAX = 525;
 /** Minimum XP value per skill. */
 export const SKILL_XP_MIN = 0;
 
 // ---------------------------------------------------------------------------
-// Types — no `tier` field (Invariant #12)
+// Types ??no `tier` field (Invariant #12)
 // ---------------------------------------------------------------------------
 
 /**
  * Persisted aggregate state.
- * `tier` is intentionally absent — derived at query time via getTier(xp).
+ * `tier` is intentionally absent ??derived at query time via getTier(xp).
  */
 export interface AccountSkillRecord {
   accountId: string;
-  /** tagSlug — portable, hyphen-separated skill identifier. */
+  /** tagSlug ??portable, hyphen-separated skill identifier. */
   skillId: string;
-  /** Accumulated XP (0–525). The ONLY persisted skill attribute. */
+  /** Accumulated XP (0??25). The ONLY persisted skill attribute. */
   xp: number;
   /** Optimistic-concurrency version counter. Incremented on every write. */
   version: number;
@@ -74,17 +74,17 @@ function aggregatePath(accountId: string, skillId: string): string {
  * Write path (Invariant #13, E1):
  *   1. Read current aggregate (or default to xp=0).
  *   2. Compute new clamped XP.
- *   3. Append ledger entry (BEFORE aggregate write — audit ordering guarantee).
- *   4. Persist updated aggregate (no tier stored — Invariant #12).
- *   Returns { newXp, xpDelta, version } — caller (_actions.ts) is responsible for
- *   publishing SkillXpAdded to the org event bus (E1 — not the aggregate's concern).
+ *   3. Append ledger entry (BEFORE aggregate write ??audit ordering guarantee).
+ *   4. Persist updated aggregate (no tier stored ??Invariant #12).
+ *   Returns { newXp, xpDelta, version } ??caller (_actions.ts) is responsible for
+ *   publishing SkillXpAdded to the org event bus (E1 ??not the aggregate's concern).
  *
  * @param delta  Positive XP amount to add.
  * @param opts.orgId   Organization context (passed through to caller for event payload).
  * @param opts.reason  Human-readable reason for the ledger entry.
  * @param opts.sourceId  Optional source object ID (e.g. taskId, scheduleItemId).
  * @returns The new XP value, the actual applied delta (after clamping), the new aggregate version,
- *          and the record to persist — caller (_actions.ts) is responsible for the setDocument write (D3).
+ *          and the record to persist ??caller (_actions.ts) is responsible for the setDocument write (D3).
  */
 export async function addXp(
   accountId: string,
@@ -115,7 +115,7 @@ export async function addXp(
 /**
  * Mirrors addXp; delta should be positive (the deduction amount).
  * Net XP is clamped at SKILL_XP_MIN (0).
- * Returns { newXp, xpDelta, version, record, path } — caller (_actions.ts) persists via setDocument (D3).
+ * Returns { newXp, xpDelta, version, record, path } ??caller (_actions.ts) persists via setDocument (D3).
  */
 export async function deductXp(
   accountId: string,
@@ -147,7 +147,7 @@ export async function deductXp(
  * Returns the current XP for an account's skill.
  * Returns 0 if no record exists.
  *
- * NOTE: Do NOT use this to get tier — call getTier(xp) from shared/lib.
+ * NOTE: Do NOT use this to get tier ??call getTier(xp) from shared/lib.
  */
 export async function getSkillXp(
   accountId: string,

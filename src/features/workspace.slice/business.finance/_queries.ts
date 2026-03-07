@@ -1,6 +1,6 @@
 import {
   getFinanceAggregateState as getFinanceAggregateStateFacade,
-} from '@/shared/infra/firestore/firestore.facade';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
 
 import type { FinanceAggregateState } from './_types';
 

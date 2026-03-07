@@ -1,5 +1,5 @@
 /**
- * @fileoverview workspace-business.files — Queries and real-time Firestore subscriptions.
+ * @fileoverview workspace-business.files ??Queries and real-time Firestore subscriptions.
  *
  * Provides a reactive subscription to the `files` subcollection so that
  * `WorkspaceFiles` components reflect uploads and version updates instantly
@@ -12,8 +12,8 @@
 
 
 import { db } from '@/shared-infra/frontend-firebase';
-import { getWorkspaceFiles as getWorkspaceFilesFacade } from '@/shared/infra/firestore/firestore.facade';
-import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
+import { getWorkspaceFiles as getWorkspaceFilesFacade } from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
+import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 import type { WorkspaceFile } from './_types';
 
@@ -23,7 +23,7 @@ import type { WorkspaceFile } from './_types';
  *
  * @param workspaceId The workspace whose files to subscribe to.
  * @param onUpdate    Callback receiving the latest file array on every update.
- * @returns An unsubscribe function — call it on component unmount.
+ * @returns An unsubscribe function ??call it on component unmount.
  */
 export function subscribeToWorkspaceFiles(
   workspaceId: string,

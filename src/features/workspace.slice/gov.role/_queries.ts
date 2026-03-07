@@ -1,10 +1,10 @@
 /**
- * workspace-governance.role — _queries.ts
+ * workspace-governance.role ??_queries.ts
  *
  * Read queries for workspace-level role management.
  */
 
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 import type { Workspace } from '../core/_types';
 

@@ -1,16 +1,16 @@
 /**
- * skill-xp.slice — _ledger.ts
+ * skill-xp.slice ??_ledger.ts
  *
  * XP Ledger: immutable audit trail for every XP change.
  *
  * Schema (stored at: accountSkills/{accountId}/xpLedger/{entryId}):
- *   entryId   — auto-generated document ID (stable cross-BC reference)
- *   accountId — the owner of the XP
- *   skillId   — tagSlug of the skill being modified
- *   delta     — XP change (positive = added, negative = deducted)
- *   reason    — human-readable reason (e.g. "task:completed", "admin:correction")
- *   sourceId  — optional ID of the source event (taskId, scheduleItemId, etc.)
- *   timestamp — ISO 8601 creation time
+ *   entryId   ??auto-generated document ID (stable cross-BC reference)
+ *   accountId ??the owner of the XP
+ *   skillId   ??tagSlug of the skill being modified
+ *   delta     ??XP change (positive = added, negative = deducted)
+ *   reason    ??human-readable reason (e.g. "task:completed", "admin:correction")
+ *   sourceId  ??optional ID of the source event (taskId, scheduleItemId, etc.)
+ *   timestamp ??ISO 8601 creation time
  *
  * Invariant #13: XP changes MUST produce a ledger entry.
  *   Callers MUST call appendXpLedgerEntry() BEFORE updating the aggregate.
@@ -19,7 +19,7 @@
  * NOTE: `tier` is intentionally absent from this schema (Invariant #12).
  */
 
-import { addDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { addDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 // ---------------------------------------------------------------------------
 // Types

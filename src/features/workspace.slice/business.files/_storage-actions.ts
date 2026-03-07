@@ -10,7 +10,7 @@ import {
   uploadTaskAttachment as uploadTaskAttachmentFacade,
   uploadProfilePicture as uploadProfilePictureFacade,
   uploadWorkspaceDocument,
-} from "@/shared/infra/storage/storage.facade"
+} from "@/shared-infra/frontend-firebase/storage/storage.facade"
 
 /**
  * Uploads a photo for a daily log entry.

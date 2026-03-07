@@ -1,5 +1,5 @@
 /**
- * workforce-scheduling.slice — _write-op.ts
+ * workforce-scheduling.slice ??_write-op.ts
  *
  * Shared WriteOp executor. [D3]
  *
@@ -8,10 +8,10 @@
  * `executeWriteOp` function that existed in both files.
  *
  * [D3] All Firestore writes must flow through WriteOp objects returned by
- *       the aggregate — never written from components directly.
+ *       the aggregate ??never written from components directly.
  */
 
-import { updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
+import { updateDocument, arrayUnion } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 import type { WriteOp } from './_aggregate';
 

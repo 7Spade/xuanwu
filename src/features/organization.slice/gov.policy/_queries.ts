@@ -1,13 +1,13 @@
 /**
- * account-organization.policy — _queries.ts
+ * account-organization.policy ??_queries.ts
  *
  * Read queries for organization policy management.
  * Used by workspace-application._org-policy-cache to subscribe to policy changes.
  */
 
 import { db } from '@/shared-infra/frontend-firebase';
-import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 import type { OrgPolicy } from './_actions';
 

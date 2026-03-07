@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { listWorkflowStates } from '@/features/workspace.slice/business.workflow';
 import type { WorkspaceEventBus } from '@/features/workspace.slice/core.event-bus';
-import { getParsingIntents } from '@/shared/infra/firestore/firestore.facade';
+import { getParsingIntents } from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
 
 import { saveFinanceAggregateState } from '../_actions';
 import { getFinanceAggregateState } from '../_queries';
@@ -255,7 +255,7 @@ export function useFinanceLifecycle(input: UseFinanceLifecycleInput) {
     if (!acceptanceReady) {
       return {
         ok: false as const,
-        message: '[#A15] Acceptance=OK 前不可送出請款。',
+        message: '[#A15] Acceptance=OK ?��??�送出請款??,
       };
     }
 
@@ -263,7 +263,7 @@ export function useFinanceLifecycle(input: UseFinanceLifecycleInput) {
     if (lineItems.length === 0) {
       return {
         ok: false as const,
-        message: '[#A15] Claim Preparation 需至少一個勾選項目且 quantity > 0。',
+        message: '[#A15] Claim Preparation ?�?��?一?�勾?��??��? quantity > 0??,
       };
     }
 
@@ -285,11 +285,11 @@ export function useFinanceLifecycle(input: UseFinanceLifecycleInput) {
 
   const completePayment = useCallback(() => {
     if (stage !== 'payment-term') {
-      throw new Error('[#A16] 禁止跳過生命週期步驟直接確認收款。');
+      throw new Error('[#A16] 禁止跳�??�命?��?步�??�接確�??�款??);
     }
 
     if (currentClaimLineItems.length === 0) {
-      throw new Error('[#A16] 需先完成 Claim/Invoice/PaymentTerm 並具備有效請款項目。');
+      throw new Error('[#A16] ?�?��???Claim/Invoice/PaymentTerm 並具?��??��?款�??��?);
     }
 
     const paidAmount = currentClaimLineItems.reduce((sum, line) => sum + line.lineAmount, 0);
@@ -315,7 +315,7 @@ export function useFinanceLifecycle(input: UseFinanceLifecycleInput) {
 
   const closeCycle = useCallback(() => {
     if (stage !== 'payment-received') {
-      throw new Error('[#A16] 需於 Payment Received 階段才能關閉本輪請款。');
+      throw new Error('[#A16] ?�??Payment Received ?�段?�能?��??�輪請款??);
     }
 
     const hasOutstanding = financeSnapshot.outstandingClaimableAmount > 0;

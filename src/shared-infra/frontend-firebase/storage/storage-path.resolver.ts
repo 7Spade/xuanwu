@@ -1,11 +1,11 @@
 /**
- * storage-path.resolver.ts — Firebase Storage Path Rules
+ * storage-path.resolver.ts ??Firebase Storage Path Rules
  *
  * [D24] All Storage path construction must go through this resolver.
  *       Feature slices must NOT build raw Storage paths directly.
  *
  * Usage:
- *   import { StoragePaths } from '@/shared/infra/storage/storage-path.resolver';
+ *   import { StoragePaths } from '@/shared-infra/frontend-firebase/storage/storage-path.resolver';
  *   const path = StoragePaths.dailyPhoto(accountId, workspaceId, fileId, fileName);
  */
 

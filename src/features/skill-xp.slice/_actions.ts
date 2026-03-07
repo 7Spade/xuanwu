@@ -4,10 +4,10 @@
  * Server-side action wrappers for the AccountSkill aggregate.
  *
  * Call path per 00-LogicOverview.md [E1]:
- *   SERVER_ACTION_SKILL ?’|addXp / deductXp Command| ACCOUNT_SKILL_AGGREGATE
- *   ACCOUNT_SKILL_AGGREGATE ?’|clamp 0~525 · 寫入 Ledger| ACCOUNT_SKILL_XP_LEDGER
- *   ACCOUNT_SKILL_AGGREGATE ?’|return { newXp, xpDelta }| _actions.ts
- *   _actions.ts ?’|SkillXpAdded / SkillXpDeducted| ORGANIZATION_EVENT_BUS (via IER routing E1)
+ *   SERVER_ACTION_SKILL ??�|addXp / deductXp Command| ACCOUNT_SKILL_AGGREGATE
+ *   ACCOUNT_SKILL_AGGREGATE ??�|clamp 0~525 · 寫入 Ledger| ACCOUNT_SKILL_XP_LEDGER
+ *   ACCOUNT_SKILL_AGGREGATE ??�|return { newXp, xpDelta }| _actions.ts
+ *   _actions.ts ??�|SkillXpAdded / SkillXpDeducted| ORGANIZATION_EVENT_BUS (via IER routing E1)
  *
  * Per Invariant #3: Application Layer (actions) coordinates cross-BC routing;
  * the Aggregate only enforces domain invariants (#11 #12 #13).
@@ -25,7 +25,7 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/shared-kernel';
-import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 import { addXp, deductXp } from './_aggregate';
 import { addSkillTagToPool, removeSkillTagFromPool } from './_tag-pool';

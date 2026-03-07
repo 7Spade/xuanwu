@@ -1,12 +1,12 @@
 /**
- * notification-hub.slice/user.notification — _delivery.ts
+ * notification-hub.slice/user.notification ??_delivery.ts
  *
  * FCM Layer 3: Notification Delivery
  * Receives routed notifications, stores them in Firestore, and pushes FCM.
  *
  * Per 00-LogicOverview.md:
- *   ACCOUNT_USER_NOTIFICATION → FCM_GATEWAY → USER_DEVICE
- *   USER_ACCOUNT_PROFILE -.→|提供 FCM Token（唯讀查詢）| ACCOUNT_USER_NOTIFICATION
+ *   ACCOUNT_USER_NOTIFICATION ??FCM_GATEWAY ??USER_DEVICE
+ *   USER_ACCOUNT_PROFILE -.?�|?��? FCM Token（唯讀?�詢）| ACCOUNT_USER_NOTIFICATION
  *
  * Architecture:
  *  - Reads FCM token from account-user.profile public API (never writes to profile)
@@ -22,8 +22,8 @@ import {
   collection,
   doc,
   getDoc,
-} from '@/shared/infra/firestore/firestore.read.adapter';
-import { addDoc, serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { addDoc, serverTimestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 
 export interface NotificationDeliveryInput {
@@ -33,7 +33,7 @@ export interface NotificationDeliveryInput {
   sourceEvent: string;
   sourceId: string;
   workspaceId: string;
-  /** TraceID from the originating EventEnvelope — MUST be included in FCM metadata [R8]. */
+  /** TraceID from the originating EventEnvelope ??MUST be included in FCM metadata [R8]. */
   traceId?: string;
 }
 
@@ -89,7 +89,7 @@ export async function deliverNotification(
   });
 
   // Step 4: Attempt FCM push (best-effort, non-blocking)
-  // FCM token is read from the account profile — we read it here inline
+  // FCM token is read from the account profile ??we read it here inline
   // to avoid a hard dependency on the account-user.profile slice.
   let fcmSent = false;
   try {
@@ -107,13 +107,13 @@ export async function deliverNotification(
       //   await fcmAdmin.send({
       //     token: fcmToken,
       //     notification: { title: sanitizedTitle, body: sanitizedMessage },
-      //     data: { traceId },   // ← [R8] required field
+      //     data: { traceId },   // ??[R8] required field
       //   });
-      console.info(`[FCM] Sending to ${targetAccountId}: ${sanitizedTitle} (token: ${fcmToken.slice(0, 8)}…, traceId: ${traceId})`);
+      console.info(`[FCM] Sending to ${targetAccountId}: ${sanitizedTitle} (token: ${fcmToken.slice(0, 8)}?? traceId: ${traceId})`);
       fcmSent = true;
     }
   } catch {
-    // FCM failure is non-fatal — notification is already persisted
+    // FCM failure is non-fatal ??notification is already persisted
   }
 
   return {
@@ -130,7 +130,7 @@ export async function deliverNotification(
  *
  * @example
  * sanitizeForExternal('Workspace abc12345-... has $1,234.56 balance')
- * // → 'Workspace [ID] has [金額] balance'
+ * // ??'Workspace [ID] has [?��?] balance'
  *
  * @param message - Raw notification message text
  * @returns Sanitized message safe for external account delivery
@@ -139,5 +139,5 @@ function sanitizeForExternal(message: string): string {
   // Remove patterns like workspace IDs (UUIDs), financial amounts (e.g. $1,234.56)
   return message
     .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '[ID]')
-    .replace(/\$[\d,]+(\.\d{1,2})?/g, '[金額]');
+    .replace(/\$[\d,]+(\.\d{1,2})?/g, '[?��?]');
 }

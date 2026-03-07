@@ -22,7 +22,7 @@ import {
   updateOrganizationSettings as updateOrganizationSettingsFacade,
   deleteOrganization as deleteOrganizationFacade,
   createTeam as createTeamFacade,
-} from "@/shared/infra/firestore/firestore.facade";
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade";
 
 export async function createOrganization(
   organizationName: string,

@@ -39,8 +39,8 @@
 
 import { logDomainError } from '@/features/observability';
 import type { EventEnvelope } from '@/shared-kernel';
-import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
-import { setDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { COLLECTIONS } from '@/shared-infra/frontend-firebase/firestore/collection-paths';
+import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 // ---------------------------------------------------------------------------
 // Internal ??TOKEN_REFRESH_SIGNAL emission

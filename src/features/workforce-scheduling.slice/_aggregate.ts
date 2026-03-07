@@ -5,7 +5,7 @@
  *   draft ??proposed ??confirmed | cancelled
  *
  * Per 00-LogicOverview.md:
- *   WORKSPACE_OUTBOX -> ScheduleProposed（跨層交易流程）-> ORGANIZATION_SCHEDULE
+ *   WORKSPACE_OUTBOX -> ScheduleProposed（跨層交?��?程�?-> ORGANIZATION_SCHEDULE
  *   ORGANIZATION_SCHEDULE ??ORGANIZATION_EVENT_BUS ??ACCOUNT_NOTIFICATION_ROUTER (FCM Layer 2+)
  *
  * Aggregate lifecycle (state machine):
@@ -31,7 +31,7 @@ import { getOrgMemberEligibility } from '@/features/projection.bus';
 import { resolveSkillTier, tierSatisfies } from '@/shared-kernel';
 import type { WorkspaceScheduleProposedPayload, SkillRequirement } from '@/shared-kernel';
 import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
-import { getDocument, Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
+import { getDocument, Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 import {
   type ScheduleApprovalResult,

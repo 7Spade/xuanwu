@@ -16,8 +16,8 @@ import {
   assignMemberAndApprove,
   setScheduleItemDateRange,
   setScheduleItemStatus,
-} from '@/shared/infra/firestore/firestore.facade';
-import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
+import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 export async function approveScheduleItemWithMember(
   organizationId: string,

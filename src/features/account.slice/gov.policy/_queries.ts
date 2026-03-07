@@ -1,15 +1,15 @@
 /**
- * account-governance.policy — _queries.ts
+ * account-governance.policy ??_queries.ts
  *
  * Read queries for account policy management.
  *
- * Per 00-LogicOverview.md: ACCOUNT_POLICY → CUSTOM_CLAIMS
+ * Per 00-LogicOverview.md: ACCOUNT_POLICY ??CUSTOM_CLAIMS
  * Policies are read to determine effective permissions for an account.
  */
 
 import { db } from '@/shared-infra/frontend-firebase';
-import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 import type { AccountPolicy } from './_actions';
 

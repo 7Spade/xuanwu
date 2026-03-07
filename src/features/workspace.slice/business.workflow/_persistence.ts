@@ -1,5 +1,5 @@
 /**
- * workspace-business.workflow — _persistence.ts
+ * workspace-business.workflow ??_persistence.ts
  *
  * Firestore persistence for the Workflow Aggregate State.
  * Stored at: workflowStates/{workspaceId}/workflows/{workflowId}
@@ -10,9 +10,9 @@
  */
 
 import { db } from '@/shared-infra/frontend-firebase';
-import { collection, getDocs, limit, query, type QueryDocumentSnapshot, type DocumentData, where } from '@/shared/infra/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
-import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { collection, getDocs, limit, query, type QueryDocumentSnapshot, type DocumentData, where } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { setDocument, updateDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 import type { WorkflowAggregateState, WorkflowStage } from './_aggregate';
 

@@ -12,8 +12,8 @@ import {
   commandFailureFrom,
   commandSuccess,
 } from '@/shared-kernel';
-import { setScheduleItemDateRange } from '@/shared/infra/firestore/firestore.facade';
-import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
+import { setScheduleItemDateRange } from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
+import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 export async function updateTimelineItemDateRange(
   accountId: string,

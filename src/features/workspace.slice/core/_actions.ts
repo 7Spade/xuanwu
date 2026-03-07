@@ -34,7 +34,7 @@ import {
   createWorkspaceLocation as createWorkspaceLocationFacade,
   updateWorkspaceLocation as updateWorkspaceLocationFacade,
   deleteWorkspaceLocation as deleteWorkspaceLocationFacade,
-} from "@/shared/infra/firestore/firestore.facade"
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade"
 
 import type { WorkspaceRole } from "../gov.role/_types"
 
@@ -168,7 +168,7 @@ export async function deleteWorkspace(workspaceId: string): Promise<CommandResul
 
 /**
  * Creates a new sub-location inside a workspace.
- * FR-L1: HR or Workspace OWNER can define sub-locations (zones within æ’±îºž?).
+ * FR-L1: HR or Workspace OWNER can define sub-locations (zones within ?±î??).
  */
 export async function createWorkspaceLocation(
   workspaceId: string,

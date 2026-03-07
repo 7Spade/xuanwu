@@ -14,7 +14,7 @@ import {
   type Unsubscribe,
   where,
 } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter'
-import { snapshotToRecord } from '@/shared/infra/firestore/firestore.utils'
+import { snapshotToRecord } from '@/shared-infra/frontend-firebase/firestore/firestore.utils'
 
 export function subscribeToAccountsForUser(
   userId: string,

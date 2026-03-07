@@ -1,12 +1,12 @@
 /**
- * projection.account-audit — _queries.ts
+ * projection.account-audit ??_queries.ts
  *
  * Read-side queries for the account audit projection.
  */
 
 
 import { db } from '@/shared-infra/frontend-firebase';
-import { createConverter } from '@/shared/infra/firestore/firestore.converter';
+import { createConverter } from '@/shared-infra/frontend-firebase/firestore/firestore.converter';
 import { collection, query, orderBy, limit } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 import { getDocuments } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 

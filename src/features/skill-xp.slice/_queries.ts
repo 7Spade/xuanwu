@@ -1,5 +1,5 @@
 /**
- * skill-xp.slice — _queries.ts
+ * skill-xp.slice ??_queries.ts
  *
  * Read queries for:
  *   1. Account skill XP read model (accountSkillView)
@@ -7,18 +7,18 @@
  *   3. Org Skill Recognition (orgSkillRecognition)
  *
  * Per 00-LogicOverview.md:
- *   W_B_SCHEDULE -.→ ACCOUNT_SKILL_VIEW (読み取り only — via ORG_ELIGIBLE_MEMBER_VIEW)
- *   SKILL_TAG_POOL_AGGREGATE → SKILL_TAG_POOL (read model)
+ *   W_B_SCHEDULE -.??ACCOUNT_SKILL_VIEW (読み?��? only ??via ORG_ELIGIBLE_MEMBER_VIEW)
+ *   SKILL_TAG_POOL_AGGREGATE ??SKILL_TAG_POOL (read model)
  *   ORG_SKILL_RECOGNITION["...organizationId / accountId / skillId / minXpRequired / status"]
  *
  * Boundary constraint:
  *   These queries read ONLY this slice's own Firestore collections.
- *   They do NOT read Account aggregate data directly — use projection views for that.
+ *   They do NOT read Account aggregate data directly ??use projection views for that.
  */
 
 import { db } from '@/shared-infra/frontend-firebase';
-import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
+import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 import type { OrgSkillRecognitionRecord } from './_org-recognition';
 import type { AccountSkillEntry } from './_projector';

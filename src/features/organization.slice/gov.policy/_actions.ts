@@ -6,7 +6,7 @@
  * Server actions for organization-level policy management.
  *
  * Per 00-LogicOverview.md:
- *   ORGANIZATION_EVENT_BUS ?’|?¿ç?變更事件| WORKSPACE_ORG_POLICY_CACHE
+ *   ORGANIZATION_EVENT_BUS ??�|?¿ç?變更事件| WORKSPACE_ORG_POLICY_CACHE
  *   Policy changes flow through the org event bus to update workspace's local org-policy cache.
  *
  * Per 00-LogicOverview.md [R4] COMMAND_RESULT_CONTRACT:
@@ -20,8 +20,8 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/shared-kernel';
-import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import { addDocument, updateDocument, deleteDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { addDocument, updateDocument, deleteDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 import { publishOrgEvent } from '../core.event-bus';
 

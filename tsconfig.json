@@ -20,8 +20,6 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/shared/infra": ["./src/shared-infra/frontend-firebase/index.ts"],
-      "@/shared/infra/*": ["./src/shared-infra/frontend-firebase/*"],
       "@/shadcn-ui": ["./src/shadcn-ui"],
       "@/shadcn-ui/*": ["./src/shadcn-ui/*"],
       "@/shadcn-ui/lib/utils": ["./src/shadcn-ui/utils/utils"],

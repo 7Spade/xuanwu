@@ -1,9 +1,9 @@
 /**
- * workspace-core.event-store — Append-only domain event store.
+ * workspace-core.event-store ??Append-only domain event store.
  *
  * Per 00-LogicOverview.md:
- * - WORKSPACE_AGGREGATE → WORKSPACE_EVENT_STORE
- * - WORKSPACE_EVENT_STORE -.→ EVENT_FUNNEL_INPUT (replay only, dotted edge)
+ * - WORKSPACE_AGGREGATE ??WORKSPACE_EVENT_STORE
+ * - WORKSPACE_EVENT_STORE -.??EVENT_FUNNEL_INPUT (replay only, dotted edge)
  * - Invariant #9: Projections MUST be fully rebuildable from events stored here.
  */
 
@@ -11,7 +11,7 @@ import {
   appendDomainEvent as appendDomainEventRepo,
   getDomainEvents as getDomainEventsRepo,
   type StoredWorkspaceEvent,
-} from '@/shared/infra/firestore/firestore.facade';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
 
 export type { StoredWorkspaceEvent };
 

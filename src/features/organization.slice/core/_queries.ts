@@ -9,8 +9,8 @@
 
 import type { Account } from '@/shared-kernel'
 import { db } from '@/shared-infra/frontend-firebase'
-import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter'
-import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter'
+import { doc, onSnapshot, type Unsubscribe } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter'
+import { getDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter'
 
 /**
  * Fetches a single organization account by ID.

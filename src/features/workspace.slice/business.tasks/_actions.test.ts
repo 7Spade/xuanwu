@@ -16,9 +16,9 @@ const {
   mockReconcileTaskFacade: vi.fn(),
 }));
 
-vi.mock('@/shared/infra/firestore/firestore.facade', async () => {
-  const actual = await vi.importActual<typeof import('@/shared/infra/firestore/firestore.facade')>(
-    '@/shared/infra/firestore/firestore.facade'
+vi.mock('@/shared-infra/frontend-firebase/firestore/firestore.facade', async () => {
+  const actual = await vi.importActual<typeof import('@/shared-infra/frontend-firebase/firestore/firestore.facade')>(
+    '@/shared-infra/frontend-firebase/firestore/firestore.facade'
   );
 
   return {
@@ -190,7 +190,7 @@ describe('reconcileIntentTasks', () => {
         unitPrice: 10,
         subtotal: 10,
       })),
-      // 1 item matching the doing task → must create new
+      // 1 item matching the doing task ??must create new
       { name: 'Item Doing', quantity: 1, unitPrice: 10, subtotal: 10 },
       // 2 net-new items
       { name: 'Net New A', quantity: 1, unitPrice: 5, subtotal: 5 },
@@ -200,9 +200,9 @@ describe('reconcileIntentTasks', () => {
     const result = await reconcileIntentTasks(wsId, oldIntentId, newIntentId, newIntentVersion, items, baseTaskData);
 
     expect(result.success).toBe(true);
-    // 9 todo matches → 9 reconcile calls
+    // 9 todo matches ??9 reconcile calls
     expect(mockReconcileTaskFacade).toHaveBeenCalledTimes(9);
-    // 1 doing + 2 net-new → 3 create calls (total 12, not 21)
+    // 1 doing + 2 net-new ??3 create calls (total 12, not 21)
     expect(mockCreateTaskFacade).toHaveBeenCalledTimes(3);
   });
 

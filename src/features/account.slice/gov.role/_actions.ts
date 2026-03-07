@@ -28,9 +28,9 @@ import {
   commandFailureFrom,
 } from '@/shared-kernel';
 import type { OrganizationRole } from '@/shared-kernel';
-import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
-import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+import { COLLECTIONS } from '@/shared-infra/frontend-firebase/firestore/collection-paths';
+import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { setDocument, updateDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 
 export interface AccountRoleRecord {
   accountId: string;

@@ -21,7 +21,7 @@ import {
   createTeam as createTeamFacade,
   sendPartnerInvite as sendPartnerInviteFacade,
   dismissPartnerMember as dismissPartnerMemberFacade,
-} from "@/shared/infra/firestore/firestore.facade";
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade";
 
 export async function createPartnerGroup(
   organizationId: string,

@@ -19,7 +19,7 @@ import {
 import {
   createTeam as createTeamFacade,
   updateTeamMembers as updateTeamMembersFacade,
-} from "@/shared/infra/firestore/firestore.facade";
+} from "@/shared-infra/frontend-firebase/firestore/firestore.facade";
 
 export async function createTeam(
   organizationId: string,

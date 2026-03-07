@@ -20,7 +20,7 @@ import {
 import {
   grantIndividualWorkspaceAccess,
   revokeIndividualWorkspaceAccess,
-} from '@/shared/infra/firestore/firestore.facade';
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
 
 import type { WorkspaceRole } from './_types';
 

@@ -1,26 +1,26 @@
 /**
- * projection.bus — _funnel.ts
+ * projection.bus ??_funnel.ts
  *
  * EVENT_FUNNEL_INPUT: unified entry point for the Projection Layer.
  *
  * Per 00-LogicOverview.md (L5 · ProjectionBus Infrastructure):
- *   WORKSPACE_EVENT_BUS  → |所有業務事件|  EVENT_FUNNEL_INPUT
- *   ORGANIZATION_EVENT_BUS → |所有組織事件| EVENT_FUNNEL_INPUT
- *   TAG_LIFECYCLE_BUS → |TagLifecycleEvent| EVENT_FUNNEL_INPUT  (v5 新增)
+ *   WORKSPACE_EVENT_BUS  ??|?�?�業?��?件|  EVENT_FUNNEL_INPUT
+ *   ORGANIZATION_EVENT_BUS ??|?�?��?織�?件| EVENT_FUNNEL_INPUT
+ *   TAG_LIFECYCLE_BUS ??|TagLifecycleEvent| EVENT_FUNNEL_INPUT  (v5 ?��?)
  *
  *   EVENT_FUNNEL_INPUT routes to:
- *     → WORKSPACE_PROJECTION_VIEW
- *     → WORKSPACE_SCOPE_READ_MODEL
- *     → ACCOUNT_PROJECTION_VIEW
- *     → ACCOUNT_PROJECTION_AUDIT
- *     → ACCOUNT_PROJECTION_SCHEDULE
- *     → ORGANIZATION_PROJECTION_VIEW
- *     → ACCOUNT_SKILL_VIEW
- *     → ORG_ELIGIBLE_MEMBER_VIEW
- *     → TAG_SNAPSHOT (v5 新增)
- *     → PROJECTION_VERSION (updates stream offset)
+ *     ??WORKSPACE_PROJECTION_VIEW
+ *     ??WORKSPACE_SCOPE_READ_MODEL
+ *     ??ACCOUNT_PROJECTION_VIEW
+ *     ??ACCOUNT_PROJECTION_AUDIT
+ *     ??ACCOUNT_PROJECTION_SCHEDULE
+ *     ??ORGANIZATION_PROJECTION_VIEW
+ *     ??ACCOUNT_SKILL_VIEW
+ *     ??ORG_ELIGIBLE_MEMBER_VIEW
+ *     ??TAG_SNAPSHOT (v5 ?��?)
+ *     ??PROJECTION_VERSION (updates stream offset)
  *
- *   WORKSPACE_EVENT_STORE -.→ EVENT_FUNNEL_INPUT (replay rebuilds all projections)
+ *   WORKSPACE_EVENT_STORE -.??EVENT_FUNNEL_INPUT (replay rebuilds all projections)
  *
  * Call `registerWorkspaceFunnel(bus)`, `registerOrganizationFunnel()`, and
  * `registerTagFunnel()` once at app startup.
@@ -58,10 +58,10 @@ export function registerOrganizationFunnel(): () => void {
  * Returns a cleanup function.
  *
  * Per 00-LogicOverview.md [R3]:
- *   IER BACKGROUND_LANE → VS4_TAG_SUBSCRIBER → SKILL_TAG_POOL
+ *   IER BACKGROUND_LANE ??VS4_TAG_SUBSCRIBER ??SKILL_TAG_POOL
  *
  * Per 00-LogicOverview.md (L5 · ProjectionBus Infrastructure):
- *   IER ==>|"#9 唯一寫入路徑"| FUNNEL
+ *   IER ==>|"#9 ?��?寫入路�?"| FUNNEL
  *   FUNNEL --> TAG_SNAPSHOT
  *
  * Invariant A7: Event Funnel only composes projections; does not enforce cross-BC invariants.
@@ -72,13 +72,13 @@ export function registerTagFunnel(): () => void {
 
 /**
  * Replays events from the event store to rebuild all workspace projections.
- * Implements: WORKSPACE_EVENT_STORE -.→ EVENT_FUNNEL_INPUT
+ * Implements: WORKSPACE_EVENT_STORE -.??EVENT_FUNNEL_INPUT
  */
 export async function replayWorkspaceProjections(
   workspaceId: string
 ): Promise<{ replayed: number }> {
   const { getDomainEvents } = await import(
-    '@/shared/infra/firestore/repositories/workspace-core.event-store.repository'
+    '@/shared-infra/frontend-firebase/firestore/repositories/workspace-core.event-store.repository'
   );
   const events = await getDomainEvents(workspaceId);
   if (events.length > 0) {

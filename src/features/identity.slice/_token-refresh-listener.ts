@@ -20,8 +20,8 @@ import { useEffect } from 'react';
 
 import type { ImplementsTokenRefreshContract } from '@/shared-kernel';
 import { auth, db } from '@/shared-infra/frontend-firebase';
-import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
-import { onSnapshot, doc } from '@/shared/infra/firestore/firestore.read.adapter';
+import { COLLECTIONS } from '@/shared-infra/frontend-firebase/firestore/collection-paths';
+import { onSnapshot, doc } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
 
 // Marker ??confirms this module fulfils Party 3 of the SK_TOKEN_REFRESH_CONTRACT [S6]
 const _contractConformance: ImplementsTokenRefreshContract = {
