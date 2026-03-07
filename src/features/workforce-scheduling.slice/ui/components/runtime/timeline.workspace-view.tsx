@@ -8,7 +8,7 @@
 "use client";
 
 import { GripVertical, Plus, X } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useApp } from "@/app-runtime/providers/app-provider";
 import { useWorkspace } from "@/features/workspace.slice";
@@ -51,6 +51,7 @@ export function WorkspaceTimeline() {
   const [selectedSkillSlug, setSelectedSkillSlug] = useState("");
   const [selectedTier, setSelectedTier] = useState<SkillTier>("apprentice");
   const [selectedQuantity, setSelectedQuantity] = useState("1");
+  const activeEditorRef = useRef<HTMLDivElement | null>(null);
 
   const skillNameBySlug = useMemo(
     () => new Map(SKILLS.map((skill) => [skill.slug, skill.name])),
@@ -177,6 +178,31 @@ export function WorkspaceTimeline() {
     return true;
   }, [activeAccount?.id, createScheduleItem, draggableTasksMap, getTaskSkillRequirements, workspace.dimensionId, workspace.id, workspace.name]);
 
+  useEffect(() => {
+    if (!editingTaskId) return;
+
+    const handleDocumentMouseDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      // Keep editor open while interacting with radix popover/select content.
+      if (target.closest("[data-radix-popper-content-wrapper]")) {
+        return;
+      }
+
+      if (activeEditorRef.current?.contains(target)) {
+        return;
+      }
+
+      setEditingTaskId(null);
+    };
+
+    document.addEventListener("mousedown", handleDocumentMouseDown);
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentMouseDown);
+    };
+  }, [editingTaskId]);
+
   return (
     <div className="space-y-4">
       <TimelineCanvas
@@ -254,7 +280,7 @@ export function WorkspaceTimeline() {
                 )}
 
                 {editingTaskId === task.id ? (
-                  <div className="mt-3 grid gap-2 rounded-md border bg-muted/20 p-2">
+                  <div ref={activeEditorRef} className="mt-3 grid gap-2 rounded-md border bg-muted/20 p-2">
                     <div className="grid gap-1">
                       <Label className="text-[11px]">Skill</Label>
                       <Select value={selectedSkillSlug} onValueChange={setSelectedSkillSlug}>
