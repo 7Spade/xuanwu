@@ -188,6 +188,15 @@ import { WorkspaceTasks } from "@/features/workspace.slice"
 export default function TasksCapabilityPage()
 ```
 
+## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/@businesstab/timeline/page.tsx
+```typescript
+import {
+  WorkspaceTimeline,
+  WorkspaceTimelineCapabilityTabs,
+} from "@/features/timelineing.slice";
+export default function TimelineCapabilityPage()
+```
+
 ## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/@modal/(.)settings/page.tsx
 ```typescript
 import { useRouter } from "next/navigation"
@@ -908,6 +917,24 @@ export async function appendXpLedgerEntry(
 ): Promise<string>
 ```
 
+## File: src/features/timelineing.slice/_hooks/index.ts
+```typescript
+
+```
+
+## File: src/features/timelineing.slice/_types.ts
+```typescript
+export interface TimelineMember {
+  id: string;
+  name: string;
+}
+```
+
+## File: src/features/timelineing.slice/index.ts
+```typescript
+
+```
+
 ## File: src/features/workspace.slice/_task.rules.ts
 ```typescript
 import type { WorkspaceTask, TaskWithChildren } from "./business.tasks/_types";
@@ -1505,18 +1532,6 @@ import { analytics } from './analytics.client';
 export const logAnalyticsEvent = (eventName: string, eventParams?: Record<string, unknown>) =>
 ```
 
-## File: src/shared/infra/analytics/analytics.client.ts
-```typescript
-import { getAnalytics, type Analytics } from 'firebase/analytics';
-import { app } from '../app.client';
-```
-
-## File: src/shared/infra/app.client.ts
-```typescript
-import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { firebaseConfig } from "./firebase.config";
-```
-
 ## File: src/shared/infra/auth/auth.adapter.ts
 ```typescript
 import {
@@ -1533,26 +1548,9 @@ import {
 import { auth } from './auth.client';
 ```
 
-## File: src/shared/infra/auth/auth.client.ts
-```typescript
-import { getAuth, type Auth } from 'firebase/auth';
-import { app } from '../app.client';
-```
-
-## File: src/shared/infra/firebase.config.ts
-```typescript
-
-```
-
 ## File: src/shared/infra/firestore/collection-paths.ts
 ```typescript
 
-```
-
-## File: src/shared/infra/firestore/firestore.client.ts
-```typescript
-import { getFirestore, type Firestore } from 'firebase/firestore';
-import { app } from '../app.client';
 ```
 
 ## File: src/shared/infra/firestore/firestore.converter.ts
@@ -2002,24 +2000,12 @@ export function allowFirestoreWrite(
 
 ```
 
-## File: src/shared/infra/messaging/messaging.client.ts
-```typescript
-import { getMessaging, type Messaging } from 'firebase/messaging';
-import { app } from '../app.client';
-```
-
 ## File: src/shared/infra/storage/storage-path.resolver.ts
 ```typescript
 dailyPhoto(accountId: string, workspaceId: string, fileId: string, fileName: string): string
 taskAttachment(workspaceId: string, fileId: string, fileName: string): string
 userAvatar(userId: string): string
 workspaceDocument(workspaceId: string, fileId: string, versionId: string, fileName: string): string
-```
-
-## File: src/shared/infra/storage/storage.client.ts
-```typescript
-import { getStorage, type FirebaseStorage } from 'firebase/storage';
-import { app } from '../app.client';
 ```
 
 ## File: src/shared/infra/storage/storage.facade.ts
@@ -2246,6 +2232,12 @@ export default function Loading()
 ```typescript
 import { Skeleton } from "@/shadcn-ui/skeleton"
 export default function Loading()
+```
+
+## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/@businesstab/schedule/page.tsx
+```typescript
+import { WorkspaceCapabilityTabs, WorkspaceSchedule } from "@/features/workforce-scheduling.slice"
+export default function ScheduleCapabilityPage()
 ```
 
 ## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/@businesstab/tasks/loading.tsx
@@ -3880,22 +3872,43 @@ export async function getMemberSkillRecognitions(
 
 ```
 
-## File: src/features/timelineing.slice/_hooks/index.ts
+## File: src/features/timelineing.slice/_actions/index.ts
 ```typescript
-
+import {
+  type CommandResult,
+  commandFailureFrom,
+  commandSuccess,
+} from '@/shared-kernel';
+import { setScheduleItemDateRange } from '@/shared/infra/firestore/firestore.facade';
+import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
+export async function updateTimelineItemDateRange(
+  accountId: string,
+  itemId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<CommandResult>
 ```
 
-## File: src/features/timelineing.slice/_types.ts
+## File: src/features/timelineing.slice/_queries.ts
 ```typescript
-export interface TimelineMember {
-  id: string;
-  name: string;
-}
-```
-
-## File: src/features/timelineing.slice/index.ts
-```typescript
-
+import type { ScheduleItem } from '@/shared-kernel';
+import { db } from '@/shared/infra/firestore/firestore.client';
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  type QueryDocumentSnapshot,
+  type Unsubscribe,
+  where,
+} from '@/shared/infra/firestore/firestore.read.adapter';
+function toScheduleItemSnapshot(doc: QueryDocumentSnapshot): ScheduleItem
+export function subscribeToWorkspaceTimelineItems(
+  accountId: string,
+  workspaceId: string,
+  onUpdate: (items: ScheduleItem[]) => void,
+  onError?: (error: Error) => void
+): Unsubscribe
 ```
 
 ## File: src/features/workforce-scheduling.slice/_actions.ts
@@ -6821,6 +6834,132 @@ export type DlqTier = "SAFE_AUTO" | "REVIEW_REQUIRED" | "SECURITY_BLOCK";
 export function dlqCollectionName(tier: DlqTier): string
 ```
 
+## File: src/shared-infra/frontend-firebase/analytics/analytics.client.ts
+```typescript
+import { getAnalytics, type Analytics } from 'firebase/analytics';
+import { app } from '../app.client';
+```
+
+## File: src/shared-infra/frontend-firebase/app.client.ts
+```typescript
+import { getApps, initializeApp, type FirebaseApp } from 'firebase/app';
+import { firebaseConfig } from './config/firebase.config';
+```
+
+## File: src/shared-infra/frontend-firebase/auth/auth.adapter.ts
+```typescript
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  type User as FirebaseUser,
+} from 'firebase/auth';
+import type { AuthUser, IAuthService } from '@/shared-kernel/ports';
+import { auth } from './auth.client';
+function toAuthUser(user: FirebaseUser): AuthUser
+class FirebaseAuthService implements IAuthService
+⋮----
+async signInWithEmailAndPassword(email: string, password: string): Promise<AuthUser>
+async createUserWithEmailAndPassword(email: string, password: string): Promise<AuthUser>
+async sendPasswordResetEmail(email: string): Promise<void>
+async signInAnonymously(): Promise<AuthUser>
+async updateProfile(user: AuthUser, profile:
+async signOut(): Promise<void>
+onAuthStateChanged(callback: (user: AuthUser | null) => void): () => void
+getCurrentUser(): AuthUser | null
+```
+
+## File: src/shared-infra/frontend-firebase/auth/auth.client.ts
+```typescript
+import { getAuth, type Auth } from 'firebase/auth';
+import { app } from '../app.client';
+```
+
+## File: src/shared-infra/frontend-firebase/config/firebase.config.ts
+```typescript
+
+```
+
+## File: src/shared-infra/frontend-firebase/firestore/firestore.adapter.ts
+```typescript
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  setDoc,
+} from 'firebase/firestore';
+import type { FirestoreDoc, IFirestoreRepo, WriteOptions } from '@/shared-kernel/ports';
+import { db } from './firestore.client';
+class FirebaseFirestoreRepo implements IFirestoreRepo
+⋮----
+async getDoc<T>(collectionPath: string, docId: string): Promise<FirestoreDoc<T> | null>
+async getDocs<T>(collectionPath: string): Promise<FirestoreDoc<T>[]>
+async setDoc<T>(collectionPath: string, docId: string, data: T, opts?: WriteOptions): Promise<void>
+async deleteDoc(collectionPath: string, docId: string): Promise<void>
+onSnapshot<T>(
+    collectionPath: string,
+    callback: (docs: FirestoreDoc<T>[]) => void,
+): () => void
+```
+
+## File: src/shared-infra/frontend-firebase/firestore/firestore.client.ts
+```typescript
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { app } from '../app.client';
+```
+
+## File: src/shared-infra/frontend-firebase/index.ts
+```typescript
+
+```
+
+## File: src/shared-infra/frontend-firebase/messaging/messaging.adapter.ts
+```typescript
+import { getToken as getMessagingToken, onMessage } from 'firebase/messaging';
+import type { IMessaging, PushNotificationPayload } from '@/shared-kernel/ports';
+import { messaging } from './messaging.client';
+class FrontendMessagingAdapter implements IMessaging
+⋮----
+async send(
+    _fcmToken: string,
+    _payload: PushNotificationPayload,
+    _traceId: string,
+): Promise<void>
+async getToken(): Promise<string | null>
+onForegroundMessage(callback: (payload: PushNotificationPayload) => void): () => void
+```
+
+## File: src/shared-infra/frontend-firebase/messaging/messaging.client.ts
+```typescript
+import { getMessaging, type Messaging } from 'firebase/messaging';
+import { app } from '../app.client';
+```
+
+## File: src/shared-infra/frontend-firebase/storage/storage.adapter.ts
+```typescript
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import type { IFileStore, UploadOptions } from '@/shared-kernel/ports';
+import { storage } from './storage.client';
+class FirebaseFileStore implements IFileStore
+⋮----
+async upload(path: string, file: File | Blob, options?: UploadOptions): Promise<string>
+async getDownloadURL(path: string): Promise<string>
+async deleteFile(path: string): Promise<void>
+```
+
+## File: src/shared-infra/frontend-firebase/storage/storage.client.ts
+```typescript
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
+import { app } from '../app.client';
+```
+
 ## File: src/shared-kernel/constants/location-units.ts
 ```typescript
 export type LocationUnitKey =
@@ -7347,6 +7486,21 @@ onForegroundMessage(
 
 ```
 
+## File: src/shared/infra/analytics/analytics.client.ts
+```typescript
+
+```
+
+## File: src/shared/infra/app.client.ts
+```typescript
+
+```
+
+## File: src/shared/infra/auth/auth.client.ts
+```typescript
+
+```
+
 ## File: src/shared/infra/auth/auth.types.ts
 ```typescript
 import type { User as FirebaseUser, UserCredential } from 'firebase/auth';
@@ -7355,7 +7509,12 @@ import type { AuthUser } from '@/shared-kernel/ports/i-auth.service';
 export function mapFirebaseUser(user: FirebaseUser): AuthUser
 ```
 
-## File: src/shared/infra/auth/index.ts
+## File: src/shared/infra/firebase.config.ts
+```typescript
+
+```
+
+## File: src/shared/infra/firestore/firestore.client.ts
 ```typescript
 
 ```
@@ -7379,11 +7538,6 @@ export interface VersionedProjectionDoc extends FirestoreTimestampedDoc {
   readonly lastProcessedVersion: number;
   readonly traceId?: string;
 }
-```
-
-## File: src/shared/infra/firestore/index.ts
-```typescript
-
 ```
 
 ## File: src/shared/infra/firestore/repositories/account.repository.ts
@@ -7640,7 +7794,7 @@ export const deleteWorkspaceLocation = async (
 ): Promise<void> =>
 ```
 
-## File: src/shared/infra/messaging/index.ts
+## File: src/shared/infra/messaging/messaging.client.ts
 ```typescript
 
 ```
@@ -7660,7 +7814,7 @@ export interface FcmMessage {
 }
 ```
 
-## File: src/shared/infra/storage/index.ts
+## File: src/shared/infra/storage/storage.client.ts
 ```typescript
 
 ```
@@ -7828,21 +7982,6 @@ import { AccountTimelineSection } from "@/features/timelineing.slice";
 import { AccountScheduleSection } from "@/features/workforce-scheduling.slice";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn-ui/tabs";
 type WorkforceTab = "schedule" | "timeline";
-```
-
-## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/@businesstab/schedule/page.tsx
-```typescript
-import { WorkspaceCapabilityTabs, WorkspaceSchedule } from "@/features/workforce-scheduling.slice"
-export default function ScheduleCapabilityPage()
-```
-
-## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/@businesstab/timeline/page.tsx
-```typescript
-import {
-  WorkspaceTimeline,
-  WorkspaceTimelineCapabilityTabs,
-} from "@/features/timelineing.slice";
-export default function TimelineCapabilityPage()
 ```
 
 ## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/daily-log/[logId]/page.tsx
@@ -9107,43 +9246,16 @@ export async function applySkillXpDeducted(
 ): Promise<void>
 ```
 
-## File: src/features/timelineing.slice/_actions/index.ts
+## File: src/features/timelineing.slice/_components/timeline-capability-tabs.tsx
 ```typescript
-import {
-  type CommandResult,
-  commandFailureFrom,
-  commandSuccess,
-} from '@/shared-kernel';
-import { setScheduleItemDateRange } from '@/shared/infra/firestore/firestore.facade';
-import { Timestamp } from '@/shared/infra/firestore/firestore.read.adapter';
-export async function updateTimelineItemDateRange(
-  accountId: string,
-  itemId: string,
-  startDate: Date,
-  endDate: Date
-): Promise<CommandResult>
-```
-
-## File: src/features/timelineing.slice/_queries.ts
-```typescript
-import type { ScheduleItem } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
-import {
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  type QueryDocumentSnapshot,
-  type Unsubscribe,
-  where,
-} from '@/shared/infra/firestore/firestore.read.adapter';
-function toScheduleItemSnapshot(doc: QueryDocumentSnapshot): ScheduleItem
-export function subscribeToWorkspaceTimelineItems(
-  accountId: string,
-  workspaceId: string,
-  onUpdate: (items: ScheduleItem[]) => void,
-  onError?: (error: Error) => void
-): Unsubscribe
+import { useParams, usePathname, useRouter } from 'next/navigation';
+import { Tabs, TabsList, TabsTrigger } from '@/shadcn-ui/tabs';
+type CapabilityTabValue = 'schedule' | 'timeline';
+function toCapabilityValue(pathname: string): CapabilityTabValue
+export function AccountTimelineCapabilityTabs()
+export function WorkspaceTimelineCapabilityTabs()
+⋮----
+value=
 ```
 
 ## File: src/features/workforce-scheduling.slice/_components/decision-history-columns.tsx
@@ -10206,6 +10318,26 @@ export interface ImplementsEventEnvelopeContract {
 }
 ```
 
+## File: src/shared/infra/auth/index.ts
+```typescript
+
+```
+
+## File: src/shared/infra/firestore/index.ts
+```typescript
+
+```
+
+## File: src/shared/infra/messaging/index.ts
+```typescript
+
+```
+
+## File: src/shared/infra/storage/index.ts
+```typescript
+
+```
+
 ## File: src/shared/infra/storage/storage.adapter.ts
 ```typescript
 import type { IFileStore, UploadOptions } from '@/shared-kernel/ports/i-file-store';
@@ -11046,16 +11178,25 @@ export async function syncTagDeletionToPool(
 ): Promise<void>
 ```
 
-## File: src/features/timelineing.slice/_components/timeline-capability-tabs.tsx
+## File: src/features/timelineing.slice/_hooks/use-account-timeline.ts
 ```typescript
-import { useParams, usePathname, useRouter } from 'next/navigation';
-import { Tabs, TabsList, TabsTrigger } from '@/shadcn-ui/tabs';
-type CapabilityTabValue = 'schedule' | 'timeline';
-function toCapabilityValue(pathname: string): CapabilityTabValue
-export function AccountTimelineCapabilityTabs()
-export function WorkspaceTimelineCapabilityTabs()
-⋮----
-value=
+import { useMemo } from 'react';
+import type { ScheduleItem } from '@/shared-kernel';
+import { useAccount } from '@/features/workspace.slice';
+import { useApp } from '@/app-runtime/providers/app-provider';
+import type { TimelineMember } from '../_types';
+export function useAccountTimeline()
+```
+
+## File: src/features/timelineing.slice/_hooks/use-workspace-timeline.ts
+```typescript
+import { useEffect, useMemo, useState } from 'react';
+import type { ScheduleItem } from '@/shared-kernel';
+import { useWorkspace } from '@/features/workspace.slice';
+import { useApp } from '@/app-runtime/providers/app-provider';
+import { subscribeToWorkspaceTimelineItems } from '../_queries';
+import type { TimelineMember } from '../_types';
+export function useWorkspaceTimeline()
 ```
 
 ## File: src/features/workforce-scheduling.slice/_aggregate.ts
@@ -12454,25 +12595,75 @@ function isValidSearchDomain(domain: string): domain is SearchDomain
 function computeRelevanceScore(entry: SemanticIndexEntry, terms: string[]): number
 ```
 
-## File: src/features/timelineing.slice/_hooks/use-account-timeline.ts
+## File: src/features/timelineing.slice/_components/timeline-canvas.tsx
 ```typescript
-import { useMemo } from 'react';
-import type { ScheduleItem } from '@/shared-kernel';
-import { useAccount } from '@/features/workspace.slice';
-import { useApp } from '@/app-runtime/providers/app-provider';
-import type { TimelineMember } from '../_types';
-export function useAccountTimeline()
+import { addDays, addMinutes, isSameDay, startOfDay } from "date-fns";
+import { useEffect, useMemo, useRef } from "react";
+import { DataSet } from "vis-data";
+import {
+  Timeline,
+  type DataGroup,
+  type DataItem,
+  type TimelineItem,
+  type TimelineOptions,
+} from "vis-timeline/standalone";
+⋮----
+import type { ScheduleItem, Timestamp } from "@/shared-kernel";
+import { cn } from "@/shadcn-ui/utils/utils";
+import type { TimelineMember } from "../_types";
+type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
+type ResolvedTemporalKind = NonNullable<ScheduleItem["temporalKind"]>;
+interface TimelineCanvasProps {
+  items: ScheduleItem[];
+  members: TimelineMember[];
+  enableDrag?: boolean;
+  groupMode?: "none" | "workspace";
+  onMoveItem?: (params: {
+    itemId: string;
+    start: Date;
+    end: Date;
+    groupId?: string;
+  }) => Promise<boolean>;
+  className?: string;
+}
+function toDate(timestamp: CalendarTimestamp): Date | null
+function escapeHtml(input: string): string
+function toTimelineClassName(item: ScheduleItem): string
+function isStartOfDay(date: Date): boolean
+function inferTemporalKind(start: Date, end?: Date, explicitKind?: ScheduleItem["temporalKind"]): ResolvedTemporalKind
+function resolveTimelineInterval(item: ScheduleItem):
+function resolveInitialWindow(items: DataItem[]):
+export function TimelineCanvas({
+  items,
+  members,
+  enableDrag = false,
+  groupMode = "none",
+  onMoveItem,
+  className,
+}: TimelineCanvasProps)
+⋮----
+<div className=
 ```
 
-## File: src/features/timelineing.slice/_hooks/use-workspace-timeline.ts
+## File: src/features/timelineing.slice/_components/timeline.workspace-view.tsx
 ```typescript
-import { useEffect, useMemo, useState } from 'react';
+import { Clock3 } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import type { ScheduleItem } from "@/shared-kernel";
+import { useTimelineCommands, useWorkspaceTimeline } from "../_hooks";
+import { TimelineCanvas } from "./timeline-canvas";
+export function WorkspaceTimeline()
+```
+
+## File: src/features/timelineing.slice/_hooks/use-timeline-commands.ts
+```typescript
+import { useCallback } from 'react';
 import type { ScheduleItem } from '@/shared-kernel';
-import { useWorkspace } from '@/features/workspace.slice';
 import { useApp } from '@/app-runtime/providers/app-provider';
-import { subscribeToWorkspaceTimelineItems } from '../_queries';
-import type { TimelineMember } from '../_types';
-export function useWorkspaceTimeline()
+import { useAuth } from '@/app-runtime/providers/auth-provider';
+import { toast } from '@/shadcn-ui/hooks/use-toast';
+import { updateTimelineItemDateRange } from '../_actions';
+export function useTimelineCommands()
 ```
 
 ## File: src/features/workforce-scheduling.slice/_components/governance-sidebar.tsx
@@ -13157,77 +13348,6 @@ function buildRows(entries: AccountSkillEntry[]): SkillRow[]
 export function PersonalSkillPanel()
 ```
 
-## File: src/features/timelineing.slice/_components/timeline-canvas.tsx
-```typescript
-import { addDays, addMinutes, isSameDay, startOfDay } from "date-fns";
-import { useEffect, useMemo, useRef } from "react";
-import { DataSet } from "vis-data";
-import {
-  Timeline,
-  type DataGroup,
-  type DataItem,
-  type TimelineItem,
-  type TimelineOptions,
-} from "vis-timeline/standalone";
-⋮----
-import type { ScheduleItem, Timestamp } from "@/shared-kernel";
-import { cn } from "@/shadcn-ui/utils/utils";
-import type { TimelineMember } from "../_types";
-type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
-type ResolvedTemporalKind = NonNullable<ScheduleItem["temporalKind"]>;
-interface TimelineCanvasProps {
-  items: ScheduleItem[];
-  members: TimelineMember[];
-  enableDrag?: boolean;
-  groupMode?: "none" | "workspace";
-  onMoveItem?: (params: {
-    itemId: string;
-    start: Date;
-    end: Date;
-    groupId?: string;
-  }) => Promise<boolean>;
-  className?: string;
-}
-function toDate(timestamp: CalendarTimestamp): Date | null
-function escapeHtml(input: string): string
-function toTimelineClassName(item: ScheduleItem): string
-function isStartOfDay(date: Date): boolean
-function inferTemporalKind(start: Date, end?: Date, explicitKind?: ScheduleItem["temporalKind"]): ResolvedTemporalKind
-function resolveTimelineInterval(item: ScheduleItem):
-function resolveInitialWindow(items: DataItem[]):
-export function TimelineCanvas({
-  items,
-  members,
-  enableDrag = false,
-  groupMode = "none",
-  onMoveItem,
-  className,
-}: TimelineCanvasProps)
-⋮----
-<div className=
-```
-
-## File: src/features/timelineing.slice/_components/timeline.workspace-view.tsx
-```typescript
-import { Clock3 } from "lucide-react";
-import { useCallback, useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { useTimelineCommands, useWorkspaceTimeline } from "../_hooks";
-import { TimelineCanvas } from "./timeline-canvas";
-export function WorkspaceTimeline()
-```
-
-## File: src/features/timelineing.slice/_hooks/use-timeline-commands.ts
-```typescript
-import { useCallback } from 'react';
-import type { ScheduleItem } from '@/shared-kernel';
-import { useApp } from '@/app-runtime/providers/app-provider';
-import { useAuth } from '@/app-runtime/providers/auth-provider';
-import { toast } from '@/shadcn-ui/hooks/use-toast';
-import { updateTimelineItemDateRange } from '../_actions';
-export function useTimelineCommands()
-```
-
 ## File: src/features/workforce-scheduling.slice/_components/demand-board.tsx
 ```typescript
 import {
@@ -13444,6 +13564,17 @@ const handleDismissMember = async (member: MemberReference) =>
 
 ```
 
+## File: src/features/timelineing.slice/_components/timeline.account-view.tsx
+```typescript
+import { AlertCircle, Clock3 } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import type { ScheduleItem } from "@/shared-kernel";
+import { useApp } from "@/app-runtime/providers/app-provider";
+import { useAccountTimeline, useTimelineCommands } from "../_hooks";
+import { TimelineCanvas } from "./timeline-canvas";
+export function AccountTimelineSection()
+```
+
 ## File: src/features/workforce-scheduling.slice/_components/org-schedule-governance.tsx
 ```typescript
 import { useEffect, useMemo, useState } from 'react';
@@ -13585,17 +13716,6 @@ import { PageHeader } from "@/shadcn-ui/custom-ui/page-header"
 title=
 ⋮----
 <span className="font-mono text-[9px] text-muted-foreground">ID:
-```
-
-## File: src/features/timelineing.slice/_components/timeline.account-view.tsx
-```typescript
-import { AlertCircle, Clock3 } from "lucide-react";
-import { useCallback, useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { useApp } from "@/app-runtime/providers/app-provider";
-import { useAccountTimeline, useTimelineCommands } from "../_hooks";
-import { TimelineCanvas } from "./timeline-canvas";
-export function AccountTimelineSection()
 ```
 
 ## File: src/features/workspace.slice/core/_components/shell/account-switcher.tsx
