@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { useAccount } from "../../core";
+import { useAccount } from "@/features/workspace.slice/core";
 import type { DailyLog } from "../_types";
 
 

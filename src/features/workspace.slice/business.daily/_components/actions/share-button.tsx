@@ -17,8 +17,8 @@ import {
 } from "@/shadcn-ui/dropdown-menu";
 import { toast } from "@/shadcn-ui/hooks/use-toast";
 
-import { useWorkspace } from "../../../core";
-import { type DailyLog } from "../../_types";
+import { useWorkspace } from "@/features/workspace.slice/core";
+import { type DailyLog } from "@/features/workspace.slice/business.daily/_types";
 
 interface ShareButtonProps {
   log: DailyLog;

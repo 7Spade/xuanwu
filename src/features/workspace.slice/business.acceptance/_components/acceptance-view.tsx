@@ -8,8 +8,8 @@ import { Badge } from "@/shadcn-ui/badge";
 import { Button } from "@/shadcn-ui/button";
 import { toast } from "@/shadcn-ui/hooks/use-toast";
 
-import type { WorkspaceTask } from "../../business.tasks/_types";
-import { useWorkspace } from '../../core';
+import type { WorkspaceTask } from "@/features/workspace.slice/business.tasks/_types";
+import { useWorkspace } from '@/features/workspace.slice/core';
 
 const getErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;

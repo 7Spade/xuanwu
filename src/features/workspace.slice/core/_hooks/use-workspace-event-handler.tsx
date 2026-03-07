@@ -5,13 +5,13 @@ import { useEffect, useRef } from "react";
 import { handleScheduleProposed } from "@/features/workforce-scheduling.slice";
 import { toast } from "@/shadcn-ui/hooks/use-toast";
 
-import { createIssue } from "../../business.issues";
+import { createIssue } from "@/features/workspace.slice/business.issues";
 import {
   advanceWorkflowToStage,
   handleIssueCreatedForWorkflow,
   handleIssueResolvedForWorkflow,
   type WorkflowStage,
-} from "../../business.workflow";
+} from "@/features/workspace.slice/business.workflow";
 import { useWorkspace } from '../_components/workspace-provider';
 
 import { useApp } from './use-app';

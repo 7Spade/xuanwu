@@ -25,8 +25,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn-ui/tabs";
 import { cn } from "@/shadcn-ui/utils/utils";
 
-import { useWorkspace } from '../../core';
-import { type WorkspaceRole } from "../../gov.role/_types";
+import { useWorkspace } from '@/features/workspace.slice/core';
+import { type WorkspaceRole } from "@/features/workspace.slice/gov.role/_types";
 
 
 const getErrorMessage = (error: unknown, fallback: string) =>

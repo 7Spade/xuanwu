@@ -12,7 +12,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/shadcn-ui/button";
 import { cn } from "@/shadcn-ui/utils/utils";
 
-import { useBookmarkActions } from '../../_hooks/use-bookmark-commands';
+import { useBookmarkActions } from '@/features/workspace.slice/business.daily/_hooks/use-bookmark-commands';
 
 interface BookmarkButtonProps {
   logId: string;

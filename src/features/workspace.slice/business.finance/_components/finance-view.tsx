@@ -17,7 +17,7 @@ import { Button } from '@/shadcn-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn-ui/card';
 import { toast } from '@/shadcn-ui/hooks/use-toast';
 
-import { useWorkspace } from '../../core';
+import { useWorkspace } from '@/features/workspace.slice/core';
 import { useFinanceLifecycle } from '../_hooks/use-finance-lifecycle';
 
 import { FinanceItemTable } from './finance-item-table';

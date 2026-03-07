@@ -52,7 +52,7 @@ import {
 } from "@/shadcn-ui/table";
 import { cn } from "@/shadcn-ui/utils/utils";
 
-import { useWorkspace } from '../../core';
+import { useWorkspace } from '@/features/workspace.slice/core';
 import {
   createWorkspaceFile,
   addWorkspaceFileVersion,

@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/shadcn-ui/sheet";
 import { Textarea } from "@/shadcn-ui/textarea";
 
-import { useWorkspace } from '../../core';
+import { useWorkspace } from '@/features/workspace.slice/core';
 import { type WorkspaceIssue } from "../_types";
 
 

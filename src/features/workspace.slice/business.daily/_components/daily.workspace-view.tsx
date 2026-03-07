@@ -4,7 +4,7 @@
 import { MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { useWorkspace } from "../../core";
+import { useWorkspace } from "@/features/workspace.slice/core";
 import { useWorkspaceDailyLog } from "../_hooks/use-workspace-daily";
 
 import { DailyLogComposer } from "./composer";

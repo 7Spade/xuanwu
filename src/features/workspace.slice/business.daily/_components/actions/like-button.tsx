@@ -13,8 +13,8 @@ import type { Account } from "@/shared-kernel";
 import { Button } from "@/shadcn-ui/button";
 import { cn } from "@/shadcn-ui/utils/utils";
 
-import { useDailyActions } from '../../_hooks/use-daily-commands';
-import { type DailyLog } from "../../_types";
+import { useDailyActions } from '@/features/workspace.slice/business.daily/_hooks/use-daily-commands';
+import { type DailyLog } from "@/features/workspace.slice/business.daily/_types";
 
 
 

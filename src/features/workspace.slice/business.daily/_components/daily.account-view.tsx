@@ -18,7 +18,7 @@ import { useApp } from "@/app-runtime/providers/app-provider";
 import { useAuth } from "@/app-runtime/providers/auth-provider";
 
 
-import { WorkspaceProvider } from "../../core";
+import { WorkspaceProvider } from "@/features/workspace.slice/core";
 import { useAggregatedLogs } from "../_hooks/use-aggregated-logs";
 import type { DailyLog } from "../_types";
 

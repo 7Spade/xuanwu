@@ -107,5 +107,5 @@
 
 ## Configuration Files
 
-- tsconfig.json
 - package.json
+- tsconfig.json

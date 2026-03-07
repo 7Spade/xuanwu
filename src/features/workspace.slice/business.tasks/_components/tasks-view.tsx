@@ -32,9 +32,9 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 import { toast } from '@/shadcn-ui/hooks/use-toast';
 import { PageHeader } from '@/shadcn-ui/custom-ui/page-header';
 
-import { buildTaskTree } from '../../_task.rules';
-import { useStorage } from '../../business.files';
-import { useWorkspace } from '../../core';
+import { buildTaskTree } from '@/features/workspace.slice/_task.rules';
+import { useStorage } from '@/features/workspace.slice/business.files';
+import { useWorkspace } from '@/features/workspace.slice/core';
 import { useAttachmentsDialogController, useLocationDialogController } from '../_hooks';
 import { type TaskWithChildren, type WorkspaceTask } from '../_types';
 

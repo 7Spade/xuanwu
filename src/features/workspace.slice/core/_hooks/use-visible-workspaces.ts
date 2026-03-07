@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 
 import { useAuth } from '@/app-runtime/providers/auth-provider'
 
-import { filterVisibleWorkspaces } from '../../_workspace.rules'
+import { filterVisibleWorkspaces } from '@/features/workspace.slice/_workspace.rules'
 
 import { useAccount } from './use-account'
 import { useApp } from './use-app'

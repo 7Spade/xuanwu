@@ -14,7 +14,7 @@ import {
   SidebarGroupContent,
 } from "@/shadcn-ui/sidebar";
 
-import type { Workspace } from "../../_types";
+import type { Workspace } from "@/features/workspace.slice/core/_types";
 
 interface NavWorkspacesProps {
   workspaces: Workspace[];

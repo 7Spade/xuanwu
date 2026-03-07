@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { Skeleton } from "@/shadcn-ui/skeleton";
 import { hexToHsl } from "@/shadcn-ui/utils/utils";
 
-import { useApp } from "../../_hooks/use-app";
+import { useApp } from "@/features/workspace.slice/core/_hooks/use-app";
 
 // [S4] Named constant — disambiguates from PROJ_STALE_CRITICAL (500ms).
 // This is a placeholder AI-adapt simulation delay, not a staleness SLA value.

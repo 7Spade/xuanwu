@@ -40,8 +40,8 @@ import {
 // Contexts & Hooks
 // ============================================================================
 
-import { useApp } from "../../_hooks/use-app";
-import { useVisibleWorkspaces } from "../../_hooks/use-visible-workspaces";
+import { useApp } from "@/features/workspace.slice/core/_hooks/use-app";
+import { useVisibleWorkspaces } from "@/features/workspace.slice/core/_hooks/use-visible-workspaces";
 
 
 // ============================================================================

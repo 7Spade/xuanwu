@@ -9,10 +9,10 @@ import {
   markParsingIntentFailed,
   markParsingIntentImported,
   startParsingImport,
-} from '../../business.document-parser';
-import { createTask, hasTasksForSourceIntent, reconcileIntentTasks } from '../../business.tasks';
-import type { WorkspaceTask } from '../../business.tasks/_types';
-import type { DocumentParserItemsExtractedPayload } from '../../core.event-bus';
+} from '@/features/workspace.slice/business.document-parser';
+import { createTask, hasTasksForSourceIntent, reconcileIntentTasks } from '@/features/workspace.slice/business.tasks';
+import type { WorkspaceTask } from '@/features/workspace.slice/business.tasks/_types';
+import type { DocumentParserItemsExtractedPayload } from '@/features/workspace.slice/core.event-bus';
 
 const PARSING_IMPORT_TERMINAL_STATUSES = new Set([
   'applied',

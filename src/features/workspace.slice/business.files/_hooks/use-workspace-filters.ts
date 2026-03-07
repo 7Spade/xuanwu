@@ -3,7 +3,7 @@
 
 import { useMemo, useDeferredValue } from "react";
 
-import type { Workspace } from "../../core/_types";
+import type { Workspace } from "@/features/workspace.slice/core/_types";
 
 export function useWorkspaceFilters(
   workspaces: Workspace[],

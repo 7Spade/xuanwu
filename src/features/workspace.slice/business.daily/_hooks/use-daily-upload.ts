@@ -14,8 +14,8 @@
 
 import { useState, useCallback } from "react";
 
-import { useStorage } from "../../business.files";
-import { useWorkspace } from "../../core";
+import { useStorage } from "@/features/workspace.slice/business.files";
+import { useWorkspace } from "@/features/workspace.slice/core";
 
 export function useDailyUpload() {
   const { workspace } = useWorkspace();

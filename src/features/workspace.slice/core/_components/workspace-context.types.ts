@@ -7,9 +7,9 @@
 
 import type { ScheduleItem, CommandResult } from '@/shared-kernel';
 
-import type { WorkspaceTask } from '../../business.tasks/_types';
-import type { FileSendToParserPayload } from '../../core.event-bus';
-import type { WorkspaceRole } from '../../gov.role/_types';
+import type { WorkspaceTask } from '@/features/workspace.slice/business.tasks/_types';
+import type { FileSendToParserPayload } from '@/features/workspace.slice/core.event-bus';
+import type { WorkspaceRole } from '@/features/workspace.slice/gov.role/_types';
 import type {
   Address,
   Capability,

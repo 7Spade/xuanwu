@@ -20,8 +20,8 @@ import { Button } from "@/shadcn-ui/button";
 import { Separator } from "@/shadcn-ui/separator";
 import { SidebarTrigger } from "@/shadcn-ui/sidebar";
 
-import { useApp } from "../../_hooks/use-app";
-import { useVisibleWorkspaces } from '../../_hooks/use-visible-workspaces';
+import { useApp } from "@/features/workspace.slice/core/_hooks/use-app";
+import { useVisibleWorkspaces } from '@/features/workspace.slice/core/_hooks/use-visible-workspaces';
 
 import { NotificationCenter } from "./notification-center";
 
