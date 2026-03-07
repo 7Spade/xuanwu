@@ -3,11 +3,11 @@
  *
  * Responsibility: Gate all portal routes behind authentication.
  * - Shows loading spinner while Firebase auth is initialising.
- * - Redirects unauthenticated users to /login once auth is resolved.
+ * - Redirects unauthenticated users to / once auth is resolved.
  * - Only renders children when a verified user session exists.
  *
  * This guard lives here (not in the parent shell layout) so that public routes
- * (/login, /reset-password) under (shell)/(public) remain accessible without
+ * (/, and its modal auth UI) under (shell)/(public) remain accessible without
  * an active session.
  */
 
@@ -33,7 +33,7 @@ export default function PortalLayout({ children }: PortalLayoutProps) {
 
   useEffect(() => {
     if (authInitialized && !user && !isPublicRoot) {
-      router.push("/login");
+      router.push("/");
     }
   }, [user, authInitialized, isPublicRoot, router]);
 

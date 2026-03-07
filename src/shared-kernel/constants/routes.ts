@@ -4,7 +4,7 @@
  */
 
 export const ROUTES = {
-  LOGIN: "/login",
+  LOGIN: "/",
   DASHBOARD: "/dashboard",
   WORKSPACES: "/workspaces",
   WORKSPACES_NEW: "/workspaces/new",

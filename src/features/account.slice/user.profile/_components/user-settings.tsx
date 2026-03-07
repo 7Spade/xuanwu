@@ -68,7 +68,7 @@ export function UserSettings() {
   const handleWithdraw = () => {
     if (confirm(t('settings.confirmWithdrawal'))) {
       logout();
-      router.push("/login");
+      router.push("/");
       toast({
         variant: "destructive",
         title: t('settings.identityDeregistered'),
