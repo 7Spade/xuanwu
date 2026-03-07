@@ -33,7 +33,8 @@
 %%      src/shared-kernel                   = VS0-Kernel（L1 契約層）
 %%      src/shared-kernel/observability     = VS0-Kernel（L1 Observability Contracts only：types/interfaces，非 runtime node）
 %%      src/shared-infra/*                  = VS0-Infra Plane（L6/L7/L8/L9 執行層）
-%%      L6 現況實作路徑（過渡）: src/features/infra.gateway-query（Ownership 屬 VS0-Infra）
+%%      L0/L2/L4/L6 基礎設施主路徑：src/shared-infra/{external-triggers|gateway-command|event-router|outbox-relay|gateway-query}
+%%      Legacy 相容路徑（僅過渡，不作為目標架構）：src/features/infra.*
 %%      src/features/projection.bus         = L5 Projection Bus（非 VS0）
 %%      src/shared-infra/observability      = VS0-Infra（L9 Observability Runtime）
 %%    命名規則：VS0=Foundation Index（L1+L6+L7+L8+L9）；VS1~VS8=業務切片編號（L3）
@@ -67,13 +68,18 @@
 %%        firestore/
 %%        messaging/
 %%        storage/
+%%      shared-infra/external-triggers/         # VS0-Infra / L0: external triggers
+%%      shared-infra/gateway-command/           # VS0-Infra / L2: CBG_ENTRY/CBG_AUTH/CBG_ROUTE orchestration
+%%      shared-infra/event-router/              # VS0-Infra / L4: IER core + lanes
+%%      shared-infra/outbox-relay/              # VS0-Infra / L4: outbox relay worker
+%%      shared-infra/gateway-query/             # VS0-Infra / L6: query gateway/read registry
 %%      shared-infra/observability/             # VS0-Infra / L9: metrics/errors/trace observability
 %%      features/
-%%        infra.external-triggers/              # L0: external triggers
-%%        infra.gateway-command/                # L2: CBG_ENTRY/CBG_AUTH/CBG_ROUTE orchestration
-%%        infra.event-router/                   # L4: IER core + lanes
-%%        infra.outbox-relay/                   # L4: outbox relay worker
-%%        infra.gateway-query/                  # L6: query gateway/read registry
+%%        infra.external-triggers/              # legacy alias only（遷移期相容）
+%%        infra.gateway-command/                # legacy alias only（遷移期相容）
+%%        infra.event-router/                   # legacy alias only（遷移期相容）
+%%        infra.outbox-relay/                   # legacy alias only（遷移期相容）
+%%        infra.gateway-query/                  # legacy alias only（遷移期相容）
 %%        projection.bus/                       # L5: projection funnel + read model materialization
 %%        identity.slice/                       # L3 VS1
 %%        account.slice/                        # L3 VS2
@@ -91,7 +97,7 @@
 %%      - 純契約/常數/純函式（無 I/O）→ src/shared-kernel/*（VS0-Kernel / L1）
 %%      - Observability 契約（TraceContext/DomainErrorEntry/interfaces）→ src/shared-kernel/observability/*（L1, contract-only）
 %%      - Firebase SDK 邊界 → src/shared-infra/frontend-firebase/*（VS0-Infra / L7）
-%%      - 讀取編排（Read registry）→ src/features/infra.gateway-query/*（L6, ownership=VS0-Infra）
+%%      - 讀取編排（Read registry）→ src/shared-infra/gateway-query/*（L6, ownership=VS0-Infra）
 %%      - 觀測執行能力（trace provider / metrics recorder / error logger）→ src/shared-infra/observability/*（L9, ownership=VS0-Infra）
 %%      - 領域規則（aggregate/policy/invariant）→ src/features/{slice}.slice/*（L3）
 %%    B. 邊界與上下文（Boundary & Context）
@@ -99,10 +105,10 @@
 %%      - 業務語義與狀態機 = 對應 Feature Slice（L3）
 %%      - Cross-cutting Authority（搜尋/通知）= L3 權威切片，不得寄生 shared-kernel
 %%    C. 通訊與協調機制（Communication & Coordination）
-%%      - 寫入協調 = L2（infra.gateway-command）
-%%      - 事件路由/relay/DLQ = L4（infra.event-router / infra.outbox-relay / infra.dlq-manager）
+%%      - 寫入協調 = L2（shared-infra/gateway-command）
+%%      - 事件路由/relay/DLQ = L4（shared-infra/event-router / shared-infra/outbox-relay / infra.dlq-manager）
 %%      - 投影物化 = L5（projection.bus）
-%%      - 讀取出口 = L6（infra.gateway-query）
+%%      - 讀取出口 = L6（shared-infra/gateway-query）
 %%    D. 狀態與副作用（State & Side Effects）
 %%      - shared-kernel 禁止 async/Firestore/side effects [D8]
 %%      - shared-kernel/observability 禁止 runtime sink（console/network/db）、禁止 mutable counter、禁止 clock/random 實作
@@ -119,8 +125,8 @@
 %%      - 快變業務流程放 L3
 %%    判斷速記：先判斷邏輯層與權力歸屬，再決定路徑；不得反向以既有路徑合理化設計。
 %%  ── 依賴方向約束（對應目錄）──
-%%    寫鏈：infra.external-triggers → infra.gateway-command → *.slice → infra.event-router → projection.bus
-%%    讀鏈：app/UI → infra.gateway-query → projection.bus
+%%    寫鏈：shared-infra/external-triggers → shared-infra/gateway-command → *.slice → shared-infra/event-router → projection.bus
+%%    讀鏈：app/UI → shared-infra/gateway-query → projection.bus
 %%    Infra鏈：*.slice/projection/query → shared-kernel(SK_PORTS) → shared-infra/frontend-firebase(FIREBASE_ACL)
 %%  ── RULESET-MUST（不可違反）: R · S · A · # ──
 %%    R1=relay-lag-metrics   R5=DLQ-failure-rule   R6=workflow-state-rule
@@ -314,7 +320,7 @@ flowchart TD
 %% LAYER 0 ── EXTERNAL TRIGGERS（外部觸發入口）
 %% ═══════════════════════════════════════════════════════════════
 
-subgraph EXT["🌐 L0 · External Triggers（app/* + src/features/infra.external-triggers）"]
+subgraph EXT["🌐 L0 · External Triggers（app/* + src/shared-infra/external-triggers）"]
     direction LR
     EXT_CLIENT["Next.js Client\n_actions.ts [S5]"]
     EXT_AUTH["Firebase Auth\n登入 / 註冊 / Token"]
@@ -377,7 +383,7 @@ end
 subgraph SHARED_INFRA_PLANE["🧩 Shared Infrastructure Plane（VS0-Infra：L6/L7/L8/L9 Execution Plane；與 VS0-Kernel 同屬 VS0）"]
         direction TB
 
-        subgraph GW_QUERY["🟢 L6 · Query Gateway（impl: src/features/infra.gateway-query；ownership: VS0-Infra）[S2 S3]"]
+        subgraph GW_QUERY["🟢 L6 · Query Gateway（src/shared-infra/gateway-query；ownership: VS0-Infra）[S2 S3]"]
             direction LR
             QGWAY["read-model-registry\n統一讀取入口\n版本對照 / 快照路由\n[S2] 所有 Projection 遵守 SK_VERSION_GUARD"]
             QGWAY_SCHED["→ .org-eligible-member-view\n[#14 #15 #16]"]
@@ -577,17 +583,17 @@ end
 %% LAYER 2 ── COMMAND GATEWAY（統一寫入閘道）
 %% ═══════════════════════════════════════════════════════════════
 
-subgraph GW_CMD["🔵 L2 · Command Gateway（src/features/infra.gateway-command）"]
+subgraph GW_CMD["🔵 L2 · Command Gateway（src/shared-infra/gateway-command）"]
     direction LR
 
-    subgraph GW_GUARD["🛡️ 入口防護層（src/features/infra.gateway-command）[S5]"]
+    subgraph GW_GUARD["🛡️ 入口防護層（src/shared-infra/gateway-command）[S5]"]
         RATE_LIM["rate-limiter\nper user / per org\n429 + retry-after"]
         CIRCUIT["circuit-breaker\n5xx → 熔斷 / 半開探針恢復"]
         BULKHEAD["bulkhead-router\n切片隔板・獨立執行緒池"]
         RATE_LIM --> CIRCUIT --> BULKHEAD
     end
 
-    subgraph GW_PIPE["⚙️ Command Pipeline（src/features/infra.gateway-command）"]
+    subgraph GW_PIPE["⚙️ Command Pipeline（src/shared-infra/gateway-command）"]
         CBG_ENTRY["unified-command-gateway\n[R8] TraceID 注入（唯一注入點）\n→ event-envelope.traceId"]
         CBG_AUTH["authority-interceptor\nAuthoritySnapshot [#A9]\n衝突以 ACTIVE_CTX 為準"]
         CBG_ROUTE["command-router\n路由至對應切片\n回傳 SK_CMD_RESULT"]
@@ -916,16 +922,16 @@ NOTIF_HUB_SVC -.->|"標籤感知路由"| VS8
 %% LAYER 4 ── INTEGRATION EVENT ROUTER（事件路由總線）
 %% ═══════════════════════════════════════════════════════════════
 
-subgraph GW_IER["🟠 L4 · Integration Event Router（src/features/infra.event-router + infra.outbox-relay）"]
+subgraph GW_IER["🟠 L4 · Integration Event Router（src/shared-infra/event-router + src/shared-infra/outbox-relay）"]
     direction TB
 
     RELAY["outbox-relay-worker\n【共用 Infra・所有 OUTBOX 共享】\n掃描：Firestore onSnapshot (CDC)\n投遞：OUTBOX → IER 對應 Lane\n失敗：retry backoff → 3次失敗 → DLQ\n監控：relay_lag → L9(Observability)"]
 
-    subgraph IER_CORE["⚙️ IER Core（src/features/infra.event-router）"]
+    subgraph IER_CORE["⚙️ IER Core（src/shared-infra/event-router）"]
         IER[["integration-event-router\n統一事件出口 [#9]\n[R8] 保留 envelope.traceId 禁止覆蓋"]]
     end
 
-    subgraph IER_LANES["🚦 優先級三道分層（src/features/infra.event-router）[P1]"]
+    subgraph IER_LANES["🚦 優先級三道分層（src/shared-infra/event-router）[P1]"]
         CRIT_LANE["🔴 CRITICAL_LANE\n高優先最終一致\nRoleChanged → Claims 刷新 [S6]\nWalletDeducted/Credited\nOrgContextProvisioned\nSLA：盡快投遞"]
         STD_LANE["🟡 STANDARD_LANE\n非同步最終一致\nSLA < 2s\nSkillXpAdded/Deducted\nScheduleAssigned / ScheduleProposed\nMemberJoined/Left\nAll Domain Events"]
         BG_LANE["⚪ BACKGROUND_LANE\nSLA < 30s\nTagLifecycleEvent\nAuditEvents"]
@@ -1283,7 +1289,7 @@ class NOTIF_HUB_SVC crossCutAuth
 %%  UNIFIED DEVELOPMENT RULES [D1~D26 Mandatory + D27 Extension]
 %%  ── 規則分層：Hard Invariants (D1~D20 核心不變量) / Semantic Governance D21(D21-1~D21-10+D21-A~D21-X)/D22~D23 / Infrastructure (D24~D25) / Authority Governance (D26) / Cost Semantic Routing Extension (D27) ──
 %%  ── 基礎路徑約束（D1~D12）──
-%%  D1  事件傳遞只透過 infra.outbox-relay；domain slice 禁止直接 import infra.event-router
+%%  D1  事件傳遞只透過 shared-infra/outbox-relay；domain slice 禁止直接 import shared-infra/event-router
 %%  D2  跨切片引用：import from '@/features/{slice}/index' only；_*.ts 為私有
 %%  D3  所有 mutation：src/features/{slice}/_actions.ts only
 %%  D4  所有 read：src/features/{slice}/_queries.ts only
