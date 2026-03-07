@@ -8,12 +8,23 @@
  */
 
 import { useContext, type ReactNode } from 'react';
+import { useEffect } from 'react';
 
-import { app, auth, db, storage } from '@/shared-infra/frontend-firebase';
+import {
+  app,
+  auth,
+  db,
+  ensureAppCheckInitialized,
+  storage,
+} from '@/shared-infra/frontend-firebase';
 
 import { FirebaseContext } from '../contexts/firebase-context';
 
 export function FirebaseClientProvider({ children }: { children: ReactNode; }) {
+  useEffect(() => {
+    ensureAppCheckInitialized();
+  }, []);
+
   const value = { app, db, auth, storage };
 
   return (

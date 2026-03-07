@@ -16,6 +16,11 @@ export { fileStore } from './storage/storage.adapter';
 export { messaging } from './messaging/messaging.client';
 export { messagingAdapter } from './messaging/messaging.adapter';
 export { analytics } from './analytics/analytics.client';
+export { appCheck, initAppCheck } from './app-check/app-check.client';
+export {
+	ensureAppCheckInitialized,
+	getAppCheckToken,
+} from './app-check/app-check.adapter';
 export {
 	trackAnalyticsEvent,
 	bindAnalyticsUser,
