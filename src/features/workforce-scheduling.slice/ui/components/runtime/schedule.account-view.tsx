@@ -9,8 +9,8 @@
  *   - Workforce: skill-aware proposal assignment + lifecycle (OrgScheduleGovernance)
  *
  * Merge rationale:
- *   - DemandBoard (old Tab 2) removed: OrgScheduleGovernance covers the same lifecycle
- *     (PROPOSAL assign + approve, OFFICIAL complete) with superior skill-tier matching.
+ *   - Workflow consolidation: OrgScheduleGovernance covers the full lifecycle
+ *     (PROPOSAL assign + approve, OFFICIAL complete) with skill-tier matching.
  *   - GovernanceSidebar removed from Calendar tab: having approve/reject in two places
  *     (sidebar + HR tab) fragmented the workflow. Calendar is now a clean read-only view.
  */

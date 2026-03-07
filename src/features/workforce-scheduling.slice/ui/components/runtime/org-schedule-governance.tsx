@@ -40,7 +40,7 @@ import { ProposalRow } from './org-schedule-governance.proposal-row';
  * Org HR governance panel.
  *
  * Reads accounts/{orgId}/schedule_items via useAccount(), the same collection as
- * Calendar and DemandBoard, so all three tabs are always in sync.
+ * Calendar so organization scheduling workflows stay in sync.
  *
  * Shows:
  *   PROPOSAL items: assign or cancel (pending)

@@ -80,7 +80,7 @@ export const updateScheduleItemDateRange = async (
 
 /**
  * Assigns a member to a schedule item and marks it OFFICIAL in a single write.
- * Used by DemandBoard and HR Governance to keep all three tabs in sync via
+ * Used by scheduling governance flows to keep UI views in sync via
  * the single source of truth: accounts/{orgId}/schedule_items.
  */
 export const assignMemberAndApprove = async (
