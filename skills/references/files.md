@@ -427,25 +427,6 @@ export function UserSettingsView()
 title=
 ```
 
-## File: src/features/account.slice/user.profile/_components/user-settings.tsx
-```typescript
-import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import { useAuth } from "@/app-runtime/providers/auth-provider";
-import { useI18n } from "@/app-runtime/providers/i18n-provider";
-import { toast } from "@/shadcn-ui/hooks/use-toast";
-import { useUser } from "../_hooks/use-user";
-import { EmailCard } from "./email-card";
-import { PreferencesCard } from "./preferences-card";
-import { ProfileCard } from "./profile-card";
-import { SecurityCard } from "./security-card";
-export function UserSettings()
-⋮----
-const handleSaveProfile = async () =>
-const handleWithdraw = () =>
-const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) =>
-```
-
 ## File: src/features/account.slice/user.profile/_hooks/use-user.ts
 ```typescript
 import { useState, useEffect, useCallback } from 'react'
@@ -679,31 +660,6 @@ export interface SearchResponse {
 
 ```
 
-## File: src/features/identity.slice/_actions.ts
-```typescript
-import { createUserAccount } from '@/features/account.slice'
-import { authAdapter } from "@/shared-infra/frontend-firebase/auth/auth.adapter"
-import {
-  type CommandResult,
-  commandSuccess,
-  commandFailureFrom,
-} from '@/shared-kernel'
-export async function signIn(email: string, password: string): Promise<CommandResult>
-async function registerUser(
-  email: string,
-  password: string,
-  displayName: string
-): Promise<string>
-export async function signInAnonymously(): Promise<CommandResult>
-export async function sendPasswordResetEmail(email: string): Promise<CommandResult>
-export async function signOut(): Promise<CommandResult>
-export async function completeRegistration(
-  email: string,
-  password: string,
-  name: string
-): Promise<CommandResult>
-```
-
 ## File: src/features/identity.slice/_components/auth-background.tsx
 ```typescript
 export function AuthBackground()
@@ -753,21 +709,6 @@ interface LoginFormProps {
 }
 ⋮----
 <form className="flex flex-1 flex-col space-y-4" onSubmit=
-```
-
-## File: src/features/identity.slice/_components/login-view.tsx
-```typescript
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { useI18n } from "@/app-runtime/providers/i18n-provider"
-import { toast } from "@/shadcn-ui/hooks/use-toast"
-import { completeRegistration , signIn, signInAnonymously } from "../_actions"
-import { AuthBackground } from "./auth-background"
-import { AuthTabsRoot } from "./auth-tabs-root"
-export function LoginView()
-⋮----
-const handleAuth = async (type: "login" | "register") =>
-const handleAnonymous = async () =>
 ```
 
 ## File: src/features/identity.slice/_components/register-form.tsx
@@ -2001,6 +1942,29 @@ export function filterVisibleWorkspaces(
 ): Workspace[]
 ```
 
+## File: src/features/workspace.slice/application/_command-handler.ts
+```typescript
+import { createTraceContext, logDomainError } from '@/shared-infra/observability';
+import { evaluatePolicy, type WorkspaceRole } from './_policy-engine';
+import { checkWorkspaceAccess } from './_scope-guard';
+import { runTransaction, type TransactionContext } from './_transaction-runner';
+export interface WorkspaceCommand {
+  workspaceId: string;
+  userId: string;
+  action: string;
+}
+export interface WorkspaceExecutorResult<T = void> {
+  success: boolean;
+  value?: T;
+  error?: string;
+}
+export async function executeCommand<T>(
+  command: WorkspaceCommand,
+  handler: (ctx: TransactionContext) => Promise<T>,
+  publish?: (type: string, payload: unknown) => void
+): Promise<WorkspaceExecutorResult<T>>
+```
+
 ## File: src/features/workspace.slice/application/_policy-engine.ts
 ```typescript
 export type WorkspaceRole = 'Manager' | 'Contributor' | 'Viewer';
@@ -2010,6 +1974,28 @@ export interface PolicyDecision {
 }
 ⋮----
 export function evaluatePolicy(role: WorkspaceRole, action: string): PolicyDecision
+```
+
+## File: src/features/workspace.slice/application/_transaction-runner.ts
+```typescript
+import { generateTraceId, logDomainError } from '@/shared-infra/observability';
+import { appendDomainEvent } from '../core.event-store';
+import { createOutbox, type Outbox, type OutboxEvent } from './_outbox';
+export interface TransactionContext {
+  workspaceId: string;
+  correlationId: string;
+  outbox: Outbox;
+}
+export interface TransactionResult<T> {
+  value: T;
+  events: OutboxEvent[];
+}
+export async function runTransaction<T>(
+  workspaceId: string,
+  userId: string,
+  handler: (ctx: TransactionContext) => Promise<T>,
+  correlationId?: string
+): Promise<TransactionResult<T>>
 ```
 
 ## File: src/features/workspace.slice/application/index.ts
@@ -3736,6 +3722,24 @@ export type WorkflowErrorCode = (typeof WorkflowErrorCodes)[keyof typeof Workflo
 ## File: src/features/workspace.slice/business.workflow/index.ts
 ```typescript
 
+```
+
+## File: src/features/workspace.slice/core.event-bus/_bus.ts
+```typescript
+import { recordEventPublished } from "@/shared-infra/observability"
+import type { ImplementsEventEnvelopeContract } from '@/shared-kernel'
+import type {
+  WorkspaceEventName,
+  WorkspaceEventHandler,
+  PublishFn,
+  SubscribeFn,
+  WorkspaceEventPayloadMap,
+} from "./_events"
+type HandlerRegistry = Map<WorkspaceEventName, WorkspaceEventHandler<WorkspaceEventName>[]>
+export class WorkspaceEventBus implements ImplementsEventEnvelopeContract
+readonly implementsEventEnvelope = true as const;
+⋮----
+constructor()
 ```
 
 ## File: src/features/workspace.slice/core.event-bus/_context.ts
@@ -6592,6 +6596,33 @@ export const uploadFile = (
 export const deleteFile = (path: string): Promise<void> =>
 ```
 
+## File: src/shared-infra/observability/_error-logger.ts
+```typescript
+import type { DomainErrorEntry, IErrorLogger } from '@/shared-kernel/observability';
+export function logDomainError(entry: DomainErrorEntry): void
+```
+
+## File: src/shared-infra/observability/_metrics-recorder.ts
+```typescript
+import type { EventCounters, IMetricsRecorder } from '@/shared-kernel/observability';
+⋮----
+export function recordEventPublished(eventType: string): void
+export function getEventCounters(): EventCounters
+export function resetEventCounters(): void
+```
+
+## File: src/shared-infra/observability/_trace-provider.ts
+```typescript
+import type { ITraceProvider, TraceContext } from '@/shared-kernel/observability';
+export function generateTraceId(): string
+export function createTraceContext(source?: string): TraceContext
+```
+
+## File: src/shared-infra/observability/index.ts
+```typescript
+
+```
+
 ## File: src/shared-kernel/constants/location-units.ts
 ```typescript
 export type LocationUnitKey =
@@ -6615,11 +6646,6 @@ export interface LocationUnitMeta {
 }
 ⋮----
 export function findLocationUnit(key: string): LocationUnitMeta | undefined
-```
-
-## File: src/shared-kernel/constants/routes.ts
-```typescript
-
 ```
 
 ## File: src/shared-kernel/constants/skills.ts
@@ -7225,6 +7251,57 @@ export interface ImplementsVersionGuard {
 }
 ```
 
+## File: src/shared-kernel/observability/_error-log.ts
+```typescript
+export interface DomainErrorEntry {
+  readonly occurredAt: string;
+  readonly traceId: string;
+  readonly source: string;
+  readonly message: string;
+  readonly detail?: string;
+}
+export interface IErrorLogger {
+  logDomainError(entry: DomainErrorEntry): void;
+}
+⋮----
+logDomainError(entry: DomainErrorEntry): void;
+```
+
+## File: src/shared-kernel/observability/_metrics.ts
+```typescript
+export type EventCounters = Readonly<Record<string, number>>;
+export interface IMetricsRecorder {
+  recordEventPublished(eventType: string): void;
+  getEventCounters(): EventCounters;
+  resetEventCounters(): void;
+}
+⋮----
+recordEventPublished(eventType: string): void;
+getEventCounters(): EventCounters;
+resetEventCounters(): void;
+```
+
+## File: src/shared-kernel/observability/_trace.ts
+```typescript
+export interface TraceContext {
+  readonly traceId: string;
+  readonly initiatedAt: string;
+  readonly source?: string;
+}
+export interface ITraceProvider {
+  generateTraceId(): string;
+  createTraceContext(source?: string): TraceContext;
+}
+⋮----
+generateTraceId(): string;
+createTraceContext(source?: string): TraceContext;
+```
+
+## File: src/shared-kernel/observability/index.ts
+```typescript
+
+```
+
 ## File: src/shared-kernel/ports/i-auth.service.ts
 ```typescript
 export interface AuthUser {
@@ -7344,6 +7421,73 @@ onForegroundMessage(
 ## File: src/shared-kernel/ports/index.ts
 ```typescript
 
+```
+
+## File: src/features/account.slice/user.profile/_components/user-settings.tsx
+```typescript
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/app-runtime/providers/auth-provider";
+import { useI18n } from "@/app-runtime/providers/i18n-provider";
+import { toast } from "@/shadcn-ui/hooks/use-toast";
+import { useUser } from "../_hooks/use-user";
+import { EmailCard } from "./email-card";
+import { PreferencesCard } from "./preferences-card";
+import { ProfileCard } from "./profile-card";
+import { SecurityCard } from "./security-card";
+export function UserSettings()
+⋮----
+const handleSaveProfile = async () =>
+const handleWithdraw = () =>
+const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) =>
+```
+
+## File: src/features/identity.slice/_actions.ts
+```typescript
+import { createUserAccount } from '@/features/account.slice'
+import { authAdapter } from "@/shared-infra/frontend-firebase/auth/auth.adapter"
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/shared-kernel'
+export async function signIn(email: string, password: string): Promise<CommandResult>
+async function registerUser(
+  email: string,
+  password: string,
+  displayName: string
+): Promise<string>
+export async function signInAnonymously(): Promise<CommandResult>
+export async function sendPasswordResetEmail(email: string): Promise<CommandResult>
+export async function signOut(): Promise<CommandResult>
+export async function completeRegistration(
+  email: string,
+  password: string,
+  name: string
+): Promise<CommandResult>
+```
+
+## File: src/features/identity.slice/_components/login-view.tsx
+```typescript
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useI18n } from "@/app-runtime/providers/i18n-provider"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shadcn-ui/dialog"
+import { toast } from "@/shadcn-ui/hooks/use-toast"
+import { completeRegistration , signIn, signInAnonymously } from "../_actions"
+import { AuthBackground } from "./auth-background"
+import { AuthTabsRoot } from "./auth-tabs-root"
+import { ResetPasswordForm } from "./reset-password-form"
+⋮----
+const handleAuth = async (type: "login" | "register") =>
+const handleAnonymous = async () =>
+⋮----
+onCancel=
 ```
 
 ## File: src/features/notification-hub.slice/_services/notification-listener.ts
@@ -9210,6 +9354,55 @@ export async function checkWorkspaceAccess(
 ): Promise<ScopeGuardResult>
 ```
 
+## File: src/features/workspace.slice/business.document-parser/_components/document-parser-view.tsx
+```typescript
+import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Clock, AlertCircle, ListChecks } from 'lucide-react';
+import { useActionState, useTransition, useRef, useEffect, useCallback, useState, type ChangeEvent } from 'react';
+import { classifyCostItem } from '@/features/semantic-graph.slice';
+import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
+import { persistWorkspaceOutboxEvent } from '@/features/workspace.slice/application/_outbox';
+import { useWorkspace } from '@/features/workspace.slice/core';
+import { Badge } from '@/shadcn-ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shadcn-ui/card';
+import { useToast } from '@/shadcn-ui/hooks/use-toast';
+import { logDomainError } from '@/shared-infra/observability';
+import {
+  extractDataFromDocument,
+  type ActionState,
+} from '../_form-actions';
+import {
+  INITIAL_PARSING_INTENT_VERSION,
+  saveParsingIntent,
+} from '../_intent-actions';
+import { subscribeToParsingIntents } from '../_queries';
+import type { IntentID, SourcePointer, ParsingIntent } from '../_types';
+import { ParsedItemsTable, WorkItemsTable } from './document-parser-tables';
+⋮----
+export function WorkspaceDocumentParser()
+⋮----
+const hydrateTagPresentationMap = async () =>
+⋮----
+// Helper: trigger the AI extraction pipeline from a Firebase Storage URL.
+// The URL is passed directly to the Server Action which fetches it server-side,
+// avoiding the browser CORS restriction on Firebase Storage URLs.
+⋮----
+// On mount: if files-view queued a file via WorkspaceProvider context, auto-trigger.
+// This bridges the cross-tab gap — subscriber only exists when this component is mounted.
+// Deps intentionally empty: pendingParseFile/setPendingParseFile are stable React state
+// references, triggerParseFromURL is stable via useCallback, and we only want to run once
+// on mount (not re-run whenever pendingParseFile changes later).
+⋮----
+// eslint-disable-next-line react-hooks/exhaustive-deps
+⋮----
+const handleFileChange = (event: ChangeEvent<HTMLInputElement>) =>
+const handleUploadClick = () =>
+const handleImport = async () =>
+⋮----
+// Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
+⋮----
+// Layer-2 Semantic Classification (VS8) — applied here during the import phase.
+```
+
 ## File: src/features/workspace.slice/business.document-parser/_intent-actions.ts
 ```typescript
 import {
@@ -9701,18 +9894,6 @@ export function ensureAppCheckInitialized(): void
 export async function getAppCheckToken(): Promise<string | null>
 ```
 
-## File: src/shared-infra/frontend-firebase/app-check/app-check.client.ts
-```typescript
-import {
-  ReCaptchaV3Provider,
-  initializeAppCheck,
-  type AppCheck,
-} from 'firebase/app-check';
-import { app } from '../app.client';
-⋮----
-export function initAppCheck(): AppCheck | null
-```
-
 ## File: src/shared-infra/frontend-firebase/app-check/index.ts
 ```typescript
 
@@ -10026,33 +10207,6 @@ export async function dispatchCreateScheduleItemCommand(
   input: CreateScheduleItemInput,
   authority: AuthoritySnapshot | null,
 ): Promise<CommandResult>
-```
-
-## File: src/shared-infra/observability/_error-logger.ts
-```typescript
-import type { DomainErrorEntry, IErrorLogger } from '@/shared-kernel/observability';
-export function logDomainError(entry: DomainErrorEntry): void
-```
-
-## File: src/shared-infra/observability/_metrics-recorder.ts
-```typescript
-import type { EventCounters, IMetricsRecorder } from '@/shared-kernel/observability';
-⋮----
-export function recordEventPublished(eventType: string): void
-export function getEventCounters(): EventCounters
-export function resetEventCounters(): void
-```
-
-## File: src/shared-infra/observability/_trace-provider.ts
-```typescript
-import type { ITraceProvider, TraceContext } from '@/shared-kernel/observability';
-export function generateTraceId(): string
-export function createTraceContext(source?: string): TraceContext
-```
-
-## File: src/shared-infra/observability/index.ts
-```typescript
-
 ```
 
 ## File: src/shared-infra/outbox-relay/index.ts
@@ -11083,6 +11237,11 @@ export function workspaceRoleAtLeast(
 ): boolean
 ```
 
+## File: src/shared-kernel/constants/routes.ts
+```typescript
+
+```
+
 ## File: src/shared-kernel/constants/settings.ts
 ```typescript
 
@@ -11136,6 +11295,23 @@ export interface NotificationTypeMeta {
   enLabel: string;
   colorClass: string;
 }
+```
+
+## File: src/features/identity.slice/_claims-handler.ts
+```typescript
+import { COLLECTIONS } from '@/shared-infra/frontend-firebase/firestore/collection-paths';
+import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
+import { logDomainError } from '@/shared-infra/observability';
+import type { EventEnvelope } from '@/shared-kernel';
+async function emitRefreshSignal(accountId: string, traceId: string): Promise<void>
+async function handleClaimsRefreshTrigger(envelope: EventEnvelope): Promise<void>
+type IerLane = 'CRITICAL_LANE' | 'STANDARD_LANE' | 'BACKGROUND_LANE';
+export type ClaimsSubscriberRegistrar = (
+  eventType: string,
+  handler: (envelope: EventEnvelope) => Promise<void>,
+  lane: IerLane
+) => () => void;
+export function registerClaimsHandler(registerFn: ClaimsSubscriberRegistrar): () => void
 ```
 
 ## File: src/features/notification-hub.slice/user.notification/_delivery.ts
@@ -11682,49 +11858,54 @@ import { updateTimelineItemDateRange } from '../../../application/commands';
 export function useTimelineCommands()
 ```
 
-## File: src/features/workspace.slice/application/_command-handler.ts
+## File: src/features/workspace.slice/application/_outbox.ts
 ```typescript
-import { createTraceContext, logDomainError } from '@/shared-infra/observability';
-import { evaluatePolicy, type WorkspaceRole } from './_policy-engine';
-import { checkWorkspaceAccess } from './_scope-guard';
-import { runTransaction, type TransactionContext } from './_transaction-runner';
-export interface WorkspaceCommand {
-  workspaceId: string;
-  userId: string;
-  action: string;
+import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
+import { logDomainError } from '@/shared-infra/observability';
+import { buildIdempotencyKey, type DlqTier } from '@/shared-kernel';
+import type {
+  WorkspaceEventName,
+  WorkspaceEventPayloadMap,
+} from '../core.event-bus';
+export type OutboxEvent = {
+  [K in WorkspaceEventName]: { type: K; payload: WorkspaceEventPayloadMap[K] };
+}[WorkspaceEventName];
+export interface Outbox {
+  collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T]): void;
+  flush(publish: (type: string, payload: unknown) => void): void;
+  drain(): OutboxEvent[];
 }
-export interface WorkspaceExecutorResult<T = void> {
-  success: boolean;
-  value?: T;
-  error?: string;
+⋮----
+collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T]): void;
+flush(publish: (type: string, payload: unknown)
+drain(): OutboxEvent[];
+⋮----
+interface WsOutboxDocument {
+  outboxId: string;
+  eventType: WorkspaceEventName;
+  envelopeJson: string;
+  lane: typeof WS_OUTBOX_IER_LANE;
+  dlqTier: DlqTier;
+  idempotencyKey: string;
+  status: 'pending';
+  createdAt: string;
+  attemptCount: 0;
 }
-export async function executeCommand<T>(
-  command: WorkspaceCommand,
-  handler: (ctx: TransactionContext) => Promise<T>,
-  publish?: (type: string, payload: unknown) => void
-): Promise<WorkspaceExecutorResult<T>>
-```
-
-## File: src/features/workspace.slice/application/_transaction-runner.ts
-```typescript
-import { generateTraceId, logDomainError } from '@/shared-infra/observability';
-import { appendDomainEvent } from '../core.event-store';
-import { createOutbox, type Outbox, type OutboxEvent } from './_outbox';
-export interface TransactionContext {
-  workspaceId: string;
-  correlationId: string;
-  outbox: Outbox;
-}
-export interface TransactionResult<T> {
-  value: T;
-  events: OutboxEvent[];
-}
-export async function runTransaction<T>(
+function extractTraceIdFromPayload(payload: unknown): string | undefined
+async function persistToWsOutbox(
+  event: OutboxEvent,
   workspaceId: string,
-  userId: string,
-  handler: (ctx: TransactionContext) => Promise<T>,
-  correlationId?: string
-): Promise<TransactionResult<T>>
+): Promise<void>
+export async function persistWorkspaceOutboxEvent<T extends WorkspaceEventName>(
+  workspaceId: string,
+  type: T,
+  payload: WorkspaceEventPayloadMap[T],
+): Promise<void>
+export function createOutbox(workspaceId?: string): Outbox
+⋮----
+collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T])
+flush(publish: (type: string, payload: unknown) => void)
+drain()
 ```
 
 ## File: src/features/workspace.slice/business.finance/_services/finance-aggregate-query-gateway.ts
@@ -11744,24 +11925,6 @@ export function registerFinanceStrongReadQueryHandler(): void
 export async function executeFinanceStrongReadQuery(
   params: FinanceStrongReadQueryParams,
 ): Promise<FinanceStrongReadSnapshot>
-```
-
-## File: src/features/workspace.slice/core.event-bus/_bus.ts
-```typescript
-import { recordEventPublished } from "@/shared-infra/observability"
-import type { ImplementsEventEnvelopeContract } from '@/shared-kernel'
-import type {
-  WorkspaceEventName,
-  WorkspaceEventHandler,
-  PublishFn,
-  SubscribeFn,
-  WorkspaceEventPayloadMap,
-} from "./_events"
-type HandlerRegistry = Map<WorkspaceEventName, WorkspaceEventHandler<WorkspaceEventName>[]>
-export class WorkspaceEventBus implements ImplementsEventEnvelopeContract
-readonly implementsEventEnvelope = true as const;
-⋮----
-constructor()
 ```
 
 ## File: src/features/workspace.slice/core/_components/workspace-provider.tsx
@@ -11829,6 +11992,18 @@ export function useWorkspace()
 ## File: src/shared-infra/external-triggers/index.ts
 ```typescript
 
+```
+
+## File: src/shared-infra/frontend-firebase/app-check/app-check.client.ts
+```typescript
+import {
+  ReCaptchaV3Provider,
+  initializeAppCheck,
+  type AppCheck,
+} from 'firebase/app-check';
+import { app } from '../app.client';
+⋮----
+export function initAppCheck(): AppCheck | null
 ```
 
 ## File: src/shared-infra/frontend-firebase/index.ts
@@ -11912,57 +12087,6 @@ export async function upsertProjectionVersion(
 ```
 
 ## File: src/shared-infra/projection.bus/index.ts
-```typescript
-
-```
-
-## File: src/shared-kernel/observability/_error-log.ts
-```typescript
-export interface DomainErrorEntry {
-  readonly occurredAt: string;
-  readonly traceId: string;
-  readonly source: string;
-  readonly message: string;
-  readonly detail?: string;
-}
-export interface IErrorLogger {
-  logDomainError(entry: DomainErrorEntry): void;
-}
-⋮----
-logDomainError(entry: DomainErrorEntry): void;
-```
-
-## File: src/shared-kernel/observability/_metrics.ts
-```typescript
-export type EventCounters = Readonly<Record<string, number>>;
-export interface IMetricsRecorder {
-  recordEventPublished(eventType: string): void;
-  getEventCounters(): EventCounters;
-  resetEventCounters(): void;
-}
-⋮----
-recordEventPublished(eventType: string): void;
-getEventCounters(): EventCounters;
-resetEventCounters(): void;
-```
-
-## File: src/shared-kernel/observability/_trace.ts
-```typescript
-export interface TraceContext {
-  readonly traceId: string;
-  readonly initiatedAt: string;
-  readonly source?: string;
-}
-export interface ITraceProvider {
-  generateTraceId(): string;
-  createTraceContext(source?: string): TraceContext;
-}
-⋮----
-generateTraceId(): string;
-createTraceContext(source?: string): TraceContext;
-```
-
-## File: src/shared-kernel/observability/index.ts
 ```typescript
 
 ```
@@ -12496,55 +12620,6 @@ import type { TimelineMember } from '../../types/timeline.types';
 export function useWorkspaceTimeline()
 ```
 
-## File: src/features/workspace.slice/business.document-parser/_components/document-parser-view.tsx
-```typescript
-import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Clock, AlertCircle, ListChecks } from 'lucide-react';
-import { useActionState, useTransition, useRef, useEffect, useCallback, useState, type ChangeEvent } from 'react';
-import { classifyCostItem } from '@/features/semantic-graph.slice';
-import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
-import { persistWorkspaceOutboxEvent } from '@/features/workspace.slice/application/_outbox';
-import { useWorkspace } from '@/features/workspace.slice/core';
-import { Badge } from '@/shadcn-ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shadcn-ui/card';
-import { useToast } from '@/shadcn-ui/hooks/use-toast';
-import { logDomainError } from '@/shared-infra/observability';
-import {
-  extractDataFromDocument,
-  type ActionState,
-} from '../_form-actions';
-import {
-  INITIAL_PARSING_INTENT_VERSION,
-  saveParsingIntent,
-} from '../_intent-actions';
-import { subscribeToParsingIntents } from '../_queries';
-import type { IntentID, SourcePointer, ParsingIntent } from '../_types';
-import { ParsedItemsTable, WorkItemsTable } from './document-parser-tables';
-⋮----
-export function WorkspaceDocumentParser()
-⋮----
-const hydrateTagPresentationMap = async () =>
-⋮----
-// Helper: trigger the AI extraction pipeline from a Firebase Storage URL.
-// The URL is passed directly to the Server Action which fetches it server-side,
-// avoiding the browser CORS restriction on Firebase Storage URLs.
-⋮----
-// On mount: if files-view queued a file via WorkspaceProvider context, auto-trigger.
-// This bridges the cross-tab gap — subscriber only exists when this component is mounted.
-// Deps intentionally empty: pendingParseFile/setPendingParseFile are stable React state
-// references, triggerParseFromURL is stable via useCallback, and we only want to run once
-// on mount (not re-run whenever pendingParseFile changes later).
-⋮----
-// eslint-disable-next-line react-hooks/exhaustive-deps
-⋮----
-const handleFileChange = (event: ChangeEvent<HTMLInputElement>) =>
-const handleUploadClick = () =>
-const handleImport = async () =>
-⋮----
-// Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
-⋮----
-// Layer-2 Semantic Classification (VS8) — applied here during the import phase.
-```
-
 ## File: src/shared-infra/gateway-command/index.ts
 ```typescript
 
@@ -12607,23 +12682,6 @@ export function subscribeToWorkspaceTimelineItemsFromGateway(
   onUpdate: (items: ScheduleItem[]) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe
-```
-
-## File: src/features/identity.slice/_claims-handler.ts
-```typescript
-import { COLLECTIONS } from '@/shared-infra/frontend-firebase/firestore/collection-paths';
-import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
-import { logDomainError } from '@/shared-infra/observability';
-import type { EventEnvelope } from '@/shared-kernel';
-async function emitRefreshSignal(accountId: string, traceId: string): Promise<void>
-async function handleClaimsRefreshTrigger(envelope: EventEnvelope): Promise<void>
-type IerLane = 'CRITICAL_LANE' | 'STANDARD_LANE' | 'BACKGROUND_LANE';
-export type ClaimsSubscriberRegistrar = (
-  eventType: string,
-  handler: (envelope: EventEnvelope) => Promise<void>,
-  lane: IerLane
-) => () => void;
-export function registerClaimsHandler(registerFn: ClaimsSubscriberRegistrar): () => void
 ```
 
 ## File: src/features/semantic-graph.slice/output/projections/graph-selectors.ts
@@ -12794,56 +12852,6 @@ export function useWorkspaceSchedule()
 ⋮----
 const handleMonthChange = (direction: "prev" | "next") =>
 const handleOpenAddDialog = (date: Date) =>
-```
-
-## File: src/features/workspace.slice/application/_outbox.ts
-```typescript
-import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
-import { logDomainError } from '@/shared-infra/observability';
-import { buildIdempotencyKey, type DlqTier } from '@/shared-kernel';
-import type {
-  WorkspaceEventName,
-  WorkspaceEventPayloadMap,
-} from '../core.event-bus';
-export type OutboxEvent = {
-  [K in WorkspaceEventName]: { type: K; payload: WorkspaceEventPayloadMap[K] };
-}[WorkspaceEventName];
-export interface Outbox {
-  collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T]): void;
-  flush(publish: (type: string, payload: unknown) => void): void;
-  drain(): OutboxEvent[];
-}
-⋮----
-collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T]): void;
-flush(publish: (type: string, payload: unknown)
-drain(): OutboxEvent[];
-⋮----
-interface WsOutboxDocument {
-  outboxId: string;
-  eventType: WorkspaceEventName;
-  envelopeJson: string;
-  lane: typeof WS_OUTBOX_IER_LANE;
-  dlqTier: DlqTier;
-  idempotencyKey: string;
-  status: 'pending';
-  createdAt: string;
-  attemptCount: 0;
-}
-function extractTraceIdFromPayload(payload: unknown): string | undefined
-async function persistToWsOutbox(
-  event: OutboxEvent,
-  workspaceId: string,
-): Promise<void>
-export async function persistWorkspaceOutboxEvent<T extends WorkspaceEventName>(
-  workspaceId: string,
-  type: T,
-  payload: WorkspaceEventPayloadMap[T],
-): Promise<void>
-export function createOutbox(workspaceId?: string): Outbox
-⋮----
-collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T])
-flush(publish: (type: string, payload: unknown) => void)
-drain()
 ```
 
 ## File: src/shared-infra/outbox-relay/_relay.ts
