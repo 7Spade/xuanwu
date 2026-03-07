@@ -1,17 +1,23 @@
-﻿# [索引 ID: @VS5-Doc] Document Parser & Cost Classifier
+﻿# [索引 ID: @VS5-Doc] VS5 Workspace - Document Parser
 
-負責將原始文件轉化為業務意圖數據。
+## Scope
 
-## 1. Parsing Lifecycle
-1. 接放原始檔案 (\workspace.files\)
-2. \document-parser\ (Layer-1 原始圖文解析) 產出 raw \ParsedLineItem[]\
-3. 呼叫 Layer-2 語義分類器 \classifyCostItem()\ [VS8]
-4. 最終轉為 Digital Twin：\ParsingIntent\
+將原始文件解析為 `ParsingIntent`，提供後續任務與財務路由決策。
 
-## 2. Digital Twin (ParsingIntent) [#A4]
-* 結構包含：\lineItems[].(costItemType, semanticTagSlug, sourceIntentIndex)\。
-* 僅為「提議」狀態，不可直接操作下游業務狀態。
+## Pipeline
 
-## 3. Cost Classifier 關聯 [D27, #A14]
-* \classifyCostItem()\ 是由 VS8 提供的純函數。禁止在分類過程中進行 async/DB 存取。
-* Parser 必須經過此函數標註 \costItemType\ 屬性。
+1. `workspace.files` 提供原始資料
+2. parser 產生 `ParsedLineItem[]`
+3. 調用 VS8 `classifyCostItem()`
+4. 形成 `ParsingIntent.lineItems[]`
+
+## Contract
+
+- `#A4`: ParsingIntent 僅提案，不可直接變更下游 aggregate。
+- `#A14`: 每個 line item 必須有 `(costItemType, semanticTagSlug, sourceIntentIndex)`。
+- `D27`: 任務物化只能由 gate 決定。
+
+## Forbidden
+
+- VS5 私建分類器。
+- parser 階段直接做 async/DB side effects。

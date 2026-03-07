@@ -1,24 +1,45 @@
 ﻿# [索引 ID: @VS-STD] 00 - Slice Standard
 
-所有業務切片（垂直切片 VS1-VS8）必須遵守的標準結構。
+本檔定義 VS1~VS8 文檔與實作的共同結構。
 
-## 1. 架構層級分佈 (Layer Topology)
+## 1. Slice 文檔最小結構
 
-一個標準的業務切片（Feature Slice）應包含以下層級參與：
-* **[L2] Command Handling**: 接收入口指令，執行授權校驗與 Transaction Runner 呼叫。
-* **[L3] Domain Model**: Aggregate 實體、Events、Policy Engine、以及切片私有的 Domain Services。
-* **[L4] Outbox**: 所有的狀態異動必須產生 Domain Event，並存入 \[slice]-outbox\。
-* **[L5] Projection**: 如果該切片需要被 UI 或其他切片查詢，必須通過 Projection Bus 建立 Read Model。
-* **[L6] Query Handling**: 對 Projection Data 進行讀取暴露。
+每個 slice 文件至少應包含：
 
-## 2. 嚴格不變量 (Slice Invariants)
+1. Scope
+2. Write Path (L2/L3/L4)
+3. Read Path (L5/L6)
+4. Invariants 引用 (D/S/R/A/#)
+5. Forbidden Paths
 
-- **[#1]** 每個 Bounded Context 只能修改自己的 Aggregate。
-- **[#2]** 跨 BC 溝通僅能透過 Event (非同步) / Projection (唯獨同步) / ACL (防腐) 溝通。
-- **[#3]** Application Layer 只協調，不承載領域規則。
-- **[#4a]** Domain Event 僅由 Aggregate 產生（唯一生成者）。
-- **[#4b]** TX Runner 只投遞 Outbox，不產生 Domain Event（分工界定）。
-- **[#8]** Shared Kernel (L1) 必須顯式標示；未標示即代表私有實作。禁止跨片共享私有模組。
-- **[#9]** Projection 必須可由事件完整重建。
-- **[S1]** Outbox 必須定義 DLQ 分級宣告 (\SAFE_AUTO\, \REVIEW_REQUIRED\, \SECURITY_BLOCK\)。
-- **[S2]** 投影更新必須檢查 \event.aggregateVersion\ 單調遞增。
+## 2. 層級責任
+
+- L2: Command 收口與授權攔截
+- L3: Domain 行為與 aggregate 狀態
+- L4: 事件對外整合與 lane 分流
+- L5: 投影物化與版本守衛
+- L6: 讀取出口與查詢組裝
+
+## 3. 單向鏈硬約束
+
+- MUST: 寫鏈遵守 `L0 -> L2 -> L3 -> L4 -> L5`。
+- MUST: 讀鏈遵守 `UI/app -> L6 -> L5`。
+- FORBIDDEN: 任意回跳、旁路、反向驅動。
+
+## 4. Import 邊界
+
+- MUST: 跨 slice 只能從 `@/features/{slice}/index` 引入 (`D7`)。
+- FORBIDDEN: 引用他 slice 私有 `_*.ts`。
+- FORBIDDEN: feature 直接 import `firebase/*` 或 `@/shared-infra/*` (`D24`)。
+
+## 5. Outbox / Projection
+
+- MUST: 寫側異動需產生事件並進 outbox (`S1`)。
+- MUST: 投影更新需 `applyVersionGuard()` (`S2`)。
+- MUST: Projection 可由事件重建 (`#9`)。
+
+## 6. 語義與權威出口
+
+- MUST: 語義讀取走 `projection.tag-snapshot` (`D21-7`, `T5`)。
+- MUST: 搜尋走 `global-search.slice` (`#A12`)。
+- MUST: 副作用走 `notification-hub.slice` (`#A13`)。

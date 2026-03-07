@@ -1,17 +1,24 @@
-﻿# [索引 ID: @VS4-Topo] Organization Topology
+﻿# [索引 ID: @VS4-Topo] VS4 Organization - Topology
 
-VS4 組織聚合與層級結構。
+## Scope
 
-## 1. 核心結構
-* \organization-core.aggregate\ 作為組織主體。
-* \org.member\：內部成員，唯讀引用 \	agSlug\ (指向 \	ag::role\ [TE_RL], \	ag::user-level\ [TE_UL])。
-* \org.partner\：外部夥伴，唯讀引用 \	agSlug\ (指向 \	ag::partner\ [TE_PT])。
-* \org.team\：組織小組，唯讀引用 \	agSlug\ (指向 \	ag::team\ [TE_TM])。
+VS4 管理組織結構、成員/夥伴/團隊拓撲與政策。
 
-## 2. 人才庫 (Talent Repository) [#16]
-* \	alent-repository\ 包含: Member + Partner + Team
-* 負責維護可被派工（排班）的人力資源，最終投影為 \ORG_ELIGIBLE_VIEW\。
+## Core Structure
 
-## 3. Policy & Governance
-* \org.policy\ 管理組織政策。
-* 當政策變更時，觸發 \PolicyChanged\ 事件（屬於 CRITICAL_LANE）。
+- `organization-core.aggregate`
+- `org.member` -> `tag::role`, `tag::user-level`
+- `org.partner` -> `tag::partner`
+- `org.team` -> `tag::team`
+
+## Invariants
+
+- `#16`: talent repository = member + partner + team。
+- `#14/#15`: 排班資格必須由 eligible view 決定，不可直查私有狀態。
+- `D22`: tag 引用使用強型別契約。
+
+## Integration
+
+- MUST: 變更事件進 outbox (`S1`)。
+- MUST: 政策異動事件進 CRITICAL_LANE。
+- MUST: 語義讀取走 tag snapshot，不直接讀 graph internals (`T5`)。

@@ -1,14 +1,38 @@
-﻿# [索引 ID: @INV-A] Authority & Hard Constrains (A 系列與數字系列)
+﻿otification-hub.slice\ 接手轉拋。
+# [索引 ID: @INV-A] Authority Invariants (A / #A)
 
-業務聚合之間的強制隔離法則。
+本檔定義「誰有權做什麼」，任何違反都屬架構違規。
 
-* **[#1] 寫入隔離**：每個 BC 只能改自己的 Aggregate。
-* **[#2] 溝通隔離**：跨 BC (Slice ↔ Slice) 不可互相呼叫 mutate，只能透過 Domain Event 與防腐 ACL。
-* **[#4a/#4b] 職責分離**：Domain Event 只能由 Aggregate 本體內生產；Application Service 的 TX Runner 只做 Outbox 貯存投遞而已。
-* **[#5/#6/#7] 查詢限制**：Notification Worker 與 \scope-guard\ 授權等服務，被要求只能走對應的 Projection 介面讀取。
-* **[#A5] 補償機制 (Saga)**：VS6 對排班的跨邊界呼叫為典型的 Saga Pattern，若失敗退回則必定有 Compensating Events （如 \ScheduleAssignRejected\）。
-* **[#A8] 單一原子提交**：每個 Command Handler 的 Transaction (1 CMD) 只能呼叫 / 鎖定 / 更新一個 Aggregate 的事務。
-* **[#A9] Scope Guard**：此為權限攔截的最快路徑，防腐檢查若過複雜高風險必須回源呼叫 Aggregate。
-* **[#A12] Global Search Authority**：所有切片禁止私自建 Search API，統一掛靠 \global-search.slice\。
-* **[#A13] Notification Hub Authority**：所有切片禁止自寫信件寄送、推播，統一由 \
-otification-hub.slice\ 接手轉拋。
+## 1. 邊界與原子性
+
+- `#1` 每個 BC 只能修改自己的 aggregate。
+- `#2` 跨 BC 僅可透過 Event / Projection / ACL 溝通。
+- `#A8` 1 command -> 1 aggregate，TX Runner 不得同時寫多聚合。
+- `#4a/#4b` Domain Event 只能由 aggregate 產生；TX Runner 僅負責 outbox 投遞。
+
+## 2. 權威出口
+
+- `#A12` Search Authority
+	- MUST: 所有跨域搜尋必須走 `global-search.slice`。
+	- FORBIDDEN: 任何 slice 自建跨域搜尋 API。
+- `#A13` Side-effect Authority
+	- MUST: 所有通知副作用必須走 `notification-hub.slice`。
+	- FORBIDDEN: 業務 slice 直接呼叫 email/push/sms provider。
+
+## 3. 授權與範圍
+
+- `#A9` Scope Guard
+	- 快速授權路徑可走 read model。
+	- 高風險操作必須回源 aggregate 校驗。
+- `#5` Custom Claims 為快照，不是最終授權真相。
+
+## 4. 協作與補償
+
+- `#A5` 排班跨片協作必須以 saga + compensating events 實現。
+- MUST: IF compensation 觸發 THEN 必須產生可追蹤事件 (`ScheduleAssignRejected`, `ScheduleProposalCancelled`)。
+
+## 5. 決策權邊界
+
+- `#A14` 成本分類與任務物化決策由 VS8 + VS5 gate 主導。
+- `#A15/#A16` Finance gate 與多輪請款循環不得被其他 slice 繞過。
+- `A17` XP 寫入權限僅在 VS3，VS8 只提供語義與 policy lookup。

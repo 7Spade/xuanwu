@@ -1,9 +1,22 @@
-﻿# [索引 ID: @VS1-ACL] ACL Rules
+﻿# [索引 ID: @VS1-ACL] VS1 Identity - ACL Rules
 
-## L7 Firebase ACL 與 RBAC 映射
+## Scope
 
-* \ctive-account-context\ 作為目前的授權依據，其生命週期由 \context-lifecycle-manager\ 管理。
-* **[#A9] Scope Guard**：
-  * 作為授權的最快路徑。
-  * 查詢來源：\QGWAY_SCOPE\ (\projection.workspace-scope-guard-view\)。
-  * 高風險操作必須回源查 aggregate。
+VS1 授權規則以 `active-account-context` + scope guard 為入口。
+
+## Rules
+
+- MUST: 授權快路徑走 `projection.workspace-scope-guard-view` (`#A9`)。
+- MUST: 高風險操作回源 aggregate 做強校驗。
+- MUST: 授權資料透過 L6 查詢出口，不直接讀 Firebase。
+
+## D24 Boundary
+
+- FORBIDDEN: VS1 feature 直接 import `firebase/*`。
+- MUST: 若需 Firebase 能力，透過 L1 ports + L7 adapter。
+
+## Audit Signals
+
+- scope guard hit ratio
+- fallback to strong check ratio
+- token refresh failure events (security lane)

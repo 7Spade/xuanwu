@@ -1,9 +1,34 @@
-﻿# [索引 ID: @INV-R] Readability & Tracing (R 系列不變量)
+﻿# [索引 ID: @INV-R] Readability & Traceability Invariants (R)
 
-與可視性、監控、資料追蹤有關的不可破壞不變量。
+本檔聚焦「可讀、可追、可審」不變量。
 
-* **[R1] relay-lag-metrics**：Outbox Relay worker 的掃描滯後延遲（Lag）必須上報至 Obersvability [DOMAIN_METRICS]。
-* **[R5] DLQ-failure-rule**：IER 轉拋失敗滿 3 次，無條件進入 DLQ 等待安全審查或復原，此機制不可有外卡例外。
-* **[R6] workflow-state-rule**：Workflow State Machine 遷移路線強制鎖定，嚴禁跨越或反轉未定義的狀態鏈（如只能 \Draft -> QA\ 而不能反過來直接重設）。
-* **[R7] aggVersion-relay**：Domain Event 傳遞過程，必須把聚合當下的版本 (\ggregateVersion\) 攜帶於事件體中作為併發與冪等參考。
-* **[R8] traceId-readonly**：\	raceId\ 從前端進 L2 \unified-command-gateway\ 注射發起後，全段鏈式傳遞絕對為 [唯讀]，禁止任何 L3~L8 單元中綴或覆寫。
+## 1. R1 relay-lag-metrics
+
+- MUST: IF outbox-relay 掃描延遲上升 THEN 必須上報 `DOMAIN_METRICS`。
+- MUST: relay lag 指標可追到 lane 與 slice 來源。
+
+## 2. R5 DLQ-failure-rule
+
+- MUST: IF IER 轉拋失敗達 3 次 THEN 事件必須進 DLQ。
+- FORBIDDEN: 失敗達閾值後仍在主線靜默重試。
+
+## 3. R6 workflow-state-rule
+
+- MUST: workflow 狀態遷移只能沿既定狀態機前進。
+- FORBIDDEN: 任意跨越未定義節點或逆向跳轉。
+
+## 4. R7 aggVersion-relay
+
+- MUST: Domain Event 必帶 `aggregateVersion`。
+- MUST: 投影端依 `aggregateVersion` 檢查單調遞增。
+
+## 5. R8 traceId-readonly
+
+- MUST: `traceId` 僅能由 `L2 CBG_ENTRY` 注入。
+- MUST: L3~L9 只能傳遞，不得重寫。
+- FORBIDDEN: adapter / worker / notifier 生成新的 traceId 取代上游值。
+
+## 6. 審查信號
+
+- 事件 envelope 缺少 `traceId` 或 `aggregateVersion` 應視為違規。
+- 監控缺少 relay lag / lane latency / DLQ 分級統計應視為觀測缺口。
