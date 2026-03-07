@@ -240,6 +240,51 @@ subgraph SK["🔷 L1 · Shared Kernel — 全域契約中心（VS0）"]
         I_MSG["IMessaging\n訊息推播 Port [R8]"]
         I_STORE["IFileStore\n檔案儲存 Port"]
     end
+
+    subgraph SK_SHARED_INFRA["🧩 Shared Infrastructure Plane（下沉整合：L6/L7/L8/L9）"]
+        direction TB
+
+        subgraph GW_QUERY["🟢 L6 · Query Gateway（統一讀取出口）[S2 S3]"]
+            direction LR
+            QGWAY["read-model-registry\n統一讀取入口\n版本對照 / 快照路由\n[S2] 所有 Projection 遵守 SK_VERSION_GUARD"]
+            QGWAY_SCHED["→ .org-eligible-member-view\n[#14 #15 #16]"]
+            QGWAY_CAL["→ .schedule-calendar-view\n日期維度（UI 禁止直讀 VS6/Firebase）"]
+            QGWAY_TL["→ .schedule-timeline-view\n資源維度（overlap/grouping 已預計算）"]
+            QGWAY_NOTIF["→ .account-view\n[#6] FCM Token"]
+            QGWAY_SCOPE["→ .workspace-scope-guard-view\n[#A9]"]
+            QGWAY_WALLET["→ .wallet-balance\n[S3] 顯示 → Projection\n精確交易 → STRONG_READ"]
+            QGWAY_SEARCH["→ .tag-snapshot\n語義化索引檢索"]
+            QGWAY --> QGWAY_SCHED & QGWAY_CAL & QGWAY_TL & QGWAY_NOTIF & QGWAY_SCOPE & QGWAY_WALLET & QGWAY_SEARCH
+        end
+
+        subgraph FIREBASE_ACL["🔌 L7 · Firebase ACL Adapters（防腐層 · src/shared/infra）[D24 D25]"]
+            direction LR
+
+            AUTH_ADP["auth.adapter.ts\nAuthAdapter\n實作 IAuthService\nFirebase User ↔ Auth Identity\n[D24] 唯一合法 firebase/auth 呼叫點"]
+
+            FSTORE_ADP["firestore.facade.ts\nFirestoreAdapter\n實作 IFirestoreRepo\n[S2] aggregateVersion 單調遞增守衛\n[D24] 唯一合法 firebase/firestore 呼叫點"]
+
+            FCM_ADP["messaging.adapter.ts\nFCMAdapter\n實作 IMessaging\n[R8] 注入 envelope.traceId → FCM metadata\n禁止在此生成新 traceId\n[D24] 唯一合法 firebase/messaging 呼叫點"]
+
+            STORE_ADP["storage.facade.ts\nStorageAdapter\n實作 IFileStore\nPath Resolver / URL 簽發\n[D24] 唯一合法 firebase/storage 呼叫點"]
+        end
+
+        subgraph FIREBASE_EXT["☁️ L8 · Firebase Infrastructure（外部雲端平台）"]
+            direction LR
+            F_AUTH[("Firebase Auth\nfirebase/auth")]
+            F_DB[("Firestore\nfirebase/firestore")]
+            F_FCM[("Firebase Cloud Messaging\nfirebase/messaging")]
+            F_STORE[("Cloud Storage\nfirebase/storage")]
+        end
+
+        subgraph OBS_LAYER["⬜ L9 · Observability（橫切面）"]
+            direction LR
+            TRACE_ID["trace-identifier\nCBG_ENTRY 注入 TraceID\n整條事件鏈共享 [R8]"]
+            DOMAIN_METRICS["domain-metrics\nIER 各 Lane Throughput/Latency\nFUNNEL 各 Lane 處理時間\nOUTBOX_RELAY lag [R1]\nRATELIMIT hit / CIRCUIT open"]
+            DOMAIN_ERRORS["domain-error-log\nWS_TX_RUNNER\nSCHEDULE_SAGA\nDLQ_BLOCK 安全事件 [R5]\nStaleTagWarning\nTOKEN_REFRESH 失敗告警 [S6]"]
+        end
+    end
+
 end
 
 %% ─── VS8 Semantic Cognition Engine（語義推理與治理引擎 · The Brain）
@@ -829,23 +874,7 @@ ORG_ELIG_V -.->|"skill tag 語義"| TE_SK
 ORG_ELIG_V -.->|"skill-tier tag 語義"| TE_ST
 AUDIT_COL -.->|"跨片稽核"| AUDIT_V
 
-%% ═══════════════════════════════════════════════════════════════
-%% LAYER 6 ── QUERY GATEWAY（統一讀取出口）
-%% ═══════════════════════════════════════════════════════════════
-
-subgraph GW_QUERY["🟢 L6 · Query Gateway（統一讀取出口）[S2 S3]"]
-    direction LR
-    QGWAY["read-model-registry\n統一讀取入口\n版本對照 / 快照路由\n[S2] 所有 Projection 遵守 SK_VERSION_GUARD"]
-    QGWAY_SCHED["→ .org-eligible-member-view\n[#14 #15 #16]"]
-    QGWAY_CAL["→ .schedule-calendar-view\n日期維度（UI 禁止直讀 VS6/Firebase）"]
-    QGWAY_TL["→ .schedule-timeline-view\n資源維度（overlap/grouping 已預計算）"]
-    QGWAY_NOTIF["→ .account-view\n[#6] FCM Token"]
-    QGWAY_SCOPE["→ .workspace-scope-guard-view\n[#A9]"]
-    QGWAY_WALLET["→ .wallet-balance\n[S3] 顯示 → Projection\n精確交易 → STRONG_READ"]
-    QGWAY_SEARCH["→ .tag-snapshot\n語義化索引檢索"]
-    QGWAY --> QGWAY_SCHED & QGWAY_CAL & QGWAY_TL & QGWAY_NOTIF & QGWAY_SCOPE & QGWAY_WALLET & QGWAY_SEARCH
-end
-
+%% ── Query Gateway（下沉後連線整理）──
 ORG_ELIG_V -.-> QGWAY_SCHED
 CAL_PROJ -.-> QGWAY_CAL
 TL_PROJ -.-> QGWAY_TL
@@ -856,69 +885,18 @@ TAG_SNAP -.-> QGWAY_SEARCH
 ACTIVE_CTX -->|"查詢鍵"| QGWAY_SCOPE
 QGWAY_SCOPE --> CBG_AUTH
 
-%% ── Global Search（Cross-cutting Authority · 語義門戶）──
-GLOBAL_SEARCH["🔍 Global Search（跨切片權威）\nL6 Query Gateway 核心消費者\n語義化索引檢索\n唯一跨域搜尋權威\n對接 VS8 語義索引\nCmd+K 唯一服務提供者\n_actions.ts / _services.ts [D26]"]
-GLOBAL_SEARCH -->|"語義化索引檢索"| QGWAY_SEARCH
-GLOBAL_SEARCH -.->|"queries VS8 semantic index [D26]"| VS8
-
-%% ── VS8 Semantic Graph 跨切片語義提供 ──
-VS8 -.->|"排班組合匹配"| VS6
-VS8 -.->|"任務語義標籤"| VS5
-COST_CLASSIFIER -.->|"classifyCostItem() [Layer-2 D27 #A14]"| W_PARSER
-
-%% ═══════════════════════════════════════════════════════════════
-%% LAYER 7 ── FIREBASE ACL（防腐層）
-%% ═══════════════════════════════════════════════════════════════
-
-subgraph FIREBASE_ACL["🔌 L7 · Firebase ACL Adapters（防腐層 · src/shared/infra）[D24 D25]"]
-    direction LR
-
-    AUTH_ADP["auth.adapter.ts\nAuthAdapter\n實作 IAuthService\nFirebase User ↔ Auth Identity\n[D24] 唯一合法 firebase/auth 呼叫點"]
-
-    FSTORE_ADP["firestore.facade.ts\nFirestoreAdapter\n實作 IFirestoreRepo\n[S2] aggregateVersion 單調遞增守衛\n[D24] 唯一合法 firebase/firestore 呼叫點"]
-
-    FCM_ADP["messaging.adapter.ts\nFCMAdapter\n實作 IMessaging\n[R8] 注入 envelope.traceId → FCM metadata\n禁止在此生成新 traceId\n[D24] 唯一合法 firebase/messaging 呼叫點"]
-
-    STORE_ADP["storage.facade.ts\nStorageAdapter\n實作 IFileStore\nPath Resolver / URL 簽發\n[D24] 唯一合法 firebase/storage 呼叫點"]
-end
-
-%% Adapters implements Ports
+%% ── Firebase ACL / Infra（下沉後連線整理）──
 AUTH_ADP -.->|"implements"| I_AUTH
 FSTORE_ADP -.->|"implements [S2]"| I_REPO
 FCM_ADP -.->|"implements [R8]"| I_MSG
 STORE_ADP -.->|"implements"| I_STORE
-
-%% ACL infra contracts constrain Adapters
 SK_INFRA -.->|"S2/R8/S4 規則約束"| FIREBASE_ACL
-
-%% ═══════════════════════════════════════════════════════════════
-%% LAYER 8 ── FIREBASE EXTERNAL INFRASTRUCTURE
-%% ═══════════════════════════════════════════════════════════════
-
-subgraph FIREBASE_EXT["☁️ L8 · Firebase Infrastructure（外部雲端平台）"]
-    direction LR
-    F_AUTH[("Firebase Auth\nfirebase/auth")]
-    F_DB[("Firestore\nfirebase/firestore")]
-    F_FCM[("Firebase Cloud Messaging\nfirebase/messaging")]
-    F_STORE[("Cloud Storage\nfirebase/storage")]
-end
-
 AUTH_ADP --> F_AUTH
 FSTORE_ADP --> F_DB
 FCM_ADP --> F_FCM
 STORE_ADP --> F_STORE
 
-%% ═══════════════════════════════════════════════════════════════
-%% LAYER 9 ── OBSERVABILITY（橫切面可觀測性）
-%% ═══════════════════════════════════════════════════════════════
-
-subgraph OBS_LAYER["⬜ L9 · Observability（橫切面）"]
-    direction LR
-    TRACE_ID["trace-identifier\nCBG_ENTRY 注入 TraceID\n整條事件鏈共享 [R8]"]
-    DOMAIN_METRICS["domain-metrics\nIER 各 Lane Throughput/Latency\nFUNNEL 各 Lane 處理時間\nOUTBOX_RELAY lag [R1]\nRATELIMIT hit / CIRCUIT open"]
-    DOMAIN_ERRORS["domain-error-log\nWS_TX_RUNNER\nSCHEDULE_SAGA\nDLQ_BLOCK 安全事件 [R5]\nStaleTagWarning\nTOKEN_REFRESH 失敗告警 [S6]"]
-end
-
+%% ── Observability（下沉後連線整理）──
 CBG_ENTRY --> TRACE_ID
 IER --> DOMAIN_METRICS
 FUNNEL --> DOMAIN_METRICS
@@ -930,6 +908,16 @@ SCH_SAGA --> DOMAIN_ERRORS
 DLQ_B -.->|"安全告警"| DOMAIN_ERRORS
 TAG_SG -.->|"StaleTagWarning"| DOMAIN_ERRORS
 TOKEN_SIG -.->|"Claims 刷新成功 [S6]"| DOMAIN_METRICS
+
+%% ── Global Search（Cross-cutting Authority · 語義門戶）──
+GLOBAL_SEARCH["🔍 Global Search（跨切片權威）\nL6 Query Gateway 核心消費者\n語義化索引檢索\n唯一跨域搜尋權威\n對接 VS8 語義索引\nCmd+K 唯一服務提供者\n_actions.ts / _services.ts [D26]"]
+GLOBAL_SEARCH -->|"語義化索引檢索"| QGWAY_SEARCH
+GLOBAL_SEARCH -.->|"queries VS8 semantic index [D26]"| VS8
+
+%% ── VS8 Semantic Graph 跨切片語義提供 ──
+VS8 -.->|"排班組合匹配"| VS6
+VS8 -.->|"任務語義標籤"| VS5
+COST_CLASSIFIER -.->|"classifyCostItem() [Layer-2 D27 #A14]"| W_PARSER
 
 %% ═══════════════════════════════════════════════════════════════
 %% MAIN FLOW：外部入口 → 閘道 → 切片
