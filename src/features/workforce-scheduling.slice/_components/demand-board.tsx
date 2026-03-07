@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * scheduling.slice ??_components/demand-board.tsx
+ * workforce-scheduling.slice ??_components/demand-board.tsx
  *
  * Demand Board UI ??org HR real-time view of open and assigned demands.
  *

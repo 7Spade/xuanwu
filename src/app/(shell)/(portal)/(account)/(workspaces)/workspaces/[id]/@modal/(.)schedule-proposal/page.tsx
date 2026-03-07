@@ -3,7 +3,7 @@
 // [D6] Server Component — ScheduleProposalContent is already "use client"; no
 // directive needed here.
 
-import { ScheduleProposalContent } from "@/features/scheduling.slice"
+import { ScheduleProposalContent } from "@/features/workforce-scheduling.slice"
 
 export default function ScheduleProposalModalPage() {
   return <ScheduleProposalContent />

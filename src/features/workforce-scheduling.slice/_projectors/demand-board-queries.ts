@@ -1,5 +1,5 @@
 /**
- * scheduling.slice/_projectors ??demand-board-queries.ts
+ * workforce-scheduling.slice/_projectors ??demand-board-queries.ts
  *
  * Read-side queries for the Demand Board projection.
  * Per docs/prd-schedule-workforce-skills.md FR-W0:

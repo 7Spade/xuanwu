@@ -1,5 +1,5 @@
 /**
- * Module: scheduling.slice/policy-mapper — [D27-A] Semantic Assignment Policy Mapper
+ * Module: workforce-scheduling.slice/policy-mapper — [D27-A] Semantic Assignment Policy Mapper
  *
  * Translates a SemanticContext (workspace + skill requirements) into an
  * AssignmentPolicy that drives candidate selection in the scheduling saga,

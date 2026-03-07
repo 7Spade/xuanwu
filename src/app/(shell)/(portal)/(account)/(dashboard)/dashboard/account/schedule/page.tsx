@@ -1,4 +1,4 @@
-import { AccountCapabilityTabs, AccountScheduleSection } from "@/features/scheduling.slice";
+import { AccountCapabilityTabs, AccountScheduleSection } from "@/features/workforce-scheduling.slice";
 
 /**
  * Module: page.tsx

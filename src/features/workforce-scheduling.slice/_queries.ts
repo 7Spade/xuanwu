@@ -1,12 +1,12 @@
 /**
- * scheduling.slice ??_queries.ts
+ * workforce-scheduling.slice ??_queries.ts
  *
  * Read-only queries for the VS6 Scheduling domain.
  * Single source of truth: accounts/{orgId}/schedule_items
  *
  * QGWAY_SCHED [#14 #15 #16]:
  *   Eligible-member queries route through projection.org-eligible-member-view
- *   via the QGWAY_SCHED channel only.  scheduling.slice must NOT query
+ *   via the QGWAY_SCHED channel only.  workforce-scheduling.slice must NOT query
  *   Firestore for member eligibility directly (D7 cross-slice isolation).
  */
 

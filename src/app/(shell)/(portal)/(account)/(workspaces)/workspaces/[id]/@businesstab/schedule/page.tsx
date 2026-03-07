@@ -1,4 +1,4 @@
-import { WorkspaceCapabilityTabs, WorkspaceSchedule } from "@/features/scheduling.slice"
+import { WorkspaceCapabilityTabs, WorkspaceSchedule } from "@/features/workforce-scheduling.slice"
 
 /**
  * Module: page.tsx

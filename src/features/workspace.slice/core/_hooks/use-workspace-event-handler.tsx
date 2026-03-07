@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 
-import { handleScheduleProposed } from "@/features/scheduling.slice";
+import { handleScheduleProposed } from "@/features/workforce-scheduling.slice";
 import { toast } from "@/shared/shadcn-ui/hooks/use-toast";
 
 import { createIssue } from "../../business.issues";
