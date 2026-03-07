@@ -29,7 +29,7 @@ jobs:
           mkdir -p ./skills
           npx repomix --skill-generate xuanwu-skill --skill-output ./skills --force
 
-      # 步驟 2：執行全專案打包 (會讀取你的 repomix.config.ts，輸出至 docs/ai/repomix-output.context.md)
+      # 步驟 2：執行全專案打包 (會讀取你的 repomix.config.ts，輸出至 skills\references\files.md)
       - name: Run Repomix Pack
         run: npx repomix
 
@@ -39,4 +39,4 @@ jobs:
         with:
           commit_message: "chore: update skills and context [skip ci]"
           # 包含 skills 資料夾與實際輸出路徑
-          file_pattern: 'docs/ai/repomix-output.context.md skills/**'
+          file_pattern: 'skills\references\files.md skills/**'

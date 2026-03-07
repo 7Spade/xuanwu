@@ -39,7 +39,7 @@ Invoke the following prompt to generate the Repomix outputs:
 
 This step produces:
 
-- `docs/ai/repomix-output.context.md` — compressed codebase context
+- `skills\references\files.md` — compressed codebase context
 - `skills/` — Repomix skill package
 
 Verify both outputs exist and are non-empty before continuing.
@@ -59,7 +59,7 @@ docs/architecture/00-LogicOverview.md
 **Secondary input — Compressed codebase context:**
 
 ```
-docs/ai/repomix-output.context.md
+skills\references\files.md
 ```
 
 `00-LogicOverview.md` is the authoritative design document.
@@ -99,7 +99,7 @@ The report must include:
 # Execution Constraints
 
 - Treat `docs/architecture/00-LogicOverview.md` as the **absolute authoritative design document**
-- Use `docs/ai/repomix-output.context.md` as the **sole basis for understanding the current codebase state** — do not guess the project structure
+- Use `skills\references\files.md` as the **sole basis for understanding the current codebase state** — do not guess the project structure
 - Do not modify any source files automatically; only produce the analysis report
 - Prefer deterministic reasoning over assumptions
 - If required files are missing, report them explicitly before continuing

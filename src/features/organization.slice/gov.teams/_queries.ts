@@ -7,12 +7,12 @@
  * onSnapshot on the org account document provides real-time updates.
  *
  * Per 00-LogicOverview.md:
- *   ORGANIZATION_TEAM["organization-governance.team?��????�恣??�???�蝯???�?"]
- *   ORGANIZATION_TEAM -.->|?��??�撣???��???�??�??��??��???��? SKILL_TAG_POOL
+ *   ORGANIZATION_TEAM (organization-governance.team aggregate)
+ *   ORGANIZATION_TEAM -.-> SKILL_TAG_POOL (read-only by tagSlug)
  *
  * Boundary constraint:
  *   These queries read ONLY from this org's account document.
- *   Skill tag data is referenced by tagSlug ??read from skill-xp.slice.
+ *   Skill tag data is referenced by tagSlug and read from skill-xp.slice.
  */
 
 import { db } from '@/shared-infra/frontend-firebase';

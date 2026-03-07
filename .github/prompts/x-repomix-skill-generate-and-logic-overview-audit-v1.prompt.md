@@ -14,11 +14,11 @@ Execute the following phases sequentially:
    ```bash
    npx repomix --config repomix.config.ts
    ```
-2. **Verify Output:** Ensure `docs/ai/repomix-output.context.md` is successfully generated and up-to-date.
+2. **Verify Output:** Ensure `skills\references\files.md` is successfully generated and up-to-date.
 
 ## Phase 2: Architecture Consistency Audit
 1. **Read Source of Truth:** Carefully read and absorb the core rules, invariants, and domain logic defined in `docs/architecture/00-LogicOverview.md`.
-2. **Read Project Context:** Read the codebase overview and structure from `docs/ai/repomix-output.context.md`.
+2. **Read Project Context:** Read the codebase overview and structure from `skills\references\files.md`.
 3. **Contrast & Analyze:** Cross-reference the two documents and identify all gaps:
    - **Missing Elements:** Missing feature slices, modules, or necessary layers.
    - **Misplaced Elements:** Files located outside their correct domain boundaries.
@@ -34,6 +34,6 @@ Once the Action Plan is finalized, **proceed to directly fix the codebase**:
 
 ## Constraints & Execution Rules (Strict)
 - **Source of Truth:** Treat `docs/architecture/00-LogicOverview.md` as the absolute law. Any deviation in the current codebase is a bug that you MUST fix.
-- **Data-Driven Analysis:** Rely purely on the contents of `docs/ai/repomix-output.context.md` to understand the present state of the software. Do not guess the project structure.
+- **Data-Driven Analysis:** Rely purely on the contents of `skills\references\files.md` to understand the present state of the software. Do not guess the project structure.
 - **Safe Modifications:** Apply precise edits. When moving files or changing boundaries, Ensure all dependent files and imports are updated in tandem to prevent broken builds.
 - **Progress Tracking:** Maintain clear communication of the Action Plan state (e.g., [x] Fixed X, [ ] Pending Y), ensuring the output report continues to reflect real-time progress.

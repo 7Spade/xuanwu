@@ -5,12 +5,12 @@
  *
  * Per 00-LogicOverview.md:
  *   ORG_SKILL_RECOGNITION["organization-skill-recognition.aggregate
- *     （organizationId / accountId / skillId / minXpRequired / status�?]
- *   ORG_SKILL_RECOGNITION ?�|SkillRecognitionGranted / SkillRecognitionRevoked| ORGANIZATION_EVENT_BUS
+ *     (organizationId / accountId / skillId / minXpRequired / status)"]
+ *   ORG_SKILL_RECOGNITION -> SkillRecognitionGranted / SkillRecognitionRevoked -> ORGANIZATION_EVENT_BUS
  *
  * Responsibilities:
  *   - Record that an organization has recognised a member's skill proficiency.
- *   - Set `minXpRequired` thresholds ??organizations MAY gate recognition
+ *   - Set `minXpRequired` thresholds; organizations MAY gate recognition
  *     by requiring a minimum XP level.
  *   - Publish SkillRecognitionGranted / SkillRecognitionRevoked events.
  *
@@ -22,7 +22,7 @@
  *
  * Boundary constraint:
  *   Organization may set `minXpRequired` (a threshold), but it CANNOT modify
- *   the account's XP ??that belongs solely to Account BC (Invariant #11).
+ *   the account's XP; that belongs solely to Account BC (Invariant #11).
  *
  * Stored at: orgSkillRecognition/{orgId}/members/{accountId}/skills/{skillId}
  */
@@ -45,13 +45,13 @@ export type SkillRecognitionStatus = 'active' | 'revoked';
 /**
  * Persisted recognition record.
  * `minXpRequired` is the ORG-controlled gate; the account's actual xp is
- * read from projection.org-eligible-member-view ??never from this record.
+ * read from projection.org-eligible-member-view, never from this record.
  */
 export interface OrgSkillRecognitionRecord {
   organizationId: string;
   accountId: string;
   /**
-   * tagSlug ??read-only reference to the Capability BC's SKILL_DEFINITION_AGGREGATE.
+  * tagSlug: read-only reference to the Capability BC's SKILL_DEFINITION_AGGREGATE.
    * This is the only cross-BC coupling; it is a portable string FK, not a direct
    * object import.  The Capability BC owns the canonical definition; this BC
    * may only reference it by ID.
@@ -79,7 +79,7 @@ export interface OrgSkillRecognitionRecord {
  *
  * Read-only reference to SKILL_DEFINITION_AGGREGATE (Capability BC):
  *   Validates `skillId` against the static global skill library via findSkill().
- *   This enforces the Capability BC boundary ??only skills that exist in the
+ *   This enforces the Capability BC boundary; only skills that exist in the
  *   canonical definition library can be recognised.
  *
  * Publishes `organization:skill:recognitionGranted` event.
@@ -94,7 +94,7 @@ export async function grantSkillRecognition(
   grantedBy: string,
   minXpRequired = 0
 ): Promise<void> {
-  // Read-only reference to SKILL_DEFINITION_AGGREGATE (Capability BC ??Invariant #8)
+  // Read-only reference to SKILL_DEFINITION_AGGREGATE (Capability BC, Invariant #8)
   const skillDefinition = findSkill(skillId);
   if (!skillDefinition) {
     throw new Error(

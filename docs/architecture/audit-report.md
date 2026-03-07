@@ -3,7 +3,7 @@
 Date: 2026-03-07
 Prompt executed: `.github/prompts/x-repomix-skill-generate-and-logic-overview-audit-v0.prompt.md`
 Primary SSOT: `docs/architecture/00-LogicOverview.md`
-Implementation snapshot: `docs/ai/repomix-output.context.md`
+Implementation snapshot: `skills\references\files.md`
 
 ## 1. Execution Status
 
@@ -14,7 +14,7 @@ Completed sequential phases from the requested prompt:
 	 - `npm -v` -> `11.6.2`
 	 - `repomix --version` -> `1.12.0`
 2. Repomix context generated:
-	 - `docs/ai/repomix-output.context.md` exists and is non-empty.
+	 - `skills\references\files.md` exists and is non-empty.
 3. Repomix skill generated:
 	 - `skills/` exists and contains generated outputs.
 4. Pre-migration architecture baseline clarified:
@@ -36,7 +36,7 @@ Completed sequential phases from the requested prompt:
 1. Read-side projector logic is partially implemented inside VS6 slice instead of L5 projection bus:
 	 - Current: `src/features/workforce-scheduling.slice/_projectors/*`
 	 - Expected: L5 ownership under `src/shared-infra/projection.bus/*`
-	 - Evidence: `docs/ai/repomix-output.context.md:391`, `docs/ai/repomix-output.context.md:392`, `docs/ai/repomix-output.context.md:393`
+	 - Evidence: `skills\references\files.md:391`, `skills\references\files.md:392`, `skills\references\files.md:393`
 	 - Rule reference: `L5-Bus`, `P5`, `S2`, `#9`
 	 - Suggested target:
 		 - Move projection materialization to `src/shared-infra/projection.bus/workforce-scheduling-*`
@@ -58,10 +58,10 @@ Completed sequential phases from the requested prompt:
 
 1. Feature slices directly depend on `@/shared-infra/frontend-firebase/*`.
 	 - Evidence samples:
-		 - `src/features/account.slice/gov.policy/_queries.ts` via `docs/ai/repomix-output.context.md:10766`-`docs/ai/repomix-output.context.md:10768`
-		 - `src/features/account.slice/user.profile/_actions.ts` via `docs/ai/repomix-output.context.md:10794`-`docs/ai/repomix-output.context.md:10795`
-		 - `src/features/organization.slice/gov.policy/_actions.ts` via `docs/ai/repomix-output.context.md:11315`-`docs/ai/repomix-output.context.md:11316`
-		 - `src/shared-infra/projection.bus/account-audit/_projector.ts` via `docs/ai/repomix-output.context.md:11440`-`docs/ai/repomix-output.context.md:11443`
+		 - `src/features/account.slice/gov.policy/_queries.ts` via `skills\references\files.md:10766`-`skills\references\files.md:10768`
+		 - `src/features/account.slice/user.profile/_actions.ts` via `skills\references\files.md:10794`-`skills\references\files.md:10795`
+		 - `src/features/organization.slice/gov.policy/_actions.ts` via `skills\references\files.md:11315`-`skills\references\files.md:11316`
+		 - `src/shared-infra/projection.bus/account-audit/_projector.ts` via `skills\references\files.md:11440`-`skills\references\files.md:11443`
 	 - Rule reference: `D24` + explicit FORBIDDEN clause (feature slices must not import `@/shared-infra/*` directly).
 	 - Impact:
 		 - Tight coupling to infrastructure implementation,
@@ -69,7 +69,7 @@ Completed sequential phases from the requested prompt:
 
 2. Potential cross-slice internal API leakage (non-index deep imports) exists and should be reduced.
 	 - Evidence sample:
-		 - `docs/ai/repomix-output.context.md:2479` imports `_events` deep path.
+		 - `skills\references\files.md:2479` imports `_events` deep path.
 	 - Rule reference: `D7` (cross-slice through public `index.ts` only).
 	 - Note:
 		 - Some examples may still be intra-slice; targeted dependency graph validation is recommended before final migration PR.

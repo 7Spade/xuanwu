@@ -7,13 +7,13 @@
  *   3. Org Skill Recognition (orgSkillRecognition)
  *
  * Per 00-LogicOverview.md:
- *   W_B_SCHEDULE -.??ACCOUNT_SKILL_VIEW (読み?��? only ??via ORG_ELIGIBLE_MEMBER_VIEW)
- *   SKILL_TAG_POOL_AGGREGATE ??SKILL_TAG_POOL (read model)
+ *   W_B_SCHEDULE -.-> ACCOUNT_SKILL_VIEW (read-only via ORG_ELIGIBLE_MEMBER_VIEW)
+ *   SKILL_TAG_POOL_AGGREGATE -> SKILL_TAG_POOL (read model)
  *   ORG_SKILL_RECOGNITION["...organizationId / accountId / skillId / minXpRequired / status"]
  *
  * Boundary constraint:
  *   These queries read ONLY this slice's own Firestore collections.
- *   They do NOT read Account aggregate data directly ??use projection views for that.
+ *   They do NOT read Account aggregate data directly; use projection views for that.
  */
 
 import { db } from '@/shared-infra/frontend-firebase';

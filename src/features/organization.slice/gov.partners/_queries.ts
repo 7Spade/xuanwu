@@ -7,12 +7,12 @@
  * onSnapshot on the org account document provides real-time updates.
  *
  * Per 00-LogicOverview.md:
- *   ORGANIZATION_PARTNER["organization-governance.partner?��???�丰隡?�??��??�蝯???�?"]
- *   ORGANIZATION_PARTNER -.->|?��??�撣???�??��??��??��??�?�?��???SKILL_TAG_POOL
+ *   ORGANIZATION_PARTNER (organization-governance.partner aggregate)
+ *   ORGANIZATION_PARTNER -.-> SKILL_TAG_POOL (read-only by tagSlug)
  *
  * Boundary constraint:
  *   These queries read ONLY from this org's account document and subcollections.
- *   Skill tag data is referenced by tagSlug ??read from skill-xp.slice.
+ *   Skill tag data is referenced by tagSlug and read from skill-xp.slice.
  */
 
 import { db } from '@/shared-infra/frontend-firebase';
@@ -52,7 +52,7 @@ export function subscribeToOrgPartners(
 /**
  * Subscribes to real-time partner invite updates for an organization.
  *
- * Invites are stored at `accounts/{orgId}/invites` ??this is Account BC (Subject Center) data.
+ * Invites are stored at `accounts/{orgId}/invites`; this is Account BC (Subject Center) data.
  * Components in account-organization.partner MUST use this query instead of reading
  * invites through useAccount (WorkspaceContainer) to respect BC boundaries.
  *

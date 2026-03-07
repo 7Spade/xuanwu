@@ -4577,11 +4577,6 @@ export function findLocationUnit(key: string): LocationUnitMeta | undefined
 
 ```
 
-## File: src/shared-kernel/constants/settings.ts
-```typescript
-
-```
-
 ## File: src/shared-kernel/constants/skills.ts
 ```typescript
 export type SkillGroup =
@@ -5696,17 +5691,6 @@ export function getHubStats(): NotificationHubStats
 function generateDispatchId(): string
 ```
 
-## File: src/features/notification-hub.slice/user.notification/_components/notification-list.tsx
-```typescript
-import { ScrollArea } from '@/shadcn-ui/scroll-area';
-import { cn } from '@/shadcn-ui/utils/utils';
-import type { Notification } from '@/shared-kernel';
-interface NotificationListProps {
-  notifications: Notification[];
-  onMarkRead: (id: string) => void;
-}
-```
-
 ## File: src/features/notification-hub.slice/user.notification/_hooks/use-user-notifications.ts
 ```typescript
 import { useState, useEffect, useCallback } from 'react';
@@ -6533,64 +6517,6 @@ import { Badge } from "@/shadcn-ui/badge"
 import { Button } from "@/shadcn-ui/button"
 import type { ScheduleItem } from '@/shared-kernel'
 export type DecisionHistoryItem = Pick<ScheduleItem, 'id' | 'title' | 'workspaceName' | 'status' | 'updatedAt'>
-```
-
-## File: src/features/workforce-scheduling.slice/_components/demand-board.tsx
-```typescript
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useApp } from '@/app-runtime/providers/app-provider';
-import { useAccount } from '@/features/workspace.slice';
-import { Badge } from '@/shadcn-ui/badge';
-import { Button } from '@/shadcn-ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn-ui/card';
-import { toast } from '@/shadcn-ui/hooks/use-toast';
-import { ScrollArea } from '@/shadcn-ui/scroll-area';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shadcn-ui/select';
-import type { ScheduleItem } from '@/shared-kernel';
-import type { SkillRequirement } from '@/shared-kernel';
-import { SKILLS } from '@/shared-kernel/constants/skills';
-import type { Timestamp } from '@/shared-kernel/ports';
-import {
-  approveScheduleItemWithMember,
-  updateScheduleItemStatus,
-} from '../_actions';
-type TimestampLike = { toDate: () => Date };
-function isTimestampLike(value: unknown): value is TimestampLike
-function formatTimestamp(ts: Timestamp | string | undefined): string
-interface OrgMember {
-  id: string;
-  name: string;
-}
-interface DemandRowProps {
-  item: ScheduleItem;
-  orgMembers: OrgMember[];
-  orgId: string;
-}
-⋮----
 ```
 
 ## File: src/features/workforce-scheduling.slice/_components/governance-sidebar.tsx
@@ -9775,21 +9701,6 @@ export async function executeAggregateWriteOp(op: {
 export function createVersionStamp():
 ```
 
-## File: src/shared-infra/projection.bus/_funnel.ts
-```typescript
-import type { WorkspaceEventBus } from '@/features/workspace.slice';
-import { registerOrganizationFunnel as registerOrganizationFunnelImpl } from './_organization-funnel';
-import { upsertProjectionVersion } from './_registry';
-import { registerTagFunnel as registerTagFunnelImpl } from './_tag-funnel';
-import { registerWorkspaceFunnel as registerWorkspaceFunnelImpl } from './_workspace-funnel';
-export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void
-export function registerOrganizationFunnel(): () => void
-export function registerTagFunnel(): () => void
-export async function replayWorkspaceProjections(
-  workspaceId: string
-): Promise<
-```
-
 ## File: src/shared-infra/projection.bus/_organization-funnel.ts
 ```typescript
 import { onOrgEvent } from '@/features/organization.slice';
@@ -9822,24 +9733,6 @@ import { getOrgEligibleMembersWithTier } from './org-eligible-member-view';
 import { getDisplayWalletBalance } from './wallet-balance';
 import { queryWorkspaceAccess } from './workspace-scope-guard';
 export function registerAllQueryHandlers(): Array<() => void>
-```
-
-## File: src/shared-infra/projection.bus/_registry.ts
-```typescript
-import {
-  getProjectionVersion as getProjectionVersionRepo,
-  upsertProjectionVersion as upsertProjectionVersionRepo,
-  type ProjectionVersionRecord,
-} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
-⋮----
-export async function getProjectionVersion(
-  projectionName: string
-): Promise<ProjectionVersionRecord | null>
-export async function upsertProjectionVersion(
-  projectionName: string,
-  lastEventOffset: number,
-  readModelVersion: string
-): Promise<void>
 ```
 
 ## File: src/shared-infra/projection.bus/_tag-funnel.ts
@@ -10477,86 +10370,9 @@ export async function getWorkspaceCapabilities(workspaceId: string): Promise<str
 
 ```
 
-## File: src/shared-kernel/constants/roles.ts
+## File: src/shared-kernel/constants/settings.ts
 ```typescript
-import type { WorkspaceRole } from '@/features/workspace.slice';
-import type { OrganizationRole } from '@/shared-kernel';
-⋮----
-export interface OrgRoleMeta {
-  role: OrganizationRole;
-  zhLabel: string;
-  enLabel: string;
-  rank: 1 | 2 | 3 | 4;
-  colorClass: string;
-}
-⋮----
-export function orgRoleAtLeast(
-  actorRole: OrganizationRole,
-  requiredRole: OrganizationRole,
-): boolean
-⋮----
-export interface WorkspaceRoleMeta {
-  role: WorkspaceRole;
-  zhLabel: string;
-  enLabel: string;
-  rank: 1 | 2 | 3;
-  colorClass: string;
-}
-⋮----
-export function workspaceRoleAtLeast(
-  actorRole: WorkspaceRole,
-  requiredRole: WorkspaceRole,
-): boolean
-```
 
-## File: src/shared-kernel/constants/status.ts
-```typescript
-import type { AuditLogType } from '@/features/workspace.slice';
-import type { WorkspaceLifecycleState } from '@/features/workspace.slice';
-import type { ScheduleStatus, InviteState, NotificationType, Presence } from '@/shared-kernel';
-⋮----
-export interface ScheduleStatusMeta {
-  status: ScheduleStatus;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-  bgClass: string;
-}
-⋮----
-export interface WorkspaceLifecycleStateMeta {
-  state: WorkspaceLifecycleState;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
-⋮----
-export interface AuditLogTypeMeta {
-  type: AuditLogType;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
-⋮----
-export interface InviteStateMeta {
-  state: InviteState;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
-⋮----
-export interface PresenceMeta {
-  presence: Presence;
-  zhLabel: string;
-  enLabel: string;
-  dotClass: string;
-}
-⋮----
-export interface NotificationTypeMeta {
-  type: NotificationType;
-  zhLabel: string;
-  enLabel: string;
-  colorClass: string;
-}
 ```
 
 ## File: src/shared-kernel/data-contracts/scheduling/schedule-contract.ts
@@ -10735,6 +10551,17 @@ function resolveTraceId(
 export function registerNotificationRouter(): RouterRegistration
 ```
 
+## File: src/features/notification-hub.slice/user.notification/_components/notification-list.tsx
+```typescript
+import { ScrollArea } from '@/shadcn-ui/scroll-area';
+import { cn } from '@/shadcn-ui/utils/utils';
+import type { Notification } from '@/shared-kernel';
+interface NotificationListProps {
+  notifications: Notification[];
+  onMarkRead: (id: string) => void;
+}
+```
+
 ## File: src/features/organization.slice/core/_actions.ts
 ```typescript
 import {
@@ -10836,56 +10663,6 @@ export async function dismissPartnerMember(
   teamId: string,
   member: MemberReference
 ): Promise<CommandResult>
-```
-
-## File: src/features/organization.slice/gov.policy/_actions.ts
-```typescript
-import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
-import { addDocument, updateDocument, deleteDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
-import {
-  type CommandResult,
-  commandSuccess,
-  commandFailureFrom,
-} from '@/shared-kernel';
-import { publishOrgEvent } from '../core.event-bus';
-export interface OrgPolicy {
-  id: string;
-  orgId: string;
-  name: string;
-  description: string;
-  rules: OrgPolicyRule[];
-  scope: 'workspace' | 'member' | 'global';
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-export interface OrgPolicyRule {
-  resource: string;
-  actions: string[];
-  effect: 'allow' | 'deny';
-  conditions?: Record<string, string>;
-}
-export interface CreateOrgPolicyInput {
-  orgId: string;
-  name: string;
-  description: string;
-  rules: OrgPolicyRule[];
-  scope: OrgPolicy['scope'];
-}
-export interface UpdateOrgPolicyInput {
-  name?: string;
-  description?: string;
-  rules?: OrgPolicyRule[];
-  scope?: OrgPolicy['scope'];
-  isActive?: boolean;
-}
-export async function createOrgPolicy(input: CreateOrgPolicyInput): Promise<CommandResult>
-export async function updateOrgPolicy(
-  policyId: string,
-  orgId: string,
-  input: UpdateOrgPolicyInput
-): Promise<CommandResult>
-export async function deleteOrgPolicy(policyId: string, orgId: string): Promise<CommandResult>
 ```
 
 ## File: src/features/organization.slice/gov.policy/_queries.ts
@@ -11118,6 +10895,64 @@ export async function unassignMember(
   itemId: string,
   memberId: string
 ): Promise<CommandResult>
+```
+
+## File: src/features/workforce-scheduling.slice/_components/demand-board.tsx
+```typescript
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, UserCheck, XCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useApp } from '@/app-runtime/providers/app-provider';
+import { useAccount } from '@/features/workspace.slice';
+import { Badge } from '@/shadcn-ui/badge';
+import { Button } from '@/shadcn-ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shadcn-ui/card';
+import { toast } from '@/shadcn-ui/hooks/use-toast';
+import { ScrollArea } from '@/shadcn-ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shadcn-ui/select';
+import type { ScheduleItem } from '@/shared-kernel';
+import type { SkillRequirement } from '@/shared-kernel';
+import { SKILLS } from '@/shared-kernel/constants/skills';
+import type { Timestamp } from '@/shared-kernel/ports';
+import {
+  approveScheduleItemWithMember,
+  updateScheduleItemStatus,
+} from '../_actions';
+type TimestampLike = { toDate: () => Date };
+function isTimestampLike(value: unknown): value is TimestampLike
+function formatTimestamp(ts: Timestamp | string | undefined): string
+interface OrgMember {
+  id: string;
+  name: string;
+}
+interface DemandRowProps {
+  item: ScheduleItem;
+  orgMembers: OrgMember[];
+  orgId: string;
+}
+⋮----
 ```
 
 ## File: src/features/workforce-scheduling.slice/_components/org-schedule-governance.shared.tsx
@@ -12020,6 +11855,121 @@ async deleteFile(path: string): Promise<void>
 
 ```
 
+## File: src/shared-infra/projection.bus/_funnel.ts
+```typescript
+import type { WorkspaceEventBus } from '@/features/workspace.slice';
+import { registerOrganizationFunnel as registerOrganizationFunnelImpl } from './_organization-funnel';
+import { upsertProjectionVersion } from './_registry';
+import { registerTagFunnel as registerTagFunnelImpl } from './_tag-funnel';
+import { registerWorkspaceFunnel as registerWorkspaceFunnelImpl } from './_workspace-funnel';
+export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void
+export function registerOrganizationFunnel(): () => void
+export function registerTagFunnel(): () => void
+export async function replayWorkspaceProjections(
+  workspaceId: string
+): Promise<
+```
+
+## File: src/shared-infra/projection.bus/_registry.ts
+```typescript
+import {
+  getProjectionVersion as getProjectionVersionRepo,
+  upsertProjectionVersion as upsertProjectionVersionRepo,
+  type ProjectionVersionRecord,
+} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
+⋮----
+export async function getProjectionVersion(
+  projectionName: string
+): Promise<ProjectionVersionRecord | null>
+export async function upsertProjectionVersion(
+  projectionName: string,
+  lastEventOffset: number,
+  readModelVersion: string
+): Promise<void>
+```
+
+## File: src/shared-kernel/constants/roles.ts
+```typescript
+import type { WorkspaceRole } from '@/features/workspace.slice';
+import type { OrganizationRole } from '@/shared-kernel';
+⋮----
+export interface OrgRoleMeta {
+  role: OrganizationRole;
+  zhLabel: string;
+  enLabel: string;
+  rank: 1 | 2 | 3 | 4;
+  colorClass: string;
+}
+⋮----
+export function orgRoleAtLeast(
+  actorRole: OrganizationRole,
+  requiredRole: OrganizationRole,
+): boolean
+⋮----
+export interface WorkspaceRoleMeta {
+  role: WorkspaceRole;
+  zhLabel: string;
+  enLabel: string;
+  rank: 1 | 2 | 3;
+  colorClass: string;
+}
+⋮----
+export function workspaceRoleAtLeast(
+  actorRole: WorkspaceRole,
+  requiredRole: WorkspaceRole,
+): boolean
+```
+
+## File: src/shared-kernel/constants/status.ts
+```typescript
+import type { AuditLogType } from '@/features/workspace.slice';
+import type { WorkspaceLifecycleState } from '@/features/workspace.slice';
+import type { ScheduleStatus, InviteState, NotificationType, Presence } from '@/shared-kernel';
+⋮----
+export interface ScheduleStatusMeta {
+  status: ScheduleStatus;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+  bgClass: string;
+}
+⋮----
+export interface WorkspaceLifecycleStateMeta {
+  state: WorkspaceLifecycleState;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+⋮----
+export interface AuditLogTypeMeta {
+  type: AuditLogType;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+⋮----
+export interface InviteStateMeta {
+  state: InviteState;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+⋮----
+export interface PresenceMeta {
+  presence: Presence;
+  zhLabel: string;
+  enLabel: string;
+  dotClass: string;
+}
+⋮----
+export interface NotificationTypeMeta {
+  type: NotificationType;
+  zhLabel: string;
+  enLabel: string;
+  colorClass: string;
+}
+```
+
 ## File: src/shared-kernel/data-contracts/skill-tier/index.ts
 ```typescript
 import type { Timestamp } from '../../ports'
@@ -12315,58 +12265,6 @@ import type { ImplementsTokenRefreshContract } from '@/shared-kernel';
 export function useTokenRefreshListener(accountId: string | null | undefined): void
 ```
 
-## File: src/features/notification-hub.slice/user.notification/_delivery.ts
-```typescript
-import { db } from '@/shared-infra/frontend-firebase';
-import {
-  collection,
-  doc,
-  getDoc,
-} from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
-import { addDoc, serverTimestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
-export interface NotificationDeliveryInput {
-  title: string;
-  message: string;
-  type: 'info' | 'alert' | 'success';
-  sourceEvent: string;
-  sourceId: string;
-  workspaceId: string;
-  traceId?: string;
-}
-export interface DeliveryResult {
-  notificationId: string;
-  delivered: boolean;
-  fcmSent: boolean;
-}
-export async function deliverNotification(
-  targetAccountId: string,
-  input: NotificationDeliveryInput
-): Promise<DeliveryResult>
-⋮----
-// Example FCM Admin SDK call (server-side):
-//   await fcmAdmin.send({
-//     token: fcmToken,
-//     notification: { title: sanitizedTitle, body: sanitizedMessage },
-//     data: { traceId },   // ??[R8] required field
-//   });
-⋮----
-// FCM failure is non-fatal ??notification is already persisted
-⋮----
-/**
- * Sanitizes notification content for external account recipients.
- * Redacts internal workspace IDs, financial amounts, and internal-only details
- * to prevent leaking sensitive workspace-internal data to external participants.
- *
- * @example
- * sanitizeForExternal('Workspace abc12345-... has $1,234.56 balance')
- *
- *
- * @param message - Raw notification message text
- * @returns Sanitized message safe for external account delivery
- */
-function sanitizeForExternal(message: string): string
-```
-
 ## File: src/features/notification-hub.slice/user.notification/_queries.ts
 ```typescript
 import { db } from '@/shared-infra/frontend-firebase';
@@ -12433,6 +12331,56 @@ export function subscribeToOrgPartnerInvites(
   orgId: string,
   onUpdate: (invites: PartnerInvite[]) => void
 ): Unsubscribe
+```
+
+## File: src/features/organization.slice/gov.policy/_actions.ts
+```typescript
+import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { addDocument, updateDocument, deleteDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/shared-kernel';
+import { publishOrgEvent } from '../core.event-bus';
+export interface OrgPolicy {
+  id: string;
+  orgId: string;
+  name: string;
+  description: string;
+  rules: OrgPolicyRule[];
+  scope: 'workspace' | 'member' | 'global';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface OrgPolicyRule {
+  resource: string;
+  actions: string[];
+  effect: 'allow' | 'deny';
+  conditions?: Record<string, string>;
+}
+export interface CreateOrgPolicyInput {
+  orgId: string;
+  name: string;
+  description: string;
+  rules: OrgPolicyRule[];
+  scope: OrgPolicy['scope'];
+}
+export interface UpdateOrgPolicyInput {
+  name?: string;
+  description?: string;
+  rules?: OrgPolicyRule[];
+  scope?: OrgPolicy['scope'];
+  isActive?: boolean;
+}
+export async function createOrgPolicy(input: CreateOrgPolicyInput): Promise<CommandResult>
+export async function updateOrgPolicy(
+  policyId: string,
+  orgId: string,
+  input: UpdateOrgPolicyInput
+): Promise<CommandResult>
+export async function deleteOrgPolicy(policyId: string, orgId: string): Promise<CommandResult>
 ```
 
 ## File: src/features/organization.slice/gov.teams/_queries.ts
@@ -13627,6 +13575,58 @@ async function emitTokenRefreshSignal(
 ): Promise<void>
 ```
 
+## File: src/features/notification-hub.slice/user.notification/_delivery.ts
+```typescript
+import { db } from '@/shared-infra/frontend-firebase';
+import {
+  collection,
+  doc,
+  getDoc,
+} from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { addDoc, serverTimestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
+export interface NotificationDeliveryInput {
+  title: string;
+  message: string;
+  type: 'info' | 'alert' | 'success';
+  sourceEvent: string;
+  sourceId: string;
+  workspaceId: string;
+  traceId?: string;
+}
+export interface DeliveryResult {
+  notificationId: string;
+  delivered: boolean;
+  fcmSent: boolean;
+}
+export async function deliverNotification(
+  targetAccountId: string,
+  input: NotificationDeliveryInput
+): Promise<DeliveryResult>
+⋮----
+// Example FCM Admin SDK call (server-side):
+//   await fcmAdmin.send({
+//     token: fcmToken,
+//     notification: { title: sanitizedTitle, body: sanitizedMessage },
+//     data: { traceId },   // ??[R8] required field
+//   });
+⋮----
+// FCM failure is non-fatal ??notification is already persisted
+⋮----
+/**
+ * Sanitizes notification content for external account recipients.
+ * Redacts internal workspace IDs, financial amounts, and internal-only details
+ * to prevent leaking sensitive workspace-internal data to external participants.
+ *
+ * @example
+ * sanitizeForExternal('Workspace abc12345-... has $1,234.56 balance')
+ *
+ *
+ * @param message - Raw notification message text
+ * @returns Sanitized message safe for external account delivery
+ */
+function sanitizeForExternal(message: string): string
+```
+
 ## File: src/features/workforce-scheduling.slice/_aggregate.ts
 ```typescript
 import { getOrgMemberEligibility } from '@/shared-infra/projection.bus';
@@ -13817,56 +13817,6 @@ const handleImport = async () =>
 // Layer-2 Semantic Classification (VS8) — applied here during the import phase.
 ```
 
-## File: src/features/workspace.slice/application/_outbox.ts
-```typescript
-import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
-import { logDomainError } from '@/shared-infra/observability';
-import { buildIdempotencyKey, type DlqTier } from '@/shared-kernel';
-import type {
-  WorkspaceEventName,
-  WorkspaceEventPayloadMap,
-} from '../core.event-bus';
-export type OutboxEvent = {
-  [K in WorkspaceEventName]: { type: K; payload: WorkspaceEventPayloadMap[K] };
-}[WorkspaceEventName];
-export interface Outbox {
-  collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T]): void;
-  flush(publish: (type: string, payload: unknown) => void): void;
-  drain(): OutboxEvent[];
-}
-⋮----
-collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T]): void;
-flush(publish: (type: string, payload: unknown)
-drain(): OutboxEvent[];
-⋮----
-interface WsOutboxDocument {
-  outboxId: string;
-  eventType: WorkspaceEventName;
-  envelopeJson: string;
-  lane: typeof WS_OUTBOX_IER_LANE;
-  dlqTier: DlqTier;
-  idempotencyKey: string;
-  status: 'pending';
-  createdAt: string;
-  attemptCount: 0;
-}
-function extractTraceIdFromPayload(payload: unknown): string | undefined
-async function persistToWsOutbox(
-  event: OutboxEvent,
-  workspaceId: string,
-): Promise<void>
-export async function persistWorkspaceOutboxEvent<T extends WorkspaceEventName>(
-  workspaceId: string,
-  type: T,
-  payload: WorkspaceEventPayloadMap[T],
-): Promise<void>
-export function createOutbox(workspaceId?: string): Outbox
-⋮----
-collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T])
-flush(publish: (type: string, payload: unknown) => void)
-drain()
-```
-
 ## File: src/features/workspace.slice/core/_components/workspace-provider.tsx
 ```typescript
 import { Loader2 } from 'lucide-react';
@@ -13939,4 +13889,54 @@ export type ClaimsSubscriberRegistrar = (
   lane: IerLane
 ) => () => void;
 export function registerClaimsHandler(registerFn: ClaimsSubscriberRegistrar): () => void
+```
+
+## File: src/features/workspace.slice/application/_outbox.ts
+```typescript
+import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
+import { logDomainError } from '@/shared-infra/observability';
+import { buildIdempotencyKey, type DlqTier } from '@/shared-kernel';
+import type {
+  WorkspaceEventName,
+  WorkspaceEventPayloadMap,
+} from '../core.event-bus';
+export type OutboxEvent = {
+  [K in WorkspaceEventName]: { type: K; payload: WorkspaceEventPayloadMap[K] };
+}[WorkspaceEventName];
+export interface Outbox {
+  collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T]): void;
+  flush(publish: (type: string, payload: unknown) => void): void;
+  drain(): OutboxEvent[];
+}
+⋮----
+collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T]): void;
+flush(publish: (type: string, payload: unknown)
+drain(): OutboxEvent[];
+⋮----
+interface WsOutboxDocument {
+  outboxId: string;
+  eventType: WorkspaceEventName;
+  envelopeJson: string;
+  lane: typeof WS_OUTBOX_IER_LANE;
+  dlqTier: DlqTier;
+  idempotencyKey: string;
+  status: 'pending';
+  createdAt: string;
+  attemptCount: 0;
+}
+function extractTraceIdFromPayload(payload: unknown): string | undefined
+async function persistToWsOutbox(
+  event: OutboxEvent,
+  workspaceId: string,
+): Promise<void>
+export async function persistWorkspaceOutboxEvent<T extends WorkspaceEventName>(
+  workspaceId: string,
+  type: T,
+  payload: WorkspaceEventPayloadMap[T],
+): Promise<void>
+export function createOutbox(workspaceId?: string): Outbox
+⋮----
+collect<T extends WorkspaceEventName>(type: T, payload: WorkspaceEventPayloadMap[T])
+flush(publish: (type: string, payload: unknown) => void)
+drain()
 ```

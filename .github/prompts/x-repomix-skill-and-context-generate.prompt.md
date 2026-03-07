@@ -63,7 +63,7 @@ npx repomix --config repomix.config.ts
 
 Expected output:
 
-docs/ai/repomix-output.context.md
+skills\references\files.md
 
 Verify the file exists and is not empty.
 
@@ -80,7 +80,7 @@ skills/references/summary.md
 skills/references/tech-stack.md
 skills/SKILL.md
 
-docs/ai/repomix-output.context.md
+skills\references\files.md
 
 If any file is missing:
 
@@ -95,6 +95,6 @@ If any file is missing:
 The repository must contain:
 
 skills/
-docs/ai/repomix-output.context.md
+skills\references\files.md
 
 Both must be successfully generated using Repomix.
