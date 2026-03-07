@@ -11,7 +11,7 @@
  */
 
 
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { getWorkspaceFiles as getWorkspaceFilesFacade } from '@/shared/infra/firestore/firestore.facade';
 import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 

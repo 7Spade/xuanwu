@@ -13,7 +13,7 @@
 
 import type { ImplementsStalenessContract } from '@/shared-kernel';
 import type { ScheduleItem } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   query,

@@ -1335,7 +1335,7 @@ export function useAccountRole(accountId: string | null)
 
 ## File: src/features/account.slice/gov.role/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { AccountRoleRecord } from './_actions';
@@ -1438,7 +1438,7 @@ export function useOrgPolicy(orgId: string | null)
 
 ## File: src/features/organization.slice/gov.policy/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { OrgPolicy } from './_actions';
@@ -1501,7 +1501,7 @@ export function registerOrganizationFunnel(): () => void
 
 ## File: src/features/projection.bus/account-audit/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { createConverter } from '@/shared/infra/firestore/firestore.converter';
 import { collection, query, orderBy, limit } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocuments } from '@/shared/infra/firestore/firestore.read.adapter';
@@ -1742,7 +1742,7 @@ const toNum = (v: unknown, fallback: number): number =>
 ## File: src/features/workspace.slice/business.document-parser/_queries.ts
 ```typescript
 import { SUBCOLLECTIONS } from '@/shared/infra/firestore/collection-paths';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { ParsingIntent } from './_types';
 export function subscribeToParsingIntents(
@@ -1758,7 +1758,7 @@ export function subscribeToParsingIntents(
 
 ## File: src/features/workspace.slice/business.files/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { getWorkspaceFiles as getWorkspaceFilesFacade } from '@/shared/infra/firestore/firestore.facade';
 import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { WorkspaceFile } from './_types';
@@ -2805,7 +2805,7 @@ export const deleteFile = (path: string): Promise<void> =>
 ```typescript
 import type { ScheduleItem } from '@/shared-kernel'
 import type { PartnerInvite } from '@/shared-kernel'
-import { db } from '@/shared/infra/firestore/firestore.client'
+import { db } from '@/shared-infra/frontend-firebase'
 import {
   collection,
   limit,
@@ -2844,7 +2844,7 @@ export function subscribeToWorkspacesForAccount(
 ## File: src/app-runtime/providers/app-provider.queries.ts
 ```typescript
 import type { Account } from '@/shared-kernel'
-import { db } from '@/shared/infra/firestore/firestore.client'
+import { db } from '@/shared-infra/frontend-firebase'
 import {
   collection,
   onSnapshot,
@@ -2878,10 +2878,7 @@ export const useAuth = () =>
 ## File: src/app-runtime/providers/firebase-provider.tsx
 ```typescript
 import { useContext, type ReactNode } from 'react';
-import { app } from '@/shared/infra/app.client';
-import { auth } from '@/shared/infra/auth/auth.client';
-import { db } from '@/shared/infra/firestore/firestore.client';
-import { storage } from '@/shared/infra/storage/storage.client';
+import { app, auth, db, storage } from '@/shared-infra/frontend-firebase';
 import { FirebaseContext } from '../contexts/firebase-context';
 export function FirebaseClientProvider(
 export const useFirebase = () =>
@@ -3026,7 +3023,7 @@ export function getUserTeamIds(account: Account, userId: string): Set<string>
 
 ## File: src/features/account.slice/gov.policy/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, query, where, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { AccountPolicy } from './_actions';
@@ -3114,7 +3111,7 @@ const checkReady = () =>
 ## File: src/features/account.slice/user.wallet/_queries.ts
 ```typescript
 import type { Account, Wallet } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { doc, collection, query, orderBy, limit, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 export async function getWalletBalance(accountId: string): Promise<number>
@@ -3319,7 +3316,7 @@ export type QueryRouteName = (typeof QUERY_ROUTES)[keyof typeof QUERY_ROUTES];
 ```typescript
 import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
 import { logDomainError } from '@/features/observability';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   query,
@@ -3426,7 +3423,7 @@ export function NotificationBadge(
 
 ## File: src/features/notification-hub.slice/user.notification/_delivery.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   doc,
@@ -3488,7 +3485,7 @@ export function useUserNotifications(accountId: string | undefined, maxCount = 2
 ## File: src/features/notification-hub.slice/user.notification/_queries.ts
 ```typescript
 import type { Notification } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   query,
@@ -3678,7 +3675,7 @@ export type OrganizationEventKey = keyof OrganizationEventPayloadMap;
 ## File: src/features/organization.slice/core/_queries.ts
 ```typescript
 import type { Account } from '@/shared-kernel'
-import { db } from '@/shared/infra/firestore/firestore.client'
+import { db } from '@/shared-infra/frontend-firebase'
 import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter'
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter'
 export async function getOrganization(orgId: string): Promise<Account | null>
@@ -3691,7 +3688,7 @@ export function subscribeToOrganization(
 ## File: src/features/organization.slice/gov.members/_queries.ts
 ```typescript
 import type { Account, MemberReference } from '@/shared-kernel'
-import { db } from '@/shared/infra/firestore/firestore.client'
+import { db } from '@/shared-infra/frontend-firebase'
 import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter'
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter'
 export async function getOrgMembers(orgId: string): Promise<MemberReference[]>
@@ -3789,7 +3786,7 @@ export function registerWorkspaceFunnel(bus: WorkspaceEventBus): () => void
 
 ## File: src/features/projection.bus/account-audit/_projector.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { doc, collection } from '@/shared/infra/firestore/firestore.read.adapter';
 import { serverTimestamp, setDoc } from '@/shared/infra/firestore/firestore.write.adapter';
 import { addDocument } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -3881,7 +3878,7 @@ async function _closeScheduleItem(
 
 ## File: src/features/projection.bus/global-audit-view/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, getDocs, where, limit, query as firestoreQuery } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { GlobalAuditRecord, GlobalAuditQuery } from './_projector';
 export async function getGlobalAuditEvents(
@@ -3915,7 +3912,7 @@ export async function getGlobalAuditEventsByWorkspace(
 
 ## File: src/features/projection.bus/tag-snapshot/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, getDocs, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { TagSnapshotEntry } from './_projector';
@@ -4570,7 +4567,7 @@ export async function getSkillXp(
 
 ## File: src/features/skill-xp.slice/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { OrgSkillRecognitionRecord } from './_org-recognition';
@@ -4624,7 +4621,7 @@ export async function updateTimelineItemDateRange(
 ## File: src/features/timelineing.slice/_queries.ts
 ```typescript
 import type { ScheduleItem } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   onSnapshot,
@@ -4847,7 +4844,7 @@ export function findEligibleCandidatesForRequirements(
 ```typescript
 import type { ImplementsStalenessContract } from '@/shared-kernel';
 import type { ScheduleItem } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   query,
@@ -5155,7 +5152,7 @@ export function useDailyUpload()
 
 ## File: src/features/workspace.slice/business.daily/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { getDailyLogs as getDailyLogsFacade } from "@/shared/infra/firestore/firestore.facade";
 import {
   collection,
@@ -5854,7 +5851,7 @@ export async function handleIssueResolvedForWorkflow(
 
 ## File: src/features/workspace.slice/business.workflow/_persistence.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, getDocs, limit, query, type QueryDocumentSnapshot, type DocumentData, where } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import { setDocument, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -9010,7 +9007,7 @@ import {
   commandSuccess,
   commandFailureFrom,
 } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, doc } from '@/shared/infra/firestore/firestore.read.adapter';
 import { runTransaction, serverTimestamp, type Transaction } from '@/shared/infra/firestore/firestore.write.adapter';
 export interface WalletTransaction {
@@ -9079,9 +9076,8 @@ export function registerClaimsHandler(registerFn: ClaimsSubscriberRegistrar): ()
 ```typescript
 import { useEffect } from 'react';
 import type { ImplementsTokenRefreshContract } from '@/shared-kernel';
-import { auth } from '@/shared/infra/auth/auth.client';
+import { auth, db } from '@/shared-infra/frontend-firebase';
 import { COLLECTIONS } from '@/shared/infra/firestore/collection-paths';
-import { db } from '@/shared/infra/firestore/firestore.client';
 import { onSnapshot, doc } from '@/shared/infra/firestore/firestore.read.adapter';
 ⋮----
 export function useTokenRefreshListener(accountId: string | null | undefined): void
@@ -9356,7 +9352,7 @@ export async function applyAuthoritySnapshot(
 ## File: src/features/projection.bus/global-audit-view/_projector.ts
 ```typescript
 import type { EventEnvelope } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { doc } from '@/shared/infra/firestore/firestore.read.adapter';
 import { setDoc, serverTimestamp } from '@/shared/infra/firestore/firestore.write.adapter';
 export interface GlobalAuditRecord {
@@ -9978,6 +9974,56 @@ export async function applySkillXpDeducted(
 ): Promise<void>
 ```
 
+## File: src/features/timelineing.slice/_components/timeline-canvas.tsx
+```typescript
+import { addDays, addMinutes, isSameDay, startOfDay } from "date-fns";
+import { useEffect, useMemo, useRef } from "react";
+import { DataSet } from "vis-data";
+import {
+  Timeline,
+  type DataGroup,
+  type DataItem,
+  type TimelineItem,
+  type TimelineOptions,
+} from "vis-timeline/standalone";
+⋮----
+import type { ScheduleItem, Timestamp } from "@/shared-kernel";
+import { cn } from "@/shadcn-ui/utils/utils";
+import type { TimelineMember } from "../_types";
+type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
+type ResolvedTemporalKind = NonNullable<ScheduleItem["temporalKind"]>;
+interface TimelineCanvasProps {
+  items: ScheduleItem[];
+  members: TimelineMember[];
+  enableDrag?: boolean;
+  groupMode?: "none" | "workspace";
+  onMoveItem?: (params: {
+    itemId: string;
+    start: Date;
+    end: Date;
+    groupId?: string;
+  }) => Promise<boolean>;
+  className?: string;
+}
+function toDate(timestamp: CalendarTimestamp): Date | null
+function escapeHtml(input: string): string
+function toTimelineClassName(item: ScheduleItem): string
+function isStartOfDay(date: Date): boolean
+function inferTemporalKind(start: Date, end?: Date, explicitKind?: ScheduleItem["temporalKind"]): ResolvedTemporalKind
+function resolveTimelineInterval(item: ScheduleItem):
+function resolveInitialWindow(items: DataItem[]):
+export function TimelineCanvas({
+  items,
+  members,
+  enableDrag = false,
+  groupMode = "none",
+  onMoveItem,
+  className,
+}: TimelineCanvasProps)
+⋮----
+<div className=
+```
+
 ## File: src/features/timelineing.slice/_components/timeline-capability-tabs.tsx
 ```typescript
 import { useParams, usePathname, useRouter } from 'next/navigation';
@@ -10168,7 +10214,7 @@ import {
 } from '@/features/projection.bus';
 import type { ImplementsStalenessContract } from '@/shared-kernel';
 import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { fetchScheduleItems } from '@/shared/infra/firestore/firestore.facade';
 import {
   collection,
@@ -10927,7 +10973,7 @@ const importItems = () =>
 
 ## File: src/features/workspace.slice/core/_queries.ts
 ```typescript
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   onSnapshot,
@@ -11415,7 +11461,7 @@ export function usePartnerManagement()
 ## File: src/features/organization.slice/gov.partners/_queries.ts
 ```typescript
 import type { Account, PartnerInvite, Team } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, doc, onSnapshot, orderBy, query, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 export async function getOrgPartners(orgId: string): Promise<Team[]>
@@ -11482,7 +11528,7 @@ export async function deleteOrgPolicy(policyId: string, orgId: string): Promise<
 ## File: src/features/organization.slice/gov.teams/_queries.ts
 ```typescript
 import type { Account, Team } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 export async function getOrgTeams(orgId: string): Promise<Team[]>
@@ -11533,7 +11579,7 @@ export async function applyScheduleCompleted(
 ```typescript
 import { resolveSkillTier } from '@/shared-kernel';
 import type { SkillTier } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 import type { OrgEligibleMemberEntry } from './_projector';
@@ -11834,7 +11880,7 @@ import type {
   TagDeprecatedPayload,
   TagDeletedPayload,
 } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collectionGroup,
   query,
@@ -11908,6 +11954,16 @@ export async function syncTagDeletionToPool(
   orgId: string,
   payload: TagDeletedPayload
 ): Promise<void>
+```
+
+## File: src/features/timelineing.slice/_components/timeline.workspace-view.tsx
+```typescript
+import { Clock3 } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import type { ScheduleItem } from "@/shared-kernel";
+import { useTimelineCommands, useWorkspaceTimeline } from "../_hooks";
+import { TimelineCanvas } from "./timeline-canvas";
+export function WorkspaceTimeline()
 ```
 
 ## File: src/features/timelineing.slice/_hooks/use-account-timeline.ts
@@ -13327,66 +13383,6 @@ function isValidSearchDomain(domain: string): domain is SearchDomain
 function computeRelevanceScore(entry: SemanticIndexEntry, terms: string[]): number
 ```
 
-## File: src/features/timelineing.slice/_components/timeline-canvas.tsx
-```typescript
-import { addDays, addMinutes, isSameDay, startOfDay } from "date-fns";
-import { useEffect, useMemo, useRef } from "react";
-import { DataSet } from "vis-data";
-import {
-  Timeline,
-  type DataGroup,
-  type DataItem,
-  type TimelineItem,
-  type TimelineOptions,
-} from "vis-timeline/standalone";
-⋮----
-import type { ScheduleItem, Timestamp } from "@/shared-kernel";
-import { cn } from "@/shadcn-ui/utils/utils";
-import type { TimelineMember } from "../_types";
-type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
-type ResolvedTemporalKind = NonNullable<ScheduleItem["temporalKind"]>;
-interface TimelineCanvasProps {
-  items: ScheduleItem[];
-  members: TimelineMember[];
-  enableDrag?: boolean;
-  groupMode?: "none" | "workspace";
-  onMoveItem?: (params: {
-    itemId: string;
-    start: Date;
-    end: Date;
-    groupId?: string;
-  }) => Promise<boolean>;
-  className?: string;
-}
-function toDate(timestamp: CalendarTimestamp): Date | null
-function escapeHtml(input: string): string
-function toTimelineClassName(item: ScheduleItem): string
-function isStartOfDay(date: Date): boolean
-function inferTemporalKind(start: Date, end?: Date, explicitKind?: ScheduleItem["temporalKind"]): ResolvedTemporalKind
-function resolveTimelineInterval(item: ScheduleItem):
-function resolveInitialWindow(items: DataItem[]):
-export function TimelineCanvas({
-  items,
-  members,
-  enableDrag = false,
-  groupMode = "none",
-  onMoveItem,
-  className,
-}: TimelineCanvasProps)
-⋮----
-<div className=
-```
-
-## File: src/features/timelineing.slice/_components/timeline.workspace-view.tsx
-```typescript
-import { Clock3 } from "lucide-react";
-import { useCallback, useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { useTimelineCommands, useWorkspaceTimeline } from "../_hooks";
-import { TimelineCanvas } from "./timeline-canvas";
-export function WorkspaceTimeline()
-```
-
 ## File: src/features/timelineing.slice/_hooks/use-timeline-commands.ts
 ```typescript
 import { useCallback } from 'react';
@@ -14080,6 +14076,17 @@ function buildRows(entries: AccountSkillEntry[]): SkillRow[]
 export function PersonalSkillPanel()
 ```
 
+## File: src/features/timelineing.slice/_components/timeline.account-view.tsx
+```typescript
+import { AlertCircle, Clock3 } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import type { ScheduleItem } from "@/shared-kernel";
+import { useApp } from "@/app-runtime/providers/app-provider";
+import { useAccountTimeline, useTimelineCommands } from "../_hooks";
+import { TimelineCanvas } from "./timeline-canvas";
+export function AccountTimelineSection()
+```
+
 ## File: src/features/workforce-scheduling.slice/_components/demand-board.tsx
 ```typescript
 import {
@@ -14294,17 +14301,6 @@ const handleDismissMember = async (member: MemberReference) =>
 ## File: src/features/semantic-graph.slice/index.ts
 ```typescript
 
-```
-
-## File: src/features/timelineing.slice/_components/timeline.account-view.tsx
-```typescript
-import { AlertCircle, Clock3 } from "lucide-react";
-import { useCallback, useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { useApp } from "@/app-runtime/providers/app-provider";
-import { useAccountTimeline, useTimelineCommands } from "../_hooks";
-import { TimelineCanvas } from "./timeline-canvas";
-export function AccountTimelineSection()
 ```
 
 ## File: src/features/workforce-scheduling.slice/_components/org-schedule-governance.tsx

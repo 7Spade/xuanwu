@@ -25,7 +25,7 @@ import type {
   TagDeprecatedPayload,
   TagDeletedPayload,
 } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collectionGroup,
   query,

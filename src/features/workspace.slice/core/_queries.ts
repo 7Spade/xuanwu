@@ -6,7 +6,7 @@
  * `shared/app-providers/account-provider.queries.ts`.
  */
 
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   onSnapshot,

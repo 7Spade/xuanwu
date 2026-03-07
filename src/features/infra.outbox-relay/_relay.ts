@@ -23,7 +23,7 @@
 
 import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
 import { logDomainError } from '@/features/observability';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   query,

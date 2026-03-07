@@ -7,7 +7,7 @@
 
 import type { ScheduleItem } from '@/shared-kernel'
 import type { PartnerInvite } from '@/shared-kernel'
-import { db } from '@/shared/infra/firestore/firestore.client'
+import { db } from '@/shared-infra/frontend-firebase'
 import {
   collection,
   limit,

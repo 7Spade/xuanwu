@@ -6,7 +6,7 @@
  * Per 00-LogicOverview.md [R4]: read queries must NOT live in _actions.ts.
  */
 
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { getDailyLogs as getDailyLogsFacade } from "@/shared/infra/firestore/firestore.facade";
 import {
   collection,

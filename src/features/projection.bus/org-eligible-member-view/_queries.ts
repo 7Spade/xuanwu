@@ -15,7 +15,7 @@
 
 import { resolveSkillTier } from '@/shared-kernel';
 import type { SkillTier } from '@/shared-kernel';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { getDocs, collection, type QueryDocumentSnapshot } from '@/shared/infra/firestore/firestore.read.adapter';
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter';
 

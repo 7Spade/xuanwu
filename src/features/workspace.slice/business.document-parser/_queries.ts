@@ -9,7 +9,7 @@
  */
 
 import { SUBCOLLECTIONS } from '@/shared/infra/firestore/collection-paths';
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import { collection, query, orderBy, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter';
 
 import type { ParsingIntent } from './_types';

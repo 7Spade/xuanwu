@@ -17,7 +17,7 @@
  * (financial amounts, internal workspace IDs are redacted).
  */
 
-import { db } from '@/shared/infra/firestore/firestore.client';
+import { db } from '@/shared-infra/frontend-firebase';
 import {
   collection,
   doc,

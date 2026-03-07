@@ -8,7 +8,7 @@
  */
 
 import type { Account } from '@/shared-kernel'
-import { db } from '@/shared/infra/firestore/firestore.client'
+import { db } from '@/shared-infra/frontend-firebase'
 import { doc, onSnapshot, type Unsubscribe } from '@/shared/infra/firestore/firestore.read.adapter'
 import { getDocument } from '@/shared/infra/firestore/firestore.read.adapter'
 
