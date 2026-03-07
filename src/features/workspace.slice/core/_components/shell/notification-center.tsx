@@ -8,7 +8,7 @@ import { Button } from "@/shadcn-ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn-ui/popover";
 import { ScrollArea } from "@/shadcn-ui/scroll-area";
 
-import type { AppAction } from '../app-provider'
+import type { AppAction } from '../../../../../app-runtime/app-provider'
 
 interface NotificationCenterProps {
   notifications: Notification[];

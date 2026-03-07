@@ -11,8 +11,8 @@ export { CreateWorkspaceDialog } from './_components/create-workspace-dialog'
 export { WorkspaceListHeader } from './_components/workspace-list-header'
 // Providers
 export { WorkspaceProvider, useWorkspace } from './_components/workspace-provider'
-export { AppProvider, AppContext } from './_components/app-provider'
-export type { AppAction } from './_components/app-provider'
+export { AppProvider, AppContext } from '../../../app-runtime/app-provider'
+export type { AppAction } from '../../../app-runtime/app-provider'
 // Types
 export type {
   Workspace,
@@ -23,7 +23,7 @@ export type {
   Address,
   WorkspaceLocation,
 } from './_types'
-export { AccountProvider, AccountContext } from './_components/account-provider'
+export { AccountProvider, AccountContext } from '../../../app-runtime/account-provider'
 export { StatCards } from './_components/stat-cards'
 // Hooks
 export { useAccount } from './_hooks/use-account'

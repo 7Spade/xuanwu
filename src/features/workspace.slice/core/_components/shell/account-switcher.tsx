@@ -24,7 +24,7 @@ import {
 } from "@/shadcn-ui/sidebar"
 import { cn } from "@/shadcn-ui/utils/utils"
 
-import type { AppAction } from '../app-provider'
+import type { AppAction } from '../../../../../app-runtime/app-provider'
 
 
 

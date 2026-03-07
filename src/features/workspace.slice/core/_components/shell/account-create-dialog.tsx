@@ -18,7 +18,7 @@ import { toast } from "@/shadcn-ui/hooks/use-toast"
 import { Input } from "@/shadcn-ui/input"
 import { Label } from "@/shadcn-ui/label"
 
-import type { AppAction } from '../app-provider'
+import type { AppAction } from '../../../../../app-runtime/app-provider'
 
 interface AccountCreateDialogProps {
   open: boolean
