@@ -9,11 +9,11 @@
 
 | Artefact | Purpose |
 |---|---|
-| `docs/00-LogicOverview.md` | Architecture SSOT — layer definitions, dependency rules, invariants |
+| `docs/architecture/00-LogicOverview.md` | Architecture SSOT — layer definitions, dependency rules, invariants |
 | `docs/knowledge-graph.json` | Semantic entity relationships |
-| `eslint.config.mts` | Enforces D1–D25 rules as ESLint errors |
+| `eslint.config.mts` | Enforces D1–D26 rules as ESLint errors |
 
-**Always read `docs/00-LogicOverview.md` before proposing any structural change.**
+**Always read `docs/architecture/00-LogicOverview.md` before proposing any structural change.**
 
 ---
 
@@ -28,7 +28,7 @@ L4  IER (Event Router)     src/features/*/core.event-bus/
 L5  Projection Bus         src/features/projection.bus/
 L6  Query Gateway          src/features/*/core/_queries.ts
 L7  Firebase ACL           src/shared/infra/{auth,firestore,messaging,storage}/
-L8  Firebase Infra         src/shared-infra/firebase/
+L8  Firebase Infra         src/shared-infra/backend-firebase/
 L9  Observability          src/app-runtime/ + logging adapters
 ```
 
@@ -44,8 +44,8 @@ L9  Observability          src/app-runtime/ + logging adapters
 | VS3 | Skill XP | `src/features/skill-xp.slice/` |
 | VS4 | Organization | `src/features/organization.slice/` |
 | VS5 | Workspace | `src/features/workspace.slice/` |
-| VS6 | Scheduling | `src/features/scheduling.slice/` |
-| VS7 | Notification | `src/features/notification.slice/` |
+| VS6 | Workforce-Scheduling | `src/features/workforce-scheduling.slice/` |
+| VS7 | Notification | `src/features/notification-hub.slice/` |
 | VS8 | Semantic Graph | `src/features/semantic-graph.slice/` |
 
 Cross-cutting authorities (not VS-numbered):
@@ -101,7 +101,7 @@ L0 → L1 → L2 → L3 → L4 → L5 → L6 → L7 → L8
 
 ```bash
 npm install                  # MANDATORY first — sandbox has no node_modules
-npm run lint                 # ESLint D1–D25 checks (0 errors expected)
+npm run lint                 # ESLint D1–D26 checks (0 errors expected)
 npm run typecheck            # tsc --noEmit (errors in firebase/functions/** are unrelated)
 npm run check                # lint + typecheck in one pass
 npm run dev                  # Dev server on http://localhost:9002
@@ -109,13 +109,13 @@ npm run dev                  # Dev server on http://localhost:9002
 
 Known baseline after `npm install`:
 - `npm run lint` → 0 errors, ~1,390 warnings (D24 tracked debt, not regressions)
-- `npm run typecheck` → 67 errors all in `src/shared-infra/firebase/functions/**` (separate package)
+- `npm run typecheck` → 67 errors all in `firebase/functions/**` (separate package)
 
 ---
 
 ## 8. Key Files to Read Before Making Changes
 
-1. `docs/00-LogicOverview.md` — architecture & invariants SSOT
+1. `docs/architecture/00-LogicOverview.md` — architecture & invariants SSOT
 2. `eslint.config.mts` — enforced rules
 3. `src/features/shared-kernel/` — shared contracts & ports
 4. Relevant `{slice}/index.ts` — slice public API

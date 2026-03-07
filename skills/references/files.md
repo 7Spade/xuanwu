@@ -4037,6 +4037,35 @@ export function buildCausalityChain(
 ): CausalityChain
 ```
 
+## File: src/features/semantic-graph.slice/centralized-edges/adjacency-list.ts
+```typescript
+import type { SemanticEdge, SemanticRelationType } from '../centralized-types';
+import { getAllEdges } from './semantic-edge-store';
+export type AdjacencyList = Map<string, Set<string>>;
+function _buildFromEdges(
+  edges: readonly SemanticEdge[],
+  filterType?: SemanticRelationType
+): AdjacencyList
+export function buildAdjacencyList(): AdjacencyList
+export function buildIsAAdjacencyList(): AdjacencyList
+export function buildRequiresAdjacencyList(): AdjacencyList
+export function getReachableNodes(sourceSlug: string, graph: AdjacencyList): ReadonlySet<string>
+export function getTopologicalOrder(graph: AdjacencyList): readonly string[] | null
+```
+
+## File: src/features/semantic-graph.slice/centralized-edges/context-attention.ts
+```typescript
+import type { TagSlugRef } from '@/shared-kernel';
+⋮----
+function _workspacePrefix(workspaceId: string): string
+function _isGlobalSlug(slug: string): boolean
+function _belongsToWorkspace(slug: string, workspaceId: string): boolean
+export function filterTagsByWorkspaceContext(
+  allSlugs: readonly TagSlugRef[],
+  workspaceId: string
+): TagSlugRef[]
+```
+
 ## File: src/features/semantic-graph.slice/centralized-edges/semantic-edge-store.ts
 ```typescript
 import { tagSlugRef } from '@/shared-kernel';
@@ -4137,6 +4166,44 @@ deleteEmbedding(slug: TagSlugRef): void
 clear(): void
 ```
 
+## File: src/features/semantic-graph.slice/centralized-guards/invariant-guard.ts
+```typescript
+import { getAllEdges } from '../centralized-edges/semantic-edge-store';
+import type { SemanticEdge, SemanticRelationType } from '../centralized-types';
+export interface EdgeProposal {
+  readonly fromTagSlug: string;
+  readonly toTagSlug: string;
+  readonly relationType: SemanticRelationType;
+  readonly weight?: number;
+}
+export type SemanticGuardRejectionCode =
+  | 'SELF_LOOP'
+  | 'INVALID_WEIGHT'
+  | 'DUPLICATE_EDGE'
+  | 'IS_A_CYCLE'
+  | 'SELF_REQUIRES';
+export type SemanticGuardDecision = 'APPROVED' | 'REJECTED';
+export interface SemanticGuardResult {
+  readonly decision: SemanticGuardDecision;
+  readonly rejectionCode?: SemanticGuardRejectionCode;
+  readonly reason?: string;
+}
+function _buildIsAGraph(edges: readonly SemanticEdge[]): Map<string, Set<string>>
+function _canReach(start: string, target: string, graph: Map<string, Set<string>>): boolean
+function _wouldCreateIsACycle(
+  fromSlug: string,
+  toSlug: string,
+  graph: Map<string, Set<string>>
+): boolean
+function _isDuplicateEdge(
+  fromSlug: string,
+  toSlug: string,
+  relationType: SemanticRelationType,
+  edges: readonly SemanticEdge[]
+): boolean
+export function validateEdgeProposal(proposal: EdgeProposal): SemanticGuardResult
+```
+
 ## File: src/features/semantic-graph.slice/centralized-guards/semantic-guard.ts
 ```typescript
 import { getAllEdges } from '../centralized-edges/semantic-edge-store';
@@ -4173,6 +4240,20 @@ function _isDuplicateEdge(
   edges: readonly SemanticEdge[]
 ): boolean
 export function validateEdgeProposal(proposal: EdgeProposal): SemanticGuardResult
+```
+
+## File: src/features/semantic-graph.slice/centralized-guards/staleness-monitor.ts
+```typescript
+import type { StaleTagWarning, TagLifecycleRecord } from '../centralized-types';
+⋮----
+export function upsertLifecycleRecord(record: TagLifecycleRecord): void
+export function removeLifecycleRecord(tagSlug: string): boolean
+export function detectStaleTagWarnings(
+  now: number = Date.now(),
+  thresholdMs: number = DEFAULT_STALENESS_THRESHOLD_MS
+): readonly StaleTagWarning[]
+export function getAllLifecycleRecords(): readonly TagLifecycleRecord[]
+export function _clearLifecycleRecordsForTest(): void
 ```
 
 ## File: src/features/semantic-graph.slice/centralized-learning/decay-service.ts
@@ -4217,15 +4298,7 @@ export function _clearLearningCacheForTest(): void
 
 ## File: src/features/semantic-graph.slice/centralized-neural-net/context-attention.ts
 ```typescript
-import type { TagSlugRef } from '@/shared-kernel';
-⋮----
-function _workspacePrefix(workspaceId: string): string
-function _isGlobalSlug(slug: string): boolean
-function _belongsToWorkspace(slug: string, workspaceId: string): boolean
-export function filterTagsByWorkspaceContext(
-  allSlugs: readonly TagSlugRef[],
-  workspaceId: string
-): TagSlugRef[]
+
 ```
 
 ## File: src/features/semantic-graph.slice/centralized-neural-net/neural-network.ts
@@ -4547,6 +4620,134 @@ export function isStale(isoTimestamp: string, thresholdMs: number): boolean
 export function deriveTierFromXp(xp: number): string
 ```
 
+## File: src/features/semantic-graph.slice/centralized-workflows/dispatch-bridge/index.ts
+```typescript
+import type { TagSlugRef } from '../../centralized-types';
+import { resolveDispatchPolicy } from '../policy-mapper';
+import type { DispatchPolicy } from '../policy-mapper';
+export interface DispatchCommand {
+  readonly commandId: string;
+  readonly tagSlug: TagSlugRef;
+  readonly policy: DispatchPolicy;
+  readonly createdAt: string;
+  readonly lane: DispatchLane;
+}
+export type DispatchLane =
+  | 'IMMEDIATE'
+  | 'FOREGROUND'
+  | 'BACKGROUND';
+export type DispatchResult =
+  | { readonly success: true; readonly command: DispatchCommand }
+  | { readonly success: false; readonly reason: string };
+⋮----
+function _generateCommandId(tagSlug: TagSlugRef): string
+function _determineLane(priority: number): DispatchLane
+export function dispatchForTag(tagSlug: TagSlugRef): DispatchResult
+export function dispatchForTags(
+  tagSlugs: readonly TagSlugRef[],
+  strict = false
+): readonly DispatchCommand[]
+export function _resetCommandCounterForTest(): void
+```
+
+## File: src/features/semantic-graph.slice/centralized-workflows/policy-mapper/index.ts
+```typescript
+import type { TagSlugRef } from '../../centralized-types';
+export type DispatchActionKind =
+  | 'NOTIFY_RESPONSIBLE_PARTY'
+  | 'ASSIGN_TO_WORKER'
+  | 'ESCALATE'
+  | 'ARCHIVE'
+  | 'PROMOTE_TAG'
+  | 'ALERT_ROUTING';
+export interface DispatchPolicy {
+  readonly tagSlug: TagSlugRef;
+  readonly actionKind: DispatchActionKind;
+  readonly priority: number;
+  readonly label: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+export type PolicyResolutionResult =
+  | { readonly found: true; readonly policy: DispatchPolicy }
+  | { readonly found: false; readonly reason: string };
+⋮----
+export function registerPolicy(policy: DispatchPolicy): void
+export function unregisterPolicy(tagSlug: TagSlugRef): boolean
+export function resolveDispatchPolicy(tagSlug: TagSlugRef): PolicyResolutionResult
+export function getAllPolicies(): readonly DispatchPolicy[]
+export function _clearPoliciesForTest(): void
+```
+
+## File: src/features/semantic-graph.slice/centralized-workflows/workflows/alert-routing-flow.ts
+```typescript
+import type { TagSlugRef } from '../../centralized-types';
+import { resolveDispatchPolicy } from '../policy-mapper';
+import { dispatchForTag } from '../dispatch-bridge';
+import type { DispatchCommand } from '../dispatch-bridge';
+export type AlertKind = 'STALE_TAG' | 'INVARIANT_FAIL' | 'CAUSALITY_WARN';
+export interface SemanticGraphAlert {
+  readonly alertId: string;
+  readonly kind: AlertKind;
+  readonly tagSlug?: TagSlugRef;
+  readonly message: string;
+  readonly detectedAt: string;
+  readonly severity: number;
+}
+export interface AlertRoutingResult {
+  readonly alert: SemanticGraphAlert;
+  readonly dispatchCommand: DispatchCommand | null;
+  readonly policyFound: boolean;
+  readonly skipReason?: string;
+}
+⋮----
+export function _resetAlertCounterForTest(): void
+function _generateAlertId(kind: AlertKind): string
+export function routeAlert(alert: SemanticGraphAlert): AlertRoutingResult
+export function routeStaleTagAlert(
+  tagSlug: TagSlugRef,
+  staleAgeMs: number
+): AlertRoutingResult
+export function routeInvariantFailAlert(
+  tagSlug: TagSlugRef | undefined,
+  rejectionReason: string
+): AlertRoutingResult
+export function routeCausalityWarnAlert(
+  tagSlug: TagSlugRef,
+  warningMessage: string
+): AlertRoutingResult
+```
+
+## File: src/features/semantic-graph.slice/centralized-workflows/workflows/tag-promotion-flow.ts
+```typescript
+import type { TagSlugRef } from '../../centralized-types';
+import { activateTag } from '../tag-lifecycle.workflow';
+import type { OutboxLifecycleEvent } from '../tag-lifecycle.workflow';
+import {
+  registerPolicy,
+  type DispatchPolicy,
+  type DispatchActionKind,
+} from '../policy-mapper';
+import { dispatchForTag } from '../dispatch-bridge';
+import type { DispatchCommand } from '../dispatch-bridge';
+export interface TagPromotionInput {
+  readonly tagSlug: TagSlugRef;
+  readonly triggeredBy: string;
+  readonly nextVersion: number;
+  readonly dispatchConfig: {
+    readonly actionKind: DispatchActionKind;
+    readonly priority: number;
+    readonly label: string;
+    readonly metadata?: Readonly<Record<string, unknown>>;
+  };
+}
+export interface TagPromotionResult {
+  readonly outboxEvent: OutboxLifecycleEvent;
+  readonly dispatchCommand: DispatchCommand | null;
+  readonly registeredPolicy: DispatchPolicy;
+}
+export function promoteTagToActive(input: TagPromotionInput): TagPromotionResult
+```
+
 ## File: src/features/semantic-graph.slice/centralized-workflows/tag-lifecycle.workflow.ts
 ```typescript
 import { buildIdempotencyKey, StalenessMs } from '@/shared-kernel';
@@ -4596,6 +4797,38 @@ function _buildEvent(
   transitionedAt: string
 ): TagLifecycleEvent
 function _wrapOutbox(payload: TagLifecycleEvent): OutboxLifecycleEvent
+```
+
+## File: src/features/semantic-graph.slice/consensus-engine/index.ts
+```typescript
+import type { RelationshipProposal } from '../proposal-stream';
+export type ConsensusDecision = 'PASS' | 'REJECTED';
+export type ConsensusRejectionCode =
+  | 'DUPLICATE_PENDING'
+  | 'CONTRADICTORY_PROPOSAL'
+  | 'GOVERNANCE_CONFLICT'
+  | 'INCOMPLETE_PROPOSAL';
+export interface ConsensusResult {
+  readonly decision: ConsensusDecision;
+  readonly rejectionCode?: ConsensusRejectionCode;
+  readonly reason?: string;
+}
+function _isSameTuple(
+  a: RelationshipProposal,
+  b: RelationshipProposal,
+): boolean
+function _isContradictoryPair(
+  incoming: RelationshipProposal,
+  existing: RelationshipProposal,
+): boolean
+function _hasOpposingRelation(
+  incoming: RelationshipProposal,
+  existing: RelationshipProposal,
+): boolean
+export function validateConsensus(
+  incoming: RelationshipProposal,
+  activeProposals: readonly RelationshipProposal[],
+): ConsensusResult
 ```
 
 ## File: src/features/semantic-graph.slice/outbox/tag-outbox.ts
@@ -4713,6 +4946,46 @@ export function rejectProposal(proposalId: ProposalId, reason: string): void
 export function listPendingProposals(): readonly RelationshipProposal[]
 export function listAllProposals(): readonly RelationshipProposal[]
 export function _clearProposalsForTest(): void
+```
+
+## File: src/features/semantic-graph.slice/relationship-visualizer/index.ts
+```typescript
+import type { SemanticRelationType } from '../centralized-types';
+import {
+  buildAdjacencyList,
+  buildIsAAdjacencyList,
+  buildRequiresAdjacencyList,
+} from '../centralized-edges/adjacency-list';
+import { getAllEdges } from '../centralized-edges/semantic-edge-store';
+export interface VisNode {
+  readonly id: string;
+  readonly label: string;
+  readonly category: 'tag' | 'workspace-tag' | 'global-tag';
+}
+export interface VisEdge {
+  readonly source: string;
+  readonly target: string;
+  readonly relationType: SemanticRelationType;
+}
+export interface GraphSnapshot {
+  readonly nodes: readonly VisNode[];
+  readonly edges: readonly VisEdge[];
+  readonly generatedAt: string;
+}
+function _slugToCategory(slug: string): VisNode['category']
+function _slugToLabel(slug: string): string
+function _buildNodes(adjacency: ReturnType<typeof buildAdjacencyList>): VisNode[]
+// ─── Public API ───────────────────────────────────────────────────────────────
+/**
+ * Build a full graph snapshot (all relation types) from the current edge store.
+ * [D21-I] globally observable.
+ */
+export function buildFullGraphSnapshot(): GraphSnapshot
+/**
+ * Build an IS_A hierarchy snapshot for subsumption tree rendering.
+ */
+export function buildIsAHierarchySnapshot(): GraphSnapshot
+export function buildRequiresDependencySnapshot(): GraphSnapshot
 ```
 
 ## File: src/features/semantic-graph.slice/subscribers/lifecycle-subscriber.ts
