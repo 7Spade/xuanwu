@@ -34,7 +34,7 @@ This skill contains the following reference files:
 
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: **/*
+- Only files matching these patterns are included: src/**/*.ts, src/**/*.tsx, src/shared-kernel/**/*.ts, src/shared-kernel/**/*.tsx
 - Files matching these patterns are excluded: src/app/favicon.ico, src/app/globals.css, **/*.md, **/*.test.ts, **/*.svg, **/types/generated.ts, **/*.md, .codacy/**, .firebase/**, .github/**, .idx/**, .next/**, docs/**, public/**, skills/**, .aiexclude, .firebaserc, .gitattributes, .gitignore, .modified, .prettierrc, apphosting.yaml, components.json, eslint.config.mts, next.config.ts, postcss.config.mjs, README.md, repomix.config.ts, **/node_modules/**, src/shared-infra/backend-firebase/functions/lib/**, src/shared/shadcn-ui/**, tailwind.config.ts, vitest.config.ts, **/dist/**, **/build/**, **/.git/**, package-lock.json, repomix-output.md
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
@@ -45,17 +45,12 @@ This skill contains the following reference files:
 
 ## Statistics
 
-688 files | 11,319 lines
+674 files | 10,960 lines
 
 | Language | Files | Lines |
 |----------|------:|------:|
 | TypeScript | 427 | 7,554 |
 | TypeScript (TSX) | 247 | 3,406 |
-| JSON | 7 | 312 |
-| Markdown | 2 | 10 |
-| No Extension | 2 | 15 |
-| RULES | 2 | 21 |
-| JavaScript | 1 | 1 |
 
 **Largest files:**
 - `src/features/workspace.slice/core/_components/workspace-settings.tsx` (340 lines)
@@ -63,8 +58,8 @@ This skill contains the following reference files:
 - `src/features/workspace.slice/core.event-bus/_events.ts` (172 lines)
 - `src/features/semantic-graph.slice/centralized-types/index.ts` (138 lines)
 - `src/features/workspace.slice/business.document-parser/_intent-actions.ts` (136 lines)
-- `package.json` (135 lines)
 - `src/features/organization.slice/core.event-bus/_events.ts` (126 lines)
 - `src/shared/infra/firestore/repositories/workspace-core.repository.ts` (87 lines)
 - `src/features/workspace.slice/core/_actions.ts` (76 lines)
 - `src/features/workforce-scheduling.slice/_components/proposal-dialog.tsx` (75 lines)
+- `src/shared-kernel/data-contracts/account/account-contract.ts` (74 lines)

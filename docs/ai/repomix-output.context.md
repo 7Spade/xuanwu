@@ -31,7 +31,7 @@ The content is organized as follows:
 ## Notes
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: src/**/*.ts, src/**/*.tsx
+- Only files matching these patterns are included: src/**/*.ts, src/**/*.tsx, src/shared-kernel/**/*.ts, src/shared-kernel/**/*.tsx
 - Files matching these patterns are excluded: src/app/favicon.ico, src/app/globals.css, **/*.md, **/*.test.ts, **/*.svg, **/types/generated.ts, **/*.md, .codacy/**, .firebase/**, .github/**, .idx/**, .next/**, docs/**, public/**, skills/**, .aiexclude, .firebaserc, .gitattributes, .gitignore, .modified, .prettierrc, apphosting.yaml, components.json, eslint.config.mts, next.config.ts, postcss.config.mjs, README.md, repomix.config.ts, **/node_modules/**, src/shared-infra/backend-firebase/functions/lib/**, src/shared/shadcn-ui/**, tailwind.config.ts, vitest.config.ts, **/dist/**, **/build/**, **/.git/**, package-lock.json, repomix-output.md
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
@@ -1454,17 +1454,6 @@ export type PortalState = {
 
 ```
 
-## File: src/features/projection.bus/_funnel.shared.ts
-```typescript
-import { arrayUnion, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
-export async function executeAggregateWriteOp(op: {
-  path: string;
-  data: Record<string, unknown>;
-  arrayUnionFields?: Record<string, string[]>;
-}): Promise<void>
-export function createVersionStamp():
-```
-
 ## File: src/features/projection.bus/_organization-funnel.ts
 ```typescript
 import { onOrgEvent } from '@/features/organization.slice';
@@ -1933,6 +1922,45 @@ export function findDirectFirebaseImports(dir: string): string[]
 
 ```
 
+## File: src/features/workspace.slice/business.tasks/_actions/helpers.ts
+```typescript
+import type { WorkspaceTask } from '../_types';
+export type ReconcileIncomingItem = {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  discount?: number;
+  subtotal: number;
+  sourceIntentIndex?: number;
+};
+export const toErrorMessage = (error: unknown): string
+export const sanitizeTaskUpdates = (
+  updates: Partial<WorkspaceTask>
+): Partial<WorkspaceTask> =>
+const withOptionalDiscount = (
+  discount: number | undefined
+):
+const withOptionalSourceIntentIndex = (
+  sourceIntentIndex: number | undefined
+):
+export const buildReconcileUpdatePayload = (
+  item: ReconcileIncomingItem,
+  newIntentId: string,
+  newIntentVersion: number
+) => (
+export const buildReconcileCreatePayload = (
+  baseTaskData: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt' | 'name' | 'quantity' | 'unitPrice' | 'discount' | 'subtotal' | 'sourceIntentId' | 'sourceIntentVersion'>,
+  item: ReconcileIncomingItem,
+  newIntentId: string,
+  newIntentVersion: number
+) => (
+```
+
+## File: src/features/workspace.slice/business.tasks/_hooks/index.ts
+```typescript
+
+```
+
 ## File: src/features/workspace.slice/business.tasks/index.ts
 ```typescript
 
@@ -2265,6 +2293,11 @@ fromFirestore(
 ): T
 ```
 
+## File: src/shared/infra/firestore/firestore.facade.ts
+```typescript
+
+```
+
 ## File: src/shared/infra/firestore/firestore.read.adapter.ts
 ```typescript
 import {
@@ -2406,6 +2439,11 @@ export const getDailyLogs = async (
   accountId: string,
   limitCount = 30
 ): Promise<DailyLog[]> =>
+```
+
+## File: src/shared/infra/firestore/repositories/index.ts
+```typescript
+
 ```
 
 ## File: src/shared/infra/firestore/repositories/workspace-business.document-parser.repository.ts
@@ -3664,6 +3702,17 @@ export function subscribeToOrgMembers(
 
 ```
 
+## File: src/features/projection.bus/_funnel.shared.ts
+```typescript
+import { arrayUnion, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
+export async function executeAggregateWriteOp(op: {
+  path: string;
+  data: Record<string, unknown>;
+  arrayUnionFields?: Record<string, string[]>;
+}): Promise<void>
+export function createVersionStamp():
+```
+
 ## File: src/features/projection.bus/_funnel.ts
 ```typescript
 import type { WorkspaceEventBus } from '@/features/workspace.slice';
@@ -4564,6 +4613,11 @@ export interface TimelineMember {
 }
 ```
 
+## File: src/features/timelineing.slice/index.ts
+```typescript
+
+```
+
 ## File: src/features/workforce-scheduling.slice/_actions.ts
 ```typescript
 
@@ -5400,38 +5454,151 @@ export function supersedeParsingIntent(
 ): ParsingIntentContract
 ```
 
-## File: src/features/workspace.slice/business.tasks/_actions/helpers.ts
+## File: src/features/workspace.slice/business.tasks/_actions/index.ts
 ```typescript
+import {
+  type CommandResult,
+  commandSuccess,
+  commandFailureFrom,
+} from '@/shared-kernel';
+import {
+  createTask as createTaskFacade,
+  updateTask as updateTaskFacade,
+  deleteTask as deleteTaskFacade,
+  getTasksBySourceIntentId as getTasksBySourceIntentIdFacade,
+  reconcileTask as reconcileTaskFacade,
+} from '@/shared/infra/firestore/firestore.facade';
 import type { WorkspaceTask } from '../_types';
-export type ReconcileIncomingItem = {
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  discount?: number;
-  subtotal: number;
-  sourceIntentIndex?: number;
-};
-export const toErrorMessage = (error: unknown): string
-export const sanitizeTaskUpdates = (
+import {
+  buildReconcileCreatePayload,
+  buildReconcileUpdatePayload,
+  sanitizeTaskUpdates,
+  toErrorMessage,
+  type ReconcileIncomingItem,
+} from './helpers';
+export async function createTask(
+  workspaceId: string,
+  taskData: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<CommandResult>
+export async function updateTask(
+  workspaceId: string,
+  taskId: string,
   updates: Partial<WorkspaceTask>
-): Partial<WorkspaceTask> =>
-const withOptionalDiscount = (
-  discount: number | undefined
-):
-const withOptionalSourceIntentIndex = (
-  sourceIntentIndex: number | undefined
-):
-export const buildReconcileUpdatePayload = (
-  item: ReconcileIncomingItem,
+): Promise<CommandResult>
+export async function deleteTask(
+  workspaceId: string,
+  taskId: string
+): Promise<CommandResult>
+export async function batchImportTasks(
+  workspaceId: string,
+  items: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>[]
+): Promise<CommandResult>
+export async function reconcileIntentTasks(
+  workspaceId: string,
+  oldIntentId: string,
   newIntentId: string,
-  newIntentVersion: number
-) => (
-export const buildReconcileCreatePayload = (
-  baseTaskData: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt' | 'name' | 'quantity' | 'unitPrice' | 'discount' | 'subtotal' | 'sourceIntentId' | 'sourceIntentVersion'>,
-  item: ReconcileIncomingItem,
-  newIntentId: string,
-  newIntentVersion: number
-) => (
+  newIntentVersion: number,
+  items: ReconcileIncomingItem[],
+  baseTaskData: Omit<
+    WorkspaceTask,
+    | 'id'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'name'
+    | 'quantity'
+    | 'unitPrice'
+    | 'discount'
+    | 'subtotal'
+    | 'sourceIntentId'
+    | 'sourceIntentVersion'
+  >
+): Promise<CommandResult>
+```
+
+## File: src/features/workspace.slice/business.tasks/_components/attachments-action.tsx
+```typescript
+import { Paperclip } from 'lucide-react';
+import { Button } from '@/shadcn-ui/button';
+import { type TaskWithChildren } from '../_types';
+type AttachmentsActionProps = {
+  node: TaskWithChildren;
+  onOpenAttachments: (node: TaskWithChildren) => void;
+};
+export function AttachmentsAction(
+```
+
+## File: src/features/workspace.slice/business.tasks/_components/attachments-dialog.tsx
+```typescript
+import { Loader2, UploadCloud, X } from 'lucide-react';
+import Image from 'next/image';
+import { Button } from '@/shadcn-ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shadcn-ui/dialog';
+type AttachmentsDialogProps = {
+  isOpen: boolean;
+  attachments: string[];
+  files: File[];
+  onFilesSelected: (files: FileList | null) => void;
+  onRemoveFile: (index: number) => void;
+  onSave: () => void;
+  isSaving: boolean;
+  onOpenChange: (open: boolean) => void;
+  onPreviewImage: (url: string) => void;
+};
+⋮----
+onClick=
+```
+
+## File: src/features/workspace.slice/business.tasks/_components/location-action.tsx
+```typescript
+import { MapPin } from 'lucide-react';
+import { Button } from '@/shadcn-ui/button';
+import { type TaskWithChildren } from '../_types';
+type LocationActionProps = {
+  node: TaskWithChildren;
+  onOpenLocation: (node: TaskWithChildren) => void;
+};
+export function LocationAction(
+```
+
+## File: src/features/workspace.slice/business.tasks/_components/location-dialog.tsx
+```typescript
+import { Loader2, MapPin } from 'lucide-react';
+import { Button } from '@/shadcn-ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shadcn-ui/dialog';
+import { Input } from '@/shadcn-ui/input';
+import { Label } from '@/shadcn-ui/label';
+import { Textarea } from '@/shadcn-ui/textarea';
+import { type Location } from '../_types';
+type LocationDialogProps = {
+  isOpen: boolean;
+  draft: Location;
+  onDraftChange: (field: keyof Location, value: string) => void;
+  onSave: () => void;
+  isSaving: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+export function LocationDialog({
+  isOpen,
+  draft,
+  onDraftChange,
+  onSave,
+  isSaving,
+  onOpenChange,
+}: LocationDialogProps)
+⋮----
+onChange=
 ```
 
 ## File: src/features/workspace.slice/business.tasks/_components/progress-report-dialog.tsx
@@ -5466,9 +5633,144 @@ export function ProgressReportDialog({
 const handleSubmit = async () =>
 ```
 
-## File: src/features/workspace.slice/business.tasks/_hooks/index.ts
+## File: src/features/workspace.slice/business.tasks/_components/task-editor-dialog.tsx
 ```typescript
+import { Loader2, Settings2 } from 'lucide-react';
+import { Button } from '@/shadcn-ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shadcn-ui/dialog';
+import { Input } from '@/shadcn-ui/input';
+import { Label } from '@/shadcn-ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shadcn-ui/select';
+import { Textarea } from '@/shadcn-ui/textarea';
+import { type WorkspaceTask } from '../_types';
+interface TaskEditorDialogProps {
+  isOpen: boolean;
+  editingTask: Partial<WorkspaceTask> | null;
+  setEditingTask: React.Dispatch<React.SetStateAction<Partial<WorkspaceTask> | null>>;
+  isUploading: boolean;
+  onSave: () => void;
+  onOpenChange: (open: boolean) => void;
+}
+export function TaskEditorDialog({
+  isOpen,
+  editingTask,
+  setEditingTask,
+  isUploading,
+  onSave,
+  onOpenChange,
+}: TaskEditorDialogProps)
+⋮----
+onChange={(e) => setEditingTask({ ...editingTask, name: e.target.value })}
+              className="h-11 rounded-lg border-input bg-background"
+            />
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <Label className="ml-1 text-xs font-semibold text-foreground">Description & Specs</Label>
+            <Textarea
+              value={editingTask?.description || ''}
+              onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+              className="min-h-[96px] resize-none rounded-lg border-input bg-background"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="ml-1 text-xs font-semibold text-foreground">Status</Label>
+            <Select
+              value={editingTask?.progressState}
+onValueChange=
+⋮----
+onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+              className="min-h-[96px] resize-none rounded-lg border-input bg-background"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="ml-1 text-xs font-semibold text-foreground">Status</Label>
+            <Select
+              value={editingTask?.progressState}
+onValueChange=
+```
 
+## File: src/features/workspace.slice/business.tasks/_components/task-tree-node.tsx
+```typescript
+import { CalendarPlus, ChevronDown, ChevronRight, ClipboardPlus, OctagonX, Plus, Send, Settings2, Trash2 } from 'lucide-react';
+import { Badge } from '@/shadcn-ui/badge';
+import { Button } from '@/shadcn-ui/button';
+import { Progress } from '@/shadcn-ui/progress';
+import { cn } from '@/shadcn-ui/utils/utils';
+import { type TaskWithChildren, type WorkspaceTask } from '../_types';
+import { AttachmentsAction } from './attachments-action';
+import { LocationAction } from './location-action';
+interface TaskTreeNodeProps {
+  node: TaskWithChildren;
+  level?: number;
+  expandedIds: Set<string>;
+  setExpandedIds: React.Dispatch<React.SetStateAction<Set<string>>>;
+  visibleColumns: Set<string>;
+  onPreviewImage: (url: string) => void;
+  onOpenLocation: (node: TaskWithChildren) => void;
+  onOpenAttachments: (node: TaskWithChildren) => void;
+  onReportProgress: (node: TaskWithChildren) => void;
+  onScheduleRequest: (node: WorkspaceTask) => void;
+  onMarkBlocked: (node: TaskWithChildren) => void;
+  onCreateChild: (node: TaskWithChildren) => void;
+  onEditNode: (node: TaskWithChildren) => void;
+  onDeleteNode: (node: TaskWithChildren) => void;
+  onSubmitForQA: (node: TaskWithChildren) => void;
+}
+⋮----
+className=
+```
+
+## File: src/features/workspace.slice/business.tasks/_hooks/use-attachments-dialog-controller.ts
+```typescript
+import { useState } from 'react';
+import { toast } from '@/shadcn-ui/hooks/use-toast';
+import { type TaskWithChildren, type WorkspaceTask } from '../_types';
+type UpdateTask = (taskId: string, updates: Partial<WorkspaceTask>) => Promise<void>;
+type UploadTaskAttachment = (file: File) => Promise<string>;
+type LogAuditEvent = (action: string, target: string, operation: 'create' | 'update' | 'delete') => void;
+const getErrorMessage = (error: unknown, fallback: string)
+export function useAttachmentsDialogController(params: {
+  updateTask: UpdateTask;
+  uploadTaskAttachment: UploadTaskAttachment;
+  logAuditEvent: LogAuditEvent;
+})
+⋮----
+const openAttachments = (task: TaskWithChildren) =>
+const closeAttachments = () =>
+const selectFiles = (files: FileList | null) =>
+const removeFile = (index: number) =>
+const saveAttachments = async () =>
+```
+
+## File: src/features/workspace.slice/business.tasks/_hooks/use-location-dialog-controller.ts
+```typescript
+import { useState } from 'react';
+import { toast } from '@/shadcn-ui/hooks/use-toast';
+import { type Location, type TaskWithChildren, type WorkspaceTask } from '../_types';
+type UpdateTask = (taskId: string, updates: Partial<WorkspaceTask>) => Promise<void>;
+type LogAuditEvent = (action: string, target: string, operation: 'create' | 'update' | 'delete') => void;
+const getErrorMessage = (error: unknown, fallback: string)
+export function useLocationDialogController(params: {
+  updateTask: UpdateTask;
+  logAuditEvent: LogAuditEvent;
+})
+⋮----
+const openLocation = (task: TaskWithChildren) =>
+const closeLocation = () =>
+const updateDraft = (field: keyof Location, value: string) =>
+const saveLocation = async () =>
 ```
 
 ## File: src/features/workspace.slice/business.tasks/_queries.ts
@@ -7778,11 +8080,6 @@ export function mapFirebaseUser(user: FirebaseUser): AuthUser
 
 ```
 
-## File: src/shared/infra/firestore/firestore.facade.ts
-```typescript
-
-```
-
 ## File: src/shared/infra/firestore/firestore.types.ts
 ```typescript
 import type {
@@ -7839,11 +8136,6 @@ export const updateOrganizationSettings = async (organizationId: string, setting
 export const deleteOrganization = async (organizationId: string): Promise<void> =>
 ```
 
-## File: src/shared/infra/firestore/repositories/index.ts
-```typescript
-
-```
-
 ## File: src/shared/infra/firestore/repositories/projection.registry.repository.ts
 ```typescript
 import {
@@ -7868,6 +8160,59 @@ export const upsertProjectionVersion = async (
   lastEventOffset: number,
   readModelVersion: string
 ): Promise<void> =>
+```
+
+## File: src/shared/infra/firestore/repositories/schedule.repository.ts
+```typescript
+import {
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove,
+  doc,
+  updateDoc,
+  collection,
+  query,
+  orderBy,
+  where,
+} from 'firebase/firestore'
+import type { ScheduleItem } from '@/shared-kernel'
+import { db } from '../firestore.client'
+import { createConverter } from '../firestore.converter'
+import { getDocuments } from '../firestore.read.adapter'
+import { addDocument, updateDocument } from '../firestore.write.adapter'
+export const createScheduleItem = async (
+  itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<string> =>
+export const updateScheduleItemStatus = async (
+  organizationId: string,
+  itemId: string,
+  newStatus: 'OFFICIAL' | 'REJECTED' | 'COMPLETED'
+): Promise<void> =>
+export const updateScheduleItemDateRange = async (
+  accountId: string,
+  itemId: string,
+  startDate: ScheduleItem['startDate'],
+  endDate: ScheduleItem['endDate']
+): Promise<void> =>
+export const assignMemberAndApprove = async (
+  organizationId: string,
+  itemId: string,
+  memberId: string
+): Promise<void> =>
+export const assignMemberToScheduleItem = async (
+  accountId: string,
+  itemId: string,
+  memberId: string
+): Promise<void> =>
+export const unassignMemberFromScheduleItem = async (
+  accountId: string,
+  itemId: string,
+  memberId: string
+): Promise<void> =>
+export const getScheduleItems = async (
+  accountId: string,
+  workspaceId?: string
+): Promise<ScheduleItem[]> =>
 ```
 
 ## File: src/shared/infra/firestore/repositories/user.repository.ts
@@ -8209,6 +8554,15 @@ type WorkforceTab = "schedule" | "timeline";
 ```typescript
 import { WorkspaceCapabilityTabs, WorkspaceSchedule } from "@/features/workforce-scheduling.slice"
 export default function ScheduleCapabilityPage()
+```
+
+## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/@businesstab/timeline/page.tsx
+```typescript
+import {
+  WorkspaceTimeline,
+  WorkspaceTimelineCapabilityTabs,
+} from "@/features/timelineing.slice";
+export default function TimelineCapabilityPage()
 ```
 
 ## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/daily-log/[logId]/page.tsx
@@ -9512,11 +9866,6 @@ export function subscribeToWorkspaceTimelineItems(
 ): Unsubscribe
 ```
 
-## File: src/features/timelineing.slice/index.ts
-```typescript
-
-```
-
 ## File: src/features/workforce-scheduling.slice/_components/decision-history-columns.tsx
 ```typescript
 import { type ColumnDef } from "@tanstack/react-table"
@@ -10159,266 +10508,6 @@ interface FinanceItemTableProps {
 }
 ```
 
-## File: src/features/workspace.slice/business.tasks/_actions/index.ts
-```typescript
-import {
-  type CommandResult,
-  commandSuccess,
-  commandFailureFrom,
-} from '@/shared-kernel';
-import {
-  createTask as createTaskFacade,
-  updateTask as updateTaskFacade,
-  deleteTask as deleteTaskFacade,
-  getTasksBySourceIntentId as getTasksBySourceIntentIdFacade,
-  reconcileTask as reconcileTaskFacade,
-} from '@/shared/infra/firestore/firestore.facade';
-import type { WorkspaceTask } from '../_types';
-import {
-  buildReconcileCreatePayload,
-  buildReconcileUpdatePayload,
-  sanitizeTaskUpdates,
-  toErrorMessage,
-  type ReconcileIncomingItem,
-} from './helpers';
-export async function createTask(
-  workspaceId: string,
-  taskData: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>
-): Promise<CommandResult>
-export async function updateTask(
-  workspaceId: string,
-  taskId: string,
-  updates: Partial<WorkspaceTask>
-): Promise<CommandResult>
-export async function deleteTask(
-  workspaceId: string,
-  taskId: string
-): Promise<CommandResult>
-export async function batchImportTasks(
-  workspaceId: string,
-  items: Omit<WorkspaceTask, 'id' | 'createdAt' | 'updatedAt'>[]
-): Promise<CommandResult>
-export async function reconcileIntentTasks(
-  workspaceId: string,
-  oldIntentId: string,
-  newIntentId: string,
-  newIntentVersion: number,
-  items: ReconcileIncomingItem[],
-  baseTaskData: Omit<
-    WorkspaceTask,
-    | 'id'
-    | 'createdAt'
-    | 'updatedAt'
-    | 'name'
-    | 'quantity'
-    | 'unitPrice'
-    | 'discount'
-    | 'subtotal'
-    | 'sourceIntentId'
-    | 'sourceIntentVersion'
-  >
-): Promise<CommandResult>
-```
-
-## File: src/features/workspace.slice/business.tasks/_components/attachments-action.tsx
-```typescript
-import { Paperclip } from 'lucide-react';
-import { Button } from '@/shadcn-ui/button';
-import { type TaskWithChildren } from '../_types';
-type AttachmentsActionProps = {
-  node: TaskWithChildren;
-  onOpenAttachments: (node: TaskWithChildren) => void;
-};
-export function AttachmentsAction(
-```
-
-## File: src/features/workspace.slice/business.tasks/_components/location-action.tsx
-```typescript
-import { MapPin } from 'lucide-react';
-import { Button } from '@/shadcn-ui/button';
-import { type TaskWithChildren } from '../_types';
-type LocationActionProps = {
-  node: TaskWithChildren;
-  onOpenLocation: (node: TaskWithChildren) => void;
-};
-export function LocationAction(
-```
-
-## File: src/features/workspace.slice/business.tasks/_components/location-dialog.tsx
-```typescript
-import { Loader2, MapPin } from 'lucide-react';
-import { Button } from '@/shadcn-ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/shadcn-ui/dialog';
-import { Input } from '@/shadcn-ui/input';
-import { Label } from '@/shadcn-ui/label';
-import { Textarea } from '@/shadcn-ui/textarea';
-import { type Location } from '../_types';
-type LocationDialogProps = {
-  isOpen: boolean;
-  draft: Location;
-  onDraftChange: (field: keyof Location, value: string) => void;
-  onSave: () => void;
-  isSaving: boolean;
-  onOpenChange: (open: boolean) => void;
-};
-export function LocationDialog({
-  isOpen,
-  draft,
-  onDraftChange,
-  onSave,
-  isSaving,
-  onOpenChange,
-}: LocationDialogProps)
-⋮----
-onChange=
-```
-
-## File: src/features/workspace.slice/business.tasks/_components/task-editor-dialog.tsx
-```typescript
-import { Loader2, Settings2 } from 'lucide-react';
-import { Button } from '@/shadcn-ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shadcn-ui/dialog';
-import { Input } from '@/shadcn-ui/input';
-import { Label } from '@/shadcn-ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shadcn-ui/select';
-import { Textarea } from '@/shadcn-ui/textarea';
-import { type WorkspaceTask } from '../_types';
-interface TaskEditorDialogProps {
-  isOpen: boolean;
-  editingTask: Partial<WorkspaceTask> | null;
-  setEditingTask: React.Dispatch<React.SetStateAction<Partial<WorkspaceTask> | null>>;
-  isUploading: boolean;
-  onSave: () => void;
-  onOpenChange: (open: boolean) => void;
-}
-export function TaskEditorDialog({
-  isOpen,
-  editingTask,
-  setEditingTask,
-  isUploading,
-  onSave,
-  onOpenChange,
-}: TaskEditorDialogProps)
-⋮----
-onChange={(e) => setEditingTask({ ...editingTask, name: e.target.value })}
-              className="h-11 rounded-lg border-input bg-background"
-            />
-          </div>
-          <div className="col-span-2 space-y-1.5">
-            <Label className="ml-1 text-xs font-semibold text-foreground">Description & Specs</Label>
-            <Textarea
-              value={editingTask?.description || ''}
-              onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
-              className="min-h-[96px] resize-none rounded-lg border-input bg-background"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="ml-1 text-xs font-semibold text-foreground">Status</Label>
-            <Select
-              value={editingTask?.progressState}
-onValueChange=
-⋮----
-onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
-              className="min-h-[96px] resize-none rounded-lg border-input bg-background"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="ml-1 text-xs font-semibold text-foreground">Status</Label>
-            <Select
-              value={editingTask?.progressState}
-onValueChange=
-```
-
-## File: src/features/workspace.slice/business.tasks/_components/task-tree-node.tsx
-```typescript
-import { CalendarPlus, ChevronDown, ChevronRight, ClipboardPlus, OctagonX, Plus, Send, Settings2, Trash2 } from 'lucide-react';
-import { Badge } from '@/shadcn-ui/badge';
-import { Button } from '@/shadcn-ui/button';
-import { Progress } from '@/shadcn-ui/progress';
-import { cn } from '@/shadcn-ui/utils/utils';
-import { type TaskWithChildren, type WorkspaceTask } from '../_types';
-import { AttachmentsAction } from './attachments-action';
-import { LocationAction } from './location-action';
-interface TaskTreeNodeProps {
-  node: TaskWithChildren;
-  level?: number;
-  expandedIds: Set<string>;
-  setExpandedIds: React.Dispatch<React.SetStateAction<Set<string>>>;
-  visibleColumns: Set<string>;
-  onPreviewImage: (url: string) => void;
-  onOpenLocation: (node: TaskWithChildren) => void;
-  onOpenAttachments: (node: TaskWithChildren) => void;
-  onReportProgress: (node: TaskWithChildren) => void;
-  onScheduleRequest: (node: WorkspaceTask) => void;
-  onMarkBlocked: (node: TaskWithChildren) => void;
-  onCreateChild: (node: TaskWithChildren) => void;
-  onEditNode: (node: TaskWithChildren) => void;
-  onDeleteNode: (node: TaskWithChildren) => void;
-  onSubmitForQA: (node: TaskWithChildren) => void;
-}
-⋮----
-className=
-```
-
-## File: src/features/workspace.slice/business.tasks/_hooks/use-attachments-dialog-controller.ts
-```typescript
-import { useState } from 'react';
-import { toast } from '@/shadcn-ui/hooks/use-toast';
-import { type TaskWithChildren, type WorkspaceTask } from '../_types';
-type UpdateTask = (taskId: string, updates: Partial<WorkspaceTask>) => Promise<void>;
-type UploadTaskAttachment = (file: File) => Promise<string>;
-type LogAuditEvent = (action: string, target: string, operation: 'create' | 'update' | 'delete') => void;
-const getErrorMessage = (error: unknown, fallback: string)
-export function useAttachmentsDialogController(params: {
-  updateTask: UpdateTask;
-  uploadTaskAttachment: UploadTaskAttachment;
-  logAuditEvent: LogAuditEvent;
-})
-⋮----
-const openAttachments = (task: TaskWithChildren) =>
-const closeAttachments = () =>
-const selectFiles = (files: FileList | null) =>
-const removeFile = (index: number) =>
-const saveAttachments = async () =>
-```
-
-## File: src/features/workspace.slice/business.tasks/_hooks/use-location-dialog-controller.ts
-```typescript
-import { useState } from 'react';
-import { toast } from '@/shadcn-ui/hooks/use-toast';
-import { type Location, type TaskWithChildren, type WorkspaceTask } from '../_types';
-type UpdateTask = (taskId: string, updates: Partial<WorkspaceTask>) => Promise<void>;
-type LogAuditEvent = (action: string, target: string, operation: 'create' | 'update' | 'delete') => void;
-const getErrorMessage = (error: unknown, fallback: string)
-export function useLocationDialogController(params: {
-  updateTask: UpdateTask;
-  logAuditEvent: LogAuditEvent;
-})
-⋮----
-const openLocation = (task: TaskWithChildren) =>
-const closeLocation = () =>
-const updateDraft = (field: keyof Location, value: string) =>
-const saveLocation = async () =>
-```
-
 ## File: src/features/workspace.slice/business.tasks/_types.ts
 ```typescript
 import type { Location, SkillRequirement } from '@/shared-kernel'
@@ -10837,59 +10926,6 @@ export interface ImplementsEventEnvelopeContract {
 }
 ```
 
-## File: src/shared/infra/firestore/repositories/schedule.repository.ts
-```typescript
-import {
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove,
-  doc,
-  updateDoc,
-  collection,
-  query,
-  orderBy,
-  where,
-} from 'firebase/firestore'
-import type { ScheduleItem } from '@/shared-kernel'
-import { db } from '../firestore.client'
-import { createConverter } from '../firestore.converter'
-import { getDocuments } from '../firestore.read.adapter'
-import { addDocument, updateDocument } from '../firestore.write.adapter'
-export const createScheduleItem = async (
-  itemData: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>
-): Promise<string> =>
-export const updateScheduleItemStatus = async (
-  organizationId: string,
-  itemId: string,
-  newStatus: 'OFFICIAL' | 'REJECTED' | 'COMPLETED'
-): Promise<void> =>
-export const updateScheduleItemDateRange = async (
-  accountId: string,
-  itemId: string,
-  startDate: ScheduleItem['startDate'],
-  endDate: ScheduleItem['endDate']
-): Promise<void> =>
-export const assignMemberAndApprove = async (
-  organizationId: string,
-  itemId: string,
-  memberId: string
-): Promise<void> =>
-export const assignMemberToScheduleItem = async (
-  accountId: string,
-  itemId: string,
-  memberId: string
-): Promise<void> =>
-export const unassignMemberFromScheduleItem = async (
-  accountId: string,
-  itemId: string,
-  memberId: string
-): Promise<void> =>
-export const getScheduleItems = async (
-  accountId: string,
-  workspaceId?: string
-): Promise<ScheduleItem[]> =>
-```
-
 ## File: src/shared/infra/storage/storage.adapter.ts
 ```typescript
 import type { IFileStore, UploadOptions } from '@/shared-kernel/ports/i-file-store';
@@ -10918,15 +10954,6 @@ import {
 <Dialog open onOpenChange=
 ⋮----
 onCancel=
-```
-
-## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/@businesstab/timeline/page.tsx
-```typescript
-import {
-  WorkspaceTimeline,
-  WorkspaceTimelineCapabilityTabs,
-} from "@/features/timelineing.slice";
-export default function TimelineCapabilityPage()
 ```
 
 ## File: src/app/(shell)/(portal)/(account)/(workspaces)/workspaces/[id]/@panel/(.)governance/page.tsx
@@ -12299,33 +12326,6 @@ const handleApprove = async (task: WorkspaceTask) =>
 const handleReject = async (task: WorkspaceTask) =>
 ```
 
-## File: src/features/workspace.slice/business.tasks/_components/attachments-dialog.tsx
-```typescript
-import { Loader2, UploadCloud, X } from 'lucide-react';
-import Image from 'next/image';
-import { Button } from '@/shadcn-ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/shadcn-ui/dialog';
-type AttachmentsDialogProps = {
-  isOpen: boolean;
-  attachments: string[];
-  files: File[];
-  onFilesSelected: (files: FileList | null) => void;
-  onRemoveFile: (index: number) => void;
-  onSave: () => void;
-  isSaving: boolean;
-  onOpenChange: (open: boolean) => void;
-  onPreviewImage: (url: string) => void;
-};
-⋮----
-onClick=
-```
-
 ## File: src/features/workspace.slice/core.event-bus/_bus.ts
 ```typescript
 import { recordEventPublished } from "@/features/observability"
@@ -13382,6 +13382,82 @@ const handleRestore = async (file: WorkspaceFile, versionId: string) =>
 <div className=
 ```
 
+## File: src/features/workspace.slice/business.tasks/_components/tasks-view.tsx
+```typescript
+import {
+  BarChart3,
+  Clock,
+  Coins,
+  Plus,
+  View,
+} from 'lucide-react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { Button } from '@/shadcn-ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shadcn-ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shadcn-ui/dropdown-menu';
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/shadcn-ui/empty';
+import { toast } from '@/shadcn-ui/hooks/use-toast';
+import { PageHeader } from '@/shadcn-ui/custom-ui/page-header';
+import { buildTaskTree } from '@/features/workspace.slice/_task.rules';
+import { useStorage } from '@/features/workspace.slice/business.files';
+import { useWorkspace } from '@/features/workspace.slice/core';
+import { useAttachmentsDialogController, useLocationDialogController } from '../_hooks';
+import { type TaskWithChildren, type WorkspaceTask } from '../_types';
+import { AttachmentsDialog } from './attachments-dialog';
+import { LocationDialog } from './location-dialog';
+import { ProgressReportDialog } from './progress-report-dialog';
+import { TaskEditorDialog } from './task-editor-dialog';
+import { TaskTreeNode } from './task-tree-node';
+const getErrorMessage = (error: unknown, fallback: string)
+export function WorkspaceTasks()
+⋮----
+const handleSaveTask = async () =>
+const handleReportProgress = async (taskId: string, newCompletedQuantity: number) =>
+const handleSubmitForQA = async (task: TaskWithChildren) =>
+const handleDeleteTask = async (node: TaskWithChildren) =>
+const handleScheduleRequest = (task: WorkspaceTask) =>
+const handleMarkBlocked = async (task: TaskWithChildren) =>
+const toggleColumn = (key: string) =>
+⋮----
+onCheckedChange=
+⋮----
+onClose=
+⋮----
+<Dialog open=
+⋮----
+setEditingTask({
+                  parentId: node.id,
+                  quantity: 1,
+                  completedQuantity: 0,
+                  unitPrice: 0,
+                  discount: 0,
+                  type: 'Sub-task',
+                  priority: 'medium',
+                  progressState: 'todo',
+                });
+setIsAddOpen(true);
+⋮----
+setEditingTask({
+                  ...node,
+                  location: node.location || { description: '' },
+                });
+```
+
 ## File: src/features/workspace.slice/core/_components/shell/account-create-dialog.tsx
 ```typescript
 import { Loader2 } from "lucide-react"
@@ -13801,6 +13877,66 @@ function buildRows(entries: AccountSkillEntry[]): SkillRow[]
 export function PersonalSkillPanel()
 ```
 
+## File: src/features/timelineing.slice/_components/timeline-canvas.tsx
+```typescript
+import { addDays, addMinutes, isSameDay, startOfDay } from "date-fns";
+import { useEffect, useMemo, useRef } from "react";
+import { DataSet } from "vis-data";
+import {
+  Timeline,
+  type DataGroup,
+  type DataItem,
+  type TimelineItem,
+  type TimelineOptions,
+} from "vis-timeline/standalone";
+⋮----
+import type { ScheduleItem, Timestamp } from "@/shared-kernel";
+import { cn } from "@/shadcn-ui/utils/utils";
+import type { TimelineMember } from "../_types";
+type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
+type ResolvedTemporalKind = NonNullable<ScheduleItem["temporalKind"]>;
+interface TimelineCanvasProps {
+  items: ScheduleItem[];
+  members: TimelineMember[];
+  enableDrag?: boolean;
+  groupMode?: "none" | "workspace";
+  onMoveItem?: (params: {
+    itemId: string;
+    start: Date;
+    end: Date;
+    groupId?: string;
+  }) => Promise<boolean>;
+  className?: string;
+}
+function toDate(timestamp: CalendarTimestamp): Date | null
+function escapeHtml(input: string): string
+function toTimelineClassName(item: ScheduleItem): string
+function isStartOfDay(date: Date): boolean
+function inferTemporalKind(start: Date, end?: Date, explicitKind?: ScheduleItem["temporalKind"]): ResolvedTemporalKind
+function resolveTimelineInterval(item: ScheduleItem):
+function resolveInitialWindow(items: DataItem[]):
+export function TimelineCanvas({
+  items,
+  members,
+  enableDrag = false,
+  groupMode = "none",
+  onMoveItem,
+  className,
+}: TimelineCanvasProps)
+⋮----
+<div className=
+```
+
+## File: src/features/timelineing.slice/_components/timeline.workspace-view.tsx
+```typescript
+import { Clock3 } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import type { ScheduleItem } from "@/shared-kernel";
+import { useTimelineCommands, useWorkspaceTimeline } from "../_hooks";
+import { TimelineCanvas } from "./timeline-canvas";
+export function WorkspaceTimeline()
+```
+
 ## File: src/features/timelineing.slice/_hooks/use-timeline-commands.ts
 ```typescript
 import { useCallback } from 'react';
@@ -14028,66 +14164,6 @@ const handleDismissMember = async (member: MemberReference) =>
 
 ```
 
-## File: src/features/timelineing.slice/_components/timeline-canvas.tsx
-```typescript
-import { addDays, addMinutes, isSameDay, startOfDay } from "date-fns";
-import { useEffect, useMemo, useRef } from "react";
-import { DataSet } from "vis-data";
-import {
-  Timeline,
-  type DataGroup,
-  type DataItem,
-  type TimelineItem,
-  type TimelineOptions,
-} from "vis-timeline/standalone";
-⋮----
-import type { ScheduleItem, Timestamp } from "@/shared-kernel";
-import { cn } from "@/shadcn-ui/utils/utils";
-import type { TimelineMember } from "../_types";
-type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
-type ResolvedTemporalKind = NonNullable<ScheduleItem["temporalKind"]>;
-interface TimelineCanvasProps {
-  items: ScheduleItem[];
-  members: TimelineMember[];
-  enableDrag?: boolean;
-  groupMode?: "none" | "workspace";
-  onMoveItem?: (params: {
-    itemId: string;
-    start: Date;
-    end: Date;
-    groupId?: string;
-  }) => Promise<boolean>;
-  className?: string;
-}
-function toDate(timestamp: CalendarTimestamp): Date | null
-function escapeHtml(input: string): string
-function toTimelineClassName(item: ScheduleItem): string
-function isStartOfDay(date: Date): boolean
-function inferTemporalKind(start: Date, end?: Date, explicitKind?: ScheduleItem["temporalKind"]): ResolvedTemporalKind
-function resolveTimelineInterval(item: ScheduleItem):
-function resolveInitialWindow(items: DataItem[]):
-export function TimelineCanvas({
-  items,
-  members,
-  enableDrag = false,
-  groupMode = "none",
-  onMoveItem,
-  className,
-}: TimelineCanvasProps)
-⋮----
-<div className=
-```
-
-## File: src/features/timelineing.slice/_components/timeline.workspace-view.tsx
-```typescript
-import { Clock3 } from "lucide-react";
-import { useCallback, useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { useTimelineCommands, useWorkspaceTimeline } from "../_hooks";
-import { TimelineCanvas } from "./timeline-canvas";
-export function WorkspaceTimeline()
-```
-
 ## File: src/features/workforce-scheduling.slice/_components/org-schedule-governance.tsx
 ```typescript
 import { useEffect, useMemo, useState } from 'react';
@@ -14231,80 +14307,15 @@ title=
 <span className="font-mono text-[9px] text-muted-foreground">ID:
 ```
 
-## File: src/features/workspace.slice/business.tasks/_components/tasks-view.tsx
+## File: src/features/timelineing.slice/_components/timeline.account-view.tsx
 ```typescript
-import {
-  BarChart3,
-  Clock,
-  Coins,
-  Plus,
-  View,
-} from 'lucide-react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
-import { Button } from '@/shadcn-ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/shadcn-ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/shadcn-ui/dropdown-menu';
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/shadcn-ui/empty';
-import { toast } from '@/shadcn-ui/hooks/use-toast';
-import { PageHeader } from '@/shadcn-ui/custom-ui/page-header';
-import { buildTaskTree } from '@/features/workspace.slice/_task.rules';
-import { useStorage } from '@/features/workspace.slice/business.files';
-import { useWorkspace } from '@/features/workspace.slice/core';
-import { useAttachmentsDialogController, useLocationDialogController } from '../_hooks';
-import { type TaskWithChildren, type WorkspaceTask } from '../_types';
-import { AttachmentsDialog } from './attachments-dialog';
-import { LocationDialog } from './location-dialog';
-import { ProgressReportDialog } from './progress-report-dialog';
-import { TaskEditorDialog } from './task-editor-dialog';
-import { TaskTreeNode } from './task-tree-node';
-const getErrorMessage = (error: unknown, fallback: string)
-export function WorkspaceTasks()
-⋮----
-const handleSaveTask = async () =>
-const handleReportProgress = async (taskId: string, newCompletedQuantity: number) =>
-const handleSubmitForQA = async (task: TaskWithChildren) =>
-const handleDeleteTask = async (node: TaskWithChildren) =>
-const handleScheduleRequest = (task: WorkspaceTask) =>
-const handleMarkBlocked = async (task: TaskWithChildren) =>
-const toggleColumn = (key: string) =>
-⋮----
-onCheckedChange=
-⋮----
-onClose=
-⋮----
-<Dialog open=
-⋮----
-setEditingTask({
-                  parentId: node.id,
-                  quantity: 1,
-                  completedQuantity: 0,
-                  unitPrice: 0,
-                  discount: 0,
-                  type: 'Sub-task',
-                  priority: 'medium',
-                  progressState: 'todo',
-                });
-setIsAddOpen(true);
-⋮----
-setEditingTask({
-                  ...node,
-                  location: node.location || { description: '' },
-                });
+import { AlertCircle, Clock3 } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import type { ScheduleItem } from "@/shared-kernel";
+import { useApp } from "@/app-runtime/providers/app-provider";
+import { useAccountTimeline, useTimelineCommands } from "../_hooks";
+import { TimelineCanvas } from "./timeline-canvas";
+export function AccountTimelineSection()
 ```
 
 ## File: src/features/workspace.slice/core/_components/shell/account-switcher.tsx
@@ -14363,17 +14374,6 @@ import { PageHeader } from "@/shadcn-ui/custom-ui/page-header"
 import { useMemberManagement } from '../_hooks/use-member-management'
 ⋮----
 title=
-```
-
-## File: src/features/timelineing.slice/_components/timeline.account-view.tsx
-```typescript
-import { AlertCircle, Clock3 } from "lucide-react";
-import { useCallback, useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { useApp } from "@/app-runtime/providers/app-provider";
-import { useAccountTimeline, useTimelineCommands } from "../_hooks";
-import { TimelineCanvas } from "./timeline-canvas";
-export function AccountTimelineSection()
 ```
 
 

@@ -5,7 +5,7 @@ description: Reference codebase for Xuanwu. Use this skill when you need to unde
 
 # Xuanwu Codebase Reference
 
-688 files | 11319 lines | 106079 tokens
+674 files | 10960 lines | 102623 tokens
 
 ## Overview
 
@@ -22,7 +22,6 @@ Use this skill when you need to:
 | `references/summary.md` | **Start here** - Purpose, format explanation, and statistics |
 | `references/project-structure.md` | Directory tree with line counts per file |
 | `references/files.md` | All file contents (search with `## File: <path>`) |
-| `references/tech-stack.md` | Languages, frameworks, and dependencies |
 
 ## How to Use
 
@@ -72,7 +71,6 @@ function calculateTotal
 - Use line counts in `project-structure.md` to estimate file complexity
 - Search `## File:` pattern to jump between files
 - Check `summary.md` for excluded files, format details, and file statistics
-- Check `tech-stack.md` for languages, frameworks, and dependencies
 
 ---
 
