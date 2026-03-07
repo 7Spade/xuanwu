@@ -36,6 +36,36 @@
 %%    ※ L3 Domain Slices = VS1(Identity) · VS2(Account) · VS3(Skill) ·
 %%                          VS4(Organization) · VS5(Workspace) · VS6(Workforce-Scheduling) ·
 %%                          VS7(Notification) · VS8(SemanticGraph)
+%%  ── 標準目錄結構（Standard Directory Structure · 單向依賴鏈對齊）──
+%%    src/
+%%      shared-kernel/                          # L1: SK contracts/constants/pure functions only [D8]
+%%      shared/infra/                           # L7: Firebase ACL adapters only
+%%        auth/
+%%        firestore/
+%%        messaging/
+%%        storage/
+%%      features/
+%%        infra.external-triggers/              # L0: external triggers
+%%        infra.gateway-command/                # L2: CBG_ENTRY/CBG_AUTH/CBG_ROUTE orchestration
+%%        infra.event-router/                   # L4: IER core + lanes
+%%        infra.outbox-relay/                   # L4: outbox relay worker
+%%        infra.gateway-query/                  # L6: query gateway/read registry
+%%        projection.bus/                       # L5: projection funnel + read model materialization
+%%        observability/                        # L9: metrics/errors/trace observability
+%%        identity.slice/                       # L3 VS1
+%%        account.slice/                        # L3 VS2
+%%        skill-xp.slice/                       # L3 VS3
+%%        organization.slice/                   # L3 VS4
+%%        workspace.slice/                      # L3 VS5
+%%        workforce-scheduling.slice/           # L3 VS6
+%%        notification-hub.slice/               # L3 VS7 (authority exit)
+%%        semantic-graph.slice/                 # L3 VS8 (semantic authority)
+%%        global-search.slice/                  # L3 cross-cut authority (search exit)
+%%    app/                                      # UI entry; read-only via L6
+%%  ── 依賴方向約束（對應目錄）──
+%%    寫鏈：infra.external-triggers → infra.gateway-command → *.slice → infra.event-router → projection.bus
+%%    讀鏈：app/UI → infra.gateway-query → projection.bus
+%%    Infra鏈：*.slice/projection/query → shared-kernel(SK_PORTS) → shared/infra(FIREBASE_ACL)
 %%  ── RULESET-MUST（不可違反）: R · S · A · # ──
 %%    R1=relay-lag-metrics   R5=DLQ-failure-rule   R6=workflow-state-rule
 %%    R7=aggVersion-relay    R8=traceId-readonly
