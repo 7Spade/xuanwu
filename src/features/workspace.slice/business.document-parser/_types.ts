@@ -43,6 +43,12 @@ export interface ParsedLineItem {
    * Original 0-based row position from ParsingIntent lineItems for deterministic materialization order.
    */
   sourceIntentIndex: number;
+  /** Organization-scoped task type slug resolved from VS4 org semantic dictionary. */
+  taskTypeSlug?: string;
+  /** Organization-scoped task type display name resolved from VS4 org semantic dictionary. */
+  taskTypeName?: string;
+  /** Task-specific skill requirements resolved from taskType definition (if matched). */
+  requiredSkills?: SkillRequirement[];
 }
 
 // Re-export so existing consumers of this module continue to work [D20 ??import from slice index].

@@ -99,3 +99,34 @@ export {
   addOrgSkillEdgeAction,
   deleteOrgSkillEdgeAction,
 } from './gov.skill';
+
+// =================================================================
+// Gov Semantic (org semantic dictionary: task-type + skill-type)
+// =================================================================
+export type {
+  OrgSemanticNamespace,
+  OrgSkillTypeEntry,
+  OrgTaskTypeEntry,
+  OrgSemanticEntry,
+  ResolveOrgTaskTypeInput,
+  ResolvedOrgTaskType,
+} from './gov.semantic';
+export {
+  addOrgTaskType,
+  updateOrgTaskType,
+  removeOrgTaskType,
+  addOrgSkillType,
+  updateOrgSkillType,
+  removeOrgSkillType,
+  resolveOrgTaskTypeByItemName,
+  getOrgTaskType,
+  getOrgTaskTypes,
+  getOrgSkillType,
+  getOrgSkillTypes,
+  addOrgTaskTypeAction,
+  updateOrgTaskTypeAction,
+  removeOrgTaskTypeAction,
+  addOrgSkillTypeAction,
+  updateOrgSkillTypeAction,
+  removeOrgSkillTypeAction,
+} from './gov.semantic';

@@ -72,6 +72,12 @@ export interface DocumentParserItemsExtractedPayload {
      * 0-based original row index from ParsingIntent lineItems.
      */
     sourceIntentIndex: number
+    /** Organization-scoped task type slug resolved from VS4 org semantic dictionary. */
+    taskTypeSlug?: string
+    /** Organization-scoped task type label resolved from VS4 org semantic dictionary. */
+    taskTypeName?: string
+    /** Task-specific skill requirements resolved from task-type dictionary. */
+    requiredSkills?: SkillRequirement[]
   }>
   /** Skill requirements extracted from the document, forwarded to schedule proposals. */
   skillRequirements?: SkillRequirement[]

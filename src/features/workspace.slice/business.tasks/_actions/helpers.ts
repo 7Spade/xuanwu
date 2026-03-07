@@ -14,6 +14,8 @@ export type ReconcileIncomingItem = {
   discount?: number;
   subtotal: number;
   sourceIntentIndex?: number;
+  taskTypeName?: string;
+  requiredSkills?: WorkspaceTask['requiredSkills'];
 };
 
 export const toErrorMessage = (error: unknown): string =>
@@ -48,8 +50,10 @@ export const buildReconcileUpdatePayload = (
   name: item.name,
   quantity: item.quantity,
   unitPrice: item.unitPrice,
+  ...(item.taskTypeName !== undefined ? { type: item.taskTypeName } : {}),
   ...withOptionalDiscount(item.discount),
   subtotal: item.subtotal,
+  ...(item.requiredSkills !== undefined ? { requiredSkills: item.requiredSkills } : {}),
   sourceIntentId: newIntentId,
   sourceIntentVersion: newIntentVersion,
   ...withOptionalSourceIntentIndex(item.sourceIntentIndex),

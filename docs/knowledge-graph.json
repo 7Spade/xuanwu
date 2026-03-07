@@ -7,7 +7,7 @@
         "VS mapping: VS0=SharedKernel foundation (not a business vertical slice); VS1=Identity; VS2=Account; VS3=SkillXP; VS4=Organization; VS5=Workspace; VS6=Scheduling; VS7=Notification; VS8=SemanticGraph (The Brain).",
         "VS8 replaces the former TAG_AUTH (Tag Authority Center) and elevates it to a first-class business vertical slice with taxonomy, causality tracking, and scheduling conflict semantic detection.",
         "Cross-slice rule: each slice mutates only its own aggregate; collaboration via contracts/events/projections.",
-        "Tag write rule [#A6 D21]: all business slices (VS1–VS7) must write tag changes through L2 Command Gateway into VS8; direct tag mutation is forbidden."
+        "Tag write rule [#A6 D21]: global semantic tags are registered via L2 Command Gateway into VS8; organization custom task/skill tags are registered via L2 into VS4 org-tag-registry and projected to tag-snapshot."
       ]
     },
     {
@@ -49,7 +49,8 @@
         "A12 Global Search Authority: Global Search = cross-slice authority (語義門戶). Sole cross-domain search outlet; all slices are forbidden from building their own search logic.",
         "A13 Notification Hub Authority: Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy.",
         "A15 Finance Gate + Payload Contract: Finance can start only after Acceptance=OK, and Claim Preparation must carry selected line-items with positive quantities (no empty claim, no quantity <= 0).",
-        "A16 Multi-Claim Cycle Contract: Finance is re-entrant; each cycle is Claim Preparation → Claim Submitted → Claim Approved → Invoice Requested → Payment Term(timer-running) → Payment Received. Payment Term timing window is [Invoice Requested, PaymentReceived], and completion is allowed only when outstandingClaimableAmount = 0."
+        "A16 Multi-Claim Cycle Contract: Finance is re-entrant; each cycle is Claim Preparation → Claim Submitted → Claim Approved → Invoice Requested → Payment Term(timer-running) → Payment Received. Payment Term timing window is [Invoice Requested, PaymentReceived], and completion is allowed only when outstandingClaimableAmount = 0.",
+        "A18 Org Tag Extension Contract: organizations may create custom task/skill tags only through VS4 org-tag-registry with org namespace (org:{orgId}:task:* / org:{orgId}:skill:*), then project them into tag-snapshot."
       ]
     },
     {
@@ -75,8 +76,8 @@
       "name": "T_Category",
       "entityType": "Tag_Semantics",
       "observations": [
-        "Tag semantics source: VS8 Semantic Graph (formerly TAG_AUTH) is the sole domain authority under D21 governance.",
-        "Critical retained references: T4 scheduling demand uses SK_SKILL_REQ × tagSlug; T5 TAG_SNAPSHOT is read-only to consumers.",
+        "Tag semantics source is dual-layer: VS8 Semantic Graph is the global semantic authority, and VS4 org-tag-registry is the organization-scoped authority for custom task/skill tags under D21 governance.",
+        "Critical retained references: T4 scheduling demand uses SK_SKILL_REQ × tagSlug; T5 TAG_SNAPSHOT is read-only to consumers but may include projected org-scoped overlay tags.",
         "Tooling MCP governance is modeled via dedicated Tooling_MCP entities and relations.",
         "Relation note: T_Category → A_Category (validates) denotes tooling-assisted conformance checks against architecture invariants and applies to all Tooling_MCP entities unless a narrower relation overrides it."
       ]
@@ -143,8 +144,18 @@
       "observations": [
         "VS8 Semantic Graph (The Brain): the system's semantic hub, elevated from the former TAG_AUTH (Tag Authority Center) to a first-class vertical slice.",
         "Responsibilities: Tag Taxonomy (tagSlug / label / category lifecycle), Causality Tracking (cross-slice tag event provenance), Scheduling Conflict Semantic Detection (semantic matching for VS6 scheduling combinations).",
-        "All business slices (VS1–VS7) register semantic changes through L2 Command Gateway into VS8; VS8 provides semantic data outward to consumers via L6 Query Gateway.",
-        "Invariant #17 and A6 still apply: VS8 is the sole authority for tagSlug uniqueness and deletion rules."
+        "VS8 owns global semantic taxonomy and provides semantic data outward to consumers via L6 Query Gateway.",
+        "Invariant #17 still applies at global scope: VS8 is the sole authority for global tagSlug uniqueness and deletion rules; VS4 org-tag-registry governs org-scoped task/skill tag namespace and lifecycle."
+      ]
+    },
+    {
+      "name": "VS4 Organization Tag Registry",
+      "entityType": "Domain_Slice",
+      "observations": [
+        "VS4 org-tag-registry is the organization-scoped semantic extension authority for custom task/skill tags.",
+        "Organizations may create and manage custom tags only in org namespace: org:{orgId}:task:* and org:{orgId}:skill:*.",
+        "Org custom tags are projected into tag-snapshot as overlay data for VS5/VS6 read paths; direct cross-slice mutation remains forbidden.",
+        "Global semantic categories remain defined by VS8 CTA; VS4 extension does not override global taxonomy ownership."
       ]
     },
     {
@@ -387,6 +398,34 @@
     },
     {
       "from": "VS8 Semantic Graph",
+      "to": "A_Category",
+      "relationType": "constrained_by"
+    },
+    {
+      "from": "VS4 Organization Tag Registry",
+      "to": "VS8 Semantic Graph",
+      "relationType": "extends_semantics_from",
+      "description": "VS4 org-tag-registry extends global semantics with organization-scoped task/skill tags without changing VS8 global ownership."
+    },
+    {
+      "from": "VS4 Organization Tag Registry",
+      "to": "VS5 Workspace",
+      "relationType": "provides_org_scoped_tags_to",
+      "description": "VS4 provides organization-scoped task/skill tags to VS5 via tag-snapshot overlay reads."
+    },
+    {
+      "from": "VS4 Organization Tag Registry",
+      "to": "VS6 Scheduling",
+      "relationType": "provides_org_scoped_tags_to",
+      "description": "VS4 provides organization-scoped task/skill tags to VS6 for scheduling/skill matching read paths via tag-snapshot overlay."
+    },
+    {
+      "from": "VS4 Organization Tag Registry",
+      "to": "D_Category",
+      "relationType": "governed_by"
+    },
+    {
+      "from": "VS4 Organization Tag Registry",
       "to": "A_Category",
       "relationType": "constrained_by"
     },

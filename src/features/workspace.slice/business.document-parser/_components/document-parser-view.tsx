@@ -5,12 +5,14 @@ import { useActionState, useTransition, useRef, useEffect, useCallback, useState
 
 import { classifyCostItem } from '@/features/semantic-graph.slice';
 import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
+import { getOrgTaskTypes, resolveOrgTaskTypeByItemName } from '@/features/organization.slice';
 import { persistWorkspaceOutboxEvent } from '@/features/workspace.slice/application/_outbox';
 import { useWorkspace } from '@/features/workspace.slice/core';
 import { Badge } from '@/shadcn-ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shadcn-ui/card';
 import { useToast } from '@/shadcn-ui/hooks/use-toast';
 import { logDomainError } from '@/shared-infra/observability';
+import type { SkillRequirement } from '@/shared-kernel';
 
 
 
@@ -33,6 +35,25 @@ const initialState: ActionState = {
   error: undefined,
   fileName: undefined,
 };
+
+function dedupeSkillRequirements(items: Array<{ requiredSkills?: SkillRequirement[] }>): SkillRequirement[] {
+  const map = new Map<string, SkillRequirement>();
+  for (const item of items) {
+    const requirements = item.requiredSkills ?? [];
+    for (const requirement of requirements) {
+      const key = `${requirement.tagSlug}|${requirement.minimumTier}|${requirement.minXp ?? ''}`;
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, requirement);
+        continue;
+      }
+      if (requirement.quantity > existing.quantity) {
+        map.set(key, requirement);
+      }
+    }
+  }
+  return Array.from(map.values());
+}
 
 export function WorkspaceDocumentParser() {
   const [state, formAction] = useActionState(
@@ -170,8 +191,18 @@ export function WorkspaceDocumentParser() {
   const handleImport = async () => {
     if (!state.data?.workItems) return;
 
+    let orgTaskTypes = [] as Awaited<ReturnType<typeof getOrgTaskTypes>>;
+    if (workspace.dimensionId) {
+      try {
+        orgTaskTypes = await getOrgTaskTypes(workspace.dimensionId);
+      } catch (error: unknown) {
+        console.warn('Failed to load org task-type dictionary; fallback to global semantic classification only.', error);
+      }
+    }
+
     const lineItems = state.data.workItems.map((item, index) => {
       const semantic = classifyCostItem(item.item, { includeSemanticTagSlug: true });
+      const resolvedTaskType = resolveOrgTaskTypeByItemName(item.item, orgTaskTypes);
       return {
       name: item.item,
       quantity: item.quantity,
@@ -189,7 +220,15 @@ export function WorkspaceDocumentParser() {
         typeof item.sourceIntentIndex === 'number' && Number.isFinite(item.sourceIntentIndex)
           ? item.sourceIntentIndex
           : index,
+      ...(resolvedTaskType
+        ? {
+            taskTypeSlug: resolvedTaskType.taskTypeSlug,
+            taskTypeName: resolvedTaskType.taskTypeName,
+            requiredSkills: resolvedTaskType.requiredSkills,
+          }
+        : {}),
     }});
+    const aggregatedSkillRequirements = dedupeSkillRequirements(lineItems);
 
     let intentId: IntentID;
     let oldIntentId: IntentID | undefined;
@@ -204,6 +243,9 @@ export function WorkspaceDocumentParser() {
           sourceFileDownloadURL: sourceFileDownloadURLRef.current as SourcePointer | undefined,
           // Supersede the prior intent when re-parsing the same session [#A4]
           previousIntentId: previousIntentIdRef.current,
+          ...(aggregatedSkillRequirements.length > 0
+            ? { skillRequirements: aggregatedSkillRequirements }
+            : {}),
         }
       );
       intentId = result.intentId;
@@ -227,8 +269,8 @@ export function WorkspaceDocumentParser() {
     }
 
     // Publish event with intentId so tasks and schedule proposals can reference the Digital Twin.
-    // skillRequirements is omitted here — the current AI flow extracts invoice line items only.
-    // When the AI flow is extended to extract skill requirements, pass them here.
+    // Prefer item.requiredSkills resolved from org task-type dictionary.
+    // payload.skillRequirements remains for compatibility with legacy consumers.
     // oldIntentId is forwarded when a prior intent was superseded so the import handler can
     // reconcile existing `todo` tasks in-place rather than creating duplicates [#A4].
     eventBus.publish('workspace:document-parser:itemsExtracted', {
@@ -237,6 +279,9 @@ export function WorkspaceDocumentParser() {
         intentVersion: INITIAL_PARSING_INTENT_VERSION,
         autoImport: true,
         items: lineItems,
+        ...(aggregatedSkillRequirements.length > 0
+          ? { skillRequirements: aggregatedSkillRequirements }
+          : {}),
         ...(oldIntentId && { oldIntentId }),
     });
 
@@ -251,6 +296,9 @@ export function WorkspaceDocumentParser() {
       workspaceId: workspace.id,
       sourceFileName: state.fileName || 'Unknown Document',
       taskDraftCount: lineItems.length,
+      ...(aggregatedSkillRequirements.length > 0
+        ? { skillRequirements: aggregatedSkillRequirements }
+        : {}),
       ...(oldIntentId && { oldIntentId }),
     };
     eventBus.publish('workspace:parsing-intent:deltaProposed', deltaPayload);

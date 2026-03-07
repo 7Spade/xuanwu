@@ -52,12 +52,16 @@ export function createWorkspaceImportHandler(input: CreateWorkspaceImportHandler
               ...(item.discount !== undefined ? { discount: item.discount } : {}),
               subtotal: item.subtotal,
               progress: 0,
-              type: 'Imported',
+              type: item.taskTypeName ?? 'Imported',
               priority: 'medium',
               progressState: 'todo',
               sourceIntentId: payload.intentId,
               sourceIntentIndex: item.sourceIntentIndex ?? originalIndex,
-              ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
+              ...(item.requiredSkills?.length
+                ? { requiredSkills: item.requiredSkills }
+                : payload.skillRequirements?.length
+                  ? { requiredSkills: payload.skillRequirements }
+                  : {}),
             }]
           : [],
       );
@@ -98,7 +102,10 @@ export function createWorkspaceImportHandler(input: CreateWorkspaceImportHandler
 
               const executablePayloadItems = payload.items.flatMap((item, originalIndex) =>
                 shouldMaterializeAsTask(item.costItemType)
-                  ? [{ ...item, sourceIntentIndex: item.sourceIntentIndex ?? originalIndex }]
+                  ? [{
+                      ...item,
+                      sourceIntentIndex: item.sourceIntentIndex ?? originalIndex,
+                    }]
                   : [],
               );
 
@@ -114,7 +121,9 @@ export function createWorkspaceImportHandler(input: CreateWorkspaceImportHandler
                       type: 'Imported',
                       priority: 'medium',
                       progressState: 'todo',
-                      ...(payload.skillRequirements?.length ? { requiredSkills: payload.skillRequirements } : {}),
+                      ...(payload.skillRequirements?.length
+                        ? { requiredSkills: payload.skillRequirements }
+                        : {}),
                     },
                   ).then((result) => executablePayloadItems.map(() => result))
                 : await Promise.all(items.map((item) => createTask(input.workspaceId, item)));
