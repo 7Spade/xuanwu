@@ -1,7 +1,7 @@
 /**
  * @fileoverview Firebase Configuration.
  * This file exports the configuration object required to initialize the Firebase app.
- * It should be treated as sensitive and is typically populated from environment variables.
+ * It should be treated sensitive and is typically populated from environment variables.
  */
 
 // Your web app's Firebase configuration

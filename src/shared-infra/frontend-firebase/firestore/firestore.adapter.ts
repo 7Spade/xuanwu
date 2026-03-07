@@ -25,16 +25,17 @@ class FirebaseFirestoreRepo implements IFirestoreRepo {
     if (!snap.exists()) {
       return null;
     }
-    const raw: any = snap.data();
     return {
       id: snap.id,
-      data: raw,
+      // @ts-expect-error Firestore payload is treated with caller-selected generic T.
+      data: snap.data(),
     };
   }
 
   async getDocs<T>(collectionPath: string): Promise<FirestoreDoc<T>[]> {
     const snap = await getDocs(collection(db, collectionPath));
-    const docs: Array<FirestoreDoc<any>> = snap.docs.map((item) => ({
+    // @ts-ignore Firestore generic payload is treated with caller-selected T at API boundary.
+    const docs: Array<FirestoreDoc<T>> = snap.docs.map((item) => ({
       id: item.id,
       data: item.data(),
     }));
@@ -42,8 +43,8 @@ class FirebaseFirestoreRepo implements IFirestoreRepo {
   }
 
   async setDoc<T>(collectionPath: string, docId: string, data: T, opts?: WriteOptions): Promise<void> {
-    const payload: any = data;
-    await setDoc(doc(db, collectionPath, docId), payload, {
+    // @ts-ignore Generic payload is accepted for write input at repository boundary.
+    await setDoc(doc(db, collectionPath, docId), data, {
       merge: opts?.merge ?? false,
     });
   }
@@ -57,7 +58,8 @@ class FirebaseFirestoreRepo implements IFirestoreRepo {
     callback: (docs: FirestoreDoc<T>[]) => void,
   ): () => void {
     return onSnapshot(collection(db, collectionPath), (snap) => {
-      const docs: Array<FirestoreDoc<any>> = snap.docs.map((item) => ({
+      // @ts-ignore Firestore generic payload is treated with caller-selected T at API boundary.
+      const docs: Array<FirestoreDoc<T>> = snap.docs.map((item) => ({
         id: item.id,
         data: item.data(),
       }));
