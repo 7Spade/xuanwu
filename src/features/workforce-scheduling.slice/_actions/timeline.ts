@@ -7,8 +7,7 @@
  * Constraints: deterministic logic, respect module boundaries
  */
 
-import { setScheduleItemDateRange } from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
-import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import { updateScheduleItemDateRangeThroughGateway } from '@/shared-infra/gateway-command';
 import {
   type CommandResult,
   commandFailureFrom,
@@ -22,12 +21,7 @@ export async function updateTimelineItemDateRange(
   endDate: Date
 ): Promise<CommandResult> {
   try {
-    await setScheduleItemDateRange(
-      accountId,
-      itemId,
-      Timestamp.fromDate(startDate),
-      Timestamp.fromDate(endDate)
-    );
+    await updateScheduleItemDateRangeThroughGateway(accountId, itemId, startDate, endDate);
     return commandSuccess(itemId, Date.now());
   } catch (error) {
     return commandFailureFrom(

@@ -11,7 +11,7 @@
  *       the aggregate ??never written from components directly.
  */
 
-import { updateDocument, arrayUnion } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
+import { executeWriteOpThroughGateway } from '@/shared-infra/gateway-command';
 
 import type { WriteOp } from './_aggregate';
 
@@ -22,9 +22,5 @@ import type { WriteOp } from './_aggregate';
  * sentinels before writing. All other fields in `op.data` are written as-is.
  */
 export async function executeWriteOp(op: WriteOp): Promise<void> {
-  const data: Record<string, unknown> = { ...op.data };
-  for (const [field, values] of Object.entries(op.arrayUnionFields ?? {})) {
-    data[field] = arrayUnion(...values);
-  }
-  await updateDocument(op.path, data);
+  await executeWriteOpThroughGateway(op);
 }

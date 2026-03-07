@@ -15,9 +15,14 @@
  * Persistence: sagaStates/{sagaId} in Firestore.
  */
 
-import { getOrgEligibleMembersWithTier } from '@/shared-infra/projection.bus';
-import { getDocument, Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
-import { setDocument, updateDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
+import {
+  getEligibleMembersForScheduleFromGateway,
+  getDocumentByPathFromGateway,
+} from '@/shared-infra/gateway-query';
+import {
+  setDocumentByPathThroughGateway,
+  updateDocumentByPathThroughGateway,
+} from '@/shared-infra/gateway-command';
 import type { WorkspaceScheduleProposedPayload } from '@/shared-kernel';
 
 import {
@@ -73,7 +78,7 @@ function sagaPath(sagaId: string): string {
 }
 
 async function persistSaga(state: SagaState): Promise<void> {
-  await setDocument(sagaPath(state.sagaId), state);
+  await setDocumentByPathThroughGateway(sagaPath(state.sagaId), state as Record<string, unknown>);
 }
 
 async function updateSagaStatus(
@@ -85,7 +90,10 @@ async function updateSagaStatus(
     >
   >
 ): Promise<void> {
-  await updateDocument(sagaPath(sagaId), { ...patch, updatedAt: Timestamp.now().toDate().toISOString() });
+  await updateDocumentByPathThroughGateway(sagaPath(sagaId), {
+    ...patch,
+    updatedAt: new Date().toISOString(),
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -97,7 +105,7 @@ async function updateSagaStatus(
  * Returns null if not found.
  */
 export async function getSagaState(sagaId: string): Promise<SagaState | null> {
-  return getDocument<SagaState>(sagaPath(sagaId));
+  return getDocumentByPathFromGateway<SagaState>(sagaPath(sagaId));
 }
 
 /**
@@ -117,7 +125,7 @@ export async function startSchedulingSaga(
   event: WorkspaceScheduleProposedPayload,
   sagaId: string
 ): Promise<SagaState> {
-  const now = Timestamp.now().toDate().toISOString();
+  const now = new Date().toISOString();
 
   const existing = await getSagaState(sagaId);
   if (existing) {
@@ -147,7 +155,7 @@ export async function startSchedulingSaga(
     currentStep: 'eligibility_check',
   });
 
-  const eligibleMembers = await getOrgEligibleMembersWithTier(event.orgId);
+  const eligibleMembers = await getEligibleMembersForScheduleFromGateway(event.orgId);
   // requirements = [] means "any eligible member can be assigned" (no skill filtering)
   const requirements = event.skillRequirements ?? [];
 
@@ -160,7 +168,7 @@ export async function startSchedulingSaga(
       requirements.length > 0
         ? `Could not find enough eligible members for requirements: ${requirements.map((r) => `${r.quantity}? ${r.tagSlug}@${r.minimumTier}`).join(', ')} (needed ${totalNeeded} total)`
         : 'No eligible members found in org-eligible-member-view.';
-    const completedAt = Timestamp.now().toDate().toISOString();
+    const completedAt = new Date().toISOString();
     await updateSagaStatus(sagaId, {
       status: 'compensated',
       currentStep: 'compensate',
@@ -204,7 +212,7 @@ export async function startSchedulingSaga(
   }
 
   if (!compensationReason) {
-    const completedAt = Timestamp.now().toDate().toISOString();
+    const completedAt = new Date().toISOString();
     await updateSagaStatus(sagaId, {
       status: 'assigned',
       currentStep: 'assign',
@@ -213,7 +221,7 @@ export async function startSchedulingSaga(
     return { ...initialState, status: 'assigned', currentStep: 'assign', completedAt, updatedAt: completedAt };
   }
 
-  const completedAt = Timestamp.now().toDate().toISOString();
+  const completedAt = new Date().toISOString();
   await updateSagaStatus(sagaId, {
     status: 'compensated',
     currentStep: 'compensate',

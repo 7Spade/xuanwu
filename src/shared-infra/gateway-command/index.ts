@@ -25,3 +25,14 @@
 export { dispatchCommand, registerCommandHandler } from './_gateway';
 export type { GatewayCommand, DispatchOptions } from './_gateway';
 export { dispatchCreateScheduleItemCommand } from './workspace-schedule-command';
+export {
+	createScheduleItemThroughGateway,
+	assignMemberToScheduleItemThroughGateway,
+	unassignMemberFromScheduleItemThroughGateway,
+	approveScheduleItemWithMemberThroughGateway,
+	updateScheduleItemStatusThroughGateway,
+	updateScheduleItemDateRangeThroughGateway,
+	executeWriteOpThroughGateway,
+	setDocumentByPathThroughGateway,
+	updateDocumentByPathThroughGateway,
+} from './workforce-scheduling-command';

@@ -45,11 +45,11 @@ This skill contains the following reference files:
 
 ## Statistics
 
-682 files | 11,213 lines
+691 files | 11,508 lines
 
 | Language | Files | Lines |
 |----------|------:|------:|
-| TypeScript | 435 | 7,782 |
+| TypeScript | 444 | 8,077 |
 | TypeScript (TSX) | 247 | 3,431 |
 
 **Largest files:**
@@ -59,7 +59,7 @@ This skill contains the following reference files:
 - `src/features/semantic-graph.slice/core/types/index.ts` (139 lines)
 - `src/features/workspace.slice/business.document-parser/_intent-actions.ts` (136 lines)
 - `src/features/organization.slice/core.event-bus/_events.ts` (126 lines)
+- `src/features/workforce-scheduling.slice/ports/command.port.ts` (93 lines)
 - `src/shared-infra/frontend-firebase/firestore/repositories/workspace-core.repository.ts` (87 lines)
 - `src/features/workspace.slice/core/_actions.ts` (76 lines)
 - `src/features/workforce-scheduling.slice/_components/proposal-dialog.tsx` (75 lines)
-- `src/shared-kernel/data-contracts/account/account-contract.ts` (74 lines)

@@ -10,11 +10,10 @@
 import { addDays, isSameDay, startOfDay } from 'date-fns';
 
 import {
-  assignMemberToScheduleItem,
-  saveScheduleItem,
-  unassignMemberFromScheduleItem,
-} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
-import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+  createScheduleItemThroughGateway,
+  assignMemberToScheduleItemThroughGateway,
+  unassignMemberFromScheduleItemThroughGateway,
+} from '@/shared-infra/gateway-command';
 import {
   type CommandResult,
   commandFailureFrom,
@@ -100,13 +99,16 @@ export async function createScheduleItem(
 ): Promise<CommandResult> {
   try {
     const resolved = resolveTemporalRange(itemData.startDate, itemData.endDate);
-    const data: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'> = {
+    const data: Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'endDate'> & {
+      startDate: Date;
+      endDate: Date;
+    } = {
       ...itemData,
       temporalKind: resolved.temporalKind,
-      startDate: Timestamp.fromDate(resolved.startDate),
-      endDate: Timestamp.fromDate(resolved.endDate),
+      startDate: resolved.startDate,
+      endDate: resolved.endDate,
     };
-    const id = await saveScheduleItem(data);
+    const id = await createScheduleItemThroughGateway(data);
     return commandSuccess(id, Date.now());
   } catch (error) {
     return commandFailureFrom(
@@ -122,7 +124,7 @@ export async function assignMember(
   memberId: string
 ): Promise<CommandResult> {
   try {
-    await assignMemberToScheduleItem(accountId, itemId, memberId);
+    await assignMemberToScheduleItemThroughGateway(accountId, itemId, memberId);
     return commandSuccess(itemId, Date.now());
   } catch (error) {
     return commandFailureFrom(
@@ -138,7 +140,7 @@ export async function unassignMember(
   memberId: string
 ): Promise<CommandResult> {
   try {
-    await unassignMemberFromScheduleItem(accountId, itemId, memberId);
+    await unassignMemberFromScheduleItemThroughGateway(accountId, itemId, memberId);
     return commandSuccess(itemId, Date.now());
   } catch (error) {
     return commandFailureFrom(

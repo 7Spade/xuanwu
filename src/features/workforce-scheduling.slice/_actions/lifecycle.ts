@@ -8,11 +8,10 @@
  */
 
 import {
-  assignMemberAndApprove,
-  setScheduleItemDateRange,
-  setScheduleItemStatus,
-} from '@/shared-infra/frontend-firebase/firestore/firestore.facade';
-import { Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+  approveScheduleItemWithMemberThroughGateway,
+  updateScheduleItemDateRangeThroughGateway,
+  updateScheduleItemStatusThroughGateway,
+} from '@/shared-infra/gateway-command';
 import {
   type CommandResult,
   commandFailureFrom,
@@ -25,7 +24,7 @@ export async function approveScheduleItemWithMember(
   memberId: string
 ): Promise<CommandResult> {
   try {
-    await assignMemberAndApprove(organizationId, itemId, memberId);
+    await approveScheduleItemWithMemberThroughGateway(organizationId, itemId, memberId);
     return commandSuccess(itemId, Date.now());
   } catch (error) {
     return commandFailureFrom(
@@ -41,7 +40,7 @@ export async function updateScheduleItemStatus(
   newStatus: 'OFFICIAL' | 'REJECTED' | 'COMPLETED'
 ): Promise<CommandResult> {
   try {
-    await setScheduleItemStatus(organizationId, itemId, newStatus);
+    await updateScheduleItemStatusThroughGateway(organizationId, itemId, newStatus);
     return commandSuccess(itemId, Date.now());
   } catch (error) {
     return commandFailureFrom(
@@ -58,12 +57,7 @@ export async function updateScheduleItemDateRange(
   endDate: Date
 ): Promise<CommandResult> {
   try {
-    await setScheduleItemDateRange(
-      accountId,
-      itemId,
-      Timestamp.fromDate(startDate),
-      Timestamp.fromDate(endDate)
-    );
+    await updateScheduleItemDateRangeThroughGateway(accountId, itemId, startDate, endDate);
     return commandSuccess(itemId, Date.now());
   } catch (error) {
     return commandFailureFrom(

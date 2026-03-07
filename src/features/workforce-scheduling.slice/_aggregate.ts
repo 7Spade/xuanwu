@@ -26,8 +26,10 @@
  *   A5  ScheduleAssignRejected is the compensating event when skill validation fails.
  */
 
-import { getOrgMemberEligibility } from '@/shared-infra/projection.bus';
-import { getDocument, Timestamp } from '@/shared-infra/frontend-firebase/firestore/firestore.read.adapter';
+import {
+  getEligibleMemberForScheduleFromGateway,
+  getOrgScheduleItemFromGateway,
+} from '@/shared-infra/gateway-query';
 import { resolveSkillTier, tierSatisfies } from '@/shared-kernel';
 import type { WorkspaceScheduleProposedPayload, SkillRequirement } from '@/shared-kernel';
 import type { ScheduleItem, ScheduleStatus } from '@/shared-kernel';
@@ -146,7 +148,7 @@ export async function approveOrgScheduleProposal(
 ): Promise<ScheduleApprovalResult> {
   // --- Skill Validation via Projection (Invariant #14) ---
   if (skillRequirements && skillRequirements.length > 0) {
-    const memberView = await getOrgMemberEligibility(opts.orgId, targetAccountId);
+    const memberView = await getEligibleMemberForScheduleFromGateway(opts.orgId, targetAccountId);
 
     if (!memberView || !memberView.eligible) {
       const reason = memberView
@@ -180,7 +182,7 @@ export async function approveOrgScheduleProposal(
 
   // --- All checks passed: confirm ---
   // Read current version and increment to ensure proper aggregateVersion for ELIGIBLE_UPDATE_GUARD [R7]
-  const existing = await getDocument<ScheduleItem>(scheduleItemPath(opts.orgId, scheduleItemId));
+  const existing = await getOrgScheduleItemFromGateway(opts.orgId, scheduleItemId);
   const nextVersion = (existing?.version ?? 1) + 1;
 
   // [D3] Return WriteOp; caller executes updateDocument(writeOp.path, writeOp.data)
@@ -235,7 +237,7 @@ async function _buildCancelWriteOp(
     workspaceId: opts.workspaceId,
     targetAccountId,
     reason,
-    rejectedAt: Timestamp.now().toDate().toISOString(),
+    rejectedAt: new Date().toISOString(),
     // [R8] Forward traceId to compensating event for end-to-end trace propagation.
     ...(opts.traceId ? { traceId: opts.traceId } : {}),
   }, {

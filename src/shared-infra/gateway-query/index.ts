@@ -23,3 +23,18 @@
 
 export { registerQuery, executeQuery, listRegisteredQueries, QUERY_ROUTES } from './_registry';
 export type { QueryRouteName } from './_registry';
+
+export {
+	getScheduleItemsFromGateway,
+	getDocumentByPathFromGateway,
+	getOrgScheduleItemFromGateway,
+	subscribeToOrgScheduleProposalsFromGateway,
+	getActiveDemandsFromGateway,
+	subscribeToDemandBoardFromGateway,
+	getAllDemandsFromGateway,
+	getAccountScheduleProjectionRawFromGateway,
+	getEligibleMemberForScheduleFromGateway,
+	getEligibleMembersForScheduleFromGateway,
+	subscribeToWorkspaceScheduleItemsFromGateway,
+	subscribeToWorkspaceTimelineItemsFromGateway,
+} from './workforce-scheduling-query';
