@@ -51,13 +51,4 @@ export { startSchedulingSaga, getSagaState } from '../_saga';
 export type { SagaState, SagaStep, SagaStatus } from '../_saga';
 
 // Legacy compatibility: projector handlers are implemented in VS0 projection bus.
-export {
-  applyDemandProposed,
-  applyDemandAssigned,
-  applyDemandCompleted,
-  applyDemandAssignmentCancelled,
-  applyDemandProposalCancelled,
-  applyDemandAssignRejected,
-} from '../_projectors/demand-board';
-
 export type { AccountScheduleProjection, AccountScheduleAssignment } from '../_projectors/account-schedule';

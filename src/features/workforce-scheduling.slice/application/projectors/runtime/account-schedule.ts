@@ -10,7 +10,7 @@
  * on projection.bus.
  */
 
-import type { FieldValue } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
+type ProjectionUpdatedAt = unknown;
 
 export interface AccountScheduleProjection {
   accountId: string;
@@ -23,7 +23,7 @@ export interface AccountScheduleProjection {
   lastProcessedVersion?: number;
   /** TraceId from the originating EventEnvelope [R8] */
   traceId?: string;
-  updatedAt: FieldValue;
+  updatedAt: ProjectionUpdatedAt;
 }
 
 export interface AccountScheduleAssignment {
