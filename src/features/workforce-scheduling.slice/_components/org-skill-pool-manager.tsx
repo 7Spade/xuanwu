@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * scheduling.slice — _components/org-skill-pool-manager.tsx
+ * workforce-scheduling.slice — _components/org-skill-pool-manager.tsx
  *
  * Org Skill Pool Manager tab for Organization Schedule.
  *

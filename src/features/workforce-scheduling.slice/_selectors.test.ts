@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for scheduling.slice pure selectors [D8]
+ * @fileoverview Tests for workforce-scheduling.slice pure selectors [D8]
  *
  * These selectors have zero I/O and no React dependency ??every test is
  * synchronous and runs without mocking Firebase or React contexts.

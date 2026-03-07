@@ -1,5 +1,5 @@
 /**
- * scheduling.slice ??_eligibility.ts
+ * workforce-scheduling.slice ??_eligibility.ts
  *
  * Pure eligibility matching utility ??extracted from startSchedulingSaga [A5]
  * to enable unit testing without Firestore dependencies.

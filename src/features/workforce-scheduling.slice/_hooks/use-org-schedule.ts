@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * scheduling.slice ??_hooks/use-org-schedule.ts
+ * workforce-scheduling.slice ??_hooks/use-org-schedule.ts
  *
  * React hook for subscribing to org schedule items.
  * Used by the org governance UI to display and act on pending proposals.

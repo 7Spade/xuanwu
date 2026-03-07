@@ -1,5 +1,5 @@
 /**
- * scheduling.slice ??_selectors.ts
+ * workforce-scheduling.slice ??_selectors.ts
  *
  * Pure data-derivation functions for the schedule domain.
  *

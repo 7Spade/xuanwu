@@ -664,7 +664,7 @@ W_SCHED -.->|"tagSlug T4"| TAG_RO
 W_SCHED -.->|"人力需求契約"| SK_SKILL_REQ
 
 %% ── VS6 Workforce Scheduling ──
-subgraph VS6["🟨 VS6 · Workforce Scheduling Slice（排班協作）"]
+subgraph VS6["🟨 VS6 · Workforce Scheduling Slice（排班協作）\nsrc/features/workforce-scheduling.slice"]
     direction TB
 
     subgraph VS6_CMD_LAYER["⚙️ Command Layer（寫側）"]
@@ -674,8 +674,8 @@ subgraph VS6["🟨 VS6 · Workforce Scheduling Slice（排班協作）"]
         SCH_CMD --> SCH_CONFLICT --> ORG_SCH
     end
 
-    subgraph VS6_SAGA["⚙️ Scheduling Saga [#A5]"]
-        SCH_SAGA["scheduling-saga\n接收 ScheduleProposed\neligibility check [#14]\ncompensating:\n  ScheduleAssignRejected\n  ScheduleProposalCancelled\n（需求引導執行，執行引導協作）"]
+    subgraph VS6_SAGA["⚙️ Workforce-Scheduling Saga [#A5]"]
+        SCH_SAGA["workforce-scheduling-saga\n接收 ScheduleProposed\neligibility check [#14]\ncompensating:\n  ScheduleAssignRejected\n  ScheduleProposalCancelled\n（需求引導執行，執行引導協作）"]
     end
 
     subgraph VS6_OB["📤 Schedule Outbox [S1]"]

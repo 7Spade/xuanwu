@@ -1,5 +1,5 @@
 /**
- * scheduling.slice — Public API
+ * workforce-scheduling.slice — Public API
  *
  * Unified VS6 Scheduling vertical slice.
  * Domain: accounts/{orgId}/schedule_items (single source of truth)

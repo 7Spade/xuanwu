@@ -17,7 +17,7 @@ export const ROUTES = {
   ACCOUNT_PARTNERS: "/dashboard/account/partners",
   ACCOUNT_SETTINGS: "/dashboard/account/settings",
   ACCOUNT_MATRIX: "/dashboard/account/matrix",
-  ACCOUNT_SCHEDULE: "/dashboard/account/schedule",
+  ACCOUNT_SCHEDULE: "/dashboard/account/workforce-scheduling",
   ACCOUNT_DAILY: "/dashboard/account/daily",
   ACCOUNT_AUDIT: "/dashboard/account/audit",
 } as const;

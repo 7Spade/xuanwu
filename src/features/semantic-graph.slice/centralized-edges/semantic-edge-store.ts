@@ -26,16 +26,12 @@ function _makeEdgeId(fromSlug: string, toSlug: string, relationType: SemanticRel
 
 // ?€?€?€ Edge mutation API ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
-/** Clamps a raw weight value to the valid [0.0, 1.0] range. */
-function _clampWeight(weight: number): number {
-  return Math.min(1.0, Math.max(0.0, weight));
-}
-
 /**
  * Register or overwrite a semantic edge.
  * Called exclusively from _actions.ts (Command path).
  *
- * @param weight ??relation strength [0.0, 1.0]; defaults to 1.0 (direct). [D21-3]
+ * @param weight — relation strength in (0.0, 1.0]; defaults to 1.0 (direct). [D21-9]
+ * @throws {Error} if weight is not in the open-closed interval (0.0, 1.0] [D21-9][D21-H]
  */
 export function addEdge(
   fromTagSlug: string,
@@ -43,13 +39,16 @@ export function addEdge(
   relationType: SemanticRelationType,
   weight = 1.0
 ): SemanticEdge {
+  if (weight <= 0 || weight > 1) {
+    throw new Error(`[D21-9] Edge weight must be in (0.0, 1.0]; received ${weight}`);
+  }
   const edgeId = _makeEdgeId(fromTagSlug, toTagSlug, relationType);
   const edge: SemanticEdge = {
     edgeId,
     fromTagSlug: tagSlugRef(fromTagSlug),
     toTagSlug: tagSlugRef(toTagSlug),
     relationType,
-    weight: _clampWeight(weight),
+    weight,
     createdAt: new Date().toISOString(),
   };
   _edges.set(edgeId, edge);

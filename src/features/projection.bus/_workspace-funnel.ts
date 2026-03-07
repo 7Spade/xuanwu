@@ -5,7 +5,7 @@
  * Constraints: deterministic logic, respect module boundaries
  */
 
-import { handleScheduleProposed } from '@/features/scheduling.slice';
+import { handleScheduleProposed } from '@/features/workforce-scheduling.slice';
 import type { WorkspaceEventBus } from '@/features/workspace.slice';
 
 import { createVersionStamp, executeAggregateWriteOp } from './_funnel.shared';

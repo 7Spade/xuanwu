@@ -2,7 +2,7 @@
 // When navigated to within the workspace layout, the @modal slot intercepts.
 "use client"
 
-import { ScheduleProposalContent } from "@/features/scheduling.slice"
+import { ScheduleProposalContent } from "@/features/workforce-scheduling.slice"
 
 export default function ScheduleProposalPage() {
   return <ScheduleProposalContent fullPage />

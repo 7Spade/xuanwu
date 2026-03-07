@@ -1,5 +1,5 @@
 /**
- * scheduling.slice — _write-op.ts
+ * workforce-scheduling.slice — _write-op.ts
  *
  * Shared WriteOp executor. [D3]
  *

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * scheduling.slice — _components/org-schedule-governance.tsx
+ * workforce-scheduling.slice — _components/org-schedule-governance.tsx
  *
  * Org HR governance panel for reviewing and acting on schedule items.
  *

@@ -318,6 +318,7 @@ src/features/scheduling.slice/_schedule.rules.ts
 src/features/scheduling.slice/_selectors.ts
 src/features/scheduling.slice/_write-op.ts
 src/features/scheduling.slice/index.ts
+src/features/scheduling.slice/policy-mapper/index.ts
 src/features/semantic-graph.slice/_actions.ts
 src/features/semantic-graph.slice/_aggregate.ts
 src/features/semantic-graph.slice/_cost-classifier.ts
@@ -327,11 +328,15 @@ src/features/semantic-graph.slice/_services.ts
 src/features/semantic-graph.slice/_types.ts
 src/features/semantic-graph.slice/centralized-causality/causality-tracer.ts
 src/features/semantic-graph.slice/centralized-edges/semantic-edge-store.ts
+src/features/semantic-graph.slice/centralized-edges/weight-calculator.ts
 src/features/semantic-graph.slice/centralized-embeddings/embedding-port.ts
+src/features/semantic-graph.slice/centralized-embeddings/vector-store.ts
 src/features/semantic-graph.slice/centralized-guards/semantic-guard.ts
 src/features/semantic-graph.slice/centralized-learning/decay-service.ts
 src/features/semantic-graph.slice/centralized-learning/learning-engine.ts
+src/features/semantic-graph.slice/centralized-neural-net/context-attention.ts
 src/features/semantic-graph.slice/centralized-neural-net/neural-network.ts
+src/features/semantic-graph.slice/centralized-nodes/hierarchy-manager.ts
 src/features/semantic-graph.slice/centralized-nodes/tag-entity.factory.ts
 src/features/semantic-graph.slice/centralized-tag/_actions.ts
 src/features/semantic-graph.slice/centralized-tag/_bus.ts
@@ -1786,6 +1791,25 @@ export function useTeamManagement()
 
 ```
 
+## File: src/features/portal.slice/_types.ts
+```typescript
+export type PortalState = {
+  isInitializing: boolean;
+};
+```
+
+## File: src/features/portal.slice/core/_hooks/use-portal-state.ts
+```typescript
+import { useState } from 'react';
+import type { PortalState } from '../../_types';
+export function usePortalState(): PortalState
+```
+
+## File: src/features/portal.slice/index.ts
+```typescript
+
+```
+
 ## File: src/features/projection.bus/_query-registration.ts
 ```typescript
 import { registerQuery, QUERY_ROUTES } from '@/features/infra.gateway-query';
@@ -2046,6 +2070,21 @@ export interface AccountScheduleAssignment {
 import { updateDocument, arrayUnion } from '@/shared/infra/firestore/firestore.write.adapter';
 import type { WriteOp } from './_aggregate';
 export async function executeWriteOp(op: WriteOp): Promise<void>
+```
+
+## File: src/features/semantic-graph.slice/centralized-utils/semantic-utils.ts
+```typescript
+import type { TagEntity } from '../centralized-types';
+export function buildSemanticUri(category: string, tagSlug: string): string
+export function parseSemanticUri(
+  uri: string
+):
+export function tagEntityToText(entity: TagEntity): string
+export function sortTagEntities(entities: readonly TagEntity[]): TagEntity[]
+export function computeStalenessMs(isoTimestamp: string): number
+export function isStale(isoTimestamp: string, thresholdMs: number): boolean
+⋮----
+export function deriveTierFromXp(xp: number): string
 ```
 
 ## File: src/features/skill-xp.slice/_aggregate.ts
@@ -3049,6 +3088,20 @@ onOpenChange={(open) => { if (!open) clearSelection(); }}
 ## File: src/features/workspace.slice/gov.teams/index.ts
 ```typescript
 
+```
+
+## File: src/portal/index.ts
+```typescript
+
+```
+
+## File: src/portal/portal-layout.tsx
+```typescript
+import type { ReactNode } from 'react';
+type PortalLayoutProps = {
+  children: ReactNode;
+};
+export function PortalLayout(
 ```
 
 ## File: src/shared-infra/firebase/.firebaserc
@@ -4254,6 +4307,20 @@ export function LanguageSwitcher()
 onClick=
 ```
 
+## File: src/shell/app-shell.tsx
+```typescript
+import type { ReactNode } from 'react';
+type AppShellProps = {
+  children: ReactNode;
+};
+export function AppShell(
+```
+
+## File: src/shell/index.ts
+```typescript
+
+```
+
 ## File: tsconfig.json
 ```json
 {
@@ -5239,18 +5306,6 @@ export async function updateTeamMembers(
 ): Promise<CommandResult>
 ```
 
-## File: src/features/portal.slice/_types.ts
-```typescript
-export type PortalState = {
-  isInitializing: boolean;
-};
-```
-
-## File: src/features/portal.slice/index.ts
-```typescript
-
-```
-
 ## File: src/features/projection.bus/_funnel.shared.ts
 ```typescript
 import { arrayUnion, updateDocument } from '@/shared/infra/firestore/firestore.write.adapter';
@@ -5601,57 +5656,180 @@ export function canTransitionScheduleStatus(
 ): boolean
 ```
 
+## File: src/features/scheduling.slice/policy-mapper/index.ts
+```typescript
+import type { TagSlugRef, SkillRequirement, SkillTier } from '@/shared-kernel';
+import { getTierRank } from '@/shared-kernel';
+export interface SemanticContext {
+  readonly workspaceId: string;
+  readonly orgId: string;
+  readonly skillRequirements: readonly SkillRequirement[];
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly locationId?: string;
+}
+export type AssignmentStrategy = 'open' | 'tier-gated' | 'skill-gated';
+export interface AssignmentPolicy {
+  readonly strategy: AssignmentStrategy;
+  readonly maxCandidates: number;
+  readonly requiredSkills: readonly SkillRequirement[];
+  readonly minimumTier: SkillTier | undefined;
+}
+export interface ScheduleSlot {
+  readonly tagSlug: TagSlugRef;
+  readonly strategy: AssignmentStrategy;
+  readonly minimumTier: SkillTier | undefined;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly slotLabel: string;
+}
+function _isGenericTierSlug(tagSlug: TagSlugRef): boolean
+function _highestTier(requirements: readonly SkillRequirement[]): SkillTier | undefined
+export function resolveAssignmentPolicy(semanticContext: SemanticContext): AssignmentPolicy
+export function mapToScheduleSlot(
+  tagSlug: TagSlugRef,
+  policy: AssignmentPolicy,
+  startDate: string,
+  endDate: string,
+): ScheduleSlot
+```
+
+## File: src/features/semantic-graph.slice/_actions.ts
+```typescript
+import { commandSuccess, commandFailureFrom } from '@/shared-kernel';
+import type { CommandResult, TagSlugRef } from '@/shared-kernel';
+import type { TaxonomyNode } from '@/shared-kernel';
+import { detectTemporalConflicts, validateTaxonomyAssignment } from './_aggregate';
+import { indexEntity, removeFromIndex } from './_services';
+import type {
+  TemporalTagAssignment,
+  SemanticIndexEntry,
+} from './_types';
+import {
+  addEdge,
+  removeEdge,
+} from './centralized-edges/semantic-edge-store';
+import type { SemanticRelationType, TagLifecycleState } from './centralized-types';
+import {
+  registerTagDraft,
+  activateTag,
+  transitionTagState,
+} from './centralized-workflows/tag-lifecycle.workflow';
+import type { OutboxLifecycleEvent } from './centralized-workflows/tag-lifecycle.workflow';
+export async function upsertTagWithConflictCheck(
+  node: TaxonomyNode,
+  temporalAssignment: TemporalTagAssignment | null,
+  existingNodes: readonly TaxonomyNode[],
+  existingAssignments: readonly TemporalTagAssignment[]
+): Promise<CommandResult>
+export async function removeTag(tagSlug: string): Promise<CommandResult>
+export async function assignSemanticTag(
+  node: TaxonomyNode,
+  temporalAssignment: TemporalTagAssignment | null,
+  existingNodes: readonly TaxonomyNode[],
+  existingAssignments: readonly TemporalTagAssignment[]
+): Promise<CommandResult>
+export async function addSemanticEdge(
+  fromTagSlug: string,
+  toTagSlug: string,
+  relationType: SemanticRelationType
+): Promise<CommandResult>
+export async function removeSemanticEdge(
+  fromTagSlug: string,
+  toTagSlug: string,
+  relationType: SemanticRelationType
+): Promise<CommandResult>
+export async function registerTagLifecycle(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  aggregateVersion: number
+): Promise<CommandResult &
+export async function activateTagLifecycle(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  nextVersion: number
+): Promise<CommandResult &
+export async function transitionTagLifecycle(
+  tagSlug: TagSlugRef,
+  toState: TagLifecycleState,
+  triggeredBy: string,
+  nextVersion: number
+): Promise<CommandResult &
+```
+
 ## File: src/features/semantic-graph.slice/_semantic-authority.ts
 ```typescript
 import type { SearchDomain, TaxonomyDimension } from '@/shared-kernel/data-contracts/semantic/semantic-contracts';
 ```
 
-## File: src/features/semantic-graph.slice/centralized-learning/decay-service.ts
+## File: src/features/semantic-graph.slice/centralized-edges/weight-calculator.ts
 ```typescript
-
-```
-
-## File: src/features/semantic-graph.slice/centralized-learning/learning-engine.ts
-```typescript
-
-```
-
-## File: src/features/semantic-graph.slice/centralized-utils/semantic-utils.ts
-```typescript
-import type { TagEntity } from '../centralized-types';
-export function buildSemanticUri(category: string, tagSlug: string): string
-export function parseSemanticUri(
-  uri: string
-):
-export function tagEntityToText(entity: TagEntity): string
-export function sortTagEntities(entities: readonly TagEntity[]): TagEntity[]
-export function computeStalenessMs(isoTimestamp: string): number
-export function isStale(isoTimestamp: string, thresholdMs: number): boolean
+import type { TagSlugRef } from '@/shared-kernel';
+import type { SemanticRelationType } from '../centralized-types';
 ⋮----
-export function deriveTierFromXp(xp: number): string
+function _overrideKey(
+  fromSlug: TagSlugRef,
+  toSlug: TagSlugRef,
+  relationType: SemanticRelationType
+): string
+export function calculateSimilarityWeight(
+  fromSlug: TagSlugRef,
+  toSlug: TagSlugRef,
+  relationType: SemanticRelationType
+): number
+export function adjustWeight(
+  fromSlug: TagSlugRef,
+  toSlug: TagSlugRef,
+  relationType: SemanticRelationType,
+  newWeight: number
+): void
+export function _clearWeightOverridesForTest(): void
 ```
 
-## File: src/features/semantic-graph.slice/outbox/tag-outbox.ts
+## File: src/features/semantic-graph.slice/centralized-embeddings/vector-store.ts
 ```typescript
+import type { TagSlugRef } from '@/shared-kernel';
+export interface VectorStoreEntry {
+  readonly slug: TagSlugRef;
+  readonly vector: readonly number[];
+  readonly storedAt: string;
+}
+export class VectorStore
+⋮----
+storeEmbedding(slug: TagSlugRef, vector: readonly number[]): void
+getEmbedding(slug: TagSlugRef): readonly number[] | null
+hasEmbedding(slug: TagSlugRef): boolean
+computeCosineSimilarity(a: TagSlugRef, b: TagSlugRef): number
+getAll(): readonly VectorStoreEntry[]
+deleteEmbedding(slug: TagSlugRef): void
+clear(): void
+```
 
+## File: src/features/semantic-graph.slice/centralized-neural-net/context-attention.ts
+```typescript
+import type { TagSlugRef } from '@/shared-kernel';
+⋮----
+function _workspacePrefix(workspaceId: string): string
+function _isGlobalSlug(slug: string): boolean
+function _belongsToWorkspace(slug: string, workspaceId: string): boolean
+export function filterTagsByWorkspaceContext(
+  allSlugs: readonly TagSlugRef[],
+  workspaceId: string
+): TagSlugRef[]
+```
+
+## File: src/features/semantic-graph.slice/centralized-nodes/hierarchy-manager.ts
+```typescript
+import { tagSlugRef } from '@/shared-kernel';
+import type { TagSlugRef } from '@/shared-kernel';
+⋮----
+export function mountToParent(childSlug: TagSlugRef, parentSlug: TagSlugRef): void
+export function validateNotIsolated(slug: TagSlugRef): boolean
+export function getParent(slug: TagSlugRef): TagSlugRef | null
+export function _clearHierarchyForTest(): void
 ```
 
 ## File: src/features/semantic-graph.slice/projections/context-selectors.ts
-```typescript
-
-```
-
-## File: src/features/semantic-graph.slice/proposal-stream/index.ts
-```typescript
-
-```
-
-## File: src/features/semantic-graph.slice/subscribers/lifecycle-subscriber.ts
-```typescript
-
-```
-
-## File: src/features/semantic-graph.slice/wiki-editor/index.ts
 ```typescript
 
 ```
@@ -7237,20 +7415,6 @@ export interface WorkspaceGrant {
 
 ```
 
-## File: src/portal/index.ts
-```typescript
-
-```
-
-## File: src/portal/portal-layout.tsx
-```typescript
-import type { ReactNode } from 'react';
-type PortalLayoutProps = {
-  children: ReactNode;
-};
-export function PortalLayout(
-```
-
 ## File: src/shared-kernel/data-contracts/account/skill-grant-contract.ts
 ```typescript
 import type { Timestamp } from '@/shared-kernel/ports/i-firestore.repo';
@@ -7868,20 +8032,6 @@ interface PageHeaderProps {
 <div className=
 ⋮----
 <p className=
-```
-
-## File: src/shell/app-shell.tsx
-```typescript
-import type { ReactNode } from 'react';
-type AppShellProps = {
-  children: ReactNode;
-};
-export function AppShell(
-```
-
-## File: src/shell/index.ts
-```typescript
-
 ```
 
 ## File: package.json
@@ -8803,13 +8953,6 @@ title=
 <span className="font-mono text-[9px] text-muted-foreground">ID:
 ```
 
-## File: src/features/portal.slice/core/_hooks/use-portal-state.ts
-```typescript
-import { useState } from 'react';
-import type { PortalState } from '../../_types';
-export function usePortalState(): PortalState
-```
-
 ## File: src/features/projection.bus/_funnel.ts
 ```typescript
 import type { WorkspaceEventBus } from '@/features/workspace.slice';
@@ -9458,67 +9601,28 @@ export function selectPresentEvents<M>(
 
 ```
 
-## File: src/features/semantic-graph.slice/_actions.ts
+## File: src/features/semantic-graph.slice/_cost-classifier.ts
 ```typescript
-import { commandSuccess, commandFailureFrom } from '@/shared-kernel';
-import type { CommandResult, TagSlugRef } from '@/shared-kernel';
-import type { TaxonomyNode } from '@/shared-kernel';
-import { detectTemporalConflicts, validateTaxonomyAssignment } from './_aggregate';
-import { indexEntity, removeFromIndex } from './_services';
-import type {
-  TemporalTagAssignment,
-  SemanticIndexEntry,
-} from './_types';
-import {
-  addEdge,
-  removeEdge,
-} from './centralized-edges/semantic-edge-store';
-import type { SemanticRelationType, TagLifecycleState } from './centralized-types';
-import {
-  registerTagDraft,
-  activateTag,
-  transitionTagState,
-} from './centralized-workflows/tag-lifecycle.workflow';
-import type { OutboxLifecycleEvent } from './centralized-workflows/tag-lifecycle.workflow';
-export async function upsertTagWithConflictCheck(
-  node: TaxonomyNode,
-  temporalAssignment: TemporalTagAssignment | null,
-  existingNodes: readonly TaxonomyNode[],
-  existingAssignments: readonly TemporalTagAssignment[]
-): Promise<CommandResult>
-export async function removeTag(tagSlug: string): Promise<CommandResult>
-export async function assignSemanticTag(
-  node: TaxonomyNode,
-  temporalAssignment: TemporalTagAssignment | null,
-  existingNodes: readonly TaxonomyNode[],
-  existingAssignments: readonly TemporalTagAssignment[]
-): Promise<CommandResult>
-export async function addSemanticEdge(
-  fromTagSlug: string,
-  toTagSlug: string,
-  relationType: SemanticRelationType
-): Promise<CommandResult>
-export async function removeSemanticEdge(
-  fromTagSlug: string,
-  toTagSlug: string,
-  relationType: SemanticRelationType
-): Promise<CommandResult>
-export async function registerTagLifecycle(
-  tagSlug: TagSlugRef,
-  triggeredBy: string,
-  aggregateVersion: number
-): Promise<CommandResult &
-export async function activateTagLifecycle(
-  tagSlug: TagSlugRef,
-  triggeredBy: string,
-  nextVersion: number
-): Promise<CommandResult &
-export async function transitionTagLifecycle(
-  tagSlug: TagSlugRef,
-  toState: TagLifecycleState,
-  triggeredBy: string,
-  nextVersion: number
-): Promise<CommandResult &
+export type CostItemType = (typeof CostItemType)[keyof typeof CostItemType]
+⋮----
+export type SemanticTagSlug = (typeof COST_ITEM_TAG_SLUG)[CostItemType]
+export interface CostItemSemanticClassification {
+  costItemType: CostItemType
+  semanticTagSlug: SemanticTagSlug
+}
+⋮----
+function classifyCostItemType(name: string): CostItemType
+function toSemanticTagSlug(costItemType: CostItemType): SemanticTagSlug
+export function classifyCostItem(name: string): CostItemType
+export function classifyCostItem(
+export function classifyCostItem(
+  name: string,
+  options?: { includeSemanticTagSlug?: boolean }
+): CostItemType | CostItemSemanticClassification
+export function classifyCostItemWithSemanticTag(
+  name: string
+): CostItemSemanticClassification
+export function shouldMaterializeAsTask(costItemType: CostItemType): boolean
 ```
 
 ## File: src/features/semantic-graph.slice/_types.ts
@@ -9593,6 +9697,32 @@ export interface SemanticIndexStats {
 }
 ```
 
+## File: src/features/semantic-graph.slice/centralized-embeddings/embedding-port.ts
+```typescript
+import type { TagSlugRef } from '@/shared-kernel';
+import type { TagEmbedding } from '../centralized-types';
+export interface IEmbeddingPort {
+  embed(text: string): Promise<readonly number[]>;
+  embedBatch(texts: readonly string[]): Promise<readonly (readonly number[])[]>;
+}
+⋮----
+embed(text: string): Promise<readonly number[]>;
+embedBatch(texts: readonly string[]): Promise<readonly (readonly number[])[]>;
+⋮----
+export function injectEmbeddingPort(port: IEmbeddingPort): void
+export function getEmbeddingPort(): IEmbeddingPort
+export async function buildTagEmbedding(
+  tagSlug: TagSlugRef,
+  category: string,
+  label: string,
+  model = 'default'
+): Promise<TagEmbedding>
+export async function buildTagEmbeddingsBatch(
+  tags: ReadonlyArray<{ tagSlug: TagSlugRef; category: string; label: string }>,
+  model = 'default'
+): Promise<readonly TagEmbedding[]>
+```
+
 ## File: src/features/semantic-graph.slice/centralized-guards/semantic-guard.ts
 ```typescript
 import { getAllEdges } from '../centralized-edges/semantic-edge-store';
@@ -9631,6 +9761,46 @@ function _isDuplicateEdge(
 export function validateEdgeProposal(proposal: EdgeProposal): SemanticGuardResult
 ```
 
+## File: src/features/semantic-graph.slice/centralized-learning/decay-service.ts
+```typescript
+import type { SemanticEdge } from '../centralized-types';
+⋮----
+export interface DecayResult {
+  readonly edgeId: string;
+  readonly previousWeight: number;
+  readonly newWeight: number;
+  readonly decayedAt: string;
+}
+export function computeDecayedWeight(currentWeight: number): number
+export function applyDecay(edge: SemanticEdge): DecayResult
+export function scheduleDecayRun(edges: readonly SemanticEdge[]): readonly DecayResult[]
+```
+
+## File: src/features/semantic-graph.slice/centralized-learning/learning-engine.ts
+```typescript
+import type { TagSlugRef } from '@/shared-kernel';
+export interface WeightDeltaEvent {
+  readonly fromSlug: TagSlugRef;
+  readonly toSlug: TagSlugRef;
+  readonly delta: number;
+  readonly triggeredBy: 'ACCOUNT_CREATED' | 'SKILL_XP_CHANGED';
+  readonly triggeredAt: string;
+}
+export interface LearningResult {
+  readonly fromSlug: TagSlugRef;
+  readonly toSlug: TagSlugRef;
+  readonly previousWeight: number;
+  readonly newWeight: number;
+}
+⋮----
+function _edgeKey(from: TagSlugRef, to: TagSlugRef): string
+export function _applyWeightDelta(fromSlug: TagSlugRef, toSlug: TagSlugRef, delta: number): LearningResult
+export function onAccountCreated(fromSlug: TagSlugRef, toSlug: TagSlugRef): LearningResult
+export function onSkillXpChanged(fromSlug: TagSlugRef, toSlug: TagSlugRef, xpDelta: number): LearningResult
+export function getCachedWeight(fromSlug: TagSlugRef, toSlug: TagSlugRef): number
+export function _clearLearningCacheForTest(): void
+```
+
 ## File: src/features/semantic-graph.slice/centralized-neural-net/neural-network.ts
 ```typescript
 import {
@@ -9664,6 +9834,33 @@ export function computeRelationWeight(fromSlug: string, toSlug: string): number
 export function getAllGraphNodes(): readonly string[]
 ```
 
+## File: src/features/semantic-graph.slice/centralized-nodes/tag-entity.factory.ts
+```typescript
+import { tagSlugRef, type TagCategory } from '@/shared-kernel';
+import type {
+  TagEntity,
+  TE1_SkillTagEntity,
+  TE2_SkillTierTagEntity,
+  TE3_UserLevelTagEntity,
+  TE4_RoleTagEntity,
+  TE5_TeamTagEntity,
+  TE6_PartnerTagEntity,
+} from '../centralized-types';
+export interface TagEntityFactoryInput {
+  readonly tagSlug: string;
+  readonly label: string;
+  readonly category: TagCategory;
+  readonly aggregateVersion: number;
+}
+function buildTE1(input: TagEntityFactoryInput): TE1_SkillTagEntity
+function buildTE2(input: TagEntityFactoryInput): TE2_SkillTierTagEntity
+function buildTE3(input: TagEntityFactoryInput): TE3_UserLevelTagEntity
+function buildTE4(input: TagEntityFactoryInput): TE4_RoleTagEntity
+function buildTE5(input: TagEntityFactoryInput): TE5_TeamTagEntity
+function buildTE6(input: TagEntityFactoryInput): TE6_PartnerTagEntity
+export function buildTagEntity(input: TagEntityFactoryInput): TagEntity
+```
+
 ## File: src/features/semantic-graph.slice/centralized-tag/_events.ts
 ```typescript
 import type {
@@ -9679,6 +9876,105 @@ import type {
 ## File: src/features/semantic-graph.slice/centralized-tag/index.ts
 ```typescript
 
+```
+
+## File: src/features/semantic-graph.slice/outbox/tag-outbox.ts
+```typescript
+import type { TagLifecycleEvent, SemanticEdge } from '../centralized-types';
+export type OutboxEventKind =
+  | 'TAG_LIFECYCLE'
+  | 'TOPOLOGY_CHANGED'
+  | 'WEIGHT_UPDATED';
+export interface OutboxEntry {
+  readonly eventId: string;
+  readonly kind: OutboxEventKind;
+  readonly payload: TagLifecycleEvent | TopologyChangedPayload | WeightUpdatedPayload;
+  readonly enqueuedAt: string;
+  delivered: boolean;
+}
+export interface TopologyChangedPayload {
+  readonly edge: SemanticEdge;
+  readonly mutation: 'ADDED' | 'REMOVED';
+}
+export interface WeightUpdatedPayload {
+  readonly edgeId: string;
+  readonly previousWeight: number;
+  readonly newWeight: number;
+}
+⋮----
+function _nextId(): string
+export function emitTagLifecycleEvent(event: TagLifecycleEvent): void
+export function emitSemanticTopologyChanged(payload: TopologyChangedPayload): void
+export function emitNeuralWeightUpdated(payload: WeightUpdatedPayload): void
+export function drainPendingEntries(): OutboxEntry[]
+export function _clearOutboxForTest(): void
+```
+
+## File: src/features/semantic-graph.slice/proposal-stream/index.ts
+```typescript
+import type { TagSlugRef } from '@/shared-kernel';
+import type { SemanticRelationType } from '../centralized-types';
+export type ProposalId = string & { readonly _brand: 'ProposalId' };
+export type ProposalStatus = 'pending' | 'approved' | 'rejected';
+export interface RelationshipProposal {
+  readonly proposalId: ProposalId;
+  readonly fromTagSlug: TagSlugRef;
+  readonly toTagSlug: TagSlugRef;
+  readonly relationType: SemanticRelationType;
+  readonly weight: number;
+  readonly proposedBy: string;
+  readonly proposedAt: string;
+  status: ProposalStatus;
+  rejectionReason?: string;
+  resolvedAt?: string;
+}
+⋮----
+function _newId(): ProposalId
+export function enqueueProposal(
+  proposal: Omit<RelationshipProposal, 'proposalId' | 'status'>,
+): ProposalId
+export function approveProposal(proposalId: ProposalId): void
+export function rejectProposal(proposalId: ProposalId, reason: string): void
+export function listPendingProposals(): readonly RelationshipProposal[]
+export function listAllProposals(): readonly RelationshipProposal[]
+export function _clearProposalsForTest(): void
+```
+
+## File: src/features/semantic-graph.slice/subscribers/lifecycle-subscriber.ts
+```typescript
+import type { TagLifecycleEvent } from '../centralized-types';
+import { emitTagLifecycleEvent } from '../outbox/tag-outbox';
+export type Unsubscribe = () => void;
+export type LifecycleEventSource = (handler: (event: TagLifecycleEvent) => void) => Unsubscribe;
+⋮----
+export function createLifecycleSubscriber(source: LifecycleEventSource): Unsubscribe
+export function onLifecycleEvent(handler: (event: TagLifecycleEvent) => void): Unsubscribe
+export function _clearHandlersForTest(): void
+```
+
+## File: src/features/semantic-graph.slice/wiki-editor/index.ts
+```typescript
+import type { TagSlugRef } from '@/shared-kernel';
+import type { SemanticRelationType } from '../centralized-types';
+import {
+  type ProposalId,
+  type RelationshipProposal,
+  enqueueProposal,
+  listAllProposals,
+} from '../proposal-stream';
+export interface ProposalSubmission {
+  readonly fromTagSlug: TagSlugRef;
+  readonly toTagSlug: TagSlugRef;
+  readonly relationType: SemanticRelationType;
+  readonly weight: number;
+  readonly submittedBy: string;
+}
+function _validateSubmission(
+  submission: ProposalSubmission,
+  existing: readonly RelationshipProposal[],
+): void
+export function submitProposal(submission: ProposalSubmission): ProposalId
+export function getProposalHistory(tagSlug: TagSlugRef): readonly RelationshipProposal[]
 ```
 
 ## File: src/features/skill-xp.slice/_actions.ts
@@ -11551,30 +11847,6 @@ function makeError(
 ): TaxonomyValidationError
 ```
 
-## File: src/features/semantic-graph.slice/_cost-classifier.ts
-```typescript
-export type CostItemType = (typeof CostItemType)[keyof typeof CostItemType]
-⋮----
-export type SemanticTagSlug = (typeof COST_ITEM_TAG_SLUG)[CostItemType]
-export interface CostItemSemanticClassification {
-  costItemType: CostItemType
-  semanticTagSlug: SemanticTagSlug
-}
-⋮----
-function classifyCostItemType(name: string): CostItemType
-function toSemanticTagSlug(costItemType: CostItemType): SemanticTagSlug
-export function classifyCostItem(name: string): CostItemType
-export function classifyCostItem(
-export function classifyCostItem(
-  name: string,
-  options?: { includeSemanticTagSlug?: boolean }
-): CostItemType | CostItemSemanticClassification
-export function classifyCostItemWithSemanticTag(
-  name: string
-): CostItemSemanticClassification
-export function shouldMaterializeAsTask(costItemType: CostItemType): boolean
-```
-
 ## File: src/features/semantic-graph.slice/_services.ts
 ```typescript
 import type { SearchDomain, SemanticSearchHit } from '@/shared-kernel';
@@ -11596,59 +11868,6 @@ function isValidSearchDomain(domain: string): domain is SearchDomain
 function computeRelevanceScore(entry: SemanticIndexEntry, terms: string[]): number
 ```
 
-## File: src/features/semantic-graph.slice/centralized-embeddings/embedding-port.ts
-```typescript
-import type { TagSlugRef } from '@/shared-kernel';
-import type { TagEmbedding } from '../centralized-types';
-export interface IEmbeddingPort {
-  embed(text: string): Promise<readonly number[]>;
-  embedBatch(texts: readonly string[]): Promise<readonly (readonly number[])[]>;
-}
-⋮----
-embed(text: string): Promise<readonly number[]>;
-embedBatch(texts: readonly string[]): Promise<readonly (readonly number[])[]>;
-⋮----
-export function injectEmbeddingPort(port: IEmbeddingPort): void
-export function getEmbeddingPort(): IEmbeddingPort
-export async function buildTagEmbedding(
-  tagSlug: TagSlugRef,
-  category: string,
-  label: string,
-  model = 'default'
-): Promise<TagEmbedding>
-export async function buildTagEmbeddingsBatch(
-  tags: ReadonlyArray<{ tagSlug: TagSlugRef; category: string; label: string }>,
-  model = 'default'
-): Promise<readonly TagEmbedding[]>
-```
-
-## File: src/features/semantic-graph.slice/centralized-nodes/tag-entity.factory.ts
-```typescript
-import { tagSlugRef, type TagCategory } from '@/shared-kernel';
-import type {
-  TagEntity,
-  TE1_SkillTagEntity,
-  TE2_SkillTierTagEntity,
-  TE3_UserLevelTagEntity,
-  TE4_RoleTagEntity,
-  TE5_TeamTagEntity,
-  TE6_PartnerTagEntity,
-} from '../centralized-types';
-export interface TagEntityFactoryInput {
-  readonly tagSlug: string;
-  readonly label: string;
-  readonly category: TagCategory;
-  readonly aggregateVersion: number;
-}
-function buildTE1(input: TagEntityFactoryInput): TE1_SkillTagEntity
-function buildTE2(input: TagEntityFactoryInput): TE2_SkillTierTagEntity
-function buildTE3(input: TagEntityFactoryInput): TE3_UserLevelTagEntity
-function buildTE4(input: TagEntityFactoryInput): TE4_RoleTagEntity
-function buildTE5(input: TagEntityFactoryInput): TE5_TeamTagEntity
-function buildTE6(input: TagEntityFactoryInput): TE6_PartnerTagEntity
-export function buildTagEntity(input: TagEntityFactoryInput): TagEntity
-```
-
 ## File: src/features/semantic-graph.slice/centralized-tag/_bus.ts
 ```typescript
 import type { ImplementsEventEnvelopeContract } from '@/shared-kernel';
@@ -11668,6 +11887,57 @@ export function publishTagEvent<K extends TagLifecycleEventKey>(
   eventKey: K,
   payload: TagLifecycleEventPayloadMap[K]
 ): void
+```
+
+## File: src/features/semantic-graph.slice/centralized-workflows/tag-lifecycle.workflow.ts
+```typescript
+import { buildIdempotencyKey, StalenessMs } from '@/shared-kernel';
+import type { TagSlugRef } from '@/shared-kernel';
+import type {
+  TagLifecycleRecord,
+  TagLifecycleState,
+  TagLifecycleEvent,
+  TagLifecycleEventType,
+  StaleTagWarning,
+} from '../centralized-types';
+⋮----
+export interface OutboxLifecycleEvent {
+  readonly outboxLane: 'BACKGROUND_LANE';
+  readonly idempotencyKey: string;
+  readonly payload: TagLifecycleEvent;
+}
+type TransitionMap = Partial<Record<TagLifecycleState, readonly TagLifecycleState[]>>;
+⋮----
+function isAllowed(from: TagLifecycleState, to: TagLifecycleState): boolean
+export function registerTagDraft(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  aggregateVersion: number
+): OutboxLifecycleEvent
+export function transitionTagState(
+  tagSlug: TagSlugRef,
+  toState: TagLifecycleState,
+  triggeredBy: string,
+  nextVersion: number
+): OutboxLifecycleEvent
+export function activateTag(
+  tagSlug: TagSlugRef,
+  triggeredBy: string,
+  nextVersion: number
+): OutboxLifecycleEvent
+export function detectStaleTagWarnings(): readonly StaleTagWarning[]
+export function getLifecycleRecord(tagSlug: TagSlugRef): TagLifecycleRecord | undefined
+export function getAllLifecycleRecords(): readonly TagLifecycleRecord[]
+export function _clearLifecycleRecordsForTest(): void
+function _buildEvent(
+  tagSlug: TagSlugRef,
+  fromState: TagLifecycleState,
+  toState: TagLifecycleState,
+  triggeredBy: string,
+  aggregateVersion: number,
+  transitionedAt: string
+): TagLifecycleEvent
+function _wrapOutbox(payload: TagLifecycleEvent): OutboxLifecycleEvent
 ```
 
 ## File: src/features/semantic-graph.slice/projections/graph-selectors.ts
@@ -12470,6 +12740,30 @@ const onItemClick = (item: ScheduleItem) =>
 const handleMonthChange = (direction: 'prev' | 'next') =>
 ```
 
+## File: src/features/semantic-graph.slice/_queries.ts
+```typescript
+import { querySemanticIndex, getIndexStats } from './_services';
+import {
+  traceAffectedNodes,
+  rankAffectedNodes,
+  buildDownstreamEvents,
+  buildCausalityChain,
+} from './centralized-causality/causality-tracer';
+import { getEdgesByType } from './centralized-edges/semantic-edge-store';
+import {
+  computeSemanticDistance,
+  computeSemanticDistanceMatrix,
+  findIsolatedNodes,
+} from './centralized-neural-net/neural-network';
+import type { SemanticEdge, StaleTagWarning } from './centralized-types';
+import { detectStaleTagWarnings } from './centralized-workflows/tag-lifecycle.workflow';
+import { getEligibleTags, satisfiesSemanticRequirement, buildEligibilityMatrix } from './projections/graph-selectors';
+⋮----
+export function getIsAEdges(): readonly SemanticEdge[]
+export function getRequiresEdges(): readonly SemanticEdge[]
+export function queryStaleTagWarnings(): readonly StaleTagWarning[]
+```
+
 ## File: src/features/semantic-graph.slice/centralized-tag/_actions.ts
 ```typescript
 import {
@@ -12523,55 +12817,71 @@ export async function deleteTag(
 export async function getTag(tagSlug: string): Promise<CentralizedTagEntry | null>
 ```
 
-## File: src/features/semantic-graph.slice/centralized-workflows/tag-lifecycle.workflow.ts
+## File: src/features/workspace.slice/business.document-parser/_types.ts
 ```typescript
-import { buildIdempotencyKey, StalenessMs } from '@/shared-kernel';
-import type { TagSlugRef } from '@/shared-kernel';
+import type { CostItemType } from '@/features/semantic-graph.slice'
+import type { SkillRequirement } from '@/shared-kernel'
+import type { Timestamp } from '@/shared-kernel/ports'
 import type {
-  TagLifecycleRecord,
-  TagLifecycleState,
-  TagLifecycleEvent,
-  TagLifecycleEventType,
-  StaleTagWarning,
-} from '../centralized-types';
-⋮----
-export interface OutboxLifecycleEvent {
-  readonly outboxLane: 'BACKGROUND_LANE';
-  readonly idempotencyKey: string;
-  readonly payload: TagLifecycleEvent;
+  ParsingIntentSourceType,
+  ParsingIntentReviewStatus,
+  ParsingIntentStatus,
+} from '../business.parsing-intent/_contract'
+export type IntentID = string & { readonly _brand: 'IntentID' }
+export type SourcePointer = string & { readonly _brand: 'SourcePointer' }
+export interface ParsedLineItem {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  discount?: number;
+  subtotal: number;
+  costItemType: CostItemType;
+  semanticTagSlug: string;
+  sourceIntentIndex: number;
 }
-type TransitionMap = Partial<Record<TagLifecycleState, readonly TagLifecycleState[]>>;
 ⋮----
-function isAllowed(from: TagLifecycleState, to: TagLifecycleState): boolean
-export function registerTagDraft(
-  tagSlug: TagSlugRef,
-  triggeredBy: string,
-  aggregateVersion: number
-): OutboxLifecycleEvent
-export function transitionTagState(
-  tagSlug: TagSlugRef,
-  toState: TagLifecycleState,
-  triggeredBy: string,
-  nextVersion: number
-): OutboxLifecycleEvent
-export function activateTag(
-  tagSlug: TagSlugRef,
-  triggeredBy: string,
-  nextVersion: number
-): OutboxLifecycleEvent
-export function detectStaleTagWarnings(): readonly StaleTagWarning[]
-export function getLifecycleRecord(tagSlug: TagSlugRef): TagLifecycleRecord | undefined
-export function getAllLifecycleRecords(): readonly TagLifecycleRecord[]
-export function _clearLifecycleRecordsForTest(): void
-function _buildEvent(
-  tagSlug: TagSlugRef,
-  fromState: TagLifecycleState,
-  toState: TagLifecycleState,
-  triggeredBy: string,
-  aggregateVersion: number,
-  transitionedAt: string
-): TagLifecycleEvent
-function _wrapOutbox(payload: TagLifecycleEvent): OutboxLifecycleEvent
+export interface ParsingIntent {
+  id: IntentID;
+  workspaceId: string;
+  sourceFileName: string;
+  sourceFileDownloadURL?: SourcePointer;
+  sourceFileId?: string;
+  intentVersion: number;
+  supersededByIntentId?: IntentID;
+  baseIntentId?: IntentID;
+  lineItems: ParsedLineItem[];
+  skillRequirements?: SkillRequirement[];
+  parserVersion?: string;
+  modelVersion?: string;
+  sourceType: ParsingIntentSourceType;
+  reviewStatus: ParsingIntentReviewStatus;
+  reviewedBy?: string;
+  reviewedAt?: Timestamp;
+  semanticHash?: string;
+  status: ParsingIntentStatus;
+  createdAt: Timestamp;
+  importedAt?: Timestamp;
+}
+export type ParsingImportStatus =
+  | 'started'
+  | 'applied'
+  | 'partial'
+  | 'failed';
+export interface ParsingImport {
+  id: string;
+  workspaceId: string;
+  intentId: IntentID;
+  intentVersion: number;
+  idempotencyKey: string;
+  status: ParsingImportStatus;
+  appliedTaskIds: string[];
+  startedAt: Timestamp;
+  completedAt?: Timestamp;
+  error?: {
+    code: string;
+    message: string;
+  };
+}
 ```
 
 ## File: src/features/workspace.slice/business.finance/_services/finance-strong-read.ts
@@ -12747,37 +13057,12 @@ interface DemandRowProps {
 ⋮----
 ```
 
-## File: src/features/semantic-graph.slice/_queries.ts
-```typescript
-import { querySemanticIndex, getIndexStats } from './_services';
-import {
-  traceAffectedNodes,
-  rankAffectedNodes,
-  buildDownstreamEvents,
-  buildCausalityChain,
-} from './centralized-causality/causality-tracer';
-import { getEdgesByType } from './centralized-edges/semantic-edge-store';
-import {
-  computeSemanticDistance,
-  computeSemanticDistanceMatrix,
-  findIsolatedNodes,
-} from './centralized-neural-net/neural-network';
-import type { SemanticEdge, StaleTagWarning } from './centralized-types';
-import { detectStaleTagWarnings } from './centralized-workflows/tag-lifecycle.workflow';
-import { getEligibleTags, satisfiesSemanticRequirement, buildEligibilityMatrix } from './projections/graph-selectors';
-⋮----
-export function getIsAEdges(): readonly SemanticEdge[]
-export function getRequiresEdges(): readonly SemanticEdge[]
-export function queryStaleTagWarnings(): readonly StaleTagWarning[]
-```
-
 ## File: src/features/semantic-graph.slice/centralized-edges/semantic-edge-store.ts
 ```typescript
 import { tagSlugRef } from '@/shared-kernel';
 import type { SemanticEdge, SemanticRelationType } from '../centralized-types';
 ⋮----
 function _makeEdgeId(fromSlug: string, toSlug: string, relationType: SemanticRelationType): string
-function _clampWeight(weight: number): number
 export function addEdge(
   fromTagSlug: string,
   toTagSlug: string,
@@ -12801,209 +13086,6 @@ export function getEdgeWeight(
   relationType: SemanticRelationType
 ): number
 export function _clearEdgesForTest(): void
-```
-
-## File: src/features/timelineing.slice/_components/timeline-canvas.tsx
-```typescript
-import { addDays, addMinutes, isSameDay, startOfDay } from "date-fns";
-import { useEffect, useMemo, useRef } from "react";
-import { DataSet } from "vis-data";
-import {
-  Timeline,
-  type DataGroup,
-  type DataItem,
-  type TimelineItem,
-  type TimelineOptions,
-} from "vis-timeline/standalone";
-⋮----
-import type { ScheduleItem, Timestamp } from "@/shared-kernel";
-import { cn } from "@/shared/shadcn-ui/utils/utils";
-import type { TimelineMember } from "../_types";
-type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
-type ResolvedTemporalKind = NonNullable<ScheduleItem["temporalKind"]>;
-interface TimelineCanvasProps {
-  items: ScheduleItem[];
-  members: TimelineMember[];
-  enableDrag?: boolean;
-  groupMode?: "none" | "workspace";
-  onMoveItem?: (params: {
-    itemId: string;
-    start: Date;
-    end: Date;
-    groupId?: string;
-  }) => Promise<boolean>;
-  className?: string;
-}
-function toDate(timestamp: CalendarTimestamp): Date | null
-function escapeHtml(input: string): string
-function toTimelineClassName(item: ScheduleItem): string
-function isStartOfDay(date: Date): boolean
-function inferTemporalKind(start: Date, end?: Date, explicitKind?: ScheduleItem["temporalKind"]): ResolvedTemporalKind
-function resolveTimelineInterval(item: ScheduleItem):
-function resolveInitialWindow(items: DataItem[]):
-export function TimelineCanvas({
-  items,
-  members,
-  enableDrag = false,
-  groupMode = "none",
-  onMoveItem,
-  className,
-}: TimelineCanvasProps)
-⋮----
-<div className=
-```
-
-## File: src/features/timelineing.slice/_components/timeline.account-view.tsx
-```typescript
-import { AlertCircle, Clock3 } from "lucide-react";
-import { useCallback, useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { useApp } from "@/shared/app-providers/app-context";
-import { useAccountTimeline, useTimelineCommands } from "../_hooks";
-import { TimelineCanvas } from "./timeline-canvas";
-```
-
-## File: src/features/timelineing.slice/_components/timeline.workspace-view.tsx
-```typescript
-import { Clock3 } from "lucide-react";
-import { useCallback, useMemo } from "react";
-import type { ScheduleItem } from "@/shared-kernel";
-import { useTimelineCommands, useWorkspaceTimeline } from "../_hooks";
-import { TimelineCanvas } from "./timeline-canvas";
-```
-
-## File: src/features/workspace.slice/business.document-parser/_types.ts
-```typescript
-import type { CostItemType } from '@/features/semantic-graph.slice'
-import type { SkillRequirement } from '@/shared-kernel'
-import type { Timestamp } from '@/shared-kernel/ports'
-import type {
-  ParsingIntentSourceType,
-  ParsingIntentReviewStatus,
-  ParsingIntentStatus,
-} from '../business.parsing-intent/_contract'
-export type IntentID = string & { readonly _brand: 'IntentID' }
-export type SourcePointer = string & { readonly _brand: 'SourcePointer' }
-export interface ParsedLineItem {
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  discount?: number;
-  subtotal: number;
-  costItemType: CostItemType;
-  semanticTagSlug: string;
-  sourceIntentIndex: number;
-}
-⋮----
-export interface ParsingIntent {
-  id: IntentID;
-  workspaceId: string;
-  sourceFileName: string;
-  sourceFileDownloadURL?: SourcePointer;
-  sourceFileId?: string;
-  intentVersion: number;
-  supersededByIntentId?: IntentID;
-  baseIntentId?: IntentID;
-  lineItems: ParsedLineItem[];
-  skillRequirements?: SkillRequirement[];
-  parserVersion?: string;
-  modelVersion?: string;
-  sourceType: ParsingIntentSourceType;
-  reviewStatus: ParsingIntentReviewStatus;
-  reviewedBy?: string;
-  reviewedAt?: Timestamp;
-  semanticHash?: string;
-  status: ParsingIntentStatus;
-  createdAt: Timestamp;
-  importedAt?: Timestamp;
-}
-export type ParsingImportStatus =
-  | 'started'
-  | 'applied'
-  | 'partial'
-  | 'failed';
-export interface ParsingImport {
-  id: string;
-  workspaceId: string;
-  intentId: IntentID;
-  intentVersion: number;
-  idempotencyKey: string;
-  status: ParsingImportStatus;
-  appliedTaskIds: string[];
-  startedAt: Timestamp;
-  completedAt?: Timestamp;
-  error?: {
-    code: string;
-    message: string;
-  };
-}
-```
-
-## File: src/features/workspace.slice/business.finance/_components/finance-view.tsx
-```typescript
-import { AlertCircle, CheckCircle2, FileSearch, Send } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
-import { Badge } from '@/shared/shadcn-ui/badge';
-import { Button } from '@/shared/shadcn-ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
-import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
-import { useWorkspace } from '../../core';
-import { useFinanceLifecycle } from '../_hooks/use-finance-lifecycle';
-import { FinanceItemTable } from './finance-item-table';
-import { FinanceLifecycleTracker } from './finance-lifecycle-tracker';
-⋮----
-async function hydrateTagPresentationMap()
-⋮----
-const handleSubmitClaim = () =>
-const handleAdvance = () =>
-const handlePaymentReceived = () =>
-const handleCloseCycle = () =>
-```
-
-## File: src/features/semantic-graph.slice/centralized-causality/causality-tracer.ts
-```typescript
-import { tagSlugRef } from '@/shared-kernel';
-import { getEdgesFrom, getEdgesTo } from '../centralized-edges/semantic-edge-store';
-import { computeRelationWeight } from '../centralized-neural-net/neural-network';
-import type {
-  AffectedNode,
-  CausalityChain,
-  CausalityReason,
-  DownstreamEvent,
-  TagLifecycleEvent,
-  TagLifecycleState,
-} from '../centralized-types';
-interface _TraversalEntry {
-  slug: string;
-  hopCount: number;
-  directReason: CausalityReason;
-}
-function _bfsAffected(
-  sourceSlug: string,
-  candidateSlugs: ReadonlySet<string>,
-  maxHops: number
-): Map<string, _TraversalEntry>
-function _suggestDownstreamEvent(
-  targetSlug: string,
-  reason: CausalityReason,
-  sourceEventType: TagLifecycleEvent['eventType']
-): DownstreamEvent | null
-export function traceAffectedNodes(
-  event: TagLifecycleEvent,
-  candidateSlugs: readonly string[],
-  maxHops = 5
-): readonly AffectedNode[]
-export function rankAffectedNodes(nodes: readonly AffectedNode[]): readonly AffectedNode[]
-export function buildDownstreamEvents(
-  event: TagLifecycleEvent,
-  affectedNodes: readonly AffectedNode[]
-): readonly DownstreamEvent[]
-export function buildCausalityChain(
-  event: TagLifecycleEvent,
-  candidateSlugs: readonly string[],
-  maxHops = 5
-): CausalityChain
 ```
 
 ## File: src/features/semantic-graph.slice/centralized-types/index.ts
@@ -13148,45 +13230,95 @@ export interface CausalityChain {
 }
 ```
 
-## File: src/features/workspace.slice/business.finance/_hooks/use-finance-lifecycle.ts
+## File: src/features/timelineing.slice/_components/timeline-canvas.tsx
 ```typescript
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { listWorkflowStates } from '@/features/workspace.slice/business.workflow';
-import type { WorkspaceEventBus } from '@/features/workspace.slice/core.event-bus';
-import { getParsingIntents } from '@/shared/infra/firestore/firestore.facade';
-import { saveFinanceAggregateState } from '../_actions';
-import { getFinanceAggregateState } from '../_queries';
-import { fetchFinanceStrongReadSnapshot } from '../_services/finance-strong-read';
-import type {
-  FinanceAggregateState,
-  FinanceClaimDraftEntry,
-  FinanceClaimLineItem,
-  FinanceDirectiveItem,
-  FinanceLifecycleStage,
-  FinanceStrongReadSnapshot,
-} from '../_types';
+import { addDays, addMinutes, isSameDay, startOfDay } from "date-fns";
+import { useEffect, useMemo, useRef } from "react";
+import { DataSet } from "vis-data";
 import {
-  buildClaimLineItems,
-  buildDirectiveItem,
-  buildDirectiveItemFromParsingIntentLineItem,
-  clampRemainingQuantity,
-  getNextStageFromAction,
-  hasValidClaimSelection,
-  isActiveParsingIntentStatus,
-  normalizeLifecycleStage,
-} from './use-finance-lifecycle.helpers';
+  Timeline,
+  type DataGroup,
+  type DataItem,
+  type TimelineItem,
+  type TimelineOptions,
+} from "vis-timeline/standalone";
 ⋮----
-interface UseFinanceLifecycleInput {
-  readonly workspaceId: string;
-  readonly eventBus: WorkspaceEventBus;
+import type { ScheduleItem, Timestamp } from "@/shared-kernel";
+import { cn } from "@/shared/shadcn-ui/utils/utils";
+import type { TimelineMember } from "../_types";
+type CalendarTimestamp = Timestamp | Date | { seconds: number; nanoseconds: number } | null | undefined;
+type ResolvedTemporalKind = NonNullable<ScheduleItem["temporalKind"]>;
+interface TimelineCanvasProps {
+  items: ScheduleItem[];
+  members: TimelineMember[];
+  enableDrag?: boolean;
+  groupMode?: "none" | "workspace";
+  onMoveItem?: (params: {
+    itemId: string;
+    start: Date;
+    end: Date;
+    groupId?: string;
+  }) => Promise<boolean>;
+  className?: string;
 }
-export function useFinanceLifecycle(input: UseFinanceLifecycleInput)
+function toDate(timestamp: CalendarTimestamp): Date | null
+function escapeHtml(input: string): string
+function toTimelineClassName(item: ScheduleItem): string
+function isStartOfDay(date: Date): boolean
+function inferTemporalKind(start: Date, end?: Date, explicitKind?: ScheduleItem["temporalKind"]): ResolvedTemporalKind
+function resolveTimelineInterval(item: ScheduleItem):
+function resolveInitialWindow(items: DataItem[]):
+export function TimelineCanvas({
+  items,
+  members,
+  enableDrag = false,
+  groupMode = "none",
+  onMoveItem,
+  className,
+}: TimelineCanvasProps)
 ⋮----
-async function hydrateFinanceAggregate()
+<div className=
+```
+
+## File: src/features/timelineing.slice/_components/timeline.account-view.tsx
+```typescript
+import { AlertCircle, Clock3 } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import type { ScheduleItem } from "@/shared-kernel";
+import { useApp } from "@/shared/app-providers/app-context";
+import { useAccountTimeline, useTimelineCommands } from "../_hooks";
+import { TimelineCanvas } from "./timeline-canvas";
+```
+
+## File: src/features/timelineing.slice/_components/timeline.workspace-view.tsx
+```typescript
+import { Clock3 } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import type { ScheduleItem } from "@/shared-kernel";
+import { useTimelineCommands, useWorkspaceTimeline } from "../_hooks";
+import { TimelineCanvas } from "./timeline-canvas";
+```
+
+## File: src/features/workspace.slice/business.finance/_components/finance-view.tsx
+```typescript
+import { AlertCircle, CheckCircle2, FileSearch, Send } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
+import { Badge } from '@/shared/shadcn-ui/badge';
+import { Button } from '@/shared/shadcn-ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/shadcn-ui/card';
+import { toast } from '@/shared/shadcn-ui/hooks/use-toast';
+import { useWorkspace } from '../../core';
+import { useFinanceLifecycle } from '../_hooks/use-finance-lifecycle';
+import { FinanceItemTable } from './finance-item-table';
+import { FinanceLifecycleTracker } from './finance-lifecycle-tracker';
 ⋮----
-async function hydrateAcceptanceGate()
+async function hydrateTagPresentationMap()
 ⋮----
-async function refreshStrongReadSnapshot()
+const handleSubmitClaim = () =>
+const handleAdvance = () =>
+const handlePaymentReceived = () =>
+const handleCloseCycle = () =>
 ```
 
 ## File: src/features/workspace.slice/core.event-bus/_events.ts
@@ -13409,6 +13541,92 @@ const buildIssueResolvedMessage = (
 )
 ```
 
+## File: src/features/semantic-graph.slice/centralized-causality/causality-tracer.ts
+```typescript
+import { tagSlugRef } from '@/shared-kernel';
+import { getEdgesFrom, getEdgesTo } from '../centralized-edges/semantic-edge-store';
+import { computeRelationWeight } from '../centralized-neural-net/neural-network';
+import type {
+  AffectedNode,
+  CausalityChain,
+  CausalityReason,
+  DownstreamEvent,
+  TagLifecycleEvent,
+  TagLifecycleState,
+} from '../centralized-types';
+interface _TraversalEntry {
+  slug: string;
+  hopCount: number;
+  directReason: CausalityReason;
+}
+function _bfsAffected(
+  sourceSlug: string,
+  candidateSlugs: ReadonlySet<string>,
+  maxHops: number
+): Map<string, _TraversalEntry>
+function _suggestDownstreamEvent(
+  targetSlug: string,
+  reason: CausalityReason,
+  sourceEventType: TagLifecycleEvent['eventType']
+): DownstreamEvent | null
+export function traceAffectedNodes(
+  event: TagLifecycleEvent,
+  candidateSlugs: readonly string[],
+  maxHops = 5
+): readonly AffectedNode[]
+export function rankAffectedNodes(nodes: readonly AffectedNode[]): readonly AffectedNode[]
+export function buildDownstreamEvents(
+  event: TagLifecycleEvent,
+  affectedNodes: readonly AffectedNode[]
+): readonly DownstreamEvent[]
+export function buildCausalityChain(
+  event: TagLifecycleEvent,
+  candidateSlugs: readonly string[],
+  maxHops = 5
+): CausalityChain
+```
+
+## File: src/features/workspace.slice/business.finance/_hooks/use-finance-lifecycle.ts
+```typescript
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { listWorkflowStates } from '@/features/workspace.slice/business.workflow';
+import type { WorkspaceEventBus } from '@/features/workspace.slice/core.event-bus';
+import { getParsingIntents } from '@/shared/infra/firestore/firestore.facade';
+import { saveFinanceAggregateState } from '../_actions';
+import { getFinanceAggregateState } from '../_queries';
+import { fetchFinanceStrongReadSnapshot } from '../_services/finance-strong-read';
+import type {
+  FinanceAggregateState,
+  FinanceClaimDraftEntry,
+  FinanceClaimLineItem,
+  FinanceDirectiveItem,
+  FinanceLifecycleStage,
+  FinanceStrongReadSnapshot,
+} from '../_types';
+import {
+  buildClaimLineItems,
+  buildDirectiveItem,
+  buildDirectiveItemFromParsingIntentLineItem,
+  clampRemainingQuantity,
+  getNextStageFromAction,
+  hasValidClaimSelection,
+  isActiveParsingIntentStatus,
+  normalizeLifecycleStage,
+} from './use-finance-lifecycle.helpers';
+⋮----
+interface UseFinanceLifecycleInput {
+  readonly workspaceId: string;
+  readonly eventBus: WorkspaceEventBus;
+}
+export function useFinanceLifecycle(input: UseFinanceLifecycleInput)
+⋮----
+async function hydrateFinanceAggregate()
+⋮----
+async function hydrateAcceptanceGate()
+⋮----
+async function refreshStrongReadSnapshot()
+```
+
 ## File: src/features/scheduling.slice/_components/org-schedule-governance.tsx
 ```typescript
 import { useEffect, useMemo, useState } from 'react';
@@ -13422,6 +13640,55 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 import { ScrollArea } from '@/shared/shadcn-ui/scroll-area';
 import { PageHeader } from '@/shared/ui/page-header';
 import { ConfirmedRow, ProposalRow } from './org-schedule-governance.rows';
+```
+
+## File: src/features/workspace.slice/business.document-parser/_components/document-parser-view.tsx
+```typescript
+import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Clock, AlertCircle, ListChecks } from 'lucide-react';
+import { useActionState, useTransition, useRef, useEffect, useCallback, useState, type ChangeEvent } from 'react';
+import { logDomainError } from '@/features/observability';
+import { classifyCostItem } from '@/features/semantic-graph.slice';
+import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
+import { Badge } from '@/shared/shadcn-ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
+import { useToast } from '@/shared/shadcn-ui/hooks/use-toast';
+import { persistWorkspaceOutboxEvent } from '../../application/_outbox';
+import { useWorkspace } from '../../core';
+import {
+  extractDataFromDocument,
+  type ActionState,
+} from '../_form-actions';
+import {
+  INITIAL_PARSING_INTENT_VERSION,
+  saveParsingIntent,
+} from '../_intent-actions';
+import { subscribeToParsingIntents } from '../_queries';
+import type { IntentID, SourcePointer, ParsingIntent } from '../_types';
+import { ParsedItemsTable, WorkItemsTable } from './document-parser-tables';
+⋮----
+export function WorkspaceDocumentParser()
+⋮----
+const hydrateTagPresentationMap = async () =>
+⋮----
+// Helper: trigger the AI extraction pipeline from a Firebase Storage URL.
+// The URL is passed directly to the Server Action which fetches it server-side,
+// avoiding the browser CORS restriction on Firebase Storage URLs.
+⋮----
+// On mount: if files-view queued a file via WorkspaceProvider context, auto-trigger.
+// This bridges the cross-tab gap — subscriber only exists when this component is mounted.
+// Deps intentionally empty: pendingParseFile/setPendingParseFile are stable React state
+// references, triggerParseFromURL is stable via useCallback, and we only want to run once
+// on mount (not re-run whenever pendingParseFile changes later).
+⋮----
+// eslint-disable-next-line react-hooks/exhaustive-deps
+⋮----
+const handleFileChange = (event: ChangeEvent<HTMLInputElement>) =>
+const handleUploadClick = () =>
+const handleImport = async () =>
+⋮----
+// Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
+⋮----
+// Layer-2 Semantic Classification (VS8) — applied here during the import phase.
 ```
 
 ## File: src/features/scheduling.slice/_components/unified-calendar-grid.tsx
@@ -13475,53 +13742,9 @@ e.stopPropagation();
 <Button size="icon" variant="ghost" className="size-6 p-0 text-green-600" onClick=
 ```
 
-## File: src/features/workspace.slice/business.document-parser/_components/document-parser-view.tsx
+## File: src/features/semantic-graph.slice/index.ts
 ```typescript
-import { Loader2, UploadCloud, File as FileIcon, ClipboardList, CheckCircle2, Clock, AlertCircle, ListChecks } from 'lucide-react';
-import { useActionState, useTransition, useRef, useEffect, useCallback, useState, type ChangeEvent } from 'react';
-import { logDomainError } from '@/features/observability';
-import { classifyCostItem } from '@/features/semantic-graph.slice';
-import { getTagSnapshotPresentationMap, type TagSnapshotPresentation } from '@/features/semantic-graph.slice';
-import { Badge } from '@/shared/shadcn-ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/shadcn-ui/card';
-import { useToast } from '@/shared/shadcn-ui/hooks/use-toast';
-import { persistWorkspaceOutboxEvent } from '../../application/_outbox';
-import { useWorkspace } from '../../core';
-import {
-  extractDataFromDocument,
-  type ActionState,
-} from '../_form-actions';
-import {
-  INITIAL_PARSING_INTENT_VERSION,
-  saveParsingIntent,
-} from '../_intent-actions';
-import { subscribeToParsingIntents } from '../_queries';
-import type { IntentID, SourcePointer, ParsingIntent } from '../_types';
-import { ParsedItemsTable, WorkItemsTable } from './document-parser-tables';
-⋮----
-export function WorkspaceDocumentParser()
-⋮----
-const hydrateTagPresentationMap = async () =>
-⋮----
-// Helper: trigger the AI extraction pipeline from a Firebase Storage URL.
-// The URL is passed directly to the Server Action which fetches it server-side,
-// avoiding the browser CORS restriction on Firebase Storage URLs.
-⋮----
-// On mount: if files-view queued a file via WorkspaceProvider context, auto-trigger.
-// This bridges the cross-tab gap — subscriber only exists when this component is mounted.
-// Deps intentionally empty: pendingParseFile/setPendingParseFile are stable React state
-// references, triggerParseFromURL is stable via useCallback, and we only want to run once
-// on mount (not re-run whenever pendingParseFile changes later).
-⋮----
-// eslint-disable-next-line react-hooks/exhaustive-deps
-⋮----
-const handleFileChange = (event: ChangeEvent<HTMLInputElement>) =>
-const handleUploadClick = () =>
-const handleImport = async () =>
-⋮----
-// Omit discount entirely when undefined to avoid Firestore "Unsupported field value: undefined"
-⋮----
-// Layer-2 Semantic Classification (VS8) — applied here during the import phase.
+
 ```
 
 ## File: src/features/workspace.slice/business.tasks/_components/tasks-view.tsx
@@ -13598,11 +13821,6 @@ setEditingTask({
                   ...node,
                   location: node.location || { description: '' },
                 });
-```
-
-## File: src/features/semantic-graph.slice/index.ts
-```typescript
-
 ```
 
 
