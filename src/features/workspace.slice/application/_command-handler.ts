@@ -28,7 +28,7 @@
  * ```
  */
 
-import { createTraceContext, logDomainError } from '@/features/observability';
+import { createTraceContext, logDomainError } from '@/shared-kernel/observability';
 
 import { evaluatePolicy, type WorkspaceRole } from './_policy-engine';
 import { checkWorkspaceAccess } from './_scope-guard';

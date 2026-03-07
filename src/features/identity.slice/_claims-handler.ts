@@ -37,7 +37,7 @@
  *   After migration, this handler becomes the sole claims dispatcher as the invariant states.
  */
 
-import { logDomainError } from '@/features/observability';
+import { logDomainError } from '@/shared-kernel/observability';
 import { COLLECTIONS } from '@/shared-infra/frontend-firebase/firestore/collection-paths';
 import { setDocument } from '@/shared-infra/frontend-firebase/firestore/firestore.write.adapter';
 import type { EventEnvelope } from '@/shared-kernel';

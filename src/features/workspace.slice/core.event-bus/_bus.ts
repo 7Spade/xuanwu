@@ -3,7 +3,7 @@
 //   WORKSPACE_EVENT_BUS -.->|鈭辣憟??萄儐| SK_EVENT_ENVELOPE
 //   WORKSPACE_EVENT_BUS --> TRACE_IDENTIFIER (Observability)
 //   WORKSPACE_EVENT_BUS --> DOMAIN_METRICS   (Observability)
-import { recordEventPublished } from "@/features/observability"
+import { recordEventPublished } from "@/shared-kernel/observability"
 import type { ImplementsEventEnvelopeContract } from '@/shared-kernel'
 
 import type {

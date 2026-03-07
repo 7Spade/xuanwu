@@ -22,7 +22,7 @@
 
 
 import { getDlqLevel, type DlqEntry } from '@/features/infra.dlq-manager';
-import { logDomainError } from '@/features/observability';
+import { logDomainError } from '@/shared-kernel/observability';
 import type { OutboxStatus as SharedOutboxStatus } from '@/shared-kernel';
 import { db } from '@/shared-infra/frontend-firebase';
 import {

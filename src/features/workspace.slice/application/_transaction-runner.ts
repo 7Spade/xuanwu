@@ -15,7 +15,7 @@
  * - Invariant #4b: Transaction Runner only delivers to Outbox; does not produce Domain Events.
  */
 
-import { generateTraceId, logDomainError } from '@/features/observability';
+import { generateTraceId, logDomainError } from '@/shared-kernel/observability';
 
 import { appendDomainEvent } from '../core.event-store';
 
