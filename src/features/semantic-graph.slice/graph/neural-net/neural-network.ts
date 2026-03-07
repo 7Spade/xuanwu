@@ -1,10 +1,10 @@
 /**
- * semantic-graph.slice/centralized-neural-net â€” Neural Network [D21-3 D21-4]
+ * semantic-graph.slice/centralized-neural-net ??Neural Network [D21-3 D21-4]
  *
- * Implements the ðŸ§¬ Neural Network component of VS8_NG (Node/Graph Layer):
+ * Implements the ?§¬ Neural Network component of VS8_NG (Node/Graph Layer):
  *   - Weighted semantic-distance computation (Dijkstra on the edge graph)
  *   - Pairwise semantic-distance matrix
- *   - Isolated-node detection (å­¤ç«‹æ¨™ç±¤ = D21-3 violation)
+ *   - Isolated-node detection (å­¤ç?æ¨™ç±¤ = D21-3 violation)
  *   - Relation-weight computation (cumulative weight along the shortest IS_A path)
  *
  * Dependency rule: ZERO infrastructure imports (no Firebase, no React, no I/O).
@@ -15,14 +15,14 @@ import {
   getAllEdges,
   getEdgesFrom,
   getEdgesTo,
-} from '../centralized-edges/semantic-edge-store';
-import type { SemanticDistanceEntry } from '../centralized-types';
+} from '../graph/edges/semantic-edge-store';
+import type { SemanticDistanceEntry } from '../core/types';
 
 /** Minimum edge weight used as the divisor in the Dijkstra cost formula,
  *  preventing division by zero for zero-weight edges. */
 const MIN_EDGE_WEIGHT = 0.001;
 
-// â”€â”€â”€ Internal Dijkstra queue helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Internal Dijkstra queue helpers ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 interface _QueueEntry {
   slug: string;
@@ -35,7 +35,7 @@ interface _QueueEntry {
  * for distance purposes).  Edge cost = 1.0 / weight so high-weight edges are
  * "shorter".
  *
- * Returns a map: slug â†’ { distance, hopCount } for every reachable node.
+ * Returns a map: slug ??{ distance, hopCount } for every reachable node.
  */
 function _dijkstra(
   fromSlug: string,
@@ -48,7 +48,7 @@ function _dijkstra(
   const visited = new Set<string>();
 
   while (queue.length > 0) {
-    // Extract minimum-distance entry (simple linear scan â€” graph is small)
+    // Extract minimum-distance entry (simple linear scan ??graph is small)
     let minIdx = 0;
     for (let i = 1; i < queue.length; i++) {
       if (queue[i].distance < queue[minIdx].distance) minIdx = i;
@@ -86,7 +86,7 @@ function _dijkstra(
   return dist;
 }
 
-// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Public API ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /**
  * Compute the shortest weighted semantic distance between two nodes.
@@ -94,9 +94,9 @@ function _dijkstra(
  * Uses Dijkstra over the IS_A + REQUIRES edge graph (undirected for distance).
  * Returns `null` when no path exists within `maxHops`.
  *
- * @param fromSlug  â€” source tag slug
- * @param toSlug    â€” target tag slug
- * @param maxHops   â€” maximum edge hops to explore (default 10)
+ * @param fromSlug  ??source tag slug
+ * @param toSlug    ??target tag slug
+ * @param maxHops   ??maximum edge hops to explore (default 10)
  */
 export function computeSemanticDistance(
   fromSlug: string,
@@ -123,10 +123,10 @@ export function computeSemanticDistance(
  * Compute the full pairwise semantic-distance matrix for a set of tag slugs.
  *
  * Returns only entries where a finite path exists (unreachable pairs are
- * omitted â€” callers may treat absence as Infinity).
+ * omitted ??callers may treat absence as Infinity).
  *
- * @param slugs   â€” set of tag slugs to compare (order-independent)
- * @param maxHops â€” maximum edge hops per Dijkstra run (default 10)
+ * @param slugs   ??set of tag slugs to compare (order-independent)
+ * @param maxHops ??maximum edge hops per Dijkstra run (default 10)
  */
 export function computeSemanticDistanceMatrix(
   slugs: readonly string[],
@@ -154,7 +154,7 @@ export function computeSemanticDistanceMatrix(
 }
 
 /**
- * Determine whether a tag slug is an **isolated node** â€” i.e. has NO edges
+ * Determine whether a tag slug is an **isolated node** ??i.e. has NO edges
  * (neither outgoing nor incoming, across all relation types).
  *
  * Isolated nodes violate D21-3 (node-connectivity rule).
@@ -177,7 +177,7 @@ export function findIsolatedNodes(allTagSlugs: readonly string[]): readonly stri
  * Compute the cumulative relation weight from `fromSlug` to `toSlug` along
  * the shortest IS_A path.
  *
- * - Direct edge (1 hop, weight w) â†’ returns w
+ * - Direct edge (1 hop, weight w) ??returns w
  * - Multi-hop: returns the product of edge weights along the path
  * - No IS_A path: returns 0
  *

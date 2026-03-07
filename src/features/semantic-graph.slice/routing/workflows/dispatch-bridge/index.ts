@@ -1,6 +1,6 @@
 /**
  * Module: dispatch-bridge
- * Purpose: VS8_ROUT â€” Scheduling routing & notification dispatch outlet [D21-5 D27-A]
+ * Purpose: VS8_ROUT ??Scheduling routing & notification dispatch outlet [D21-5 D27-A]
  * Responsibilities: Translate policy-mapper decisions into concrete dispatch commands
  *   for scheduling assignments and notification delivery; never bypass policy-mapper
  * Constraints: deterministic logic, ZERO infrastructure imports, no ID hard-coding
@@ -21,11 +21,11 @@
  * ZERO infrastructure imports (no Firebase, no React, no I/O).
  */
 
-import type { TagSlugRef } from '../../centralized-types';
+import type { TagSlugRef } from '../../core/types';
 import { resolveDispatchPolicy } from '../policy-mapper';
 import type { DispatchPolicy } from '../policy-mapper';
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Types ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /** A concrete routing command produced by the dispatch bridge. */
 export interface DispatchCommand {
@@ -52,7 +52,7 @@ export type DispatchResult =
   | { readonly success: true; readonly command: DispatchCommand }
   | { readonly success: false; readonly reason: string };
 
-// â”€â”€â”€ Internal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Internal helpers ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 let _commandCounter = 0;
 
@@ -67,7 +67,7 @@ function _determineLane(priority: number): DispatchLane {
   return 'BACKGROUND';
 }
 
-// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Public API ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /**
  * Attempt to dispatch a routing command for the given semantic tag slug.
@@ -76,8 +76,8 @@ function _determineLane(priority: number): DispatchLane {
  * 2. If a policy is found, creates a `DispatchCommand`.
  * 3. Returns `{ success: true, command }` or `{ success: false, reason }`.
  *
- * [D27-A] â€” all dispatch goes through policy-mapper; no ID hard-coding.
- * [D21-5] â€” VS8_ROUT Reflection Arc dispatch outlet.
+ * [D27-A] ??all dispatch goes through policy-mapper; no ID hard-coding.
+ * [D21-5] ??VS8_ROUT Reflection Arc dispatch outlet.
  */
 export function dispatchForTag(tagSlug: TagSlugRef): DispatchResult {
   const resolution = resolveDispatchPolicy(tagSlug);

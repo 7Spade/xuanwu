@@ -1,9 +1,9 @@
 /**
  * Module: relationship-visualizer
- * Purpose: VS8_WIKI â€” Semantic relationship graph visualization [D21-I~W]
+ * Purpose: VS8_WIKI ??Semantic relationship graph visualization [D21-I~W]
  * Responsibilities: Build read-only structural snapshots of the semantic graph
  *   that can be consumed by UI renderers (e.g., force-directed graph, hierarchy
- *   trees); produces pure data â€” no rendering logic lives here
+ *   trees); produces pure data ??no rendering logic lives here
  * Constraints: deterministic logic, ZERO infrastructure imports, ZERO React imports
  *
  * semantic-graph.slice/relationship-visualizer [D21-I~W]
@@ -13,8 +13,8 @@
  * entry point and exposes a pure-data API; all rendering decisions belong to
  * the UI layer.
  *
- * [D21-I] å…¨åŸŸå…±è­˜å¾‹ â€” visualization data is globally observable.
- * [D21-W] è·¨çµ„ç¹”é€æ˜æ€§ â€” all tag change history is publicly queryable.
+ * [D21-I] ?¨å??±è?å¾???visualization data is globally observable.
+ * [D21-W] è·¨ç?ç¹”é€æ?????all tag change history is publicly queryable.
  *
  * Dependency rule: imports from centralized-edges (adjacency-list) ONLY.
  * ZERO infrastructure imports (no Firebase, no React, no I/O).
@@ -24,11 +24,11 @@ import {
   buildAdjacencyList,
   buildIsAAdjacencyList,
   buildRequiresAdjacencyList,
-} from '../centralized-edges/adjacency-list';
-import { getAllEdges } from '../centralized-edges/semantic-edge-store';
-import type { SemanticRelationType } from '../centralized-types';
+} from '../graph/edges/adjacency-list';
+import { getAllEdges } from '../graph/edges/semantic-edge-store';
+import type { SemanticRelationType } from '../core/types';
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Types ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /** A node in the visualization graph. */
 export interface VisNode {
@@ -53,7 +53,7 @@ export interface GraphSnapshot {
   readonly generatedAt: string;
 }
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Helpers ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 function _slugToCategory(slug: string): VisNode['category'] {
   if (slug.startsWith('ws:')) return 'workspace-tag';
@@ -84,7 +84,7 @@ function _buildNodes(adjacency: ReturnType<typeof buildAdjacencyList>): VisNode[
   return nodes;
 }
 
-// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Public API ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /**
  * Build a full graph snapshot (all relation types) from the current edge store.

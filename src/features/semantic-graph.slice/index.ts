@@ -1,18 +1,18 @@
 /**
- * semantic-graph.slice — Public API
+ * semantic-graph.slice ??Public API
  *
- * VS8 Semantic Graph: The Brain — manages tag taxonomy, temporal conflict
+ * VS8 Semantic Graph: The Brain ??manages tag taxonomy, temporal conflict
  * detection for scheduling, and semantic indexing for cross-domain queries.
  *
  * Per 00-LogicOverview.md (VS8):
- *   ⑥ Everything as a Tag: all domain concepts modelled as semantic tags,
+ *   ??Everything as a Tag: all domain concepts modelled as semantic tags,
  *      governed by VS8 (Semantic Graph).
  *
  * Sub-modules:
- *   _types      — Domain types (temporal conflict, taxonomy, semantic index)
- *   _aggregate  — Temporal conflict detection + taxonomy validation
- *   _services   — Semantic index management (to be implemented)
- *   _queries    — [D4] QGWAY_SEARCH read-out port
+ *   _types      ??Domain types (temporal conflict, taxonomy, semantic index)
+ *   _aggregate  ??Temporal conflict detection + taxonomy validation
+ *   _services   ??Semantic index management (to be implemented)
+ *   _queries    ??[D4] QGWAY_SEARCH read-out port
  *
  * Architecture rules:
  *   [D3]  All entity changes via _actions.ts only.
@@ -67,10 +67,10 @@ export type {
   CausalityReason,
   DownstreamEvent,
   CausalityChain,
-} from './centralized-types';
+} from './core/types';
 
 // =================================================================
-// Aggregate — Temporal Conflict Detection + Taxonomy Validation
+// Aggregate ??Temporal Conflict Detection + Taxonomy Validation
 // =================================================================
 export {
   detectTemporalConflicts,
@@ -96,7 +96,7 @@ export {
 } from './_actions';
 
 // =================================================================
-// Services — Semantic Index (query interface for global-search)
+// Services ??Semantic Index (query interface for global-search)
 // =================================================================
 export {
   indexEntity,
@@ -108,7 +108,7 @@ export {
 export { SEARCH_DOMAINS, TAXONOMY_DIMENSIONS } from './_semantic-authority';
 
 // =================================================================
-// Read Queries — [D4] QGWAY_SEARCH outbound port (VS8 Global Search)
+// Read Queries ??[D4] QGWAY_SEARCH outbound port (VS8 Global Search)
 // All reads go through _queries.ts; internal stores are HIDDEN [D7].
 // =================================================================
 export {
@@ -130,27 +130,27 @@ export {
 } from './_queries';
 
 // =================================================================
-// Tag Entity Node Factory — centralized-nodes [D21]
+// Tag Entity Node Factory ??centralized-nodes [D21]
 // Builds TE1~TE6 nodes; exposed so composition-root can seed nodes.
 // =================================================================
-export { buildTagEntity } from './centralized-nodes/tag-entity.factory';
-export type { TagEntityFactoryInput } from './centralized-nodes/tag-entity.factory';
+export { buildTagEntity } from './core/nodes/tag-entity.factory';
+export type { TagEntityFactoryInput } from './core/nodes/tag-entity.factory';
 
 // =================================================================
-// Embedding Port — centralized-embeddings [D24][D26]
+// Embedding Port ??centralized-embeddings [D24][D26]
 // IEmbeddingPort is exposed so the composition root can inject an adapter.
 // buildTagEmbedding and batch variant are exposed for projection integration.
 // =================================================================
-export type { IEmbeddingPort } from './centralized-embeddings/embedding-port';
+export type { IEmbeddingPort } from './core/embeddings/embedding-port';
 export {
   injectEmbeddingPort,
   NOOP_EMBEDDING_PORT,
   buildTagEmbedding,
   buildTagEmbeddingsBatch,
-} from './centralized-embeddings/embedding-port';
+} from './core/embeddings/embedding-port';
 
 // =================================================================
-// Cost Item Classification — Layer-2 Semantic Classification [D8][D21]
+// Cost Item Classification ??Layer-2 Semantic Classification [D8][D21]
 // Pure keyword-based classifier; no SDK imports (classifies during parse phase).
 // =================================================================
 export {
@@ -168,15 +168,15 @@ export type {
 export {
   getTagSnapshotPresentation,
   getTagSnapshotPresentationMap,
-} from './projections/tag-snapshot.slice';
+} from './output/projections/tag-snapshot.slice';
 export type {
   TagSnapshotPresentation,
   TagSnapshotColorToken,
   TagSnapshotIconToken,
-} from './projections/tag-snapshot.slice';
+} from './output/projections/tag-snapshot.slice';
 
 // =================================================================
-// CTA Operations — Centralized Tag Aggregate [D3][D8]
+// CTA Operations ??Centralized Tag Aggregate [D3][D8]
 // Firestore-backed CRUD for tagDictionary; D8-compliant (not in shared-kernel).
 // =================================================================
 export {
@@ -185,8 +185,8 @@ export {
   deprecateTag,
   deleteTag,
   getTag,
-} from './centralized-tag/_actions';
-export { onTagEvent, publishTagEvent } from './centralized-tag';
+} from './core/tags/_actions';
+export { onTagEvent, publishTagEvent } from './core/tags';
 export type {
   CentralizedTagEntry,
   CentralizedTagDeleteRule,
@@ -197,31 +197,31 @@ export type {
   TagUpdatedPayload,
   TagDeprecatedPayload,
   TagDeletedPayload,
-} from './centralized-tag';
+} from './core/tags';
 
 // =================================================================
-// L5 Blood-Brain Barrier — InvariantGuard [D21-H D21-K]
+// L5 Blood-Brain Barrier ??InvariantGuard [D21-H D21-K]
 // Supreme arbiter of semantic-graph validity.  Call validateEdgeProposal()
 // BEFORE addEdge() to enforce all graph invariants at the BBB layer.
 // External slices must never bypass this guard to write edges directly.
 // =================================================================
-export { validateEdgeProposal } from './centralized-guards/invariant-guard';
+export { validateEdgeProposal } from './governance/guards/invariant-guard';
 export type {
   EdgeProposal,
   SemanticGuardDecision,
   SemanticGuardRejectionCode,
   SemanticGuardResult,
-} from './centralized-guards/invariant-guard';
+} from './governance/guards/invariant-guard';
 
 // =================================================================
-// L8 Global Consensus Engine — ConsensusEngine [D21-I D21-K]
+// L8 Global Consensus Engine ??ConsensusEngine [D21-I D21-K]
 // Validates tag governance proposals for logical consistency before
 // forwarding to the L5 BBB InvariantGuard.  Call validateConsensus()
 // BEFORE validateEdgeProposal() in the proposal-stream pipeline.
 // =================================================================
-export { validateConsensus } from './consensus-engine';
+export { validateConsensus } from './governance/consensus-engine';
 export type {
   ConsensusDecision,
   ConsensusRejectionCode,
   ConsensusResult,
-} from './consensus-engine';
+} from './governance/consensus-engine';

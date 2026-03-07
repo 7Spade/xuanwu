@@ -1,5 +1,5 @@
 /**
- * Module: semantic-graph.slice/centralized-learning â€” [L6 VS8_PLAST] Decay Service
+ * Module: semantic-graph.slice/centralized-learning ??[L6 VS8_PLAST] Decay Service
  *
  * Natural synaptic weight decay: edges that are not reinforced by real facts
  * gradually decay toward a configurable floor, preventing stale relationships
@@ -10,20 +10,20 @@
  *   [D21-9]  Weights must remain > 0 after decay (floor = DECAY_FLOOR constant).
  *   [D24]    No direct Firebase import.
  *
- * @see docs/architecture/slices/semantic-graph.md â€” L6 VS8_PLAST
+ * @see docs/architecture/slices/semantic-graph.md ??L6 VS8_PLAST
  */
 
-import type { SemanticEdge } from '../centralized-types';
+import type { SemanticEdge } from '../core/types';
 
-// â”€â”€â”€ Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Config ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /** Fraction removed from a weight on each decay run [D21-G]. */
 export const DECAY_RATE = 0.01;
 
-/** Minimum weight after decay â€” weights must stay > 0 [D21-9]. */
+/** Minimum weight after decay ??weights must stay > 0 [D21-9]. */
 export const DECAY_FLOOR = 0.05;
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Types ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 export interface DecayResult {
   readonly edgeId: string;
@@ -32,7 +32,7 @@ export interface DecayResult {
   readonly decayedAt: string;
 }
 
-// â”€â”€â”€ Core logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Core logic ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /**
  * Compute the decayed weight for a single edge without mutating it.
@@ -51,7 +51,7 @@ export function computeDecayedWeight(currentWeight: number): number {
  * Returns a new edge record with the updated weight.
  *
  * [D21-G] Caller is responsible for persisting the returned record.
- * [D24]   No Firebase import â€” persistence is the infra adapter's concern.
+ * [D24]   No Firebase import ??persistence is the infra adapter's concern.
  */
 export function applyDecay(edge: SemanticEdge): DecayResult {
   const newWeight = computeDecayedWeight(edge.weight);

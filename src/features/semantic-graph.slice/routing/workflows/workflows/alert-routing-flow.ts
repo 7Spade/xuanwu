@@ -1,6 +1,6 @@
 /**
  * Module: alert-routing-flow
- * Purpose: VS8_ROUT workflows â€” Alert routing workflow [D21-5 D27-A]
+ * Purpose: VS8_ROUT workflows ??Alert routing workflow [D21-5 D27-A]
  * Responsibilities: Route semantic-graph alerts (staleness warnings, invariant
  *   violations, causality anomalies) through the policy-mapper dispatch layer
  *   without hard-coded business ID routing
@@ -8,28 +8,28 @@
  *
  * semantic-graph.slice/centralized-workflows/workflows/alert-routing-flow [D21-5 D27-A]
  *
- * Orchestrates the **å‘Šè­¦è·¯ç”±æµç¨‹** (alert routing flow):
- *   Graph anomaly detected â†’ semantic alert classification â†’ policy resolution
- *   â†’ dispatch command for consumer handling.
+ * Orchestrates the **?Šè­¦è·¯ç”±æµç?** (alert routing flow):
+ *   Graph anomaly detected ??semantic alert classification ??policy resolution
+ *   ??dispatch command for consumer handling.
  *
  * Alert kinds handled:
- *   - STALE_TAG      [S4]   â€” tag lifecycle exceeded staleness threshold
- *   - INVARIANT_FAIL [D21-H] â€” BBB/InvariantGuard rejection surfaced as alert
- *   - CAUSALITY_WARN [D21-6] â€” causality tracer detected anomaly
+ *   - STALE_TAG      [S4]   ??tag lifecycle exceeded staleness threshold
+ *   - INVARIANT_FAIL [D21-H] ??BBB/InvariantGuard rejection surfaced as alert
+ *   - CAUSALITY_WARN [D21-6] ??causality tracer detected anomaly
  *
- * [D21-5] â€” VS8_ROUT routing layer â€” semantic reflection arc.
- * [D27-A] â€” All dispatch must go through policy-mapper; no ID hard-coding.
+ * [D21-5] ??VS8_ROUT routing layer ??semantic reflection arc.
+ * [D27-A] ??All dispatch must go through policy-mapper; no ID hard-coding.
  *
  * Dependency rule: imports from policy-mapper and dispatch-bridge ONLY.
  * ZERO infrastructure imports (no Firebase, no React, no I/O).
  */
 
-import type { TagSlugRef } from '../../centralized-types';
+import type { TagSlugRef } from '../../core/types';
 import { dispatchForTag } from '../dispatch-bridge';
 import type { DispatchCommand } from '../dispatch-bridge';
 import { resolveDispatchPolicy } from '../policy-mapper';
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Types ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /** Classification of a semantic graph alert. */
 export type AlertKind = 'STALE_TAG' | 'INVARIANT_FAIL' | 'CAUSALITY_WARN';
@@ -46,7 +46,7 @@ export interface SemanticGraphAlert {
   readonly message: string;
   /** ISO-8601 timestamp when the alert was generated. */
   readonly detectedAt: string;
-  /** Severity: 0 (info) â†’ 100 (critical). */
+  /** Severity: 0 (info) ??100 (critical). */
   readonly severity: number;
 }
 
@@ -61,7 +61,7 @@ export interface AlertRoutingResult {
   readonly skipReason?: string;
 }
 
-// â”€â”€â”€ Alert counter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Alert counter ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 let _alertCounter = 0;
 
@@ -69,14 +69,14 @@ export function _resetAlertCounterForTest(): void {
   _alertCounter = 0;
 }
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Helpers ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 function _generateAlertId(kind: AlertKind): string {
   _alertCounter += 1;
   return `alert:${kind.toLowerCase()}:${_alertCounter}`;
 }
 
-// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Public API ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /**
  * Route a pre-built `SemanticGraphAlert` through the policy-mapper dispatch layer.
@@ -85,7 +85,7 @@ function _generateAlertId(kind: AlertKind): string {
  * If no policy is found, `policyFound` is `false` and `dispatchCommand` is `null`.
  *
  * [D21-5] VS8_ROUT routing arc.
- * [D27-A] â€” dispatch goes through policy-mapper; no ID hard-coding.
+ * [D27-A] ??dispatch goes through policy-mapper; no ID hard-coding.
  */
 export function routeAlert(alert: SemanticGraphAlert): AlertRoutingResult {
   if (!alert.tagSlug) {

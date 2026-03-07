@@ -1,5 +1,5 @@
 /**
- * Module: semantic-graph.slice/outbox â€” [L10 VS8_IO] Tag Outbox
+ * Module: semantic-graph.slice/outbox ??[L10 VS8_IO] Tag Outbox
  *
  * Outbound broadcast for the VS8 I/O layer [D21-6, S1].
  *
@@ -10,14 +10,14 @@
  * Invariants:
  *   [D21-10] Every graph topology change emits SemanticTopologyChanged via this outbox.
  *   [S1]     Outbox writes are idempotent (deduplication key = eventId).
- *   [D24]    No direct Firebase import â€” writes go through the SK_OUTBOX adapter.
+ *   [D24]    No direct Firebase import ??writes go through the SK_OUTBOX adapter.
  *
- * @see docs/architecture/slices/semantic-graph.md â€” L10 VS8_IO
+ * @see docs/architecture/slices/semantic-graph.md ??L10 VS8_IO
  */
 
-import type { TagLifecycleEvent, SemanticEdge } from '../centralized-types';
+import type { TagLifecycleEvent, SemanticEdge } from '../core/types';
 
-// â”€â”€â”€ Outbox entry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Outbox entry ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 export type OutboxEventKind =
   | 'TAG_LIFECYCLE'
@@ -44,7 +44,7 @@ export interface WeightUpdatedPayload {
   readonly newWeight: number;
 }
 
-// â”€â”€â”€ In-memory outbox queue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ In-memory outbox queue ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 const _queue: OutboxEntry[] = [];
 let _counter = 0;
@@ -53,7 +53,7 @@ function _nextId(): string {
   return `outbox-${Date.now()}-${++_counter}`;
 }
 
-// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Public API ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /**
  * Enqueue a TagLifecycleEvent for broadcast to downstream subscribers [D21-10].

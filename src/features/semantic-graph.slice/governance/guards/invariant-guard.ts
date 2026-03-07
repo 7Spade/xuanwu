@@ -1,11 +1,11 @@
 /**
  * Module: invariant-guard
- * Purpose: L5 Blood-Brain Barrier (BBB) â€” supreme arbiter of semantic-graph validity
+ * Purpose: L5 Blood-Brain Barrier (BBB) ??supreme arbiter of semantic-graph validity
  * Responsibilities: Intercept EdgeProposals before edge-store writes; enforce all
  *   graph invariants [D21-H D21-K D21-9 D21-3 D21-A D21-C]
  * Constraints: deterministic logic, ZERO infrastructure imports, respect module boundaries
  *
- * semantic-graph.slice/centralized-guards â€” L5 Blood-Brain Barrier (BBB) [D21-H D21-K]
+ * semantic-graph.slice/centralized-guards ??L5 Blood-Brain Barrier (BBB) [D21-H D21-K]
  *
  * InvariantGuard is the **supreme arbiter** of semantic-graph validity.
  * It intercepts EdgeProposals BEFORE they enter the SemanticEdgeStore and
@@ -13,25 +13,25 @@
  * logic-overview.md [D21].
  *
  * Rules enforced:
- *   [D21-H] è¡€è…¦å±éšœ â€” invariant-guard owns final veto over all edge proposals.
- *   [D21-K] èªžç¾©è¡çªè£æ±º â€” proposals violating semantic / physical logic are
+ *   [D21-H] è¡€?¦å?????invariant-guard owns final veto over all edge proposals.
+ *   [D21-K] èªžç¾©è¡ç?è£æ±º ??proposals violating semantic / physical logic are
  *            rejected directly; they never reach the edge store.
- *   [D21-9] Synaptic weight invariant â€” weight âˆˆ (0.0, 1.0]; cost = 1/weight.
- *   [D21-3] No isolated nodes â€” self-loop proposals are always rejected.
- *   [D21-A] Uniqueness â€” exact-duplicate edges are rejected.
- *   [D21-C] No-cycle rule in IS_A hierarchy â€” cycles make Dijkstra's cost
+ *   [D21-9] Synaptic weight invariant ??weight ??(0.0, 1.0]; cost = 1/weight.
+ *   [D21-3] No isolated nodes ??self-loop proposals are always rejected.
+ *   [D21-A] Uniqueness ??exact-duplicate edges are rejected.
+ *   [D21-C] No-cycle rule in IS_A hierarchy ??cycles make Dijkstra's cost
  *            computation degenerate and violate the subsumption hierarchy.
  *
  * Dependency rule: reads from centralized-edges for cycle detection and
  * duplicate checking ONLY.  ZERO infrastructure imports (no Firebase, no React).
  *
- * æ­¤å¯¦ä½œå·²äº¤å‰åƒè€ƒ INDEX.md ä¸¦ç¬¦åˆ logic-overview.md ä¹‹ [D21-H D21-K D21-9 D21-3] è¦ç¯„
+ * æ­¤å¯¦ä½œå·²äº¤å??ƒè€?INDEX.md ä¸¦ç¬¦??logic-overview.md ä¹?[D21-H D21-K D21-9 D21-3] è¦ç?
  */
 
-import { getAllEdges } from '../centralized-edges/semantic-edge-store';
-import type { SemanticEdge, SemanticRelationType } from '../centralized-types';
+import { getAllEdges } from '../graph/edges/semantic-edge-store';
+import type { SemanticEdge, SemanticRelationType } from '../core/types';
 
-// â”€â”€â”€ Proposal type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Proposal type ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /**
  * An edge proposal submitted to SemanticGuard for validation before
@@ -45,12 +45,12 @@ export interface EdgeProposal {
   readonly weight?: number;
 }
 
-// â”€â”€â”€ Decision types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Decision types ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /** Codes explaining why the BBB rejected an edge proposal. */
 export type SemanticGuardRejectionCode =
   | 'SELF_LOOP' // fromTagSlug === toTagSlug [D21-3]
-  | 'INVALID_WEIGHT' // weight â‰¤ 0 or weight > 1 [D21-9]
+  | 'INVALID_WEIGHT' // weight ??0 or weight > 1 [D21-9]
   | 'DUPLICATE_EDGE' // exact same edge already registered [D21-A]
   | 'IS_A_CYCLE' // proposed IS_A edge would create a cycle [D21-C / D21-K]
   | 'SELF_REQUIRES'; // a tag cannot REQUIRE itself (logical absurdity) [D21-K]
@@ -67,7 +67,7 @@ export interface SemanticGuardResult {
   readonly reason?: string;
 }
 
-// â”€â”€â”€ Internal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Internal helpers ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /**
  * Build a lookup map of IS_A edges keyed by fromTagSlug for quick cycle
@@ -88,10 +88,10 @@ function _buildIsAGraph(edges: readonly SemanticEdge[]): Map<string, Set<string>
 
 /**
  * DFS reachability check: can we reach `target` from `start` in `graph`?
- * Used to detect whether adding (proposed â†’ target) would introduce a cycle.
+ * Used to detect whether adding (proposed ??target) would introduce a cycle.
  *
  * A cycle exists when `target` is reachable from `start` in the existing graph
- * AND we are about to add an edge `target â†’ start` (or any edge whose "to"
+ * AND we are about to add an edge `target ??start` (or any edge whose "to"
  * can already reach "from").
  */
 function _canReach(start: string, target: string, graph: Map<string, Set<string>>): boolean {
@@ -112,12 +112,12 @@ function _canReach(start: string, target: string, graph: Map<string, Set<string>
 }
 
 /**
- * Checks whether the proposed IS_A edge (fromSlug â†’ toSlug) would create a
+ * Checks whether the proposed IS_A edge (fromSlug ??toSlug) would create a
  * cycle in the existing IS_A graph.
  *
  * A cycle would be introduced if `toSlug` can already reach `fromSlug` in the
  * existing graph, because after adding the edge we would have:
- *   fromSlug â†’ toSlug â†’ â€¦ â†’ fromSlug
+ *   fromSlug ??toSlug ??????fromSlug
  */
 function _wouldCreateIsACycle(
   fromSlug: string,
@@ -145,7 +145,7 @@ function _isDuplicateEdge(
   );
 }
 
-// â”€â”€â”€ SemanticGuard â€” the BBB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ SemanticGuard ??the BBB ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 /**
  * Validate an EdgeProposal against all semantic invariants.
@@ -170,7 +170,7 @@ function _isDuplicateEdge(
 export function validateEdgeProposal(proposal: EdgeProposal): SemanticGuardResult {
   const { fromTagSlug, toTagSlug, relationType, weight = 1.0 } = proposal;
 
-  // â”€â”€ Rule 1: Self-loop check [D21-3] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ?€?€ Rule 1: Self-loop check [D21-3] ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
   if (fromTagSlug === toTagSlug) {
     return {
       decision: 'REJECTED',
@@ -179,7 +179,7 @@ export function validateEdgeProposal(proposal: EdgeProposal): SemanticGuardResul
     };
   }
 
-  // â”€â”€ Rule 2: Weight invariant [D21-9] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ?€?€ Rule 2: Weight invariant [D21-9] ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
   if (weight <= 0 || weight > 1) {
     return {
       decision: 'REJECTED',
@@ -191,7 +191,7 @@ export function validateEdgeProposal(proposal: EdgeProposal): SemanticGuardResul
   // Read current edge state once for both remaining checks
   const currentEdges = getAllEdges();
 
-  // â”€â”€ Rule 3: Duplicate edge check [D21-A] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ?€?€ Rule 3: Duplicate edge check [D21-A] ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
   if (_isDuplicateEdge(fromTagSlug, toTagSlug, relationType, currentEdges)) {
     return {
       decision: 'REJECTED',
@@ -200,14 +200,14 @@ export function validateEdgeProposal(proposal: EdgeProposal): SemanticGuardResul
     };
   }
 
-  // â”€â”€ Rule 4: IS_A cycle check [D21-C / D21-K] â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ?€?€ Rule 4: IS_A cycle check [D21-C / D21-K] ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
   if (relationType === 'IS_A') {
     const isAGraph = _buildIsAGraph(currentEdges);
     if (_wouldCreateIsACycle(fromTagSlug, toTagSlug, isAGraph)) {
       return {
         decision: 'REJECTED',
         rejectionCode: 'IS_A_CYCLE',
-        reason: `Adding IS_A edge "${fromTagSlug} â†’ ${toTagSlug}" would create a cycle in the subsumption hierarchy`,
+        reason: `Adding IS_A edge "${fromTagSlug} ??${toTagSlug}" would create a cycle in the subsumption hierarchy`,
       };
     }
   }

@@ -1,14 +1,14 @@
 /**
- * @test VS8 Semantic Graph â€” InvariantGuard [D21-H D21-K D21-9 D21-3]
+ * @test VS8 Semantic Graph ??InvariantGuard [D21-H D21-K D21-9 D21-3]
  *
  * Validates the Blood-Brain Barrier (BBB) at
  * centralized-guards/invariant-guard.ts.
  *
  * Scenarios covered:
- *   1. Self-loop rejection (IS_A / REQUIRES) â€” [D21-3]
- *   2. Invalid-weight rejection â€” [D21-9]
- *   3. Duplicate-edge rejection â€” [D21-A]
- *   4. IS_A cycle rejection â€” [D21-C / D21-K]
+ *   1. Self-loop rejection (IS_A / REQUIRES) ??[D21-3]
+ *   2. Invalid-weight rejection ??[D21-9]
+ *   3. Duplicate-edge rejection ??[D21-A]
+ *   4. IS_A cycle rejection ??[D21-C / D21-K]
  *   5. Approval for well-formed proposals
  *
  * Architecture:
@@ -18,21 +18,21 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 
-import { addEdge, _clearEdgesForTest } from '../centralized-edges/semantic-edge-store';
+import { addEdge, _clearEdgesForTest } from '../graph/edges/semantic-edge-store';
 
 import { validateEdgeProposal } from './invariant-guard';
 
-// â”€â”€â”€ Setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ?€?€?€ Setup ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
 beforeEach(() => {
   _clearEdgesForTest();
 });
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Rule 1 â€” Self-loop rejection [D21-3]
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
+// Rule 1 ??Self-loop rejection [D21-3]
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
 
-describe('InvariantGuard â€” self-loop rejection [D21-3]', () => {
+describe('InvariantGuard ??self-loop rejection [D21-3]', () => {
   it('rejects an IS_A self-loop', () => {
     const result = validateEdgeProposal({
       fromTagSlug: 'skill:welding',
@@ -64,11 +64,11 @@ describe('InvariantGuard â€” self-loop rejection [D21-3]', () => {
   });
 });
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Rule 2 â€” Weight invariant [D21-9]
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
+// Rule 2 ??Weight invariant [D21-9]
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
 
-describe('InvariantGuard â€” weight invariant [D21-9]', () => {
+describe('InvariantGuard ??weight invariant [D21-9]', () => {
   it('rejects weight = 0', () => {
     const result = validateEdgeProposal({
       fromTagSlug: 'skill:expert',
@@ -132,11 +132,11 @@ describe('InvariantGuard â€” weight invariant [D21-9]', () => {
   });
 });
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Rule 3 â€” Duplicate edge rejection [D21-A]
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
+// Rule 3 ??Duplicate edge rejection [D21-A]
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
 
-describe('InvariantGuard â€” duplicate edge rejection [D21-A]', () => {
+describe('InvariantGuard ??duplicate edge rejection [D21-A]', () => {
   it('rejects a proposal that duplicates an existing edge', () => {
     addEdge('skill:expert', 'skill:senior', 'IS_A');
 
@@ -174,11 +174,11 @@ describe('InvariantGuard â€” duplicate edge rejection [D21-A]', () => {
   });
 });
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Rule 4 â€” IS_A cycle detection [D21-C / D21-K]
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
+// Rule 4 ??IS_A cycle detection [D21-C / D21-K]
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
 
-describe('InvariantGuard â€” IS_A cycle detection [D21-C D21-K]', () => {
+describe('InvariantGuard ??IS_A cycle detection [D21-C D21-K]', () => {
   it('rejects a direct two-node cycle (A IS_A B, then B IS_A A)', () => {
     addEdge('skill:expert', 'skill:senior', 'IS_A');
 
@@ -191,7 +191,7 @@ describe('InvariantGuard â€” IS_A cycle detection [D21-C D21-K]', () => {
     expect(result.rejectionCode).toBe('IS_A_CYCLE');
   });
 
-  it('rejects a three-node transitive cycle (Aâ†’Bâ†’C, then Câ†’A)', () => {
+  it('rejects a three-node transitive cycle (A?’B?’C, then C?’A)', () => {
     addEdge('a', 'b', 'IS_A');
     addEdge('b', 'c', 'IS_A');
 
@@ -217,7 +217,7 @@ describe('InvariantGuard â€” IS_A cycle detection [D21-C D21-K]', () => {
     expect(result.rejectionCode).not.toBe('IS_A_CYCLE');
   });
 
-  it('approves a diamond-shaped IS_A graph (Aâ†’C, Bâ†’C) â€” no cycle', () => {
+  it('approves a diamond-shaped IS_A graph (A?’C, B?’C) ??no cycle', () => {
     addEdge('a', 'c', 'IS_A');
 
     const result = validateEdgeProposal({
@@ -229,11 +229,11 @@ describe('InvariantGuard â€” IS_A cycle detection [D21-C D21-K]', () => {
   });
 });
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Rule 5 â€” Approval for well-formed proposals
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
+// Rule 5 ??Approval for well-formed proposals
+// ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â???
 
-describe('InvariantGuard â€” approves valid proposals', () => {
+describe('InvariantGuard ??approves valid proposals', () => {
   it('approves the first edge in an empty graph', () => {
     const result = validateEdgeProposal({
       fromTagSlug: 'skill:expert',
