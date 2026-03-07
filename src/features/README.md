@@ -75,7 +75,7 @@ import { WorkspacePublicAPI } from '@/features/workspace.slice'
 
 All Firebase SDK calls **must** go through `SK_PORTS` adapters in `src/shared/infra/` [D24]. Feature slices must never import from `firebase/*` directly — this is enforced by ESLint rule `D24`.
 
-> **Current tracked D24 violations** (43 files — active migration targets, not new regressions): see `docs/00-LogicOverview.md` for the full list.
+> **Current tracked D24 violations** (43 files — active migration targets, not new regressions): see `docs\architecture\00-LogicOverview.md` for the full list.
 
 ---
 

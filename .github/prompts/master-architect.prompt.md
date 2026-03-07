@@ -15,4 +15,4 @@ description: "核心架構治理指揮官，負責跨模組決策與全局對齊
 3. **Constraint Validation:** 啟動 `tool-thinking` 驗證是否違反「禁止跨模組直接操作聚合」之硬性約束。
 
 ## 真理來源
-所有決策必須以 `docs/00-LogicOverview.md` 為唯一核心真理，其餘文件僅供輔助驗證。
+所有決策必須以 `docs\architecture\00-LogicOverview.md` 為唯一核心真理，其餘文件僅供輔助驗證。

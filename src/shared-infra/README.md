@@ -69,7 +69,7 @@ Firestore and Storage security rules are the authoritative access control for th
 
 Rules are deployed via `firebase deploy --only firestore:rules,storage:rules`.
 
-**Design principle:** Security rules enforce data ownership and membership invariants that mirror the domain rules defined in `docs/00-LogicOverview.md` — they are not the source of truth, but they must stay in sync with it.
+**Design principle:** Security rules enforce data ownership and membership invariants that mirror the domain rules defined in `docs\architecture\00-LogicOverview.md` — they are not the source of truth, but they must stay in sync with it.
 
 ---
 

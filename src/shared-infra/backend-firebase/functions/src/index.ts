@@ -1,7 +1,7 @@
 /**
  * Firebase Cloud Functions — Entry Point
  *
- * Architecture per docs/00-LogicOverview.md (SSOT)
+ * Architecture per docs\architecture\00-LogicOverview.md (SSOT)
  *
  * L2 Gateway:      command-gateway, webhook
  * L4 IER:          ier, criticalLane, standardLane, backgroundLane

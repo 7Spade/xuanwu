@@ -50,7 +50,7 @@ npm run dev   # starts on http://localhost:9002
 ## Known D24 Architectural Debt (Tracked Warnings)
 
 The `~1390 lint warnings` include **43 D24 warnings** — direct `firebase/firestore` imports in feature slices.
-These are **tracked migration targets**, not regressions. Per `docs/00-LogicOverview.md` [D24]:
+These are **tracked migration targets**, not regressions. Per `docs\architecture\00-LogicOverview.md` [D24]:
 
 > Feature slices must not import `firebase/*` directly. All SDK calls must go through `FIREBASE_ACL`
 > adapters at `src/shared-infra/frontend-firebase/{auth,firestore,messaging,storage}/`, accessed via `SK_PORTS` interfaces.
@@ -77,7 +77,7 @@ Before making changes, always follow the GEMINI.md workflow:
 
 ## Key Files
 
-- `docs/00-LogicOverview.md` — **SSOT** architecture rules (D1–D25, invariants #1–#19)
+- `docs\architecture\00-LogicOverview.md` — **SSOT** architecture rules (D1–D25, invariants #1–#19)
 - `eslint.config.mts` — enforces D1–D25 as ESLint rules
 - `.github/copilot-instructions.md` — agent workflow instructions
 - `.github/prompts/GEMINI.md` — AI prompt orchestration index

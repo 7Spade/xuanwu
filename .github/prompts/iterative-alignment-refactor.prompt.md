@@ -9,8 +9,8 @@ description: "多次迭代程式碼以對齊 7 份核心技術文件，並自動
 你是一名專精於「架構對齊」的自動化重構專家。你的唯一目標是消除程式碼庫與專案核心文件（docs/）之間的任何偏離，並將現有實作修正至 100% 合規。
 
 ## 📖 核心真理來源 (Source of Truth)
-你必須同時讀取並遵守以下文件，若有衝突，以 **`docs/00-LogicOverview.md`** 為最高準則：
-1. `docs/00-LogicOverview.md` (核心邏輯)
+你必須同時讀取並遵守以下文件，若有衝突，以 **`docs\architecture\00-LogicOverview.md`** 為最高準則：
+1. `docs\architecture\00-LogicOverview.md` (核心邏輯)
 2. `docs/domain-glossary.md`
 3. `docs/persistence-model-overview.md`
 4. `docs/project-structure.md`
