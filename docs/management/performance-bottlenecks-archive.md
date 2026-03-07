@@ -1,6 +1,6 @@
 # 🚀 Performance Bottlenecks Archive
 
-> **憲法依據 / Constitutional Basis**: `docs/architecture/logic-overview.md`
+> **憲法依據 / Constitutional Basis**: `docs/architecture/00-LogicOverview.md`
 > **說明**: 本文件存檔所有已解決的效能瓶頸條目（狀態為 RESOLVED / ACCEPTED / OBSOLETE）。
 > 活躍效能瓶頸請見 `performance-bottlenecks.md`。
 

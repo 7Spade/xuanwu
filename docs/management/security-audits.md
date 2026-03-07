@@ -1,6 +1,6 @@
 # 🔒 Security Audits Register
 
-> **憲法依據 / Constitutional Basis**: `docs/architecture/logic-overview.md`
+> **憲法依據 / Constitutional Basis**: `docs/architecture/00-LogicOverview.md`
 > **資料來源 / Data Source**: `/audit` 全鏈路架構合規性審計 (2026-03-06)
 > **說明**: 安全審計聚焦於可被惡意利用或引發資料完整性破壞的架構漏洞。
 

@@ -16,7 +16,7 @@ description: "將遺留程式碼解耦並遷移至垂直切片與 DDD 體系"
 ## 🎯 核心原則
 - **Strangler Pattern:** 優先建立防腐層 (ACL)，再逐步替換內部實作。
 - **邏輯歸位:** 業務規則必須移入 Domain Aggregate，資料庫操作必須移入 Repository。
-- **對齊真理:** 修正後的代碼必須 100% 符合 `docs/logic-overview.md`。
+- **對齊真理:** 修正後的代碼必須 100% 符合 `docs/00-LogicOverview.md`。
 
 ## 🏁 輸出標準
 - 解耦後的目錄與檔案配置建議。

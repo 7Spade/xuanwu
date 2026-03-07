@@ -3,18 +3,44 @@
 > 🎯 本專案所有**事實依據（Single Source of Truth）**統一來自：
 >
 > * `docs/knowledge-graph.json`
-> * `docs/architecture/logic-overview.md`
+> * `docs/architecture/00-LogicOverview.md`
 > * `docs/ai/repomix-output.context.md`
 >
 > ❗ 任何推論、流程、任務拆解、AI 判斷
-> 都必須以這兩份文件為基礎，不得憑空假設。
+> 都必須以這三份文件為基礎，不得憑空假設。
+
+---
+
+# 🏗 系統運作總結（極簡決策版）
+
+```rules
+IF 任務涉及業務邏輯
+  THEN 先讀 docs/architecture/00-LogicOverview.md
+
+IF 任務涉及實體關係
+  THEN 查 docs/knowledge-graph.json
+
+IF 需要歷史上下文
+  THEN 使用 memory MCP
+
+IF 產生新知識
+  THEN store_memory + 更新 knowledge-graph.json
+
+IF 涉及專案分析
+  THEN 選擇對應 MCP 工具
+
+禁止：
+- 憑空生成未定義邏輯
+- 跳過 Knowledge Graph
+- 未持久化新規則
+```
 
 ---
 
 # 🧠 核心事實來源規則（強制）
 
 ```rules
-1. 所有業務邏輯以 docs/architecture/logic-overview.md 為流程定義依據。
+1. 所有業務邏輯以 docs/architecture/00-LogicOverview.md 為流程定義依據。
 2. 所有實體關係與知識結構以 docs/knowledge-graph.json 為語義依據。
 3. 所有 AI 判斷與任務拆解以 docs/ai/repomix-output.context.md 為依據。
 4. 不允許跳過文件直接生成邏輯。
@@ -36,32 +62,18 @@
 
 ---
 
-# 🧩 Copilot 行為決策流程（Mermaid）
+# 🔤 編碼與語言規範（Encoding & Language Protocol）
 
-```mermaid
-flowchart TD
-
-A[接收任務] --> B{是否屬於既有邏輯?}
-
-B -- 是 --> C[查詢 docs/architecture/logic-overview.md]
-C --> D[查詢 docs/knowledge-graph.json]
-D --> E[必要時使用 memory MCP]
-E --> F[產出解決方案]
-
-B -- 否 --> G[設計新邏輯]
-G --> H[更新 knowledge-graph.json]
-H --> I[store_memory 寫入]
-I --> F
-
-F --> J{是否涉及專案工具?}
-J --> K[啟動對應 MCP]
+```rules
+1. 全域編碼：所有原始碼、Markdown、JSON 文件必須強制使用 UTF-8（無 BOM）。
+2. 語言一致性（程式碼）：變數、函式命名與註解（除業務邏輯說明外）優先使用英文。
+3. 語言一致性（業務規則）：涉及台灣建築規範、勞動力調度等核心領域知識，註解可使用繁體中文以確保語義精確。
+4. 亂碼處理：若遇到亂碼，禁止直接刪除，必須先進行語義還原（Semantic Recovery）後再重新編譯或提交。
 ```
 
 ---
 
 # 🛠 MCP 使用時機規則句
-
-## MCP 使用時機規則句
 
 1. **sonarqube**
 
@@ -125,28 +137,25 @@ J --> K[啟動對應 MCP]
 
 ---
 
-# 🏗 系統運作總結（極簡決策版）
+# 🧩 Copilot 行為決策流程（Mermaid）
 
-```rules
-IF 任務涉及業務邏輯
-  THEN 先讀 docs/architecture/logic-overview.md
+```mermaid
+flowchart TD
 
-IF 任務涉及實體關係
-  THEN 查 docs/knowledge-graph.json
+A[接收任務] --> B{是否屬於既有邏輯?}
 
-IF 需要歷史上下文
-  THEN 使用 memory MCP
+B -- 是 --> C[查詢 docs/architecture/00-LogicOverview.md]
+C --> D[查詢 docs/knowledge-graph.json]
+D --> E[必要時使用 memory MCP]
+E --> F[產出解決方案]
 
-IF 產生新知識
-  THEN store_memory + 更新 knowledge-graph.json
+B -- 否 --> G[設計新邏輯]
+G --> H[更新 knowledge-graph.json]
+H --> I[store_memory 寫入]
+I --> F
 
-IF 涉及專案分析
-  THEN 選擇對應 MCP 工具
-
-禁止：
-- 憑空生成未定義邏輯
-- 跳過 Knowledge Graph
-- 未持久化新規則
+F --> J{是否涉及專案工具?}
+J --> K[啟動對應 MCP]
 ```
 
 ---
@@ -161,7 +170,6 @@ IF 涉及專案分析
 
 ---
 
-````md
 ## TypeScript Module Header Rule
 
 When creating or editing a `.ts` or `.tsx` file:
@@ -176,9 +184,7 @@ When creating or editing a `.ts` or `.tsx` file:
  * Responsibilities: <primary responsibilities>
  * Constraints: deterministic logic, respect module boundaries
  */
-````
+```
 
 * Place the header at the very top of the file.
 * Keep it short, clear, and consistent across the repository.
-
-```

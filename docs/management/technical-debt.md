@@ -1,6 +1,6 @@
 # 🏗 Technical Debt Register
 
-> **憲法依據 / Constitutional Basis**: `docs/architecture/logic-overview.md`
+> **憲法依據 / Constitutional Basis**: `docs/architecture/00-LogicOverview.md`
 > **資料來源 / Data Source**: `/audit` 全鏈路架構合規性審計 (2026-03-06)
 > **說明**: 技術債是「已知的架構欠缺」，不阻礙當前生產，但會限制未來擴展能力或引入隱性風險。
 

@@ -1,6 +1,6 @@
 # 🏗 Technical Debt Archive
 
-> **憲法依據 / Constitutional Basis**: `docs/architecture/logic-overview.md`
+> **憲法依據 / Constitutional Basis**: `docs/architecture/00-LogicOverview.md`
 > **說明**: 本文件存檔所有已解決的技術債條目（狀態為 RESOLVED / ACCEPTED / SUPERSEDED）。
 > 活躍技術債請見 `technical-debt.md`。
 

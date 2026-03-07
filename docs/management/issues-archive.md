@@ -1,6 +1,6 @@
 # 🗂 Issues Archive
 
-> **憲法依據 / Constitutional Basis**: `docs/architecture/logic-overview.md`
+> **憲法依據 / Constitutional Basis**: `docs/architecture/00-LogicOverview.md`
 > **說明**: 本文件存檔所有已關閉的 Issues（狀態為 RESOLVED / WONT_FIX / DUPLICATE）。
 > 活躍 Issues 請見 `issues.md`。
 

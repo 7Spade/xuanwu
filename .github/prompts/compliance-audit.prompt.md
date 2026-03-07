@@ -12,8 +12,8 @@ description: "全域文檔對齊與專案規範合規性審查"
 1. **全域掃描:** 使用 `tool-repomix` 同步程式碼與文檔上下文。
 2. **深度比對:** 呼叫 `tool-thinking` 逐一檢查：
    - 是否引入 `tech-stack.md` 未定義技術？
-   - 請求流向是否符合 `logic-overview.md`？
-   - 基礎設施是否超出 `logic-overview.md` 定義？
+   - 請求流向是否符合 `00-LogicOverview.md`？
+   - 基礎設施是否超出 `00-LogicOverview.md` 定義？
 
 ## 終極準則
-若程式碼與 `logic-overview.md` 衝突，以文檔為準並提出重構計畫。
+若程式碼與 `00-LogicOverview.md` 衝突，以文檔為準並提出重構計畫。

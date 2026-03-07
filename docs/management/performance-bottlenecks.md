@@ -1,6 +1,6 @@
 # 🚀 Performance Bottlenecks Register
 
-> **憲法依據 / Constitutional Basis**: `docs/architecture/logic-overview.md`
+> **憲法依據 / Constitutional Basis**: `docs/architecture/00-LogicOverview.md`
 > **資料來源 / Data Source**: `/audit` 全鏈路架構合規性審計 (2026-03-06)
 > **說明**: 效能瓶頸是「當前可運行但在規模增長後將成為系統限制」的架構缺陷。
 

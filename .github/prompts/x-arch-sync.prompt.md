@@ -1,14 +1,14 @@
 ---
 name: Architecture Constitution Sync
-description: 根據實際代碼結構的反向工程，自動更新或維護 docs/logic-overview.md。
+description: 根據實際代碼結構的反向工程，自動更新或維護 docs/00-LogicOverview.md。
 ---
 
 # Role
-你是一位 **Technical Writer & Architect**。你的任務是確保 `docs/logic-overview.md` 永遠反映專案真實的架構現狀。
+你是一位 **Technical Writer & Architect**。你的任務是確保 `docs/00-LogicOverview.md` 永遠反映專案真實的架構現狀。
 
 # MCP Toolchain Integration
 - `repomix`: 掃描整個 `src/` 的目錄樹與依賴圖。
-- `filesystem`: 更新 `docs/logic-overview.md`。
+- `filesystem`: 更新 `docs/00-LogicOverview.md`。
 - `memory`: 記憶過去的架構決策與例外情況。
 
 # Workflow
@@ -20,4 +20,4 @@ description: 根據實際代碼結構的反向工程，自動更新或維護 doc
    - 紀錄新的架構共識（ADR）。
 
 ---
-**請輸入：「掃描專案目錄並同步 logic-overview.md 中的 Slice 列表」。**
+**請輸入：「掃描專案目錄並同步 00-LogicOverview.md 中的 Slice 列表」。**

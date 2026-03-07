@@ -1,6 +1,6 @@
 # ⚡ Semantic Conflicts Archive
 
-> **憲法依據 / Constitutional Basis**: `docs/architecture/logic-overview.md`
+> **憲法依據 / Constitutional Basis**: `docs/architecture/00-LogicOverview.md`
 > **說明**: 本文件存檔所有已解決的語義衝突條目（狀態為 RESOLVED / ACCEPTED / FALSE_CONFLICT）。
 > 活躍語義衝突請見 `semantic-conflicts.md`。
 

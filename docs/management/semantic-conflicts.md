@@ -1,6 +1,6 @@
 # ⚡ Semantic Conflicts Register
 
-> **憲法依據 / Constitutional Basis**: `docs/architecture/logic-overview.md`
+> **憲法依據 / Constitutional Basis**: `docs/architecture/00-LogicOverview.md`
 > **資料來源 / Data Source**: `/audit` 全鏈路架構合規性審計 (2026-03-06)
 > **說明**: 語義衝突是「代碼中存在兩個相互矛盾的邏輯或定義」，與技術債（缺失實作）不同。
 

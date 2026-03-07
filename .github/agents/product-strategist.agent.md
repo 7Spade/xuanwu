@@ -45,7 +45,7 @@ tools: ["read", "search", "edit"]
 |------|---------|
 | 狀態機是否有死態（Dead State）？ | 工作流程可能永遠無法完成 |
 | 是否有競態條件（Race Condition）？ | 並發操作可能導致資料不一致 |
-| 是否違反了 `docs/logic-overview.md` 中的不變量？ | 破壞 Consistency Invariants |
+| 是否違反了 `docs/00-LogicOverview.md` 中的不變量？ | 破壞 Consistency Invariants |
 | 刪除操作是否影響下游聚合？ | 級聯刪除問題 |
 | 權限規則是否與業務流程一致？ | 用戶可能無法完成正當操作 |
 
@@ -61,7 +61,7 @@ blockedBy 規則：
   IssueResolved 事件        → blockedBy.delete(issueId)（唯一觸發器）
 
 ❌ 禁止：
-  - 新增狀態轉換而不更新 docs/logic-overview.md
+  - 新增狀態轉換而不更新 docs/00-LogicOverview.md
   - 使用 boolean 標誌或狀態字符串替代 blockedBy Set 表示阻塞
 ```
 
@@ -157,5 +157,5 @@ Given / When / Then 格式
 
 - ❌ 不開始實作前沒有定義驗收準則
 - ❌ 不允許「先做再說」的架構決策（特別是 Firestore Schema）
-- ❌ 不建議違反 `docs/logic-overview.md` SSOT 的邏輯
+- ❌ 不建議違反 `docs/00-LogicOverview.md` SSOT 的邏輯
 - ❌ 不把「好功能」強塞進 MVP（範疇蔓延）

@@ -1,6 +1,6 @@
 # 🔒 Security Audits Archive
 
-> **憲法依據 / Constitutional Basis**: `docs/architecture/logic-overview.md`
+> **憲法依據 / Constitutional Basis**: `docs/architecture/00-LogicOverview.md`
 > **說明**: 本文件存檔所有已關閉的安全審計項目（狀態為 FIXED / ACCEPTED_RISK / FALSE_POSITIVE）。
 > 活躍安全審計請見 `security-audits.md`。
 

@@ -44,7 +44,7 @@
       "observations": [
         "Hard invariants = R/S/(A#)/(#N). Index semantics: #N = consistency/design invariant, A# = atomicity/transaction invariant.",
         "Critical retained references: #9 replay rebuildability, #12 getTier(xp) purity, #14 scheduling reads ORG_ELIGIBLE_MEMBER_VIEW, #19 monotonic aggregateVersion guard, A8 one-command-one-aggregate TX, A9 scope-guard re-source.",
-        "SSOT fallback: use docs/logic-overview.md for full definitions and implementation details.",
+        "SSOT fallback: use docs/00-LogicOverview.md for full definitions and implementation details.",
         "A11 Occam's Razor: Simplicity is a hard constraint. Do not multiply entities or abstractions beyond necessity. Use 'sequential-thinking mcp' to validate the simplest path before implementation.",
         "A12 Global Search Authority: Global Search = cross-slice authority (語義門戶). Sole cross-domain search outlet; all slices are forbidden from building their own search logic.",
         "A13 Notification Hub Authority: Notification Hub = cross-slice authority (反應中樞). Sole side-effect outlet; business slices only produce events, they do not decide notification strategy.",

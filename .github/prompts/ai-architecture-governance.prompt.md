@@ -106,7 +106,7 @@ UI 層必須以 **shadcn/ui** 為唯一元件基礎，採用組合式設計（Ra
 
 所有規劃與設計必須以：
 
-`docs/logic-overview.md`
+`docs/00-LogicOverview.md`
 
 作為唯一核心真理來源。
 
@@ -118,7 +118,7 @@ UI 層必須以 **shadcn/ui** 為唯一元件基礎，採用組合式設計（Ra
 - docs/schema-definition.md
 - docs/tech-stack.md
 
-若存在衝突，以 `logic-overview.md` 為最終裁決依據。
+若存在衝突，以 `00-LogicOverview.md` 為最終裁決依據。
 
 ---
 
@@ -157,7 +157,7 @@ UI 層必須以 **shadcn/ui** 為唯一元件基礎，採用組合式設計（Ra
 
 在輸出前必須確認：
 
-- 完全符合 docs/logic-overview.md
+- 完全符合 docs/00-LogicOverview.md
 - 未破壞資料寫入邊界
 - 未出現術語漂移
 - 未引入未定義技術

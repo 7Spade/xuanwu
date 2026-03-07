@@ -208,7 +208,7 @@ sequenceDiagram
 1. `saveParsingIntent`：寫入 `parsingIntents/{intentId}`（`pending`）。
 2. 發送 `workspace:parsing-intent:deltaProposed`（outbox）。
 3. Import handler 收到事件後：
-   - `ParsingIntent` 僅產生 proposal 類事件（如 `workspace:parsing-intent:deltaProposed`），不得直接寫入 A-track 聚合根；此約束用於維持 aggregate 邊界與 command handler 單一寫入入口（對齊 `logic-overview.md` 的 #A4：ParsingIntent 只允許提議事件）。
+   - `ParsingIntent` 僅產生 proposal 類事件（如 `workspace:parsing-intent:deltaProposed`），不得直接寫入 A-track 聚合根；此約束用於維持 aggregate 邊界與 command handler 單一寫入入口（對齊 `00-LogicOverview.md` 的 #A4：ParsingIntent 只允許提議事件）。
    - 建立 `parsingImports/{importId}`（`started`）
    - 逐筆 upsert `tasks`（帶 `sourceIntentId/sourceIntentVersion`）
    - 成功後更新 `parsingImports.status=applied`

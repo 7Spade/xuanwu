@@ -175,9 +175,9 @@ VS8 的規則句確保了數位大腦：
 
 ---
 
-## 🗺️ Mermaid — VS8 · Semantic Graph（待併入 `logic-overview.md`）
+## 🗺️ Mermaid — VS8 · Semantic Graph（待併入 `00-LogicOverview.md`）
 
-> **索引標籤**：`[#A6 #17]` · 對應 `logic-overview.md` 中 `#A6 = CENTRALIZED_TAG_AGGREGATE 語義唯一權威` / `#17 = centralized-tag.aggregate 為 tagSlug 唯一真相`
+> **索引標籤**：`[#A6 #17]` · 對應 `00-LogicOverview.md` 中 `#A6 = CENTRALIZED_TAG_AGGREGATE 語義唯一權威` / `#17 = centralized-tag.aggregate 為 tagSlug 唯一真相`
 
 ```mermaid
 flowchart TD
