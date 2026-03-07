@@ -4,8 +4,8 @@
 所有文件必須與以下三條依賴鏈一致：
 
 - 寫鏈：`L0 -> L2 -> L3 -> L4 -> L5`
-- 讀鏈：`UI/app -> L6 -> L5`
-- Infra 鏈：`L3/L5/L6 -> L1 -> L7 -> L8`
+- 讀鏈：`L0/UI -> L6 -> L5`
+- Infra 鏈：`L3/L5/L6 -> L1(SK_PORTS) -> L7(FIREBASE_ACL) -> L8(Firebase)`
 
 ## 1. 核心文件
 

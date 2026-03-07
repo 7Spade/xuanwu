@@ -24,7 +24,7 @@
 
 ### 2.2 讀鏈
 
-- MUST: IF 是 UI/應用讀取 THEN 路徑必須是 `UI/app -> L6 -> L5`。
+- MUST: IF 是 UI/應用讀取 THEN 路徑必須是 `L0/UI -> L6 -> L5`。
 - FORBIDDEN: IF UI 直讀 L3 aggregate 或 Firebase THEN MUST NOT 合併。
 
 ### 2.3 Infra 鏈

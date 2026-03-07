@@ -5,7 +5,7 @@
 
 ## 1. 單向依賴鏈檢查（D27-Order）
 - [ ] 寫鏈是否遵守：`L0 -> L2 -> L3 -> L4 -> L5`，沒有任何回跳或旁路。
-- [ ] 讀鏈是否遵守：`UI/app -> L6 -> L5`，UI 沒有直連 slice aggregate 或 Firebase。
+- [ ] 讀鏈是否遵守：`L0/UI -> L6 -> L5`，UI 沒有直連 slice aggregate 或 Firebase。
 - [ ] Infra 鏈是否遵守：`L3/L5/L6 -> L1(SK_PORTS/Contracts) -> L7(FIREBASE_ACL) -> L8(Firebase)`。
 - [ ] `L6 Query Gateway` 沒有反向驅動 `L2 Command Gateway`（禁止讀寫回饋環）。
 
