@@ -2,7 +2,7 @@
 
 /**
  * Module: index.ts
- * Purpose: Server actions for timelineing.slice.
+ * Purpose: Server actions for timeline module under workforce-scheduling.slice.
  * Responsibilities: timeline-specific schedule item mutations.
  * Constraints: deterministic logic, respect module boundaries
  */

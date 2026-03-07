@@ -1,6 +1,6 @@
 /**
  * Module: _queries.ts
- * Purpose: Query/subscription factories for timelineing.slice.
+ * Purpose: Query/subscription factories for timeline module under workforce-scheduling.slice.
  * Responsibilities: timeline item subscriptions and timeline-safe mapping.
  * Constraints: deterministic logic, respect module boundaries
  */

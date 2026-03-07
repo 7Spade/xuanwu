@@ -1,6 +1,6 @@
 /**
  * Module: index.ts
- * Purpose: Public hook barrel for timelineing.slice.
+ * Purpose: Public hook barrel for timeline module under workforce-scheduling.slice.
  * Responsibilities: expose timeline hooks from a single entry.
  * Constraints: deterministic logic, respect module boundaries
  */

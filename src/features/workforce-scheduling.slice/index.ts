@@ -103,6 +103,18 @@ export { AccountCapabilityTabs, WorkspaceCapabilityTabs } from './_components/sc
 export { UnifiedCalendarGrid } from './_components/unified-calendar-grid';
 export { DemandBoard } from './_components/demand-board';
 
+// Timeline views and timeline drag actions are now colocated under VS6.
+export {
+  AccountTimelineSection,
+  WorkspaceTimeline,
+  AccountTimelineCapabilityTabs,
+  WorkspaceTimelineCapabilityTabs,
+  updateTimelineItemDateRange,
+  useAccountTimeline,
+  useWorkspaceTimeline,
+  useTimelineCommands,
+} from './timeline';
+
 // =================================================================
 // Projectors (event handlers — used by projection.event-funnel)
 // =================================================================

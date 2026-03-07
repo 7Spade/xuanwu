@@ -9,8 +9,8 @@
 
 import { useState } from "react";
 
-import { AccountTimelineSection } from "@/features/timelineing.slice";
 import { AccountScheduleSection } from "@/features/workforce-scheduling.slice";
+import { AccountTimelineSection } from "@/features/workforce-scheduling.slice";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn-ui/tabs";
 
 type WorkforceTab = "schedule" | "timeline";
