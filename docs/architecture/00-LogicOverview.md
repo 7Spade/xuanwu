@@ -12,6 +12,12 @@
 %%    Architecture rules       → docs/00-LogicOverview.md  ← THIS FILE
 %%    Semantic relations       → docs/knowledge-graph.json
 %%    VS8 complete-body guide  → docs/development/semantic-graph.slice-guide.md  (companion spec)
+%%  RULE SENTENCE TEMPLATE（規則句模板）:
+%%    MUST     : IF <條件> THEN <必須行為>
+%%    SHOULD   : IF <情境> THEN <建議行為>
+%%    FORBIDDEN: IF <情境> THEN MUST NOT <禁止行為>
+%%  RULE CLASSIFICATION（分類）:
+%%    MUST(R/S/A/#) = 穩定不變量；SHOULD(D/P/T/E) = 治理演進；FORBIDDEN = 絕對禁止
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
 %%  QUICK REFERENCE（快速索引 — 最速取得上下文）
 %%  ── Vertical Slice（業務域 · VS0–VS8）──
@@ -30,7 +36,7 @@
 %%    ※ L3 Domain Slices = VS1(Identity) · VS2(Account) · VS3(Skill) ·
 %%                          VS4(Organization) · VS5(Workspace) · VS6(Workforce-Scheduling) ·
 %%                          VS7(Notification) · VS8(SemanticGraph)
-%%  ── Hard Invariants（不可違反）: R · S · A · # ──
+%%  ── RULESET-MUST（不可違反）: R · S · A · # ──
 %%    R1=relay-lag-metrics   R5=DLQ-failure-rule   R6=workflow-state-rule
 %%    R7=aggVersion-relay    R8=traceId-readonly
 %%    S1=OUTBOX-contract     S2=VersionGuard       S3=ReadConsistency
@@ -40,11 +46,11 @@
 %%    A12=global-search-authority   A13=notification-hub-authority
 %%    A14=cost-semantic-dual-key
 %%    A15=finance-lifecycle-gate    A16=multi-claim-cycle   A17=skill-xp-award-contract
-%%  ── Governance Rules（可演化治理）: D · P · T · E ──
+%%  ── RULESET-SHOULD（可演化治理）: D · P · T · E ──
 %%    D7=cross-slice-index-only   D24=no-firebase-import D26=cross-cutting-authority
 %%    D27=cost-semantic-routing   D27-A=semantic-aware-routing-policy
 %%    D27-Order=single-direction-chain   D27-Gate=task-materialization-gate   D22=strong-typed-tag-ref
-%%    D21=VS8-semantic-graph-complete-body（8層完全體 D21-1~D21-10 + D21-A~D21-X）
+%%    D21=VS8-semantic-engine-governance（四層語義引擎 D21-1~D21-10 + D21-A~D21-X）
 %%    D21-1=semantic-uniqueness(→D21-A)   D21-2=strong-typed-tags(→D22)  D21-3=node-connectivity(→D21-C)
 %%    D21-4=aggregate-constraint          D21-5=semantic-aware-routing(→D27-A)
 %%    D21-6=causal-auto-trigger           D21-7=read-write-separation    D21-8=freshness-defense(→S4)
@@ -57,7 +63,7 @@
 %%    P1=IER-lane-priority        P4=eligibility-query   P5=projection-funnel
 %%    T1=tag-lifecycle-sub        T3=eligible-tag-logic  T5=tag-snapshot-readonly
 %%    E2=OrgContextProvisioned    E3=ScheduleAssigned    E5=ws-event-flow   E6=claims-refresh
-%%  ── VS6 Workforce Scheduling SSOT（產品推導約束）──
+%%  ── RULESET-MUST · VS6 Workforce Scheduling SSOT（產品推導約束）──
 %%    [D27-Order] 單向鏈：WorkspaceItem → WorkspaceTask → Schedule（禁止跳級）
 %%    健康設計鏈：WorkspaceItem → WorkspaceTask（無時間） → WorkspaceSchedule（有時間） → OrganizationSchedule（人力指派）
 %%    [D27-Gate] 任務物化唯一入口：shouldMaterializeAsTask()；僅 EXECUTABLE 可物化
@@ -67,37 +73,43 @@
 %%    [S2] 投影寫入必經 applyVersionGuard()，防止亂序覆寫
 %%    [L6-Gateway] UI 禁止直讀 VS6/Firebase，僅可經 Query Gateway 讀取
 %%    [Timeline] overlap/resource-grouping 邏輯下沉 L5，前端僅渲染
-%%  ── VS3 Skill XP SSOT（產品推導約束）──
+%%  ── RULESET-MUST · VS3 Skill XP SSOT（產品推導約束）──
 %%    [A17] XP 授予來源必須是 VS5 任務事實（TaskCompleted）與品質事實（QualityAssessed）
 %%    [A17] 計算公式：awardedXp = baseXp × qualityMultiplier × policyMultiplier（含 min/max clamp）
 %%    [A17] VS8 僅提供 semanticTagSlug / policy lookup；XP ledger 寫入權限只在 VS3
-%%  ── Layering Rules（層級通訊規則 · Directional Communication）──
+%%  ── RULESET-MUST · Layering Rules（層級通訊規則）──
 %%    External → L2 CMD_GWAY（寫） / L6 QGWAY（讀）
 %%    L3 Slice ↔ L3 Slice = 禁止直接 mutate；僅可透過 L4 IER 事件協作 [#2 D9]
 %%    L3 → L5 Projection 寫入 = 禁止直寫；必須經 event-funnel [#9 S2]
 %%    L3 讀取語義 = 僅可經 VS8 projection.tag-snapshot [D21-7 T5]
 %%    任意層直連 firebase/* = 禁止；僅 L7 FIREBASE_ACL 可呼叫 SDK [D24 D25]
-%%  ── Authority Exits（權威出口白名單）──
+%%  ── RULESET-MUST · Authority Exits（權威出口白名單）──
 %%    Search Exit     = global-search.slice（唯一跨域搜尋權威）[D26 #A12]
 %%    Side-effect Exit= notification-hub.slice（唯一通知副作用出口）[D26 #A13]
 %%    Semantic Exit   = VS8 Semantic Cognition Engine（語義註冊/推理/投影）[D21]
 %%    Finance Routing = VS8 decision/_cost-classifier + VS5 Layer-3 gate [D27 #A14]
-%%  ── Governance Focus（治理與演化焦點）──
+%%  ── RULESET-SHOULD · Governance Focus（治理與演化焦點）──
 %%    Stable Core     = R/S/A/#（Hard Invariants，版本演進不可破壞）
 %%    Evolution Track = D/P/T/E（可演化規則，以索引引用，不重複定義）
 %%    Team Gate       = L/R/A 同時成立（Layer/Rule/Atomicity）
+%%  ── RULESET-SHOULD · Downstream Priorities（下沉優先清單）──
+%%    1) Shared Kernel Contracts：S4/R8/SK_CMD_RESULT 集中定義，禁止各 Slice 重複宣告
+%%    2) Semantic Governance：D22 強型別標籤 + VS8 cost-classifier；業務端禁止自建分類邏輯
+%%    3) Consistency Infrastructure：S2 下沉 Projection Bus/FIREBASE_ACL；S3 由 L6 Query Gateway 統一路由
+%%    4) Firebase ACL：D24 嚴格防腐；Feature Slice 僅可依賴 SK_PORTS，不得直連 firebase/*
+%%    5) Authority Exits：D26 收口 Global Search / Notification Hub，業務端只產生事實事件
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  ARCHITECTURE CONTROL PLANE（四大治理視圖 · for review / design / onboarding）
-%%  ── 1) Hard Invariants（系統穩定基石）──
+%%  ARCHITECTURE CONTROL PLANE（四大治理視圖 · 規則句版）
+%%  ── CP1 MUST：Hard Invariants（系統穩定基石）──
 %%    任何重構不得破壞：traceId 唯讀（R8）、版本守衛（S2）、SLA 常數單一真相（S4）、
 %%    跨切片公開 API 邊界（D7）、副作用與搜尋權威出口（A12/A13）。
-%%  ── 2) Cross-cutting Authorities（職責邊界與權威出口）──
+%%  ── CP2 MUST：Cross-cutting Authorities（職責邊界與權威出口）──
 %%    全域搜尋只經 Global Search；通知副作用只經 Notification Hub；
 %%    任務語義與成本決策只經 VS8（禁止切片私有實作）。
-%%  ── 3) Layering Rules（層級通訊）──
+%%  ── CP3 MUST：Layering Rules（層級通訊）──
 %%    命令由 L2 收口、事件由 L4 分發、投影由 L5 物化、讀取由 L6 暴露；
 %%    Feature Slice 不得跨層旁路（含 Firebase SDK 旁路與 Projection 直寫）。
-%%  ── 4) Governance Rules（治理與演化）──
+%%  ── CP4 SHOULD：Governance Rules（治理與演化）──
 %%    新規則先索引、再實作；優先引用現有契約；未定義語義需先進 VS8 註冊；
 %%    D27 屬 Extension Gate，僅影響 document-parser / finance-routing 變更。
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
@@ -117,7 +129,7 @@
 %%    - 無一致性破口：Projection 全量遵守 S2；SLA 全量遵守 S4
 %%    - 無副作用旁路：通知與搜尋必須經 D26 權威出口
 %%  ╠══════════════════════════════════════════════════════════════════════════╣
-%%  KEY INVARIANTS（絕對遵守）:
+%%  KEY INVARIANTS（RULESET-MUST / 絕對遵守）:
 %%    [R8]  traceId 在 CBG_ENTRY 注入一次，全鏈唯讀不可覆蓋
 %%    [S2]  所有 Projection 寫入前必須呼叫 applyVersionGuard()
 %%    [S4]  SLA 數值只能引用 SK_STALENESS_CONTRACT，禁止硬寫
@@ -164,7 +176,7 @@
 %%           → Payment Term（計時中）→ Payment Received（收款確認）；
 %%           Payment Term 計時起點=Invoice Requested，終點=PaymentReceived；
 %%           直到 outstandingClaimableAmount = 0 才允許 Completed
-%%  FORBIDDEN:
+%%  FORBIDDEN（RULESET-FORBIDDEN）:
 %%    BC_X 禁止直接寫入 BC_Y aggregate → 必須透過 IER Domain Event
 %%    TX Runner 禁止產生 Domain Event → 只有 Aggregate 可以 [#4b]
 %%    SECURITY_BLOCK DLQ → 禁止自動 Replay，必須人工審查
