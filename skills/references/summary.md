@@ -45,21 +45,21 @@ This skill contains the following reference files:
 
 ## Statistics
 
-559 files | 10,831 lines
+557 files | 10,949 lines
 
 | Language | Files | Lines |
 |----------|------:|------:|
-| TypeScript | 446 | 8,103 |
-| TypeScript (TSX) | 113 | 2,728 |
+| TypeScript | 446 | 8,215 |
+| TypeScript (TSX) | 111 | 2,734 |
 
 **Largest files:**
 - `src/features/workspace.slice/core/_components/workspace-settings.tsx` (340 lines)
-- `src/features/workspace.slice/core.event-bus/_events.ts` (172 lines)
+- `src/features/workspace.slice/core.event-bus/_events.ts` (183 lines)
 - `src/features/semantic-graph.slice/core/types/index.ts` (139 lines)
 - `src/features/workspace.slice/business.document-parser/_intent-actions.ts` (136 lines)
 - `src/features/organization.slice/core.event-bus/_events.ts` (126 lines)
+- `src/features/organization.slice/gov.semantic/_components/org-semantic-dictionary-panel.tsx` (95 lines)
 - `src/features/workforce-scheduling.slice/ports/command.port.ts` (93 lines)
 - `src/shared-infra/frontend-firebase/firestore/repositories/workspace-core.repository.ts` (87 lines)
+- `src/features/organization.slice/gov.semantic/_actions.ts` (78 lines)
 - `src/features/workspace.slice/core/_actions.ts` (76 lines)
-- `src/features/workforce-scheduling.slice/ui/components/runtime/proposal-dialog.tsx` (75 lines)
-- `src/shared-kernel/data-contracts/account/account-contract.ts` (74 lines)
