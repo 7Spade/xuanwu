@@ -17,6 +17,7 @@ import {
   deleteOrganization as deleteOrganizationFacade,
   createTeam as createTeamFacade,
 } from "@/shared-infra/frontend-firebase/firestore/firestore.facade";
+import { uploadOrganizationAvatar as uploadOrganizationAvatarFacade } from "@/shared-infra/frontend-firebase/storage/storage.facade";
 import {
   type CommandResult,
   commandSuccess,
@@ -41,7 +42,7 @@ export async function createOrganization(
 
 export async function updateOrganizationSettings(
   organizationId: string,
-  settings: { name?: string; description?: string; theme?: ThemeConfig | null }
+  settings: { name?: string; description?: string; theme?: ThemeConfig | null; photoURL?: string }
 ): Promise<CommandResult> {
   try {
     await updateOrganizationSettingsFacade(organizationId, settings);
@@ -52,6 +53,13 @@ export async function updateOrganizationSettings(
       err instanceof Error ? err.message : "Failed to update organization settings"
     );
   }
+}
+
+export async function uploadOrganizationAvatar(
+  organizationId: string,
+  file: File
+): Promise<string> {
+  return uploadOrganizationAvatarFacade(organizationId, file);
 }
 
 export async function deleteOrganization(organizationId: string): Promise<CommandResult> {

@@ -29,6 +29,7 @@ import {
   updateWorkspaceLocation as updateWorkspaceLocationFacade,
   deleteWorkspaceLocation as deleteWorkspaceLocationFacade,
 } from "@/shared-infra/frontend-firebase/firestore/firestore.facade"
+import { uploadWorkspaceAvatar as uploadWorkspaceAvatarFacade } from "@/shared-infra/frontend-firebase/storage/storage.facade"
 import {
   type CommandResult,
   commandSuccess,
@@ -141,6 +142,7 @@ export async function updateWorkspaceSettings(
     lifecycleState: WorkspaceLifecycleState
     address?: Address
     personnel?: WorkspacePersonnel
+    photoURL?: string
   }
 ): Promise<CommandResult> {
   try {
@@ -150,6 +152,13 @@ export async function updateWorkspaceSettings(
     const message = err instanceof Error ? err.message : String(err);
     return commandFailureFrom('WORKSPACE_SETTINGS_UPDATE_FAILED', message);
   }
+}
+
+export async function uploadWorkspaceAvatar(
+  workspaceId: string,
+  file: File
+): Promise<string> {
+  return uploadWorkspaceAvatarFacade(workspaceId, file)
 }
 
 export async function deleteWorkspace(workspaceId: string): Promise<CommandResult> {

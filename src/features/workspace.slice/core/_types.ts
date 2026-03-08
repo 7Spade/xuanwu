@@ -51,6 +51,7 @@ export interface Workspace {
   id: string;
   dimensionId: string; // The ID of the User or Organization this workspace belongs to.
   name: string;
+  photoURL?: string;
   lifecycleState: WorkspaceLifecycleState;
   visibility: 'visible' | 'hidden';
   scope: string[];

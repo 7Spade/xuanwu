@@ -202,6 +202,7 @@ export const updateWorkspaceSettings = async (
     lifecycleState: WorkspaceLifecycleState;
     address?: Address;
     personnel?: WorkspacePersonnel;
+    photoURL?: string;
   }
 ): Promise<void> => {
   return updateDocument(`workspaces/${workspaceId}`, settings);

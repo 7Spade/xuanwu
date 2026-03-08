@@ -1,9 +1,10 @@
 // [職責] 空間設定對話框
 "use client";
 
-import { HardHat, ShieldCheck, User2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { HardHat, Loader2, ShieldCheck, Upload, User2 } from "lucide-react";
+import { useState, useEffect, useRef, type ChangeEvent } from "react";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn-ui/avatar";
 import { Button } from "@/shadcn-ui/button";
 import {
   Dialog,
@@ -14,6 +15,7 @@ import {
 } from "@/shadcn-ui/dialog";
 import { Input } from "@/shadcn-ui/input";
 import { Label } from "@/shadcn-ui/label";
+import { toast } from "@/shadcn-ui/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -35,8 +37,11 @@ interface WorkspaceSettingsDialogProps {
     lifecycleState: WorkspaceLifecycleState;
     address?: Address;
     personnel?: WorkspacePersonnel;
+    photoURL?: string;
   }) => Promise<void>;
+  onUploadAvatar: (file: File) => Promise<string>;
   loading: boolean;
+  isUploadingAvatar: boolean;
 }
 
 const EMPTY_ADDRESS: Address = { street: "", city: "", state: "", postalCode: "", country: "" };
@@ -46,19 +51,24 @@ export function WorkspaceSettingsDialog({
   open,
   onOpenChange,
   onSave,
+  onUploadAvatar,
   loading,
+  isUploadingAvatar,
 }: WorkspaceSettingsDialogProps) {
   const [name, setName] = useState(workspace.name);
+  const [photoURL, setPhotoURL] = useState(workspace.photoURL || "");
   const [visibility, setVisibility] = useState(workspace.visibility);
   const [lifecycleState, setLifecycleState] = useState<WorkspaceLifecycleState>(
     workspace.lifecycleState
   );
   const [address, setAddress] = useState<Address>(workspace.address || EMPTY_ADDRESS);
   const [personnel, setPersonnel] = useState<WorkspacePersonnel>(workspace.personnel || {});
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (workspace) {
       setName(workspace.name);
+      setPhotoURL(workspace.photoURL || "");
       setVisibility(workspace.visibility);
       setLifecycleState(workspace.lifecycleState);
       setAddress(workspace.address || EMPTY_ADDRESS);
@@ -75,7 +85,24 @@ export function WorkspaceSettingsDialog({
   };
 
   const handleSave = () => {
-    onSave({ name, visibility, lifecycleState, address, personnel });
+    onSave({ name, visibility, lifecycleState, address, personnel, photoURL });
+  };
+
+  const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const uploadedPhotoURL = await onUploadAvatar(file);
+      setPhotoURL(uploadedPhotoURL);
+    } catch (error: unknown) {
+      toast({
+        variant: "destructive",
+        title: "Failed to upload avatar",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+      });
+    }
+    event.target.value = "";
   };
 
   return (
@@ -87,6 +114,35 @@ export function WorkspaceSettingsDialog({
           </DialogTitle>
         </DialogHeader>
         <div className="max-h-[70vh] space-y-6 overflow-y-auto py-4 pr-4">
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <Avatar className="size-20 border-2 border-primary/20">
+                <AvatarImage src={photoURL} />
+                <AvatarFallback className="bg-primary/5 text-2xl font-bold text-primary">
+                  {name?.[0] ?? "W"}
+                </AvatarFallback>
+              </Avatar>
+              {isUploadingAvatar ? (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background/50">
+                  <Loader2 className="animate-spin text-primary" />
+                </div>
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <Button onClick={() => avatarInputRef.current?.click()} disabled={isUploadingAvatar || loading}>
+                <Upload className="mr-2 size-4" /> Upload Image
+              </Button>
+              <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB.</p>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
               Workspace Node Name
@@ -226,7 +282,7 @@ export function WorkspaceSettingsDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={loading}>
+          <Button onClick={handleSave} disabled={loading || isUploadingAvatar}>
             {loading ? 'Saving...' : 'Save Changes'}
             </Button>
         </DialogFooter>

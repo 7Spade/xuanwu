@@ -5,6 +5,7 @@ import { Globe, MoreVertical, Users, ArrowUpRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { useApp } from "@/app-runtime/providers/app-provider"
+import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn-ui/avatar"
 import { Button } from "@/shadcn-ui/button"
 import {
   Card,
@@ -38,9 +39,12 @@ function AccountCard({ account }: { account: Account }) {
       >
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <div className="rounded-xl bg-primary/5 p-2.5 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-              <Globe className="size-5" />
-            </div>
+            <Avatar className="size-10 border border-primary/20">
+              <AvatarImage src={account.photoURL} />
+              <AvatarFallback className="bg-primary/5 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                {account.name?.[0]?.toUpperCase() || "O"}
+              </AvatarFallback>
+            </Avatar>
             <Button 
               variant="ghost" 
               size="icon" 

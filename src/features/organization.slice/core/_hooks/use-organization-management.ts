@@ -10,6 +10,7 @@ import {
   createOrganization as createOrganizationAction,
   updateOrganizationSettings as updateOrganizationSettingsAction,
   deleteOrganization as deleteOrganizationAction,
+  uploadOrganizationAvatar as uploadOrganizationAvatarAction,
 } from '../_actions';
 
 export function useOrganizationManagement() {
@@ -27,11 +28,18 @@ export function useOrganizationManagement() {
     return result.aggregateId;
   }, [user]);
 
-  const updateOrganizationSettings = useCallback(async (settings: { name?: string; description?: string; theme?: ThemeConfig | null; }) => {
+  const updateOrganizationSettings = useCallback(async (settings: { name?: string; description?: string; theme?: ThemeConfig | null; photoURL?: string; }) => {
     if (!organizationId) throw new Error('No active organization selected');
     const result = await updateOrganizationSettingsAction(organizationId, settings);
     if (!result.success) throw new Error(result.error.message);
   }, [organizationId]);
+
+  const uploadAvatar = useCallback(async (file: File): Promise<string> => {
+    if (!organizationId) throw new Error('No active organization selected');
+    const photoURL = await uploadOrganizationAvatarAction(organizationId, file);
+    await updateOrganizationSettings({ photoURL });
+    return photoURL;
+  }, [organizationId, updateOrganizationSettings]);
 
   const deleteOrganization = useCallback(async () => {
     if (!organizationId) throw new Error('No active organization selected');
@@ -43,5 +51,6 @@ export function useOrganizationManagement() {
     createOrganization,
     updateOrganizationSettings,
     deleteOrganization,
+    uploadAvatar,
   };
 }

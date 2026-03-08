@@ -31,6 +31,7 @@ import {
 } from "@/shadcn-ui/alert-dialog";
 import { Badge } from "@/shadcn-ui/badge";
 import { Button } from "@/shadcn-ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn-ui/avatar";
 import {
   Card,
   CardContent,
@@ -43,7 +44,7 @@ import { toast } from "@/shadcn-ui/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn-ui/tooltip";
 import { ROUTES } from "@/shared-kernel/constants/routes";
 
-import { deleteWorkspace, updateWorkspaceSettings } from "../_actions";
+import { deleteWorkspace, updateWorkspaceSettings, uploadWorkspaceAvatar } from "../_actions";
 import type { Workspace, WorkspaceLifecycleState, Address, WorkspacePersonnel } from "../_types";
 
 
@@ -124,6 +125,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
   const [isDestroying, setIsDestroying] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   /* Optimistic visibility toggle ─────────────────────────────── */
   const [optimisticVisibility, setOptimisticVisibility] = useState<
@@ -141,6 +143,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
         lifecycleState: workspace.lifecycleState,
         address: workspace.address,
         personnel: workspace.personnel,
+        photoURL: workspace.photoURL,
       });
       if (!result.success) {
         setOptimisticVisibility(optimisticVisibility); // rollback
@@ -157,6 +160,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
     lifecycleState: WorkspaceLifecycleState;
     address?: Address;
     personnel?: WorkspacePersonnel;
+    photoURL?: string;
   }) => {
     setIsSavingSettings(true);
     const result = await updateWorkspaceSettings(workspace.id, settings);
@@ -167,6 +171,32 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
     }
     toast({ title: "Space settings synchronized" });
     setIsSettingsOpen(false);
+  };
+
+  const handleAvatarUpload = async (file: File): Promise<string> => {
+    setIsUploadingAvatar(true);
+    try {
+      const photoURL = await uploadWorkspaceAvatar(workspace.id, file);
+      const result = await updateWorkspaceSettings(workspace.id, {
+        name: workspace.name,
+        visibility: optimisticVisibility,
+        lifecycleState: workspace.lifecycleState,
+        address: workspace.address,
+        personnel: workspace.personnel,
+        photoURL,
+      });
+      if (!result.success) {
+        throw new Error(result.error.message);
+      }
+      toast({ title: "Avatar updated successfully" });
+      return photoURL;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast({ variant: "destructive", title: "Failed to upload avatar", description: message });
+      throw error instanceof Error ? error : new Error(message);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   /* Destroy ───────────────────────────────────────────────────── */
@@ -203,10 +233,13 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
         {/* ── Card Header ─────────────────────────────────────── */}
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            {/* Left: workspace icon */}
-            <div className="rounded-xl bg-primary/5 p-2.5 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-              <Shield className="size-5" />
-            </div>
+            {/* Left: workspace avatar */}
+            <Avatar className="size-10 border border-primary/20">
+              <AvatarImage src={workspace.photoURL} />
+              <AvatarFallback className="bg-primary/5 text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                {workspace.name?.[0] ?? <Shield className="size-5" />}
+              </AvatarFallback>
+            </Avatar>
 
             {/* Right: visibility toggle + settings + delete (separate, single-responsibility) */}
             <div className="flex items-center gap-1">
@@ -406,7 +439,9 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
         open={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
         onSave={handleSettingsSave}
+        onUploadAvatar={handleAvatarUpload}
         loading={isSavingSettings}
+        isUploadingAvatar={isUploadingAvatar}
       />
 
       {/* ── Destroy Space confirmation ─────────────────────────── */}

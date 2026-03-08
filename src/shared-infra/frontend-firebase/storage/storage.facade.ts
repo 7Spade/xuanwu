@@ -66,6 +66,40 @@ export const uploadProfilePicture = async (
 };
 
 /**
+ * Uploads an organization's avatar image.
+ * @param organizationId The organization account ID.
+ * @param file The image file to upload.
+ * @returns A promise that resolves with the public download URL.
+ */
+export const uploadOrganizationAvatar = async (
+  organizationId: string,
+  file: File
+): Promise<string> => {
+  const storagePath = `organization-profiles/${organizationId}/avatar.jpg`;
+
+  await uploadFile(storagePath, file, { contentType: 'image/jpeg' });
+
+  return getFileDownloadURL(storagePath);
+};
+
+/**
+ * Uploads a workspace avatar image.
+ * @param workspaceId The workspace ID.
+ * @param file The image file to upload.
+ * @returns A promise that resolves with the public download URL.
+ */
+export const uploadWorkspaceAvatar = async (
+  workspaceId: string,
+  file: File
+): Promise<string> => {
+  const storagePath = `workspace-profiles/${workspaceId}/avatar.jpg`;
+
+  await uploadFile(storagePath, file, { contentType: 'image/jpeg' });
+
+  return getFileDownloadURL(storagePath);
+};
+
+/**
  * Uploads a raw workspace document to Firebase Storage under a versioned path.
  * Returns both the download URL and the storage path for external reference.
  *
